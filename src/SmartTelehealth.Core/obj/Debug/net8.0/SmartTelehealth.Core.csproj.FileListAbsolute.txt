@@ -1,0 +1,13 @@
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\bin\Debug\net8.0\SmartTelehealth.Core.deps.json
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\bin\Debug\net8.0\SmartTelehealth.Core.dll
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\bin\Debug\net8.0\SmartTelehealth.Core.pdb
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\obj\Debug\net8.0\SmartTelehealth.Core.csproj.AssemblyReference.cache
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\obj\Debug\net8.0\SmartTelehealth.Core.GeneratedMSBuildEditorConfig.editorconfig
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\obj\Debug\net8.0\SmartTelehealth.Core.AssemblyInfoInputs.cache
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\obj\Debug\net8.0\SmartTelehealth.Core.AssemblyInfo.cs
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\obj\Debug\net8.0\SmartTelehealth.Core.csproj.CoreCompileInputs.cache
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\obj\Debug\net8.0\SmartTelehealth.Core.sourcelink.json
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\obj\Debug\net8.0\SmartTelehealth.Core.dll
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\obj\Debug\net8.0\refint\SmartTelehealth.Core.dll
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\obj\Debug\net8.0\SmartTelehealth.Core.pdb
+E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Core\obj\Debug\net8.0\ref\SmartTelehealth.Core.dll

@@ -1,0 +1,53 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace SmartTelehealth.Core.Entities;
+
+public class Category : BaseEntity
+{
+    [Required]
+    [MaxLength(100)]
+    public string Name { get; set; } = string.Empty;
+    
+    [MaxLength(500)]
+    public string? Description { get; set; }
+    
+    [MaxLength(100)]
+    public string? Icon { get; set; }
+    
+    [MaxLength(100)]
+    public string? Color { get; set; }
+    
+    public bool IsActive { get; set; } = true;
+    
+    public int DisplayOrder { get; set; }
+    
+    [MaxLength(1000)]
+    public string? Features { get; set; } // JSON string of features
+    
+    [MaxLength(500)]
+    public string? ConsultationDescription { get; set; }
+    
+    public decimal BasePrice { get; set; }
+    
+    public decimal ConsultationFee { get; set; }
+    
+    public int ConsultationDurationMinutes { get; set; } = 30;
+    
+    public bool RequiresHealthAssessment { get; set; } = true;
+    
+    public bool AllowsMedicationDelivery { get; set; } = true;
+    
+    public bool AllowsFollowUpMessaging { get; set; } = true;
+    
+    public bool AllowsOneTimeConsultation { get; set; } = true;
+    
+    public decimal OneTimeConsultationFee { get; set; }
+    
+    public int OneTimeConsultationDurationMinutes { get; set; } = 30;
+    
+    // Navigation properties
+    public virtual ICollection<SubscriptionPlan> SubscriptionPlans { get; set; } = new List<SubscriptionPlan>();
+    public virtual ICollection<ProviderCategory> ProviderCategories { get; set; } = new List<ProviderCategory>();
+    public virtual ICollection<HealthAssessment> HealthAssessments { get; set; } = new List<HealthAssessment>();
+    public virtual ICollection<Consultation> Consultations { get; set; } = new List<Consultation>();
+} 

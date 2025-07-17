@@ -254,4 +254,3 @@ E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.API\obj\Deb
 E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.API\obj\Debug\net8.0\SmartTelehealth.API.pdb
 E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.API\obj\Debug\net8.0\SmartTelehealth.API.genruntimeconfig.cache
 E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.API\obj\Debug\net8.0\ref\SmartTelehealth.API.dll
-E:\.Net Projects\TeleHealthWithSubscriptionModel\src\SmartTelehealth.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

@@ -8,7 +8,8 @@ public class SubscriptionPayment : BaseEntity
     public virtual Subscription Subscription { get; set; } = null!;
     
     public decimal Amount { get; set; }
-    public string Currency { get; set; } = "USD";
+    public Guid CurrencyId { get; set; }
+    public virtual MasterCurrency Currency { get; set; } = null!;
     public string Description { get; set; } = string.Empty;
     
     public PaymentStatus Status { get; set; } = PaymentStatus.Pending;

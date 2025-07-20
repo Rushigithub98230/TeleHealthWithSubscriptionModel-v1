@@ -215,10 +215,10 @@ public class PdfService : IPdfService
                 table.Cell().Text(subscription.NextBillingDate.ToString("MMM dd, yyyy"));
 
                 table.Cell().Text("Current Price:").Bold();
-                table.Cell().Text($"${subscription.CurrentPrice:F2}");
+                table.Cell().Text($"${subscription.Price:F2}");
 
                 table.Cell().Text("Billing Frequency:").Bold();
-                table.Cell().Text(subscription.BillingFrequency.ToString());
+                table.Cell().Text(subscription.BillingCycleId.ToString());
             });
 
             // Usage Statistics

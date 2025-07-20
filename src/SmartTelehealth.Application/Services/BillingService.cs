@@ -347,7 +347,7 @@ namespace SmartTelehealth.Application.Services
 
                 decimal price = subscription.CurrentPrice;
                 string planName = subscription.SubscriptionPlan.Name;
-                string billingCycle = subscription.BillingFrequency.ToString();
+                string billingCycle = subscription.BillingCycle.Name; // Use BillingCycle.Name
 
                 var billingRecord = new BillingRecord
                 {
@@ -645,26 +645,20 @@ namespace SmartTelehealth.Application.Services
                     return ApiResponse<PaymentScheduleDto>.ErrorResponse("Subscription not found", 404);
                 }
 
-                int planDuration = 0;
-                switch (subscription.BillingFrequency)
+                // Use the BillingCycle navigation property
+                var billingCycleName = subscription.BillingCycle?.Name ?? "Monthly";
+                int planDuration = billingCycleName switch
                 {
-                    case Core.Entities.Subscription.SubscriptionBillingFrequency.Annual:
-                        planDuration = 12;
-                        break;
-                    case Core.Entities.Subscription.SubscriptionBillingFrequency.Quarterly:
-                        planDuration = 4;
-                        break;
-                    case Core.Entities.Subscription.SubscriptionBillingFrequency.Monthly:
-                    default:
-                        planDuration = 1;
-                        break;
-                }
+                    "Annual" => 12,
+                    "Quarterly" => 4,
+                    _ => 1
+                };
 
                 var schedule = new PaymentScheduleDto
                 {
                     SubscriptionId = subscriptionId,
                     SubscriptionName = subscription.SubscriptionPlan.Name,
-                    BillingCycle = subscription.BillingFrequency.ToString(),
+                    BillingCycle = billingCycleName,
                     Amount = subscription.CurrentPrice,
                     StartDate = subscription.StartDate,
                     EndDate = subscription.EndDate,
@@ -736,21 +730,12 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetBillingCycleRecordsAsync(Guid billingCycleId)
-        {
-            try
-            {
-                // TODO: Implement billing cycle records retrieval
-                var billingRecords = new List<BillingRecord>();
-                var billingRecordDtos = _mapper.Map<IEnumerable<BillingRecordDto>>(billingRecords);
-                return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(billingRecordDtos, "Billing cycle records retrieved successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting billing cycle records for cycle {BillingCycleId}", billingCycleId);
-                return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Error retrieving billing cycle records", 500);
-            }
-        }
+        // Remove or comment out GetBillingCycleRecordsAsync and related logic, as this method does not exist in the repository
+        // public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetBillingCycleRecordsAsync(Guid billingCycleId)
+        // {
+        //     // Not implemented: No such method in repository
+        //     return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Not implemented", 501);
+        // }
 
         public async Task<ApiResponse<BillingRecordDto>> ProcessBillingCycleAsync(Guid billingCycleId)
         {

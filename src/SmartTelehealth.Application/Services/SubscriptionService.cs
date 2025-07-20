@@ -17,6 +17,8 @@ public class SubscriptionService : ISubscriptionService
     private readonly INotificationService _notificationService;
     private readonly IAuditService _auditService;
     private readonly IUserService _userService;
+    private readonly ISubscriptionPlanPrivilegeRepository _planPrivilegeRepo;
+    private readonly IUserSubscriptionPrivilegeUsageRepository _usageRepo;
 
     public SubscriptionService(
         ISubscriptionRepository subscriptionRepository,
@@ -25,7 +27,9 @@ public class SubscriptionService : ISubscriptionService
         PrivilegeService privilegeService,
         INotificationService notificationService,
         IAuditService auditService,
-        IUserService userService)
+        IUserService userService,
+        ISubscriptionPlanPrivilegeRepository planPrivilegeRepo,
+        IUserSubscriptionPrivilegeUsageRepository usageRepo)
     {
         _subscriptionRepository = subscriptionRepository;
         _mapper = mapper;
@@ -34,6 +38,8 @@ public class SubscriptionService : ISubscriptionService
         _notificationService = notificationService;
         _auditService = auditService;
         _userService = userService;
+        _planPrivilegeRepo = planPrivilegeRepo;
+        _usageRepo = usageRepo;
     }
 
     public async Task<ApiResponse<SubscriptionDto>> GetSubscriptionAsync(string subscriptionId)
@@ -62,11 +68,11 @@ public class SubscriptionService : ISubscriptionService
 
         // 2. Prevent duplicate subscriptions for the same user and plan (active or paused)
         var userSubscriptions = await _subscriptionRepository.GetByUserIdAsync(Guid.Parse(createDto.UserId));
-        if (userSubscriptions.Any(s => s.SubscriptionPlanId == plan.Id && (s.Status == Subscription.SubscriptionStatus.Active || s.Status == Subscription.SubscriptionStatus.Paused)))
+        if (userSubscriptions.Any(s => s.SubscriptionPlanId == plan.Id && (s.Status == "Active" || s.Status == "Paused")))
             return ApiResponse<SubscriptionDto>.ErrorResponse("User already has an active or paused subscription for this plan");
 
         var entity = _mapper.Map<Subscription>(createDto);
-        entity.Status = Subscription.SubscriptionStatus.Active;
+        entity.Status = "Active";
         entity.StartDate = DateTime.UtcNow;
         entity.NextBillingDate = DateTime.UtcNow.AddMonths(1);
         var created = await _subscriptionRepository.CreateAsync(entity);
@@ -87,9 +93,9 @@ public class SubscriptionService : ISubscriptionService
         if (entity == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
         // 3. Prevent cancelling an already cancelled subscription
-        if (entity.Status == Subscription.SubscriptionStatus.Cancelled)
+        if (entity.Status == "Cancelled")
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription is already cancelled");
-        entity.Status = Subscription.SubscriptionStatus.Cancelled;
+        entity.Status = "Cancelled";
         entity.CancellationReason = reason;
         entity.CancelledDate = DateTime.UtcNow;
         var updated = await _subscriptionRepository.UpdateAsync(entity);
@@ -107,11 +113,11 @@ public class SubscriptionService : ISubscriptionService
         if (entity == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
         // 4. Prevent pausing if already paused or cancelled
-        if (entity.Status == Subscription.SubscriptionStatus.Paused)
+        if (entity.Status == "Paused")
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription is already paused");
-        if (entity.Status == Subscription.SubscriptionStatus.Cancelled)
+        if (entity.Status == "Cancelled")
             return ApiResponse<SubscriptionDto>.ErrorResponse("Cannot pause a cancelled subscription");
-        entity.Status = Subscription.SubscriptionStatus.Paused;
+        entity.Status = "Paused";
         entity.PausedDate = DateTime.UtcNow;
         var updated = await _subscriptionRepository.UpdateAsync(entity);
         var dto = _mapper.Map<SubscriptionDto>(updated);
@@ -128,9 +134,9 @@ public class SubscriptionService : ISubscriptionService
         if (entity == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
         // 4. Prevent resuming if not paused
-        if (entity.Status != Subscription.SubscriptionStatus.Paused)
+        if (entity.Status != "Paused")
             return ApiResponse<SubscriptionDto>.ErrorResponse("Only paused subscriptions can be resumed");
-        entity.Status = Subscription.SubscriptionStatus.Active;
+        entity.Status = "Active";
         entity.ResumedAt = DateTime.UtcNow;
         var updated = await _subscriptionRepository.UpdateAsync(entity);
         var dto = _mapper.Map<SubscriptionDto>(updated);
@@ -160,7 +166,7 @@ public class SubscriptionService : ISubscriptionService
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
-        entity.Status = Subscription.SubscriptionStatus.Active;
+        entity.Status = "Active";
         entity.UpdatedAt = DateTime.UtcNow;
         var updated = await _subscriptionRepository.UpdateAsync(entity);
         return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(updated), "Subscription reactivated");
@@ -250,19 +256,19 @@ public class SubscriptionService : ISubscriptionService
         var allSubscriptions = await _subscriptionRepository.GetAllSubscriptionsAsync();
         var analytics = new SubscriptionAnalyticsDto
         {
-            ActiveSubscriptions = allSubscriptions.Count(s => s.Status == Subscription.SubscriptionStatus.Active),
-            CancelledSubscriptions = allSubscriptions.Count(s => s.Status == Subscription.SubscriptionStatus.Cancelled),
-            PausedSubscriptions = allSubscriptions.Count(s => s.Status == Subscription.SubscriptionStatus.Paused),
+            ActiveSubscriptions = allSubscriptions.Count(s => s.Status == "Active"),
+            CancelledSubscriptions = allSubscriptions.Count(s => s.Status == "Cancelled"),
+            PausedSubscriptions = allSubscriptions.Count(s => s.Status == "Paused"),
             TotalSubscriptions = allSubscriptions.Count(),
             NewSubscriptionsThisMonth = allSubscriptions.Count(s => s.StartDate >= new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)),
-            ChurnRate = allSubscriptions.Count(s => s.Status == Subscription.SubscriptionStatus.Cancelled) / (decimal)allSubscriptions.Count(),
+            ChurnRate = allSubscriptions.Count(s => s.Status == "Cancelled") / (decimal)allSubscriptions.Count(),
             AverageSubscriptionValue = allSubscriptions.Any() ? allSubscriptions.Average(s => s.CurrentPrice) : 0,
             TotalRevenue = allSubscriptions.Sum(s => s.CurrentPrice),
             MonthlyRevenue = allSubscriptions.Where(s => s.StartDate >= DateTime.UtcNow.AddMonths(-1)).Sum(s => s.CurrentPrice),
             YearlyRevenue = allSubscriptions.Where(s => s.StartDate >= DateTime.UtcNow.AddYears(-1)).Sum(s => s.CurrentPrice),
             MonthlyGrowth = 0, // Placeholder
             SubscriptionsByPlan = allSubscriptions.GroupBy(s => s.SubscriptionPlan.Name).ToDictionary(g => g.Key, g => g.Count()),
-            SubscriptionsByStatus = allSubscriptions.GroupBy(s => s.Status.ToString()).ToDictionary(g => g.Key, g => g.Count()),
+            SubscriptionsByStatus = allSubscriptions.GroupBy(s => s.Status).ToDictionary(g => g.Key, g => g.Count()),
             TopCategories = new List<CategoryAnalyticsDto>() // Placeholder
         };
         return ApiResponse<SubscriptionAnalyticsDto>.SuccessResponse(analytics);
@@ -287,7 +293,7 @@ public class SubscriptionService : ISubscriptionService
             var sub = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (sub != null)
             {
-                sub.Status = Subscription.SubscriptionStatus.Active;
+                sub.Status = "Active";
                 await _subscriptionRepository.UpdateAsync(sub);
                 var userResult = await _userService.GetUserByIdAsync(sub.UserId.ToString());
                 if (userResult.Success && userResult.Data != null)
@@ -311,12 +317,12 @@ public class SubscriptionService : ISubscriptionService
             {
                 Name = createPlanDto.Name,
                 Description = createPlanDto.Description,
-                MonthlyPrice = createPlanDto.MonthlyPrice,
-                QuarterlyPrice = createPlanDto.QuarterlyPrice,
-                AnnualPrice = createPlanDto.AnnualPrice,
+                Price = createPlanDto.Price,
+                BillingCycleId = createPlanDto.BillingCycleId,
+                CurrencyId = createPlanDto.CurrencyId,
                 IsActive = createPlanDto.IsActive,
                 DisplayOrder = createPlanDto.DisplayOrder,
-                CategoryId = createPlanDto.CategoryId
+                // PlanPrivileges will be added later or via a separate call
             };
             var created = await _subscriptionRepository.CreateSubscriptionPlanAsync(plan);
             return ApiResponse<SubscriptionPlanDto>.SuccessResponse(_mapper.Map<SubscriptionPlanDto>(created), "Plan created");
@@ -337,7 +343,7 @@ public class SubscriptionService : ISubscriptionService
             plan.Name = updatePlanDto.Name;
             plan.Description = updatePlanDto.Description;
             plan.IsActive = updatePlanDto.IsActive;
-            plan.MonthlyPrice = updatePlanDto.MonthlyPrice;
+            // Remove updates to Price, BillingCycleId, CurrencyId, etc., as they are not present in the DTO
             var updated = await _subscriptionRepository.UpdateSubscriptionPlanAsync(plan);
             return ApiResponse<SubscriptionPlanDto>.SuccessResponse(_mapper.Map<SubscriptionPlanDto>(updated), "Plan updated");
         }
@@ -479,7 +485,7 @@ public class SubscriptionService : ISubscriptionService
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
             return ApiResponse<PaymentResultDto>.ErrorResponse("Subscription not found");
-        entity.Status = Subscription.SubscriptionStatus.Paused; // Or a custom 'PaymentFailed' status
+        entity.Status = "Paused"; // Or a custom 'PaymentFailed' status
         entity.UpdatedAt = DateTime.UtcNow;
         await _subscriptionRepository.UpdateAsync(entity);
         // Send payment failed email
@@ -509,7 +515,7 @@ public class SubscriptionService : ISubscriptionService
                 var billingRecord = new BillingRecordDto { Amount = paymentRequest.Amount, PaidDate = DateTime.UtcNow, Description = "Retry Payment" };
                 await _notificationService.SendPaymentSuccessEmailAsync(userResult.Data.Email, userResult.Data.FullName, billingRecord);
             }
-            entity.Status = Subscription.SubscriptionStatus.Active;
+            entity.Status = "Active";
             entity.UpdatedAt = DateTime.UtcNow;
             await _subscriptionRepository.UpdateAsync(entity);
             // TODO: Trigger notification to user
@@ -527,7 +533,7 @@ public class SubscriptionService : ISubscriptionService
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
-        if (entity.Status != Subscription.SubscriptionStatus.Active)
+        if (entity.Status != "Active")
             return ApiResponse<SubscriptionDto>.ErrorResponse("Only active subscriptions can be auto-renewed");
         // Simulate payment
         var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), entity.CurrentPrice, "USD");
@@ -567,9 +573,9 @@ public class SubscriptionService : ISubscriptionService
         var newPlan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(newPlanId));
         if (oldPlan == null || newPlan == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Plan not found");
-        // In proration, use MonthlyPrice for now (could be extended for Quarterly/Annual)
-        var credit = (decimal)(daysLeft / 30.0) * oldPlan.MonthlyPrice;
-        var charge = newPlan.MonthlyPrice - credit;
+        // In proration, use Price and BillingCycleId
+        var credit = (decimal)(daysLeft / 30.0) * oldPlan.Price; // Assuming Price is the monthly price
+        var charge = newPlan.Price - credit;
         // Simulate payment for the difference
         var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), charge, "USD");
         if (paymentResult.Status == "succeeded")
@@ -592,14 +598,16 @@ public class SubscriptionService : ISubscriptionService
     public async Task<ApiResponse<bool>> CanUsePrivilegeAsync(string subscriptionId, string privilegeName)
     {
         var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
-        if (subscription == null || subscription.Status != Subscription.SubscriptionStatus.Active)
+        if (subscription == null || subscription.Status != "Active")
             return ApiResponse<bool>.ErrorResponse("Subscription not active");
-        var planPrivilege = subscription.SubscriptionPlan.PlanPrivileges.FirstOrDefault(p => p.Privilege.Name == privilegeName);
+        var planPrivileges = await _planPrivilegeRepo.GetByPlanIdAsync(subscription.SubscriptionPlanId);
+        var planPrivilege = planPrivileges.FirstOrDefault(p => p.Privilege.Name == privilegeName);
         if (planPrivilege == null)
             return ApiResponse<bool>.ErrorResponse("Privilege not included in plan");
-        var usage = subscription.PrivilegeUsages.FirstOrDefault(u => u.Privilege.Name == privilegeName);
-        int used = usage != null ? int.Parse(usage.UsedValue) : 0;
-        int allowed = int.Parse(planPrivilege.Value);
+        var usages = await _usageRepo.GetBySubscriptionIdAsync(subscription.Id);
+        var usage = usages.FirstOrDefault(u => u.SubscriptionPlanPrivilegeId == planPrivilege.Id);
+        int used = usage?.UsedValue ?? 0;
+        int allowed = planPrivilege.Value;
         if (used >= allowed)
             return ApiResponse<bool>.ErrorResponse($"Usage limit reached for {privilegeName}");
         return ApiResponse<bool>.SuccessResponse(true);
@@ -610,25 +618,28 @@ public class SubscriptionService : ISubscriptionService
     {
         var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (subscription == null) return;
-        var usage = subscription.PrivilegeUsages.FirstOrDefault(u => u.Privilege.Name == privilegeName);
+        var planPrivileges = await _planPrivilegeRepo.GetByPlanIdAsync(subscription.SubscriptionPlanId);
+        var planPrivilege = planPrivileges.FirstOrDefault(p => p.Privilege.Name == privilegeName);
+        if (planPrivilege == null) return;
+        var usages = await _usageRepo.GetBySubscriptionIdAsync(subscription.Id);
+        var usage = usages.FirstOrDefault(u => u.SubscriptionPlanPrivilegeId == planPrivilege.Id);
         if (usage == null)
         {
-            var privilege = subscription.SubscriptionPlan.PlanPrivileges.FirstOrDefault(p => p.Privilege.Name == privilegeName)?.Privilege;
-            if (privilege == null) return;
             usage = new UserSubscriptionPrivilegeUsage
             {
                 SubscriptionId = subscription.Id,
-                PrivilegeId = privilege.Id,
-                UsedValue = "1"
+                SubscriptionPlanPrivilegeId = planPrivilege.Id,
+                UsedValue = 1,
+                UsagePeriodStart = DateTime.UtcNow,
+                UsagePeriodEnd = DateTime.UtcNow.AddMonths(1)
             };
-            subscription.PrivilegeUsages.Add(usage);
+            await _usageRepo.AddAsync(usage);
         }
         else
         {
-            int used = int.Parse(usage.UsedValue);
-            usage.UsedValue = (used + 1).ToString();
+            usage.UsedValue += 1;
+            await _usageRepo.UpdateAsync(usage);
         }
-        await _subscriptionRepository.UpdateAsync(subscription);
     }
 
     // Reset usage counters for all active subscriptions (to be called by a scheduler/cron job at billing cycle start)
@@ -637,11 +648,12 @@ public class SubscriptionService : ISubscriptionService
         var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync();
         foreach (var subscription in activeSubscriptions)
         {
-            foreach (var usage in subscription.PrivilegeUsages)
+            var usages = await _usageRepo.GetBySubscriptionIdAsync(subscription.Id);
+            foreach (var usage in usages)
             {
-                usage.UsedValue = "0";
+                usage.UsedValue = 0;
+                await _usageRepo.UpdateAsync(usage);
             }
-            await _subscriptionRepository.UpdateAsync(subscription);
         }
     }
 
@@ -651,12 +663,13 @@ public class SubscriptionService : ISubscriptionService
         var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync();
         foreach (var subscription in activeSubscriptions)
         {
-            foreach (var usage in subscription.PrivilegeUsages)
+            var usages = await _usageRepo.GetBySubscriptionIdAsync(subscription.Id);
+            foreach (var usage in usages)
             {
                 // For now, just reset to 0 at expiry; can be extended for carry-over logic
-                usage.UsedValue = "0";
+                usage.UsedValue = 0;
+                await _usageRepo.UpdateAsync(usage);
             }
-            await _subscriptionRepository.UpdateAsync(subscription);
         }
     }
 
@@ -682,9 +695,9 @@ public class SubscriptionService : ISubscriptionService
         foreach (var id in subscriptionIds)
         {
             var sub = await _subscriptionRepository.GetByIdAsync(Guid.Parse(id));
-            if (sub != null && sub.Status == Subscription.SubscriptionStatus.Active)
+            if (sub != null && sub.Status == "Active")
             {
-                sub.Status = Subscription.SubscriptionStatus.Cancelled;
+                sub.Status = "Cancelled";
                 sub.CancellationReason = reason ?? "Bulk admin cancel";
                 sub.CancelledDate = DateTime.UtcNow;
                 await _subscriptionRepository.UpdateAsync(sub);
@@ -705,7 +718,7 @@ public class SubscriptionService : ISubscriptionService
         foreach (var id in subscriptionIds)
         {
             var sub = await _subscriptionRepository.GetByIdAsync(Guid.Parse(id));
-            if (sub != null && sub.Status == Subscription.SubscriptionStatus.Active && sub.SubscriptionPlanId != Guid.Parse(newPlanId))
+            if (sub != null && sub.Status == "Active" && sub.SubscriptionPlanId != Guid.Parse(newPlanId))
             {
                 sub.SubscriptionPlanId = Guid.Parse(newPlanId);
                 sub.UpdatedAt = DateTime.UtcNow;

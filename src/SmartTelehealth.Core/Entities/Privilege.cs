@@ -11,11 +11,8 @@ public class Privilege : BaseEntity
     [MaxLength(500)]
     public string? Description { get; set; }
 
-    [MaxLength(50)]
-    public string DataType { get; set; } = "int"; // e.g., int, bool, string
-
-    [MaxLength(100)]
-    public string? DefaultValue { get; set; }
+    public Guid PrivilegeTypeId { get; set; }
+    public virtual MasterPrivilegeType PrivilegeType { get; set; } = null!;
 
     // Navigation
     public virtual ICollection<SubscriptionPlanPrivilege> PlanPrivileges { get; set; } = new List<SubscriptionPlanPrivilege>();

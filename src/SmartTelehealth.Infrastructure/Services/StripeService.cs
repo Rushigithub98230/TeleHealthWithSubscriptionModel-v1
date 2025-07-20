@@ -602,18 +602,18 @@ public class StripeService : IStripeService
     public Task<bool> UpdateSubscriptionPaymentMethodAsync(string subscriptionId, string paymentMethodId) => throw new NotImplementedException();
 
     // Helper Methods
-    private SmartTelehealth.Core.Entities.Subscription.SubscriptionStatus MapStripeStatusToEnum(string status)
+    private string MapStripeStatusToEnum(string status)
     {
         return status switch
         {
-            "active" => SmartTelehealth.Core.Entities.Subscription.SubscriptionStatus.Active,
-            "canceled" => SmartTelehealth.Core.Entities.Subscription.SubscriptionStatus.Cancelled,
-            "incomplete" => SmartTelehealth.Core.Entities.Subscription.SubscriptionStatus.Pending,
-            "incomplete_expired" => SmartTelehealth.Core.Entities.Subscription.SubscriptionStatus.Cancelled,
-            "past_due" => SmartTelehealth.Core.Entities.Subscription.SubscriptionStatus.PastDue,
-            "trialing" => SmartTelehealth.Core.Entities.Subscription.SubscriptionStatus.Active,
-            "unpaid" => SmartTelehealth.Core.Entities.Subscription.SubscriptionStatus.Pending,
-            _ => SmartTelehealth.Core.Entities.Subscription.SubscriptionStatus.Pending
+            "active" => "Active",
+            "canceled" => "Cancelled",
+            "incomplete" => "Pending",
+            "incomplete_expired" => "Cancelled",
+            "past_due" => "PastDue",
+            "trialing" => "Active",
+            "unpaid" => "Pending",
+            _ => "Pending"
         };
     }
 

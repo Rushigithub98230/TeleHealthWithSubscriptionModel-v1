@@ -669,11 +669,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
+      "projectUniqueName": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
       "projectName": "SmartTelehealth.Core",
-      "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
+      "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
       "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-      "outputPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\obj\\",
+      "outputPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

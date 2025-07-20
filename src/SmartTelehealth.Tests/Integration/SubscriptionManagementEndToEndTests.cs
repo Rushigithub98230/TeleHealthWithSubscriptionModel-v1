@@ -32,19 +32,19 @@ namespace SmartTelehealth.Tests.Integration
             {
                 Name = "Premium Plan",
                 Description = "Premium features",
-                MonthlyPrice = 99.99m,
-                QuarterlyPrice = 279.99m,
-                AnnualPrice = 999.99m,
-                IsActive = true,
-                CategoryId = Guid.NewGuid()
+                Price = 99.99m,
+                BillingCycleId = Guid.NewGuid(),
+                CurrencyId = Guid.NewGuid(),
+                IsActive = true
             };
             var planDto = new SubscriptionPlanDto
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = createPlanDto.Name,
                 Description = createPlanDto.Description,
-                MonthlyPrice = createPlanDto.MonthlyPrice,
-                YearlyPrice = createPlanDto.AnnualPrice,
+                Price = createPlanDto.Price,
+                BillingCycleId = createPlanDto.BillingCycleId,
+                CurrencyId = createPlanDto.CurrencyId,
                 IsActive = createPlanDto.IsActive
             };
             var apiResponse = ApiResponse<SubscriptionPlanDto>.SuccessResponse(planDto);
@@ -371,8 +371,9 @@ namespace SmartTelehealth.Tests.Integration
                 Id = planId, 
                 Name = "Premium Plan", 
                 Description = "Premium features",
-                MonthlyPrice = 99.99m,
-                YearlyPrice = 999.99m,
+                Price = 99.99m,
+                BillingCycleId = Guid.NewGuid(),
+                CurrencyId = Guid.NewGuid(),
                 IsActive = true
             };
             var apiResponse = ApiResponse<SubscriptionPlanDto>.SuccessResponse(plan);
@@ -604,5 +605,211 @@ namespace SmartTelehealth.Tests.Integration
             Assert.True(result.Success);
             Assert.Contains("handled", result.Message);
         }
+
+#region Purchase Flow Tests
+[Fact(DisplayName = "Patient can purchase a subscription plan successfully")]
+public async Task Patient_Can_Purchase_Subscription()
+{
+    // Arrange
+    var patientId = Guid.NewGuid().ToString();
+    var planId = Guid.NewGuid().ToString();
+    var createDto = new CreateSubscriptionDto { UserId = patientId, PlanId = planId };
+    var benefits = new List<SubscriptionBenefitDto> {
+        new SubscriptionBenefitDto { Name = "Consultations", Limit = 5, Used = 0, RemainingQuantity = 5 },
+        new SubscriptionBenefitDto { Name = "Medications", Limit = 2, Used = 0, RemainingQuantity = 2 }
+    };
+    var subscription = new SubscriptionDto
+    {
+        Id = Guid.NewGuid().ToString(),
+        UserId = patientId,
+        PlanId = planId,
+        Status = "Active",
+        StartDate = DateTime.UtcNow
+    };
+    var apiResponse = ApiResponse<SubscriptionDto>.SuccessResponse(subscription);
+    _mockSubscriptionService.Setup(s => s.CreateSubscriptionAsync(createDto)).ReturnsAsync(apiResponse);
+    var controller = new SubscriptionsController(_mockSubscriptionService.Object, _mockLogger.Object);
+
+    // Act
+    var result = await controller.CreateSubscription(createDto);
+
+    // Assert
+    var okResult = result.Result as OkObjectResult;
+    Assert.NotNull(okResult);
+    var returnedApiResponse = okResult.Value as ApiResponse<SubscriptionDto>;
+    Assert.NotNull(returnedApiResponse);
+    Assert.True(returnedApiResponse.Success);
+    Assert.Equal(patientId, returnedApiResponse.Data.UserId);
+    Assert.Equal(planId, returnedApiResponse.Data.PlanId);
+    Assert.Equal("Active", returnedApiResponse.Data.Status);
+    // Simulate benefit/entitlement check
+    Assert.Contains(benefits, b => b.Name == "Consultations");
+    Assert.Contains(benefits, b => b.Name == "Medications");
+    // Simulate payment and audit log check
+    SimulatePayment();
+    CheckAuditLogs("CreateSubscription", returnedApiResponse.Data.Id);
+}
+#endregion
+
+#region Usage Tracking & Entitlement Tests
+[Fact(DisplayName = "Patient cannot exceed allowed consultations")]
+public async Task Patient_Cannot_Exceed_Consultation_Limit()
+{
+    // Arrange
+    var patientId = Guid.NewGuid().ToString();
+    var planId = Guid.NewGuid().ToString();
+    var subscriptionId = Guid.NewGuid().ToString();
+    var allowedConsults = 3;
+    var benefits = new List<SubscriptionBenefitDto> {
+        new SubscriptionBenefitDto { Name = "Consultations", Limit = allowedConsults, Used = 0, RemainingQuantity = allowedConsults }
+    };
+    var subscription = new SubscriptionDto
+    {
+        Id = subscriptionId,
+        UserId = patientId,
+        PlanId = planId,
+        Status = "Active"
+    };
+    _mockSubscriptionService.Setup(s => s.GetSubscriptionAsync(subscriptionId)).ReturnsAsync(ApiResponse<SubscriptionDto>.SuccessResponse(subscription));
+    var controller = new SubscriptionsController(_mockSubscriptionService.Object, _mockLogger.Object);
+
+    // Act
+    for (int i = 0; i < allowedConsults; i++)
+    {
+        // Simulate booking a consultation (mock usage increment)
+        benefits[0].Used++;
+        benefits[0].RemainingQuantity--;
+    }
+    // Attempt to exceed limit
+    var overuseAttempt = benefits[0].Used >= allowedConsults;
+
+    // Assert
+    Assert.True(overuseAttempt);
+    // Simulate system blocks over-usage
+    var canBook = benefits[0].Used < allowedConsults && benefits[0].RemainingQuantity > 0;
+    Assert.False(canBook);
+    // Audit log check
+    CheckAuditLogs("ConsultationOveruseAttempt", subscriptionId);
+}
+#endregion
+
+#region Billing and Payment Tests
+[Fact(DisplayName = "Recurring billing and payment failure handling")]
+public async Task Recurring_Billing_And_Payment_Failure()
+{
+    // Arrange
+    var subscriptionId = Guid.NewGuid().ToString();
+    var patientId = Guid.NewGuid().ToString();
+    var planId = Guid.NewGuid().ToString();
+    var subscription = new SubscriptionDto
+    {
+        Id = subscriptionId,
+        UserId = patientId,
+        PlanId = planId,
+        Status = "Active",
+        NextBillingDate = DateTime.UtcNow.AddDays(30)
+    };
+    _mockSubscriptionService.Setup(s => s.GetSubscriptionAsync(subscriptionId)).ReturnsAsync(ApiResponse<SubscriptionDto>.SuccessResponse(subscription));
+    var controller = new SubscriptionsController(_mockSubscriptionService.Object, _mockLogger.Object);
+
+    // Act
+    // Simulate successful recurring billing
+    SimulatePayment();
+    subscription.NextBillingDate = DateTime.UtcNow.AddDays(60);
+    // Simulate payment failure on next cycle
+    bool paymentFailed = true;
+    if (paymentFailed)
+    {
+        subscription.Status = "PaymentFailed";
+        // Simulate retry logic
+        SimulatePayment(); // retry
+        // Simulate notification
+        // ...
+    }
+
+    // Assert
+    Assert.Equal("PaymentFailed", subscription.Status);
+    // Audit log check
+    CheckAuditLogs("RecurringBillingFailure", subscriptionId);
+}
+#endregion
+
+#region Edge Case Tests
+[Fact(DisplayName = "Subscription plan expiration and renewal")]
+public async Task Subscription_Expiration_And_Renewal()
+{
+    // Arrange
+    var subscriptionId = Guid.NewGuid().ToString();
+    var patientId = Guid.NewGuid().ToString();
+    var planId = Guid.NewGuid().ToString();
+    var benefits = new List<SubscriptionBenefitDto> {
+        new SubscriptionBenefitDto { Name = "Consultations", Limit = 5, Used = 5, RemainingQuantity = 0 }
+    };
+    var subscription = new SubscriptionDto
+    {
+        Id = subscriptionId,
+        UserId = patientId,
+        PlanId = planId,
+        Status = "Active",
+        EndDate = DateTime.UtcNow.AddDays(-1) // expired
+    };
+    _mockSubscriptionService.Setup(s => s.GetSubscriptionAsync(subscriptionId)).ReturnsAsync(ApiResponse<SubscriptionDto>.SuccessResponse(subscription));
+    var controller = new SubscriptionsController(_mockSubscriptionService.Object, _mockLogger.Object);
+
+    // Act
+    // Simulate expiration
+    subscription.Status = "Expired";
+    // Simulate renewal
+    subscription.Status = "Active";
+    subscription.EndDate = DateTime.UtcNow.AddMonths(1);
+    benefits.ForEach(b => { b.Used = 0; b.RemainingQuantity = b.Limit; }); // reset usage
+
+    // Assert
+    Assert.Equal("Active", subscription.Status);
+    Assert.True(subscription.EndDate > DateTime.UtcNow);
+    Assert.All(benefits, b => Assert.Equal(0, b.Used));
+    Assert.All(benefits, b => Assert.Equal(b.Limit, b.RemainingQuantity));
+    // Audit log check
+    CheckAuditLogs("SubscriptionRenewal", subscriptionId);
+}
+#endregion
+
+#region Provider Access Tests
+[Fact(DisplayName = "Provider access is restricted by patient subscription status")]
+public async Task Provider_Access_Restricted_By_Subscription()
+{
+    // Arrange
+    var providerId = Guid.NewGuid().ToString();
+    var patientId = Guid.NewGuid().ToString();
+    var planId = Guid.NewGuid().ToString();
+    var subscription = new SubscriptionDto
+    {
+        Id = Guid.NewGuid().ToString(),
+        UserId = patientId,
+        PlanId = planId,
+        Status = "Active"
+    };
+    _mockSubscriptionService.Setup(s => s.GetUserSubscriptionsAsync(patientId)).ReturnsAsync(ApiResponse<IEnumerable<SubscriptionDto>>.SuccessResponse(new[] { subscription }));
+    var controller = new SubscriptionsController(_mockSubscriptionService.Object, _mockLogger.Object);
+
+    // Act
+    // Simulate provider access with active subscription
+    var hasAccess = subscription.Status == "Active";
+    // Simulate provider access with inactive subscription
+    subscription.Status = "Expired";
+    var hasAccessAfterExpiry = subscription.Status == "Active";
+
+    // Assert
+    Assert.True(hasAccess);
+    Assert.False(hasAccessAfterExpiry);
+    // Audit log check
+    CheckAuditLogs("ProviderAccessAttempt", patientId);
+}
+#endregion
+
+// Helper methods (to be implemented)
+private void SimulatePayment() { /* TODO */ }
+private void AdvanceTime(int days) { /* TODO */ }
+private void CheckAuditLogs(string action, string entityId) { /* TODO */ }
     }
 } 

@@ -7,10 +7,9 @@ public class SubscriptionPlanDto
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public string CategoryId { get; set; } = string.Empty;
-    public string CategoryName { get; set; } = string.Empty;
-    public decimal MonthlyPrice { get; set; }
-    public decimal YearlyPrice { get; set; }
+    public decimal Price { get; set; }
+    public Guid BillingCycleId { get; set; }
+    public Guid CurrencyId { get; set; }
     public int TotalConsultations { get; set; }
     public int MaxConsultationsPerMonth { get; set; }
     public bool IncludesMedicationDelivery { get; set; }

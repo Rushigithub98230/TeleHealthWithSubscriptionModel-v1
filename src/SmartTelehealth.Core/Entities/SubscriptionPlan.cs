@@ -11,12 +11,6 @@ public class SubscriptionPlan : BaseEntity
     [MaxLength(500)]
     public string? Description { get; set; }
     
-    public decimal MonthlyPrice { get; set; }
-    
-    public decimal QuarterlyPrice { get; set; }
-    
-    public decimal AnnualPrice { get; set; }
-    
     public bool IsActive { get; set; } = true;
     
     public int DisplayOrder { get; set; }
@@ -32,8 +26,13 @@ public class SubscriptionPlan : BaseEntity
     public string? StripeAnnualPriceId { get; set; }
     
     // Foreign key
-    public Guid CategoryId { get; set; }
-    public virtual Category Category { get; set; } = null!;
+    public Guid BillingCycleId { get; set; }
+    public virtual MasterBillingCycle BillingCycle { get; set; } = null!;
+
+    public Guid CurrencyId { get; set; }
+    public virtual MasterCurrency Currency { get; set; } = null!;
+
+    public decimal Price { get; set; }
     
     // Navigation properties
     public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();

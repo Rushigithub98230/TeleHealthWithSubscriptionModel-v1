@@ -8630,6 +8630,37 @@
         }
       }
     },
+    "/api/stripe/test-payment": {
+      "post": {
+        "tags": [
+          "StripeTest"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartTelehealth.API.Controllers.PaymentMethodRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartTelehealth.API.Controllers.PaymentMethodRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartTelehealth.API.Controllers.PaymentMethodRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/api/StripeWebhook": {
       "post": {
         "tags": [
@@ -11469,6 +11500,15 @@
           "daysOverdue": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SmartTelehealth.API.Controllers.PaymentMethodRequest": {
+        "type": "object",
+        "properties": {
+          "paymentMethodId": {
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -14434,29 +14474,27 @@
             "type": "string"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "description": {
             "type": "string",
             "nullable": true
           },
-          "monthlyPrice": {
+          "price": {
             "type": "number",
             "format": "double"
           },
-          "quarterlyPrice": {
-            "type": "number",
-            "format": "double"
+          "billingCycleId": {
+            "type": "string",
+            "format": "uuid"
           },
-          "annualPrice": {
-            "type": "number",
-            "format": "double"
+          "currencyId": {
+            "type": "string",
+            "format": "uuid"
           },
           "isActive": {
             "type": "boolean"
-          },
-          "billingCycle": {
-            "type": "string"
           },
           "startDate": {
             "type": "string",
@@ -14478,8 +14516,6 @@
       },
       "SmartTelehealth.Application.DTOs.CreateSubscriptionPlanDto": {
         "required": [
-          "categoryId",
-          "monthlyPrice",
           "name"
         ],
         "type": "object",
@@ -14494,17 +14530,17 @@
             "type": "string",
             "nullable": true
           },
-          "monthlyPrice": {
+          "price": {
             "type": "number",
             "format": "double"
           },
-          "quarterlyPrice": {
-            "type": "number",
-            "format": "double"
+          "billingCycleId": {
+            "type": "string",
+            "format": "uuid"
           },
-          "annualPrice": {
-            "type": "number",
-            "format": "double"
+          "currencyId": {
+            "type": "string",
+            "format": "uuid"
           },
           "messagingCount": {
             "type": "integer",
@@ -14535,10 +14571,6 @@
             "maxLength": 1000,
             "type": "string",
             "nullable": true
-          },
-          "categoryId": {
-            "type": "string",
-            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -15967,16 +15999,17 @@
           "status": {
             "type": "string"
           },
-          "monthlyPrice": {
+          "price": {
             "type": "number",
             "format": "double"
           },
-          "yearlyPrice": {
-            "type": "number",
-            "format": "double"
+          "billingCycleId": {
+            "type": "string",
+            "format": "uuid"
           },
-          "billingCycle": {
-            "type": "string"
+          "currencyId": {
+            "type": "string",
+            "format": "uuid"
           },
           "startDate": {
             "type": "string",
@@ -16034,16 +16067,6 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
-          },
-          "categoryName": {
-            "type": "string"
-          },
-          "billingFrequency": {
-            "type": "string"
-          },
-          "currentPrice": {
-            "type": "number",
-            "format": "double"
           }
         },
         "additionalProperties": false
@@ -16060,19 +16083,17 @@
           "description": {
             "type": "string"
           },
-          "categoryId": {
-            "type": "string"
-          },
-          "categoryName": {
-            "type": "string"
-          },
-          "monthlyPrice": {
+          "price": {
             "type": "number",
             "format": "double"
           },
-          "yearlyPrice": {
-            "type": "number",
-            "format": "double"
+          "billingCycleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "currencyId": {
+            "type": "string",
+            "format": "uuid"
           },
           "totalConsultations": {
             "type": "integer",
@@ -16705,17 +16726,17 @@
             "type": "string",
             "nullable": true
           },
-          "monthlyPrice": {
+          "price": {
             "type": "number",
             "format": "double"
           },
-          "quarterlyPrice": {
-            "type": "number",
-            "format": "double"
+          "billingCycleId": {
+            "type": "string",
+            "format": "uuid"
           },
-          "annualPrice": {
-            "type": "number",
-            "format": "double"
+          "currencyId": {
+            "type": "string",
+            "format": "uuid"
           },
           "isActive": {
             "type": "boolean"
@@ -17978,6 +17999,13 @@
           "medicationDelivery": {
             "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.MedicationDelivery"
           },
+          "currencyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.MasterCurrency"
+          },
           "status": {
             "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.BillingRecord+BillingStatus"
           },
@@ -19001,6 +19029,138 @@
         "type": "integer",
         "format": "int32"
       },
+      "SmartTelehealth.Core.Entities.MasterBillingCycle": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 200,
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SmartTelehealth.Core.Entities.MasterCurrency": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "code": {
+            "maxLength": 10,
+            "minLength": 1,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "symbol": {
+            "maxLength": 10,
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SmartTelehealth.Core.Entities.MasterPrivilegeType": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 200,
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "SmartTelehealth.Core.Entities.MedicationDelivery": {
         "required": [
           "deliveryAddress"
@@ -19684,14 +19844,12 @@
             "type": "string",
             "nullable": true
           },
-          "dataType": {
-            "maxLength": 50,
-            "type": "string"
-          },
-          "defaultValue": {
-            "maxLength": 100,
+          "privilegeTypeId": {
             "type": "string",
-            "nullable": true
+            "format": "uuid"
+          },
+          "privilegeType": {
+            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.MasterPrivilegeType"
           },
           "planPrivileges": {
             "type": "array",
@@ -20073,6 +20231,13 @@
           "isDeleted": {
             "type": "boolean"
           },
+          "billingCycleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "billingCycle": {
+            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.MasterBillingCycle"
+          },
           "userId": {
             "type": "string",
             "format": "uuid"
@@ -20096,10 +20261,13 @@
             "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.Provider"
           },
           "status": {
-            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.Subscription+SubscriptionStatus"
+            "maxLength": 50,
+            "type": "string"
           },
-          "billingFrequency": {
-            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.Subscription+SubscriptionBillingFrequency"
+          "statusReason": {
+            "maxLength": 200,
+            "type": "string",
+            "nullable": true
           },
           "startDate": {
             "type": "string",
@@ -20196,7 +20364,8 @@
             "readOnly": true
           },
           "isPaused": {
-            "type": "boolean"
+            "type": "boolean",
+            "readOnly": true
           },
           "isCancelled": {
             "type": "boolean",
@@ -20216,27 +20385,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "SmartTelehealth.Core.Entities.Subscription+SubscriptionBillingFrequency": {
-        "enum": [
-          0,
-          1,
-          2
-        ],
-        "type": "integer",
-        "format": "int32"
-      },
-      "SmartTelehealth.Core.Entities.Subscription+SubscriptionStatus": {
-        "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
-        "type": "integer",
-        "format": "int32"
       },
       "SmartTelehealth.Core.Entities.SubscriptionPlan": {
         "required": [
@@ -20270,18 +20418,6 @@
             "type": "string",
             "nullable": true
           },
-          "monthlyPrice": {
-            "type": "number",
-            "format": "double"
-          },
-          "quarterlyPrice": {
-            "type": "number",
-            "format": "double"
-          },
-          "annualPrice": {
-            "type": "number",
-            "format": "double"
-          },
           "isActive": {
             "type": "boolean"
           },
@@ -20311,12 +20447,23 @@
             "type": "string",
             "nullable": true
           },
-          "categoryId": {
+          "billingCycleId": {
             "type": "string",
             "format": "uuid"
           },
-          "category": {
-            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.Category"
+          "billingCycle": {
+            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.MasterBillingCycle"
+          },
+          "currencyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.MasterCurrency"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
           },
           "subscriptions": {
             "type": "array",
@@ -20365,8 +20512,19 @@
             "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.Privilege"
           },
           "value": {
-            "maxLength": 100,
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
+          },
+          "usagePeriodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "usagePeriod": {
+            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.MasterBillingCycle"
+          },
+          "durationMonths": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -20697,8 +20855,8 @@
       },
       "SmartTelehealth.Core.Entities.UserSubscriptionPrivilegeUsage": {
         "required": [
-          "privilegeId",
-          "subscriptionId"
+          "subscriptionId",
+          "subscriptionPlanPrivilegeId"
         ],
         "type": "object",
         "properties": {
@@ -20725,16 +20883,24 @@
           "subscription": {
             "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.Subscription"
           },
-          "privilegeId": {
+          "subscriptionPlanPrivilegeId": {
             "type": "string",
             "format": "uuid"
           },
-          "privilege": {
-            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.Privilege"
+          "subscriptionPlanPrivilege": {
+            "$ref": "#/components/schemas/SmartTelehealth.Core.Entities.SubscriptionPlanPrivilege"
           },
           "usedValue": {
-            "maxLength": 100,
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
+          },
+          "usagePeriodStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "usagePeriodEnd": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "additionalProperties": false

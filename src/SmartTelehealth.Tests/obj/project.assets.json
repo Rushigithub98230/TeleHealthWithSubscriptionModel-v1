@@ -11723,11 +11723,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Tests\\SmartTelehealth.Tests.csproj",
+      "projectUniqueName": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Tests\\SmartTelehealth.Tests.csproj",
       "projectName": "SmartTelehealth.Tests",
-      "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Tests\\SmartTelehealth.Tests.csproj",
+      "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Tests\\SmartTelehealth.Tests.csproj",
       "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-      "outputPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Tests\\obj\\",
+      "outputPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -11748,14 +11748,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.API\\SmartTelehealth.API.csproj": {
-              "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.API\\SmartTelehealth.API.csproj"
+            "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.API\\SmartTelehealth.API.csproj": {
+              "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.API\\SmartTelehealth.API.csproj"
             },
-            "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
-              "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj"
+            "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
+              "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj"
             },
-            "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj": {
-              "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj"
+            "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj": {
+              "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj"
             }
           }
         }

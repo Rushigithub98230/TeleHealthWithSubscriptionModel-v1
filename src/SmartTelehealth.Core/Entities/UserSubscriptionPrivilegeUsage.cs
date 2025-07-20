@@ -9,9 +9,10 @@ public class UserSubscriptionPrivilegeUsage : BaseEntity
     public virtual Subscription Subscription { get; set; } = null!;
 
     [Required]
-    public Guid PrivilegeId { get; set; }
-    public virtual Privilege Privilege { get; set; } = null!;
+    public Guid SubscriptionPlanPrivilegeId { get; set; }
+    public virtual SubscriptionPlanPrivilege SubscriptionPlanPrivilege { get; set; } = null!;
 
-    [MaxLength(100)]
-    public string UsedValue { get; set; } = "0"; // e.g., number of consults used
+    public int UsedValue { get; set; } = 0;
+    public DateTime UsagePeriodStart { get; set; }
+    public DateTime UsagePeriodEnd { get; set; }
 } 

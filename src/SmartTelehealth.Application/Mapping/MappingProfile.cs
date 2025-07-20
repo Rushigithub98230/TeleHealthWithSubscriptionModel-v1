@@ -32,12 +32,16 @@ public class MappingProfile : Profile
         CreateMap<Subscription, SubscriptionDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()))
-            .ForMember(dest => dest.PlanId, opt => opt.MapFrom(src => src.SubscriptionPlanId.ToString()));
+            .ForMember(dest => dest.PlanId, opt => opt.MapFrom(src => src.SubscriptionPlanId.ToString()))
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.SubscriptionPlan.Price))
+            .ForMember(dest => dest.BillingCycleId, opt => opt.MapFrom(src => src.SubscriptionPlan.BillingCycleId))
+            .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.SubscriptionPlan.CurrencyId));
         // Add mapping for CreateSubscriptionDto to Subscription
         CreateMap<CreateSubscriptionDto, Subscription>()
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => Guid.Parse(src.UserId)))
             .ForMember(dest => dest.SubscriptionPlanId, opt => opt.MapFrom(src => Guid.Parse(src.PlanId)))
-            .ForMember(dest => dest.CurrentPrice, opt => opt.MapFrom(src => src.MonthlyPrice));
+            .ForMember(dest => dest.CurrentPrice, opt => opt.MapFrom(src => src.Price))
+            .ForMember(dest => dest.BillingCycleId, opt => opt.MapFrom(src => src.BillingCycleId));
 
         // Chat mappings
         CreateMap<ChatRoom, ChatRoomDto>()

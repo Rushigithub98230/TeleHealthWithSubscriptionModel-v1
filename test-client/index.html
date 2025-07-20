@@ -1,37 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telehealth Video & Chat Test Client</title>
-    <link rel="stylesheet" href="style.css">
+  <title>Stripe Elements Test</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Telehealth Video & Chat Test Client</h1>
-        <div class="status" id="status">Disconnected</div>
-        <div class="main-content">
-            <div class="video-section">
-                <h2>Video</h2>
-                <div id="video-container">
-                    <div class="video-placeholder">Video not connected</div>
-                </div>
-                <div class="video-controls">
-                    <button id="start-video-btn">Start Video</button>
-                    <button id="end-video-btn" disabled>End Video</button>
-                </div>
-            </div>
-            <div class="chat-section">
-                <h2>Chat</h2>
-                <div class="chat-messages" id="chat-messages"></div>
-                <div class="chat-input">
-                    <input type="text" id="chat-input" placeholder="Type a message..." disabled>
-                    <button id="send-chat-btn" disabled>Send</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
-    <script src="main.js"></script>
+  <h2>Stripe Elements Test</h2>
+  <form id="payment-form">
+    <div id="card-element"></div>
+    <button type="submit">Create Payment Method</button>
+  </form>
+  <div id="result"></div>
+  <script src="main.js"></script>
 </body>
 </html> 

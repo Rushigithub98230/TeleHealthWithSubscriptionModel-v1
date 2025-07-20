@@ -11,6 +11,9 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     }
     
     // Master Tables DbSets
+    public DbSet<MasterBillingCycle> MasterBillingCycles { get; set; }
+    public DbSet<MasterCurrency> MasterCurrencies { get; set; }
+    public DbSet<MasterPrivilegeType> MasterPrivilegeTypes { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<AppointmentStatus> AppointmentStatuses { get; set; }
     public DbSet<PaymentStatus> PaymentStatuses { get; set; }
@@ -100,6 +103,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         ConfigureVideoCall(builder);
         ConfigureVideoCallParticipant(builder);
         ConfigureVideoCallEvent(builder);
+        ConfigureSubscriptionPayment(builder);
     }
     
     private void ConfigureMasterTables(ModelBuilder builder)
@@ -246,6 +250,35 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.SortOrder).HasDefaultValue(0);
             entity.Property(e => e.Icon).HasMaxLength(50);
         });
+
+        // MasterBillingCycle
+        builder.Entity<MasterBillingCycle>(entity =>
+        {
+            entity.ToTable("MasterBillingCycles");
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasDefaultValue(0);
+        });
+        // MasterCurrency
+        builder.Entity<MasterCurrency>(entity =>
+        {
+            entity.ToTable("MasterCurrencies");
+            entity.Property(e => e.Code).IsRequired().HasMaxLength(10);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Symbol).HasMaxLength(10);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasDefaultValue(0);
+        });
+        // MasterPrivilegeType
+        builder.Entity<MasterPrivilegeType>(entity =>
+        {
+            entity.ToTable("MasterPrivilegeTypes");
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasDefaultValue(0);
+        });
     }
     
     private void ConfigureUser(ModelBuilder builder)
@@ -305,16 +338,23 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         {
             entity.ToTable("SubscriptionPlans");
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.MonthlyPrice).HasPrecision(18, 2);
-            entity.Property(e => e.QuarterlyPrice).HasPrecision(18, 2);
-            entity.Property(e => e.AnnualPrice).HasPrecision(18, 2);
+            entity.Property(e => e.Price).HasPrecision(18, 2);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            // entity.Property(e => e.IncludesMedicationDelivery).HasDefaultValue(true); // Removed: property no longer exists
-            // entity.Property(e => e.IncludesFollowUpCare).HasDefaultValue(true); // Removed: property no longer exists
-            
-            entity.HasOne(e => e.Category)
-                .WithMany(e => e.SubscriptionPlans)
-                .HasForeignKey(e => e.CategoryId)
+            entity.Property(e => e.DisplayOrder);
+            // Remove old price fields and category reference
+            // entity.Property(e => e.MonthlyPrice).HasPrecision(18, 2); // Removed
+            // entity.Property(e => e.QuarterlyPrice).HasPrecision(18, 2); // Removed
+            // entity.Property(e => e.AnnualPrice).HasPrecision(18, 2); // Removed
+            // entity.HasOne(e => e.Category).WithMany(e => e.SubscriptionPlans).HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.Restrict); // Removed
+
+            entity.HasOne(e => e.BillingCycle)
+                .WithMany()
+                .HasForeignKey(e => e.BillingCycleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Currency)
+                .WithMany()
+                .HasForeignKey(e => e.CurrencyId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }
@@ -325,24 +365,30 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         {
             entity.ToTable("Subscriptions");
             entity.Property(e => e.Status).HasConversion<string>();
-            entity.Property(e => e.BillingFrequency).HasConversion<string>();
             entity.Property(e => e.CurrentPrice).HasPrecision(18, 2);
             entity.Property(e => e.AutoRenew).HasDefaultValue(true);
-            
+            // Remove BillingFrequency
+            // entity.Property(e => e.BillingFrequency).HasConversion<string>(); // Removed
+
             entity.HasOne(e => e.User)
                 .WithMany(e => e.Subscriptions)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.SubscriptionPlan)
                 .WithMany(e => e.Subscriptions)
                 .HasForeignKey(e => e.SubscriptionPlanId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.Provider)
                 .WithMany()
                 .HasForeignKey(e => e.ProviderId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.BillingCycle)
+                .WithMany()
+                .HasForeignKey(e => e.BillingCycleId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
     
@@ -636,6 +682,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.ShippingAmount).HasPrecision(18, 2);
             entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
             entity.Property(e => e.IsRecurring).HasDefaultValue(false);
+            entity.Property(e => e.AccruedAmount).HasPrecision(18, 2);
             
             entity.HasOne(e => e.User)
                 .WithMany()
@@ -879,7 +926,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .OnDelete(DeleteBehavior.Restrict);
                 
             entity.HasOne(e => e.PaymentStatus)
-                .WithMany()
+                .WithMany(e => e.Appointments)
                 .HasForeignKey(e => e.PaymentStatusId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
@@ -947,7 +994,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .OnDelete(DeleteBehavior.SetNull);
                 
             entity.HasOne(e => e.InvitationStatus)
-                .WithMany()
+                .WithMany(e => e.Invitations)
                 .HasForeignKey(e => e.InvitationStatusId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
@@ -1089,6 +1136,16 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .WithMany(e => e.Events)
                 .HasForeignKey(e => e.EventTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private void ConfigureSubscriptionPayment(ModelBuilder builder)
+    {
+        builder.Entity<SubscriptionPayment>(entity =>
+        {
+            entity.ToTable("SubscriptionPayments");
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            // ... existing property and relationship configuration ...
         });
     }
 } 

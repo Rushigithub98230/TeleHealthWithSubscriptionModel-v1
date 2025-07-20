@@ -139,4 +139,47 @@ function showVideoDisconnected() {
 window.addEventListener('DOMContentLoaded', () => {
     connectChat();
     connectVideo();
-}); 
+});
+
+// Replace with your Stripe test publishable key
+const stripe = Stripe('pk_test_51RbfqBCI7YurXiFNHk4WcajFzdxGJCxD32qJbtcQCTSaVU5qbpHZZR2D4iujZeh3bcGZEEtCetI94SadTICFXjFG005IoPIAYC'); // TODO: Replace with your key
+const elements = stripe.elements();
+const card = elements.create('card');
+card.mount('#card-element');
+
+function log(msg) {
+  const resultDiv = document.getElementById('result');
+  resultDiv.textContent += '\n' + msg;
+}
+
+document.getElementById('payment-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  log('Creating payment method...');
+  const {paymentMethod, error} = await stripe.createPaymentMethod({
+    type: 'card',
+    card: card,
+  });
+  if (error) {
+    log('Error: ' + error.message);
+  } else {
+    console.log('Payment Method ID: ' + paymentMethod.id);
+    // Send this ID to your backend for further testing
+    sendToBackend(paymentMethod.id);
+  }
+});
+
+function sendToBackend(paymentMethodId) {
+  console.log('Sending Payment Method ID to backend...');
+  fetch('https://localhost:58676/api/stripe/test-payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paymentMethodId })
+  })
+  .then(res => res.json())
+  .then(data => {
+    log('Backend response: ' + JSON.stringify(data));
+  })
+  .catch(err => {
+    log('Backend error: ' + err);
+  });
+} 

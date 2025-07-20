@@ -45,7 +45,7 @@ public class Category : BaseEntity
     
     public int OneTimeConsultationDurationMinutes { get; set; } = 30;
     
-    // Navigation properties
+    // Optional: Add navigation property for plans by billing cycle
     public virtual ICollection<SubscriptionPlan> SubscriptionPlans { get; set; } = new List<SubscriptionPlan>();
     public virtual ICollection<ProviderCategory> ProviderCategories { get; set; } = new List<ProviderCategory>();
     public virtual ICollection<HealthAssessment> HealthAssessments { get; set; } = new List<HealthAssessment>();

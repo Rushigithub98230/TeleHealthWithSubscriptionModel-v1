@@ -6,7 +6,7 @@ public interface IUserSubscriptionPrivilegeUsageRepository
 {
     Task<UserSubscriptionPrivilegeUsage?> GetByIdAsync(Guid id);
     Task<IEnumerable<UserSubscriptionPrivilegeUsage>> GetBySubscriptionIdAsync(Guid subscriptionId);
-    Task<IEnumerable<UserSubscriptionPrivilegeUsage>> GetByPrivilegeIdAsync(Guid privilegeId);
+    Task<IEnumerable<UserSubscriptionPrivilegeUsage>> GetBySubscriptionPlanPrivilegeIdAsync(Guid subscriptionPlanPrivilegeId);
     Task AddAsync(UserSubscriptionPrivilegeUsage usage);
     Task UpdateAsync(UserSubscriptionPrivilegeUsage usage);
     Task DeleteAsync(Guid id);

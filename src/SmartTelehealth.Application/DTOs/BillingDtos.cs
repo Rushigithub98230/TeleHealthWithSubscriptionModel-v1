@@ -4,7 +4,7 @@ public class CreateRecurringBillingDto
 {
     public Guid SubscriptionId { get; set; }
     public decimal Amount { get; set; }
-    public string BillingCycle { get; set; } = string.Empty; // monthly, quarterly, yearly
+    public Guid BillingCycleId { get; set; } // Use FK instead of string
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public string PaymentMethodId { get; set; } = string.Empty;
@@ -130,7 +130,7 @@ public class CreateBillingCycleDto
     public string Description { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public string BillingFrequency { get; set; } = string.Empty; // daily, weekly, monthly, quarterly, yearly
+    public Guid BillingCycleId { get; set; } // Use FK if needed
     public List<Guid> SubscriptionIds { get; set; } = new List<Guid>();
     public bool AutoProcess { get; set; } = true;
     public int GracePeriodDays { get; set; } = 7;
@@ -144,7 +144,7 @@ public class BillingCycleDto
     public string Description { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public string BillingFrequency { get; set; } = string.Empty;
+    public Guid BillingCycleId { get; set; } // Use FK if needed
     public string Status { get; set; } = string.Empty; // active, completed, cancelled
     public bool AutoProcess { get; set; }
     public int GracePeriodDays { get; set; }

@@ -4,22 +4,9 @@ namespace SmartTelehealth.Core.Entities;
 
 public class Subscription : BaseEntity
 {
-    public enum SubscriptionStatus
-    {
-        Active,
-        Paused,
-        Cancelled,
-        Expired,
-        Pending,
-        PastDue
-    }
-    
-    public enum SubscriptionBillingFrequency
-    {
-        Monthly,
-        Quarterly,
-        Annual
-    }
+    // Remove SubscriptionBillingFrequency enum and BillingFrequency property
+    public Guid BillingCycleId { get; set; }
+    public virtual MasterBillingCycle BillingCycle { get; set; } = null!;
     
     // Foreign keys
     public Guid UserId { get; set; }
@@ -32,9 +19,10 @@ public class Subscription : BaseEntity
     public virtual Provider? Provider { get; set; }
     
     // Subscription details
-    public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Pending;
-    
-    public SubscriptionBillingFrequency BillingFrequency { get; set; } = SubscriptionBillingFrequency.Monthly;
+    [MaxLength(50)]
+    public string Status { get; set; } = "Pending"; // e.g., 'Active', 'Paused', 'Cancelled', etc.
+    [MaxLength(200)]
+    public string? StatusReason { get; set; }
     
     public DateTime StartDate { get; set; }
     
@@ -74,14 +62,12 @@ public class Subscription : BaseEntity
     public virtual ICollection<BillingRecord> BillingRecords { get; set; } = new List<BillingRecord>();
     public virtual ICollection<UserSubscriptionPrivilegeUsage> PrivilegeUsages { get; set; } = new List<UserSubscriptionPrivilegeUsage>();
     
-    public bool IsActive => Status == SubscriptionStatus.Active;
-    public bool IsPaused { get => Status == SubscriptionStatus.Paused; set { } }
-    public bool IsCancelled => Status == SubscriptionStatus.Cancelled;
-    
-    // Remove MaxPauseDurationDays logic as the property no longer exists
-    public bool CanPause => Status == SubscriptionStatus.Active && (PausedDate == null);
-    
-    public bool CanResume => Status == SubscriptionStatus.Paused;
-    
-    public bool CanCancel => Status == SubscriptionStatus.Active || Status == SubscriptionStatus.Paused;
+    // Remove SubscriptionStatus enum and all enum-based logic
+    // Update IsActive, IsPaused, IsCancelled, CanPause, CanResume, CanCancel to use string Status
+    public bool IsActive => Status == "Active";
+    public bool IsPaused => Status == "Paused";
+    public bool IsCancelled => Status == "Cancelled";
+    public bool CanPause => Status == "Active" && (PausedDate == null);
+    public bool CanResume => Status == "Paused";
+    public bool CanCancel => Status == "Active" || Status == "Paused";
 } 

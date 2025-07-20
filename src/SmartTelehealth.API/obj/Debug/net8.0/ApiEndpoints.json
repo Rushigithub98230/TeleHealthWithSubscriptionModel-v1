@@ -5139,6 +5139,22 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "SmartTelehealth.API.Controllers.StripeTestController",
+    "Method": "TestPayment",
+    "RelativePath": "api/stripe/test-payment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SmartTelehealth.API.Controllers.PaymentMethodRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "SmartTelehealth.API.Controllers.StripeWebhookController",
     "Method": "HandleWebhook",
     "RelativePath": "api/StripeWebhook",

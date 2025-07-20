@@ -7,7 +7,6 @@ namespace SmartTelehealth.Application.DTOs
     {
         public decimal TotalRevenue { get; set; }
         public decimal MonthlyRevenue { get; set; }
-        public decimal QuarterlyRevenue { get; set; }
         public decimal AnnualRevenue { get; set; }
         public int TotalSubscriptions { get; set; }
         public int ActiveSubscriptions { get; set; }

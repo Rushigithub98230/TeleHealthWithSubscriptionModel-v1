@@ -140,16 +140,13 @@ public class AnalyticsService : IAnalyticsService
             {
                 int subscriptionCount = 0;
                 decimal revenue = 0;
-                
-                foreach (var subscription in subscriptions)
+                // For each plan in this category, count subscriptions
+                foreach (var plan in category.SubscriptionPlans)
                 {
-                    if (subscription.SubscriptionPlan.CategoryId == category.Id)
-                    {
-                        subscriptionCount++;
-                        revenue += subscription.CurrentPrice;
-                    }
+                    var planSubscriptions = subscriptions.Where(s => s.SubscriptionPlanId == plan.Id);
+                    subscriptionCount += planSubscriptions.Count();
+                    revenue += planSubscriptions.Sum(s => s.CurrentPrice);
                 }
-
                 categoryAnalyticsList.Add(new CategoryAnalyticsDto
                 {
                     CategoryName = category.Name,
@@ -158,15 +155,12 @@ public class AnalyticsService : IAnalyticsService
                     GrowthRate = 0 // TODO: Calculate growth rate
                 });
             }
-            
             // Sort by revenue descending and take top 10
             categoryAnalyticsList.Sort((a, b) => b.Revenue.CompareTo(a.Revenue));
-            
             if (categoryAnalyticsList.Count > 10)
             {
                 return categoryAnalyticsList.Take(10);
             }
-            
             return categoryAnalyticsList;
         }
         catch (Exception ex)

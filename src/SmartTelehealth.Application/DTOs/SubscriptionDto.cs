@@ -13,9 +13,9 @@ namespace SmartTelehealth.Application.DTOs
         public string PlanName { get; set; } = string.Empty;
         public string PlanDescription { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
-        public decimal MonthlyPrice { get; set; }
-        public decimal YearlyPrice { get; set; }
-        public string BillingCycle { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public Guid BillingCycleId { get; set; }
+        public Guid CurrencyId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public DateTime NextBillingDate { get; set; }
@@ -32,9 +32,7 @@ namespace SmartTelehealth.Application.DTOs
         // Additional properties referenced in services
         public DateTime? PausedAt { get; set; }
         public DateTime? ResumedAt { get; set; }
-        public string CategoryName { get; set; } = string.Empty;
-        public string BillingFrequency { get; set; } = string.Empty;
-        public decimal CurrentPrice { get; set; }
+        // Removed: CategoryName, BillingFrequency, CurrentPrice
     }
 
     public class CreateSubscriptionDto
@@ -42,17 +40,17 @@ namespace SmartTelehealth.Application.DTOs
         public string UserId { get; set; } = string.Empty;
         public string SubscriptionId { get; set; } = string.Empty;
         public string PlanId { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
+        public string? Name { get; set; }
         public string? Description { get; set; }
-        public decimal MonthlyPrice { get; set; }
-        public decimal QuarterlyPrice { get; set; }
-        public decimal AnnualPrice { get; set; }
+        public decimal Price { get; set; }
+        public Guid BillingCycleId { get; set; }
+        public Guid CurrencyId { get; set; }
         public bool IsActive { get; set; } = true;
-        public string BillingCycle { get; set; } = "Monthly";
         public DateTime? StartDate { get; set; }
         public bool StartImmediately { get; set; } = true;
         public string? PaymentMethodId { get; set; }
         public bool AutoRenew { get; set; } = true;
+        // Removed: MonthlyPrice, QuarterlyPrice, AnnualPrice, BillingCycle
     }
 
     public class UpdateSubscriptionDto
@@ -154,9 +152,10 @@ namespace SmartTelehealth.Application.DTOs
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public decimal MonthlyPrice { get; set; }
-        public decimal QuarterlyPrice { get; set; }
-        public decimal AnnualPrice { get; set; }
+        public decimal Price { get; set; }
+        public Guid BillingCycleId { get; set; }
+        public Guid CurrencyId { get; set; }
         public bool IsActive { get; set; }
+        // Removed: MonthlyPrice, QuarterlyPrice, AnnualPrice
     }
 } 

@@ -12,6 +12,8 @@ public class SubscriptionPlanPrivilege : BaseEntity
     public Guid PrivilegeId { get; set; }
     public virtual Privilege Privilege { get; set; } = null!;
 
-    [MaxLength(100)]
-    public string Value { get; set; } = string.Empty; // e.g., "2" for 2 consults, "true" for medication supply
+    public int Value { get; set; } // -1 for unlimited, >0 for limited
+    public Guid UsagePeriodId { get; set; }
+    public virtual MasterBillingCycle UsagePeriod { get; set; } = null!;
+    public int DurationMonths { get; set; }
 } 

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "BbXUFdfxR+0=",
+  "dgSpecHash": "r3VwQm1ireg=",
   "success": true,
-  "projectFilePath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.API\\SmartTelehealth.API.csproj",
+  "projectFilePath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.API\\SmartTelehealth.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\user\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\user\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",

@@ -18,9 +18,9 @@ public interface ISubscriptionRepository
     Task<IEnumerable<Subscription>> GetByUserIdAsync(Guid userId);
     Task<IEnumerable<Subscription>> GetActiveSubscriptionsAsync();
     Task<IEnumerable<Subscription>> GetPausedSubscriptionsAsync();
-    Task<IEnumerable<Subscription>> GetSubscriptionsByStatusAsync(Subscription.SubscriptionStatus status);
+    Task<IEnumerable<Subscription>> GetSubscriptionsByStatusAsync(string status);
     Task<IEnumerable<Subscription>> GetActiveSubscriptionsByPlanAsync(Guid planId);
-    Task<Subscription?> GetByPlanIdAsync(int planId);
+    Task<Subscription?> GetByPlanIdAsync(Guid planId);
     Task<Subscription> CreateAsync(Subscription subscription);
     Task<Subscription> UpdateAsync(Subscription subscription);
     Task<bool> DeleteAsync(Guid id);

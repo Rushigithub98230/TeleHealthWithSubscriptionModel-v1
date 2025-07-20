@@ -31,7 +31,7 @@ public class SubscriptionRepository : ISubscriptionRepository
     public async Task<IEnumerable<Subscription>> GetActiveSubscriptionsAsync()
     {
         return await _context.Subscriptions
-            .Where(s => s.Status == Subscription.SubscriptionStatus.Active && !s.IsDeleted)
+            .Where(s => s.Status == "Active" && !s.IsDeleted)
             .ToListAsync();
     }
 
@@ -40,19 +40,15 @@ public class SubscriptionRepository : ISubscriptionRepository
         return await _context.Subscriptions
             .Include(s => s.User)
             .Include(s => s.SubscriptionPlan)
-                .ThenInclude(sp => sp.Category)
-            .Include(s => s.Provider)
-            .Where(s => s.Status == Subscription.SubscriptionStatus.Paused && !s.IsDeleted)
+            .Where(s => s.Status == "Paused" && !s.IsDeleted)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Subscription>> GetSubscriptionsByStatusAsync(Subscription.SubscriptionStatus status)
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByStatusAsync(string status)
     {
         return await _context.Subscriptions
             .Include(s => s.User)
             .Include(s => s.SubscriptionPlan)
-                .ThenInclude(sp => sp.Category)
-            .Include(s => s.Provider)
             .Where(s => s.Status == status && !s.IsDeleted)
             .ToListAsync();
     }
@@ -94,7 +90,7 @@ public class SubscriptionRepository : ISubscriptionRepository
     {
         return await _context.Subscriptions
             .CountAsync(s => s.UserId == userId && 
-                           s.Status == Subscription.SubscriptionStatus.Active && 
+                           s.Status == "Active" && 
                            !s.IsDeleted);
     }
 
@@ -105,7 +101,7 @@ public class SubscriptionRepository : ISubscriptionRepository
             .Include(s => s.SubscriptionPlan)
             .Include(s => s.Provider)
             .Where(s => s.UserId == userId && 
-                       s.Status == Subscription.SubscriptionStatus.Active && 
+                       s.Status == "Active" && 
                        !s.IsDeleted)
             .OrderByDescending(s => s.CreatedAt)
             .FirstOrDefaultAsync();
@@ -122,7 +118,7 @@ public class SubscriptionRepository : ISubscriptionRepository
         return await _context.Subscriptions
             .Include(s => s.User)
             .Include(s => s.SubscriptionPlan)
-            .Where(s => s.Status == Subscription.SubscriptionStatus.Active && 
+            .Where(s => s.Status == "Active" && 
                        s.NextBillingDate <= billingDate && 
                        !s.IsDeleted)
             .ToListAsync();
@@ -133,7 +129,7 @@ public class SubscriptionRepository : ISubscriptionRepository
         return await _context.Subscriptions
             .Include(s => s.User)
             .Include(s => s.SubscriptionPlan)
-            .Where(s => s.Status == Subscription.SubscriptionStatus.Active && 
+            .Where(s => s.Status == "Active" && 
                        !s.IsDeleted)
             .ToListAsync();
     }
@@ -165,12 +161,15 @@ public class SubscriptionRepository : ISubscriptionRepository
 
     public async Task<IEnumerable<SubscriptionPlan>> GetSubscriptionPlansByCategoryAsync(Guid categoryId)
     {
-        return await _context.SubscriptionPlans
-            .Include(sp => sp.Category)
-            .Where(sp => sp.CategoryId == categoryId && sp.IsActive && !sp.IsDeleted)
+        var category = await _context.Categories
+            .Include(c => c.SubscriptionPlans)
+            .FirstOrDefaultAsync(c => c.Id == categoryId);
+        if (category == null) return new List<SubscriptionPlan>();
+        return category.SubscriptionPlans
+            .Where(sp => sp.IsActive && !sp.IsDeleted)
             .OrderBy(sp => sp.DisplayOrder)
             .ThenBy(sp => sp.Name)
-            .ToListAsync();
+            .ToList();
     }
 
     public async Task<SubscriptionPlan> CreateSubscriptionPlanAsync(SubscriptionPlan subscriptionPlan)
@@ -206,12 +205,17 @@ public class SubscriptionRepository : ISubscriptionRepository
             .Include(s => s.User)
             .Include(s => s.SubscriptionPlan)
             .Where(s => s.SubscriptionPlanId == planId && 
-                       s.Status == Subscription.SubscriptionStatus.Active && 
+                       s.Status == "Active" && 
                        !s.IsDeleted)
             .ToListAsync();
     }
 
-    public Task<Subscription?> GetByPlanIdAsync(int planId) => throw new NotImplementedException();
+    public async Task<Subscription?> GetByPlanIdAsync(Guid planId)
+    {
+        return await _context.Subscriptions
+            .Where(s => s.SubscriptionPlanId == planId && !s.IsDeleted)
+            .FirstOrDefaultAsync();
+    }
 
     // --- MISSING INTERFACE METHODS (STUBS) ---
     public Task<IEnumerable<Subscription>> GetAllSubscriptionsAsync()

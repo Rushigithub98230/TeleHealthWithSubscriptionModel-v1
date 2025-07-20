@@ -19,8 +19,8 @@ public class UserSubscriptionPrivilegeUsageRepository : IUserSubscriptionPrivile
     public async Task<IEnumerable<UserSubscriptionPrivilegeUsage>> GetBySubscriptionIdAsync(Guid subscriptionId)
         => await _context.UserSubscriptionPrivilegeUsages.Where(x => x.SubscriptionId == subscriptionId).ToListAsync();
 
-    public async Task<IEnumerable<UserSubscriptionPrivilegeUsage>> GetByPrivilegeIdAsync(Guid privilegeId)
-        => await _context.UserSubscriptionPrivilegeUsages.Where(x => x.PrivilegeId == privilegeId).ToListAsync();
+    public async Task<IEnumerable<UserSubscriptionPrivilegeUsage>> GetBySubscriptionPlanPrivilegeIdAsync(Guid subscriptionPlanPrivilegeId)
+        => await _context.UserSubscriptionPrivilegeUsages.Where(x => x.SubscriptionPlanPrivilegeId == subscriptionPlanPrivilegeId).ToListAsync();
 
     public async Task AddAsync(UserSubscriptionPrivilegeUsage usage)
     {

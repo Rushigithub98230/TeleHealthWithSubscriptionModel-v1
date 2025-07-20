@@ -287,3 +287,52 @@ public class EventType : BaseEntity
     public virtual ICollection<AppointmentEvent> Events { get; set; } = new List<AppointmentEvent>();
 }
 #endregion 
+
+#region Billing Cycle Master Table
+public class MasterBillingCycle : BaseEntity
+{
+    [Required]
+    [MaxLength(50)]
+    public string Name { get; set; } = string.Empty; // e.g., 'monthly', 'quarterly', 'yearly'
+
+    [MaxLength(200)]
+    public string? Description { get; set; }
+
+    public bool IsActive { get; set; } = true;
+    public int SortOrder { get; set; } = 0;
+}
+#endregion
+
+#region Currency Master Table
+public class MasterCurrency : BaseEntity
+{
+    [Required]
+    [MaxLength(10)]
+    public string Code { get; set; } = string.Empty; // e.g., 'USD', 'INR', 'EUR'
+
+    [Required]
+    [MaxLength(50)]
+    public string Name { get; set; } = string.Empty;
+
+    [MaxLength(10)]
+    public string? Symbol { get; set; }
+
+    public bool IsActive { get; set; } = true;
+    public int SortOrder { get; set; } = 0;
+}
+#endregion
+
+#region Privilege Type Master Table
+public class MasterPrivilegeType : BaseEntity
+{
+    [Required]
+    [MaxLength(50)]
+    public string Name { get; set; } = string.Empty; // e.g., 'count', 'boolean', 'unlimited'
+
+    [MaxLength(200)]
+    public string? Description { get; set; }
+
+    public bool IsActive { get; set; } = true;
+    public int SortOrder { get; set; } = 0;
+}
+#endregion 

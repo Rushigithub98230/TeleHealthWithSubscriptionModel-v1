@@ -57,11 +57,14 @@ public class PrivilegesController : ControllerBase
         if (plan == null) return NotFound("Plan not found");
         var privilege = await _privilegeRepo.GetByIdAsync(dto.PrivilegeId);
         if (privilege == null) return NotFound("Privilege not found");
+        int value;
+        if (!int.TryParse(dto.Value, out value))
+            return BadRequest("Value must be an integer");
         var planPrivilege = new SubscriptionPlanPrivilege
         {
             SubscriptionPlanId = planId,
             PrivilegeId = dto.PrivilegeId,
-            Value = dto.Value
+            Value = value
         };
         await _planPrivilegeRepo.AddAsync(planPrivilege);
         return Ok();

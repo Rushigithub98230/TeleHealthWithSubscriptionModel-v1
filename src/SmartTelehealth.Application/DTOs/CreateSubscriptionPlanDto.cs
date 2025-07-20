@@ -11,10 +11,9 @@ public class CreateSubscriptionPlanDto
     [MaxLength(500)]
     public string? Description { get; set; }
     
-    [Required]
-    public decimal MonthlyPrice { get; set; }
-    public decimal QuarterlyPrice { get; set; }
-    public decimal AnnualPrice { get; set; }
+    public decimal Price { get; set; }
+    public Guid BillingCycleId { get; set; }
+    public Guid CurrencyId { get; set; }
     public int MessagingCount { get; set; } = 10;
     public bool IncludesMedicationDelivery { get; set; } = true;
     public bool IncludesFollowUpCare { get; set; } = true;
@@ -24,6 +23,4 @@ public class CreateSubscriptionPlanDto
     public int DisplayOrder { get; set; }
     [MaxLength(1000)]
     public string? Features { get; set; }
-    [Required]
-    public Guid CategoryId { get; set; }
 } 

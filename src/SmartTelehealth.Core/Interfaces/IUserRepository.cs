@@ -17,7 +17,7 @@ public interface IUserRepository
     Task<bool> ExistsByEmailAsync(string email);
     Task<int> GetActiveUserCountAsync();
     Task<IEnumerable<User>> SearchUsersAsync(string searchTerm);
-    Task<IEnumerable<User>> GetUsersBySubscriptionStatusAsync(Subscription.SubscriptionStatus status);
+    Task<IEnumerable<User>> GetUsersBySubscriptionStatusAsync(string status);
     Task<object> GetUserAnalyticsAsync();
     Task<IEnumerable<User>> GetByUserTypeAsync(string userType);
     Task<User?> GetByLicenseNumberAsync(string licenseNumber);

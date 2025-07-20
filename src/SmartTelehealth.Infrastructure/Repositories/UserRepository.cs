@@ -113,7 +113,7 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<User>> GetUsersBySubscriptionStatusAsync(Subscription.SubscriptionStatus status)
+    public async Task<IEnumerable<User>> GetUsersBySubscriptionStatusAsync(string status)
     {
         return await _context.Users
             .Include(u => u.Subscriptions.Where(s => s.Status == status && !s.IsDeleted))

@@ -4,3 +4,9 @@ E:\.Net Projects\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.As
 E:\.Net Projects\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.AssemblyInfo.cs
 E:\.Net Projects\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.csproj.CoreCompileInputs.cache
 E:\.Net Projects\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.sourcelink.json
+D:\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.csproj.AssemblyReference.cache
+D:\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.GeneratedMSBuildEditorConfig.editorconfig
+D:\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.AssemblyInfoInputs.cache
+D:\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.AssemblyInfo.cs
+D:\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.csproj.CoreCompileInputs.cache
+D:\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.sourcelink.json

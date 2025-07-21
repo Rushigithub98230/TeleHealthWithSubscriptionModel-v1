@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\OpenTokTest.csproj": {}
+    "D:\\TeleHealthWithSubscriptionModel\\OpenTokTest.csproj": {}
   },
   "projects": {
-    "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\OpenTokTest.csproj": {
+    "D:\\TeleHealthWithSubscriptionModel\\OpenTokTest.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\OpenTokTest.csproj",
+        "projectUniqueName": "D:\\TeleHealthWithSubscriptionModel\\OpenTokTest.csproj",
         "projectName": "OpenTokTest",
-        "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\OpenTokTest.csproj",
+        "projectPath": "D:\\TeleHealthWithSubscriptionModel\\OpenTokTest.csproj",
         "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-        "outputPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\obj\\",
+        "outputPath": "D:\\TeleHealthWithSubscriptionModel\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,11 +32,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
-                "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj"
+              "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
+                "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj"
               },
-              "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj": {
-                "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj"
+              "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj": {
+                "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj"
               }
             }
           }
@@ -98,14 +98,14 @@
         }
       }
     },
-    "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
+    "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj",
+        "projectUniqueName": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj",
         "projectName": "SmartTelehealth.Application",
-        "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj",
+        "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj",
         "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-        "outputPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\obj\\",
+        "outputPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -126,8 +126,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
-                "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj"
+              "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
+                "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj"
               }
             }
           }
@@ -205,14 +205,14 @@
         }
       }
     },
-    "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
+    "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
+        "projectUniqueName": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
         "projectName": "SmartTelehealth.Core",
-        "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
+        "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
         "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-        "outputPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\obj\\",
+        "outputPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -280,14 +280,14 @@
         }
       }
     },
-    "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj": {
+    "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj",
+        "projectUniqueName": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj",
         "projectName": "SmartTelehealth.Infrastructure",
-        "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj",
+        "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-        "outputPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\obj\\",
+        "outputPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -308,11 +308,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
-                "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj"
+              "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
+                "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj"
               },
-              "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
-                "projectPath": "E:\\.Net Projects\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj"
+              "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
+                "projectPath": "D:\\TeleHealthWithSubscriptionModel\\src\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj"
               }
             }
           }
@@ -383,7 +383,7 @@
             },
             "Stripe.net": {
               "target": "Package",
-              "version": "[43.20.0, )"
+              "version": "[48.3.0, )"
             }
           },
           "imports": [

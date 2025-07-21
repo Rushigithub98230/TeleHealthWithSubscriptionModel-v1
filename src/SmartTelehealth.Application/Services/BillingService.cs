@@ -709,6 +709,7 @@ namespace SmartTelehealth.Application.Services
                 var billingRecord = new BillingRecord
                 {
                     Id = Guid.NewGuid(),
+                    UserId = createDto.UserId,
                     Amount = 0, // Will be calculated from subscriptions
                     Description = createDto.Description,
                     BillingDate = createDto.StartDate,

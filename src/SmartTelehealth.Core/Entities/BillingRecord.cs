@@ -20,7 +20,12 @@ public class BillingRecord : BaseEntity
         Consultation,
         Medication,
         LateFee,
-        Refund
+        Refund,
+        Recurring,
+        Upfront,
+        Bundle,
+        Invoice,
+        Cycle
     }
     
     // Foreign keys
@@ -35,6 +40,8 @@ public class BillingRecord : BaseEntity
     
     public Guid? MedicationDeliveryId { get; set; }
     public virtual MedicationDelivery? MedicationDelivery { get; set; }
+    
+    public Guid? BillingCycleId { get; set; }
     
     public Guid CurrencyId { get; set; }
     public virtual MasterCurrency Currency { get; set; } = null!;

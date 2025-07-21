@@ -4,6 +4,7 @@ using SmartTelehealth.Application.DTOs;
 using SmartTelehealth.Application.Interfaces;
 using SmartTelehealth.Core.Entities;
 using SmartTelehealth.Core.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace SmartTelehealth.Application.Services;
 
@@ -68,14 +69,33 @@ public class SubscriptionService : ISubscriptionService
 
         // 2. Prevent duplicate subscriptions for the same user and plan (active or paused)
         var userSubscriptions = await _subscriptionRepository.GetByUserIdAsync(Guid.Parse(createDto.UserId));
-        if (userSubscriptions.Any(s => s.SubscriptionPlanId == plan.Id && (s.Status == "Active" || s.Status == "Paused")))
+        if (userSubscriptions.Any(s => s.SubscriptionPlanId == plan.Id && (s.Status == Subscription.SubscriptionStatuses.Active || s.Status == Subscription.SubscriptionStatuses.Paused)))
             return ApiResponse<SubscriptionDto>.ErrorResponse("User already has an active or paused subscription for this plan");
 
         var entity = _mapper.Map<Subscription>(createDto);
-        entity.Status = "Active";
+        // Trial logic
+        if (plan.IsTrialAllowed && plan.TrialDurationInDays > 0)
+        {
+            entity.IsTrialSubscription = true;
+            entity.TrialStartDate = DateTime.UtcNow;
+            entity.TrialEndDate = DateTime.UtcNow.AddDays(plan.TrialDurationInDays);
+            entity.TrialDurationInDays = plan.TrialDurationInDays;
+            entity.Status = Subscription.SubscriptionStatuses.TrialActive;
+        }
+        else
+        {
+            entity.Status = Subscription.SubscriptionStatuses.Active;
+        }
         entity.StartDate = DateTime.UtcNow;
         entity.NextBillingDate = DateTime.UtcNow.AddMonths(1);
         var created = await _subscriptionRepository.CreateAsync(entity);
+        // Add status history
+        await _subscriptionRepository.AddStatusHistoryAsync(new SubscriptionStatusHistory {
+            SubscriptionId = created.Id,
+            FromStatus = null,
+            ToStatus = created.Status,
+            ChangedAt = DateTime.UtcNow
+        });
         var dto = _mapper.Map<SubscriptionDto>(created);
         // Send confirmation and welcome emails
         var userResult = await _userService.GetUserByIdAsync(createDto.UserId);
@@ -92,13 +112,26 @@ public class SubscriptionService : ISubscriptionService
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
-        // 3. Prevent cancelling an already cancelled subscription
-        if (entity.Status == "Cancelled")
+        // Prevent cancelling an already cancelled subscription
+        if (entity.IsCancelled)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription is already cancelled");
-        entity.Status = "Cancelled";
+        // Validate status transition
+        var validation = entity.ValidateStatusTransition(Subscription.SubscriptionStatuses.Cancelled);
+        if (validation != ValidationResult.Success)
+            return ApiResponse<SubscriptionDto>.ErrorResponse(validation.ErrorMessage);
+        var oldStatus = entity.Status;
+        entity.Status = Subscription.SubscriptionStatuses.Cancelled;
         entity.CancellationReason = reason;
         entity.CancelledDate = DateTime.UtcNow;
         var updated = await _subscriptionRepository.UpdateAsync(entity);
+        // Add status history
+        await _subscriptionRepository.AddStatusHistoryAsync(new SubscriptionStatusHistory {
+            SubscriptionId = updated.Id,
+            FromStatus = oldStatus,
+            ToStatus = updated.Status,
+            Reason = reason,
+            ChangedAt = DateTime.UtcNow
+        });
         var dto = _mapper.Map<SubscriptionDto>(updated);
         // Send cancellation email
         var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
@@ -112,14 +145,25 @@ public class SubscriptionService : ISubscriptionService
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
-        // 4. Prevent pausing if already paused or cancelled
-        if (entity.Status == "Paused")
+        if (entity.IsPaused)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription is already paused");
-        if (entity.Status == "Cancelled")
+        if (entity.IsCancelled)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Cannot pause a cancelled subscription");
-        entity.Status = "Paused";
+        // Validate status transition
+        var validation = entity.ValidateStatusTransition(Subscription.SubscriptionStatuses.Paused);
+        if (validation != ValidationResult.Success)
+            return ApiResponse<SubscriptionDto>.ErrorResponse(validation.ErrorMessage);
+        var oldStatus = entity.Status;
+        entity.Status = Subscription.SubscriptionStatuses.Paused;
         entity.PausedDate = DateTime.UtcNow;
         var updated = await _subscriptionRepository.UpdateAsync(entity);
+        // Add status history
+        await _subscriptionRepository.AddStatusHistoryAsync(new SubscriptionStatusHistory {
+            SubscriptionId = updated.Id,
+            FromStatus = oldStatus,
+            ToStatus = updated.Status,
+            ChangedAt = DateTime.UtcNow
+        });
         var dto = _mapper.Map<SubscriptionDto>(updated);
         // Send pause notification
         var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
@@ -133,12 +177,23 @@ public class SubscriptionService : ISubscriptionService
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
-        // 4. Prevent resuming if not paused
-        if (entity.Status != "Paused")
+        if (!entity.IsPaused)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Only paused subscriptions can be resumed");
-        entity.Status = "Active";
-        entity.ResumedAt = DateTime.UtcNow;
+        // Validate status transition
+        var validation = entity.ValidateStatusTransition(Subscription.SubscriptionStatuses.Active);
+        if (validation != ValidationResult.Success)
+            return ApiResponse<SubscriptionDto>.ErrorResponse(validation.ErrorMessage);
+        var oldStatus = entity.Status;
+        entity.Status = Subscription.SubscriptionStatuses.Active;
+        entity.ResumedDate = DateTime.UtcNow;
         var updated = await _subscriptionRepository.UpdateAsync(entity);
+        // Add status history
+        await _subscriptionRepository.AddStatusHistoryAsync(new SubscriptionStatusHistory {
+            SubscriptionId = updated.Id,
+            FromStatus = oldStatus,
+            ToStatus = updated.Status,
+            ChangedAt = DateTime.UtcNow
+        });
         var dto = _mapper.Map<SubscriptionDto>(updated);
         // Send resume notification
         var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
@@ -166,9 +221,21 @@ public class SubscriptionService : ISubscriptionService
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
-        entity.Status = "Active";
+        // Validate status transition
+        var validation = entity.ValidateStatusTransition(Subscription.SubscriptionStatuses.Active);
+        if (validation != ValidationResult.Success)
+            return ApiResponse<SubscriptionDto>.ErrorResponse(validation.ErrorMessage);
+        var oldStatus = entity.Status;
+        entity.Status = Subscription.SubscriptionStatuses.Active;
         entity.UpdatedAt = DateTime.UtcNow;
         var updated = await _subscriptionRepository.UpdateAsync(entity);
+        // Add status history
+        await _subscriptionRepository.AddStatusHistoryAsync(new SubscriptionStatusHistory {
+            SubscriptionId = updated.Id,
+            FromStatus = oldStatus,
+            ToStatus = updated.Status,
+            ChangedAt = DateTime.UtcNow
+        });
         return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(updated), "Subscription reactivated");
     }
 
@@ -256,12 +323,12 @@ public class SubscriptionService : ISubscriptionService
         var allSubscriptions = await _subscriptionRepository.GetAllSubscriptionsAsync();
         var analytics = new SubscriptionAnalyticsDto
         {
-            ActiveSubscriptions = allSubscriptions.Count(s => s.Status == "Active"),
-            CancelledSubscriptions = allSubscriptions.Count(s => s.Status == "Cancelled"),
-            PausedSubscriptions = allSubscriptions.Count(s => s.Status == "Paused"),
+            ActiveSubscriptions = allSubscriptions.Count(s => s.Status == Subscription.SubscriptionStatuses.Active),
+            CancelledSubscriptions = allSubscriptions.Count(s => s.Status == Subscription.SubscriptionStatuses.Cancelled),
+            PausedSubscriptions = allSubscriptions.Count(s => s.Status == Subscription.SubscriptionStatuses.Paused),
             TotalSubscriptions = allSubscriptions.Count(),
             NewSubscriptionsThisMonth = allSubscriptions.Count(s => s.StartDate >= new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)),
-            ChurnRate = allSubscriptions.Count(s => s.Status == "Cancelled") / (decimal)allSubscriptions.Count(),
+            ChurnRate = allSubscriptions.Count(s => s.Status == Subscription.SubscriptionStatuses.Cancelled) / (decimal)allSubscriptions.Count(),
             AverageSubscriptionValue = allSubscriptions.Any() ? allSubscriptions.Average(s => s.CurrentPrice) : 0,
             TotalRevenue = allSubscriptions.Sum(s => s.CurrentPrice),
             MonthlyRevenue = allSubscriptions.Where(s => s.StartDate >= DateTime.UtcNow.AddMonths(-1)).Sum(s => s.CurrentPrice),
@@ -293,7 +360,7 @@ public class SubscriptionService : ISubscriptionService
             var sub = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (sub != null)
             {
-                sub.Status = "Active";
+                sub.Status = Subscription.SubscriptionStatuses.Active;
                 await _subscriptionRepository.UpdateAsync(sub);
                 var userResult = await _userService.GetUserByIdAsync(sub.UserId.ToString());
                 if (userResult.Success && userResult.Data != null)
@@ -485,9 +552,19 @@ public class SubscriptionService : ISubscriptionService
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
             return ApiResponse<PaymentResultDto>.ErrorResponse("Subscription not found");
-        entity.Status = "Paused"; // Or a custom 'PaymentFailed' status
+        entity.Status = Subscription.SubscriptionStatuses.PaymentFailed;
+        entity.LastPaymentError = reason;
+        entity.FailedPaymentAttempts += 1;
         entity.UpdatedAt = DateTime.UtcNow;
         await _subscriptionRepository.UpdateAsync(entity);
+        // Add status history
+        await _subscriptionRepository.AddStatusHistoryAsync(new SubscriptionStatusHistory {
+            SubscriptionId = entity.Id,
+            FromStatus = entity.Status,
+            ToStatus = Subscription.SubscriptionStatuses.PaymentFailed,
+            Reason = reason,
+            ChangedAt = DateTime.UtcNow
+        });
         // Send payment failed email
         var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
         if (userResult.Success && userResult.Data != null)
@@ -515,7 +592,7 @@ public class SubscriptionService : ISubscriptionService
                 var billingRecord = new BillingRecordDto { Amount = paymentRequest.Amount, PaidDate = DateTime.UtcNow, Description = "Retry Payment" };
                 await _notificationService.SendPaymentSuccessEmailAsync(userResult.Data.Email, userResult.Data.FullName, billingRecord);
             }
-            entity.Status = "Active";
+            entity.Status = Subscription.SubscriptionStatuses.Active;
             entity.UpdatedAt = DateTime.UtcNow;
             await _subscriptionRepository.UpdateAsync(entity);
             // TODO: Trigger notification to user
@@ -533,7 +610,7 @@ public class SubscriptionService : ISubscriptionService
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
-        if (entity.Status != "Active")
+        if (entity.Status != Subscription.SubscriptionStatuses.Active)
             return ApiResponse<SubscriptionDto>.ErrorResponse("Only active subscriptions can be auto-renewed");
         // Simulate payment
         var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), entity.CurrentPrice, "USD");
@@ -598,7 +675,7 @@ public class SubscriptionService : ISubscriptionService
     public async Task<ApiResponse<bool>> CanUsePrivilegeAsync(string subscriptionId, string privilegeName)
     {
         var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
-        if (subscription == null || subscription.Status != "Active")
+        if (subscription == null || subscription.Status != Subscription.SubscriptionStatuses.Active)
             return ApiResponse<bool>.ErrorResponse("Subscription not active");
         var planPrivileges = await _planPrivilegeRepo.GetByPlanIdAsync(subscription.SubscriptionPlanId);
         var planPrivilege = planPrivileges.FirstOrDefault(p => p.Privilege.Name == privilegeName);
@@ -695,9 +772,9 @@ public class SubscriptionService : ISubscriptionService
         foreach (var id in subscriptionIds)
         {
             var sub = await _subscriptionRepository.GetByIdAsync(Guid.Parse(id));
-            if (sub != null && sub.Status == "Active")
+            if (sub != null && sub.Status == Subscription.SubscriptionStatuses.Active)
             {
-                sub.Status = "Cancelled";
+                sub.Status = Subscription.SubscriptionStatuses.Cancelled;
                 sub.CancellationReason = reason ?? "Bulk admin cancel";
                 sub.CancelledDate = DateTime.UtcNow;
                 await _subscriptionRepository.UpdateAsync(sub);
@@ -718,7 +795,7 @@ public class SubscriptionService : ISubscriptionService
         foreach (var id in subscriptionIds)
         {
             var sub = await _subscriptionRepository.GetByIdAsync(Guid.Parse(id));
-            if (sub != null && sub.Status == "Active" && sub.SubscriptionPlanId != Guid.Parse(newPlanId))
+            if (sub != null && sub.Status == Subscription.SubscriptionStatuses.Active && sub.SubscriptionPlanId != Guid.Parse(newPlanId))
             {
                 sub.SubscriptionPlanId = Guid.Parse(newPlanId);
                 sub.UpdatedAt = DateTime.UtcNow;

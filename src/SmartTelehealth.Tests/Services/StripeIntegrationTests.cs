@@ -65,9 +65,8 @@ namespace SmartTelehealth.Tests.Services
             // Arrange
             var productId = await _stripeService.CreateProductAsync($"Test Plan {Guid.NewGuid()}", "Test plan for subscription");
             var priceId = await _stripeService.CreatePriceAsync(productId, _testAmount, _testCurrency, _testInterval, _testIntervalCount);
-            // Use provided Stripe test customer and payment method for success
-            var customerId = "cus_SiRZ5v0v2uUYIg";
-            var paymentMethodId = "pm_1Rn0gwCI7YurXiFNo1PAovCl";
+            var customerId = await _stripeService.CreateCustomerAsync(_testEmail, _testName);
+            var paymentMethodId = await CreateAndAttachTestPaymentMethodAsync(customerId);
             // Act
             var subscriptionId = await _stripeService.CreateSubscriptionAsync(customerId, priceId, paymentMethodId);
             var subscription = await _stripeService.GetSubscriptionAsync(subscriptionId);
@@ -82,15 +81,28 @@ namespace SmartTelehealth.Tests.Services
         public async Task Can_Process_Stripe_Payment_Success_And_Failure()
         {
             // Arrange
-            var customerId = "cus_SiRaxDWmxCnPd5";
-            var validPaymentMethodId = "pm_1Rn0i7CI7YurXiFNcZwz1VOE";
+            var customerId = await _stripeService.CreateCustomerAsync(_testEmail, _testName);
+            var paymentMethodId = await CreateAndAttachTestPaymentMethodAsync(customerId);
             // Act
-            var paymentResult = await _stripeService.ProcessPaymentAsync(validPaymentMethodId, _testAmount, _testCurrency);
+            var paymentResult = await _stripeService.ProcessPaymentAsync(paymentMethodId, _testAmount, _testCurrency, customerId);
             // Assert success
             Assert.Equal("succeeded", paymentResult.Status, ignoreCase: true);
-            // Act & Assert failure (uncomment when declined ID is available)
-            // await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            //     await _stripeService.ProcessPaymentAsync(declinedPaymentMethodId, _testAmount, _testCurrency));
+            // Act & Assert failure (use a declined card)
+            var declinedPaymentMethodService = new PaymentMethodService();
+            var declinedPaymentMethod = await declinedPaymentMethodService.CreateAsync(new PaymentMethodCreateOptions
+            {
+                Type = "card",
+                Card = new PaymentMethodCardOptions
+                {
+                    Number = "4000000000000002", // Declined card
+                    ExpMonth = 12,
+                    ExpYear = 2030,
+                    Cvc = "123"
+                }
+            });
+            await declinedPaymentMethodService.AttachAsync(declinedPaymentMethod.Id, new PaymentMethodAttachOptions { Customer = customerId });
+            var failedPaymentResult = await _stripeService.ProcessPaymentAsync(declinedPaymentMethod.Id, _testAmount, _testCurrency, customerId);
+            Assert.Equal("failed", failedPaymentResult.Status, ignoreCase: true);
         }
 
         [Fact(DisplayName = "Can create and retrieve Stripe invoice for subscription")]
@@ -100,8 +112,8 @@ namespace SmartTelehealth.Tests.Services
             var productId = await _stripeService.CreateProductAsync($"Test Invoice Plan {Guid.NewGuid()}", "Test plan for invoice");
             var priceId = await _stripeService.CreatePriceAsync(productId, _testAmount, _testCurrency, _testInterval, _testIntervalCount);
             // Use provided Stripe test customer and payment method for success
-            var customerId = "cus_SiRb76fokmiORv";
-            var paymentMethodId = "pm_1Rn0j6CI7YurXiFNZtfEoSqU";
+            var customerId = await _stripeService.CreateCustomerAsync(_testEmail, _testName);
+            var paymentMethodId = await CreateAndAttachTestPaymentMethodAsync(customerId);
             var subscriptionId = await _stripeService.CreateSubscriptionAsync(customerId, priceId, paymentMethodId);
             // Act
             var subscription = await _stripeService.GetSubscriptionAsync(subscriptionId);
@@ -128,12 +140,32 @@ namespace SmartTelehealth.Tests.Services
 
         // --- NEW TESTS TO BE IMPLEMENTED ---
 
-        // Helper to attach a pre-created Stripe test payment method to a customer
+        // Helper to create and attach a test payment method to a customer
         private async Task<string> CreateAndAttachTestPaymentMethodAsync(string customerId)
         {
-            var paymentMethodId = "pm_card_visa";
-            await _stripeService.CreatePaymentMethodAsync(customerId, paymentMethodId);
-            return paymentMethodId;
+            var paymentMethodService = new PaymentMethodService();
+            var paymentMethod = await paymentMethodService.CreateAsync(new PaymentMethodCreateOptions
+            {
+                Type = "card",
+                Card = new PaymentMethodCardOptions
+                {
+                    Number = "4242424242424242",
+                    ExpMonth = 12,
+                    ExpYear = 2030,
+                    Cvc = "123"
+                }
+            });
+            var customerService = new CustomerService();
+            await customerService.UpdateAsync(customerId, new CustomerUpdateOptions
+            {
+                InvoiceSettings = new CustomerInvoiceSettingsOptions
+                {
+                    DefaultPaymentMethod = paymentMethod.Id
+                }
+            });
+            var attachOptions = new PaymentMethodAttachOptions { Customer = customerId };
+            await paymentMethodService.AttachAsync(paymentMethod.Id, attachOptions);
+            return paymentMethod.Id;
         }
 
         [Fact(DisplayName = "Can upgrade and downgrade Stripe subscription (proration)")]

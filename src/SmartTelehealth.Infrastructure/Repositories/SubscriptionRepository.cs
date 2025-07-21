@@ -17,6 +17,8 @@ public class SubscriptionRepository : ISubscriptionRepository
     public async Task<Subscription?> GetByIdAsync(Guid id)
     {
         return await _context.Subscriptions
+            .Include(s => s.StatusHistory)
+            .Include(s => s.Payments)
             .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
     }
 
@@ -31,7 +33,7 @@ public class SubscriptionRepository : ISubscriptionRepository
     public async Task<IEnumerable<Subscription>> GetActiveSubscriptionsAsync()
     {
         return await _context.Subscriptions
-            .Where(s => s.Status == "Active" && !s.IsDeleted)
+            .Where(s => s.Status == Subscription.SubscriptionStatuses.Active && !s.IsDeleted)
             .ToListAsync();
     }
 
@@ -40,7 +42,7 @@ public class SubscriptionRepository : ISubscriptionRepository
         return await _context.Subscriptions
             .Include(s => s.User)
             .Include(s => s.SubscriptionPlan)
-            .Where(s => s.Status == "Paused" && !s.IsDeleted)
+            .Where(s => s.Status == Subscription.SubscriptionStatuses.Paused && !s.IsDeleted)
             .ToListAsync();
     }
 
@@ -56,6 +58,9 @@ public class SubscriptionRepository : ISubscriptionRepository
     public async Task<Subscription> CreateAsync(Subscription subscription)
     {
         subscription.CreatedAt = DateTime.UtcNow;
+        // Set default values for new fields if needed
+        if (string.IsNullOrEmpty(subscription.Status))
+            subscription.Status = Subscription.SubscriptionStatuses.Pending;
         _context.Subscriptions.Add(subscription);
         await _context.SaveChangesAsync();
         return subscription;
@@ -229,4 +234,17 @@ public class SubscriptionRepository : ISubscriptionRepository
 
     public Task<IEnumerable<Subscription>> GetSubscriptionsByPlanIdAsync(Guid planId)
         => Task.FromResult<IEnumerable<Subscription>>(new List<Subscription>());
+
+    // New: Add status history
+    public async Task AddStatusHistoryAsync(SubscriptionStatusHistory history)
+    {
+        _context.SubscriptionStatusHistories.Add(history);
+        await _context.SaveChangesAsync();
+    }
+    // New: Add payment refund
+    public async Task AddPaymentRefundAsync(PaymentRefund refund)
+    {
+        _context.PaymentRefunds.Add(refund);
+        await _context.SaveChangesAsync();
+    }
 } 

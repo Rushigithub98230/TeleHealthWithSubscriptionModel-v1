@@ -70,6 +70,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     
     public DbSet<CategoryQuestion> CategoryQuestions { get; set; }
     public DbSet<CategoryQuestionAnswer> CategoryQuestionAnswers { get; set; }
+    public DbSet<SubscriptionStatusHistory> SubscriptionStatusHistories { get; set; }
+    public DbSet<PaymentRefund> PaymentRefunds { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -107,6 +109,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         ConfigureVideoCallParticipant(builder);
         ConfigureVideoCallEvent(builder);
         ConfigureSubscriptionPayment(builder);
+        ConfigureSubscriptionStatusHistory(builder);
+        ConfigurePaymentRefund(builder);
     }
     
     private void ConfigureMasterTables(ModelBuilder builder)
@@ -1149,6 +1153,44 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.ToTable("SubscriptionPayments");
             entity.Property(e => e.Amount).HasPrecision(18, 2);
             // ... existing property and relationship configuration ...
+        });
+    }
+
+    private void ConfigureSubscriptionStatusHistory(ModelBuilder builder)
+    {
+        builder.Entity<SubscriptionStatusHistory>(entity =>
+        {
+            entity.ToTable("SubscriptionStatusHistories");
+            entity.Property(e => e.FromStatus).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.ToStatus).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Reason).HasMaxLength(500);
+            entity.Property(e => e.Metadata).HasMaxLength(1000);
+            entity.HasOne(e => e.Subscription)
+                .WithMany(s => s.StatusHistory)
+                .HasForeignKey(e => e.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.ChangedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ChangedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+    }
+    private void ConfigurePaymentRefund(ModelBuilder builder)
+    {
+        builder.Entity<PaymentRefund>(entity =>
+        {
+            entity.ToTable("PaymentRefunds");
+            entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Reason).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.StripeRefundId).HasMaxLength(100);
+            entity.HasOne(e => e.SubscriptionPayment)
+                .WithMany(p => p.Refunds)
+                .HasForeignKey(e => e.SubscriptionPaymentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.ProcessedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ProcessedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 } 

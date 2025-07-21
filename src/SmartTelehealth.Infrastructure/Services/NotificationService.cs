@@ -62,7 +62,7 @@ public class NotificationService : INotificationService
                     <li>Plan: {subscription.PlanName}</li>
                     <li>Status: {subscription.Status}</li>
                     <li>Billing Cycle: {subscription.BillingCycleId}</li>
-                    <li>Price: ${subscription.Price}</li>
+                    <li>Price: ${subscription.CurrentPrice}</li>
                 </ul>
                 <p>You can now access all the features included in your subscription.</p>
                 <br>

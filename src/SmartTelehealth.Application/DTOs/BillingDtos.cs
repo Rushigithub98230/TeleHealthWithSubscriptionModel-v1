@@ -2,11 +2,13 @@ namespace SmartTelehealth.Application.DTOs;
 
 public class CreateRecurringBillingDto
 {
+    public Guid UserId { get; set; }
     public Guid SubscriptionId { get; set; }
     public decimal Amount { get; set; }
     public Guid BillingCycleId { get; set; } // Use FK instead of string
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    public DateTime DueDate { get; set; }
     public string PaymentMethodId { get; set; } = string.Empty;
     public bool AutoRenew { get; set; } = true;
     public int GracePeriodDays { get; set; } = 7;
@@ -42,6 +44,7 @@ public class BundleItemDto
     public string ItemType { get; set; } = string.Empty; // consultation, medication, subscription
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; } = 1;
+    public decimal Amount => UnitPrice * Quantity;
     public string? Description { get; set; }
 }
 
@@ -54,6 +57,7 @@ public class BillingAdjustmentDto
     public string Reason { get; set; } = string.Empty;
     public string? AppliedBy { get; set; }
     public DateTime AppliedAt { get; set; }
+    public DateTime CreatedAt => AppliedAt;
     public bool IsPercentage { get; set; }
     public string? Notes { get; set; }
 }
@@ -66,6 +70,8 @@ public class CreateInvoiceDto
     public decimal TaxAmount { get; set; }
     public decimal ShippingAmount { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal Amount => TotalAmount;
+    public string Description => Notes ?? string.Empty;
     public string Currency { get; set; } = "USD";
     public DateTime DueDate { get; set; }
     public string? InvoiceNumber { get; set; }
@@ -112,12 +118,15 @@ public class PaymentScheduleDto
     public int RemainingPayments { get; set; }
     public bool AutoRenew { get; set; }
     public List<PaymentScheduleItemDto> PaymentHistory { get; set; } = new List<PaymentScheduleItemDto>();
+    public List<PaymentScheduleItemDto> Payments => PaymentHistory;
 }
 
 public class PaymentScheduleItemDto
 {
+    public Guid BillingRecordId { get; set; }
     public DateTime ScheduledDate { get; set; }
     public DateTime? PaidDate { get; set; }
+    public DateTime DueDate { get; set; }
     public decimal Amount { get; set; }
     public string Status { get; set; } = string.Empty; // scheduled, paid, failed, cancelled
     public string? PaymentMethodId { get; set; }
@@ -126,6 +135,9 @@ public class PaymentScheduleItemDto
 
 public class CreateBillingCycleDto
 {
+    public Guid UserId { get; set; }
+    public decimal Amount { get; set; }
+    public DateTime DueDate { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }

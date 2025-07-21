@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OpenTokTest")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+926bd4a789191907d35b399afbc909cbedb34b44")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b6ea4927d7d2b3c37a206e575e24375942ae0870")]
 [assembly: System.Reflection.AssemblyProductAttribute("OpenTokTest")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OpenTokTest")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

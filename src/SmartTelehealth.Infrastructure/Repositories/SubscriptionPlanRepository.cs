@@ -14,19 +14,27 @@ public class SubscriptionPlanRepository : ISubscriptionPlanRepository
     }
 
     public async Task<SubscriptionPlan?> GetByIdAsync(Guid id)
-        => await _context.SubscriptionPlans.FindAsync(id);
+        => await _context.SubscriptionPlans
+            .Include(p => p.PlanPrivileges)
+            .Include(p => p.Subscriptions)
+            .FirstOrDefaultAsync(p => p.Id == id);
 
     public async Task<IEnumerable<SubscriptionPlan>> GetAllAsync()
-        => await _context.SubscriptionPlans.ToListAsync();
+        => await _context.SubscriptionPlans
+            .Include(p => p.PlanPrivileges)
+            .Include(p => p.Subscriptions)
+            .ToListAsync();
 
     public async Task AddAsync(SubscriptionPlan plan)
     {
+        plan.CreatedAt = DateTime.UtcNow;
         _context.SubscriptionPlans.Add(plan);
         await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(SubscriptionPlan plan)
     {
+        plan.UpdatedAt = DateTime.UtcNow;
         _context.SubscriptionPlans.Update(plan);
         await _context.SaveChangesAsync();
     }

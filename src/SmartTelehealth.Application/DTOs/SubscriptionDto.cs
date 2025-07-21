@@ -13,26 +13,50 @@ namespace SmartTelehealth.Application.DTOs
         public string PlanName { get; set; } = string.Empty;
         public string PlanDescription { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
-        public decimal Price { get; set; }
-        public Guid BillingCycleId { get; set; }
-        public Guid CurrencyId { get; set; }
+        public string? StatusReason { get; set; }
+        public decimal CurrentPrice { get; set; }
+        public bool AutoRenew { get; set; }
+        public string? Notes { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public DateTime NextBillingDate { get; set; }
-        public DateTime? LastBillingDate { get; set; }
-        public string StripeSubscriptionId { get; set; } = string.Empty;
-        public string StripeCustomerId { get; set; } = string.Empty;
+        public DateTime? PausedDate { get; set; }
+        public DateTime? ResumedDate { get; set; }
+        public DateTime? CancelledDate { get; set; }
+        public DateTime? ExpirationDate { get; set; }
+        public string? CancellationReason { get; set; }
+        public string? PauseReason { get; set; }
+        public string? StripeSubscriptionId { get; set; }
+        public string? StripeCustomerId { get; set; }
+        public string? PaymentMethodId { get; set; }
+        public DateTime? LastPaymentDate { get; set; }
+        public DateTime? LastPaymentFailedDate { get; set; }
+        public string? LastPaymentError { get; set; }
+        public int FailedPaymentAttempts { get; set; }
+        public bool IsTrialSubscription { get; set; }
+        public DateTime? TrialStartDate { get; set; }
+        public DateTime? TrialEndDate { get; set; }
+        public int TrialDurationInDays { get; set; }
+        public DateTime? LastUsedDate { get; set; }
+        public int TotalUsageCount { get; set; }
+        public List<SubscriptionStatusHistoryDto> StatusHistory { get; set; } = new();
+        public List<SubscriptionPaymentDto> Payments { get; set; } = new();
         public bool IsActive { get; set; }
         public bool IsPaused { get; set; }
+        public bool IsCancelled { get; set; }
+        public bool IsExpired { get; set; }
+        public bool HasPaymentIssues { get; set; }
+        public bool IsInTrial { get; set; }
+        public int DaysUntilNextBilling { get; set; }
+        public bool IsNearExpiration { get; set; }
+        public bool CanPause { get; set; }
+        public bool CanResume { get; set; }
+        public bool CanCancel { get; set; }
+        public bool CanRenew { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public string? CancellationReason { get; set; }
-        public DateTime? CancelledAt { get; set; }
-        
-        // Additional properties referenced in services
-        public DateTime? PausedAt { get; set; }
-        public DateTime? ResumedAt { get; set; }
-        // Removed: CategoryName, BillingFrequency, CurrentPrice
+        public Guid BillingCycleId { get; set; }
+        public Guid CurrencyId { get; set; }
     }
 
     public class CreateSubscriptionDto
@@ -157,5 +181,60 @@ namespace SmartTelehealth.Application.DTOs
         public Guid CurrencyId { get; set; }
         public bool IsActive { get; set; }
         // Removed: MonthlyPrice, QuarterlyPrice, AnnualPrice
+    }
+
+    public class SubscriptionStatusHistoryDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string SubscriptionId { get; set; } = string.Empty;
+        public string FromStatus { get; set; } = string.Empty;
+        public string ToStatus { get; set; } = string.Empty;
+        public string? Reason { get; set; }
+        public string? ChangedByUserId { get; set; }
+        public DateTime ChangedAt { get; set; }
+        public string? Metadata { get; set; }
+    }
+    public class SubscriptionPaymentDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string SubscriptionId { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal NetAmount { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string? FailureReason { get; set; }
+        public DateTime DueDate { get; set; }
+        public DateTime? PaidAt { get; set; }
+        public DateTime? FailedAt { get; set; }
+        public DateTime BillingPeriodStart { get; set; }
+        public DateTime BillingPeriodEnd { get; set; }
+        public string? StripePaymentIntentId { get; set; }
+        public string? StripeInvoiceId { get; set; }
+        public string? ReceiptUrl { get; set; }
+        public string? PaymentIntentId { get; set; }
+        public string? InvoiceId { get; set; }
+        public int AttemptCount { get; set; }
+        public DateTime? NextRetryAt { get; set; }
+        public decimal RefundedAmount { get; set; }
+        public List<PaymentRefundDto> Refunds { get; set; } = new();
+        public bool IsPaid { get; set; }
+        public bool IsFailed { get; set; }
+        public bool IsRefunded { get; set; }
+        public bool IsOverdue { get; set; }
+        public decimal RemainingAmount { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
+    public class PaymentRefundDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string SubscriptionPaymentId { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string Reason { get; set; } = string.Empty;
+        public string? StripeRefundId { get; set; }
+        public DateTime RefundedAt { get; set; }
+        public string? ProcessedByUserId { get; set; }
     }
 } 

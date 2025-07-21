@@ -34,4 +34,6 @@ public interface ISubscriptionRepository
     Task<IEnumerable<Subscription>> GetSubscriptionsByDateRangeAsync(DateTime start, DateTime end);
     Task<SubscriptionPlan> UpdatePlanAsync(SubscriptionPlan plan);
     Task<IEnumerable<Subscription>> GetSubscriptionsByPlanIdAsync(Guid planId);
+    Task AddStatusHistoryAsync(SubscriptionStatusHistory history);
+    Task AddPaymentRefundAsync(PaymentRefund refund);
 } 

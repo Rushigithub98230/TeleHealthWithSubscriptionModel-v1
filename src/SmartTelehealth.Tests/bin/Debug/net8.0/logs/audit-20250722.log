@@ -69,3 +69,7 @@ Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid object name 'Categor
 ClientConnectionId:c0265c22-2a1b-48e5-9945-39e588b0d497
 Error Number:208,State:1,Class:16
 2025-07-22 02:55:43.925 +05:30 [WRN] Failed to determine the https port for redirect.
+2025-07-22 04:10:28.415 +05:30 [WRN] Failed to determine the https port for redirect.
+2025-07-22 04:12:04.729 +05:30 [WRN] Failed to determine the https port for redirect.
+2025-07-22 04:42:13.843 +05:30 [WRN] Failed to determine the https port for redirect.
+2025-07-22 04:44:19.435 +05:30 [WRN] Failed to determine the https port for redirect.

@@ -798,6 +798,26 @@ public class StripeService : IStripeService
         return session.Url;
     }
 
+    // Helper to create and attach a test payment method to a customer
+    public async Task<string> CreateAndAttachTestPaymentMethodAsync(string customerId)
+    {
+        var paymentMethodService = new PaymentMethodService();
+        var paymentMethod = await paymentMethodService.CreateAsync(new PaymentMethodCreateOptions
+        {
+            Type = "card",
+            Card = new PaymentMethodCardOptions
+            {
+                Number = "4242424242424242",
+                ExpMonth = 12,
+                ExpYear = 2030,
+                Cvc = "123"
+            }
+        });
+        var attachOptions = new PaymentMethodAttachOptions { Customer = customerId };
+        await paymentMethodService.AttachAsync(paymentMethod.Id, attachOptions);
+        return paymentMethod.Id;
+    }
+
     // Helper Methods
     private string MapStripeStatusToEnum(string status)
     {

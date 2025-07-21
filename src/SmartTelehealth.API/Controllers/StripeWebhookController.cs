@@ -98,31 +98,31 @@ public class StripeWebhookController : ControllerBase
     {
         switch (stripeEvent.Type)
         {
-            case Events.CustomerSubscriptionCreated:
+            case "customer.subscription.created":
                 await HandleSubscriptionCreated(stripeEvent);
                 break;
-            case Events.CustomerSubscriptionUpdated:
+            case "customer.subscription.updated":
                 await HandleSubscriptionUpdated(stripeEvent);
                 break;
-            case Events.CustomerSubscriptionDeleted:
+            case "customer.subscription.deleted":
                 await HandleSubscriptionDeleted(stripeEvent);
                 break;
-            case Events.InvoicePaymentSucceeded:
+            case "invoice.payment_succeeded":
                 await HandlePaymentSucceeded(stripeEvent);
                 break;
-            case Events.InvoicePaymentFailed:
+            case "invoice.payment_failed":
                 await HandlePaymentFailed(stripeEvent);
                 break;
-            case Events.PaymentIntentSucceeded:
+            case "payment_intent.succeeded":
                 await HandlePaymentIntentSucceeded(stripeEvent);
                 break;
-            case Events.PaymentIntentPaymentFailed:
+            case "payment_intent.payment_failed":
                 await HandlePaymentIntentFailed(stripeEvent);
                 break;
-            case Events.CustomerSubscriptionTrialWillEnd:
+            case "customer.subscription.trial_will_end":
                 await HandleSubscriptionTrialWillEnd(stripeEvent);
                 break;
-            case Events.InvoicePaymentActionRequired:
+            case "invoice.payment_action_required":
                 await HandlePaymentActionRequired(stripeEvent);
                 break;
             default:
@@ -185,6 +185,12 @@ public class StripeWebhookController : ControllerBase
 
         try
         {
+            // Log all properties of the invoice for debugging
+            foreach (var prop in invoice.GetType().GetProperties())
+            {
+                _logger.LogInformation($"Invoice property: {prop.Name} = {prop.GetValue(invoice)}");
+            }
+
             // Validate customer ID format before parsing
             if (!Guid.TryParse(invoice.CustomerId, out Guid userId))
             {
@@ -200,12 +206,13 @@ public class StripeWebhookController : ControllerBase
                 Currency = invoice.Currency,
                 PaymentMethod = "stripe",
                 StripeInvoiceId = invoice.Id,
-                StripePaymentIntentId = invoice.PaymentIntentId,
+                // TODO: Restore when correct property names are known
+                // StripePaymentIntentId = invoice.PaymentIntentId ?? invoice.PaymentIntent?.ToString() ?? string.Empty,
                 Status = BillingRecord.BillingStatus.Paid.ToString(),
                 Description = $"Stripe Invoice Payment: {invoice.Id}",
                 BillingDate = DateTime.UtcNow,
                 ConsultationId = null,
-                SubscriptionId = invoice.SubscriptionId
+                // SubscriptionId = invoice.SubscriptionId ?? invoice.Subscription?.ToString() ?? string.Empty
             });
 
             _logger.LogInformation("Created billing record for successful payment: {InvoiceId}", invoice.Id);

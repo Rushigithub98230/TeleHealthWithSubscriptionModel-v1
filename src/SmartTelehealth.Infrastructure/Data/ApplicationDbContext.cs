@@ -68,6 +68,9 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<SubscriptionPlanPrivilege> SubscriptionPlanPrivileges { get; set; }
     public DbSet<UserSubscriptionPrivilegeUsage> UserSubscriptionPrivilegeUsages { get; set; }
     
+    public DbSet<CategoryQuestion> CategoryQuestions { get; set; }
+    public DbSet<CategoryQuestionAnswer> CategoryQuestionAnswers { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

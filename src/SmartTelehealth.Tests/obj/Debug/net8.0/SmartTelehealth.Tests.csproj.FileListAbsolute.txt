@@ -1021,7 +1021,6 @@ D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Mi
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Microsoft.TestPlatform.CrossPlatEngine.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Microsoft.TestPlatform.Utilities.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Microsoft.VisualStudio.TestPlatform.Common.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Microsoft.Win32.SystemEvents.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Mono.TextTemplating.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Moq.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Newtonsoft.Json.dll
@@ -1053,7 +1052,6 @@ D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Sy
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.Composition.TypedParts.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.Configuration.ConfigurationManager.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.Drawing.Common.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.IO.Abstractions.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.IO.Hashing.dll
@@ -1066,7 +1064,6 @@ D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Sy
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.Text.Encodings.Web.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.Text.Json.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.Threading.Channels.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\System.Windows.Extensions.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\TestableIO.System.IO.Abstractions.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\TestableIO.System.IO.Abstractions.Wrappers.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\Vonage.dll
@@ -1198,7 +1195,6 @@ D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\ru
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win\lib\net6.0\Microsoft.Win32.SystemEvents.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\linux-arm64\native\libQuestPdfSkia.so
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\linux-arm64\native\libcrypto.so
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\linux-arm64\native\libjpeg.so.8
@@ -1229,12 +1225,8 @@ D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\ru
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win-x86\native\libstdc++-6.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win-x86\native\libwinpthread-1.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win-x86\native\qpdf.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\unix\lib\net6.0\System.Drawing.Common.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Drawing.Common.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Runtime.Caching.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.API.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Application.dll
 D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Core.dll

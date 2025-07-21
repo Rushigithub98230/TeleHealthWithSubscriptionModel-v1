@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SmartTelehealth.Application.DTOs;
 using SmartTelehealth.Application.Interfaces;
 using Stripe;
+using Stripe.Checkout;
 
 namespace SmartTelehealth.Infrastructure.Services;
 
@@ -773,6 +774,28 @@ public class StripeService : IStripeService
                 throw new InvalidOperationException($"Failed to update payment method for Stripe subscription: {ex.Message}", ex);
             }
         });
+    }
+
+    public async Task<string> CreateCheckoutSessionAsync(string priceId, string successUrl, string cancelUrl)
+    {
+        var options = new SessionCreateOptions
+        {
+            PaymentMethodTypes = new List<string> { "card" },
+            Mode = "subscription",
+            LineItems = new List<SessionLineItemOptions>
+            {
+                new SessionLineItemOptions
+                {
+                    Price = priceId,
+                    Quantity = 1
+                }
+            },
+            SuccessUrl = successUrl,
+            CancelUrl = cancelUrl
+        };
+        var service = new SessionService();
+        var session = await service.CreateAsync(options);
+        return session.Url;
     }
 
     // Helper Methods

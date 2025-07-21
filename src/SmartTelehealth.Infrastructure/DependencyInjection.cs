@@ -51,6 +51,10 @@ public static class DependencyInjection
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IInfermedicaService, InfermedicaService>();
+        services.AddScoped<ICategoryQuestionRepository, CategoryQuestionRepository>();
+        services.AddScoped<ICategoryQuestionAnswerRepository, CategoryQuestionAnswerRepository>();
+        services.AddScoped<ICategoryQuestionService, CategoryQuestionService>();
+        services.AddScoped<ICategoryQuestionAnswerService, CategoryQuestionAnswerService>();
         // Register a stub for IPharmacyIntegrationRepository if not implemented
         services.AddScoped<IPharmacyIntegrationRepository, PharmacyIntegrationRepositoryStub>();
 

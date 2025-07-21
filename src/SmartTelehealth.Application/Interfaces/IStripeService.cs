@@ -39,4 +39,7 @@ public interface IStripeService
     // Payment Processing
     Task<PaymentResultDto> ProcessPaymentAsync(string paymentMethodId, decimal amount, string currency);
     Task<bool> ProcessRefundAsync(string paymentIntentId, decimal amount);
+    
+    // Stripe Checkout
+    Task<string> CreateCheckoutSessionAsync(string priceId, string successUrl, string cancelUrl);
 } 

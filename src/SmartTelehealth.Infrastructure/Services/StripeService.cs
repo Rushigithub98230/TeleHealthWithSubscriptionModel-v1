@@ -595,11 +595,185 @@ public class StripeService : IStripeService
     public Task<bool> SetDefaultPaymentMethodAsync(string customerId, string paymentMethodId) => throw new NotImplementedException();
     public Task<bool> RemovePaymentMethodAsync(string customerId, string paymentMethodId) => throw new NotImplementedException();
     public Task<IEnumerable<PaymentMethodDto>> GetCustomerPaymentMethodsAsync(string customerId) => throw new NotImplementedException();
-    public Task<bool> UpdateSubscriptionAsync(string subscriptionId, string priceId) => throw new NotImplementedException();
-    public Task<bool> PauseSubscriptionAsync(string subscriptionId) => throw new NotImplementedException();
-    public Task<bool> ResumeSubscriptionAsync(string subscriptionId) => throw new NotImplementedException();
-    public Task<bool> ReactivateSubscriptionAsync(string subscriptionId) => throw new NotImplementedException();
-    public Task<bool> UpdateSubscriptionPaymentMethodAsync(string subscriptionId, string paymentMethodId) => throw new NotImplementedException();
+    public async Task<bool> UpdateSubscriptionAsync(string subscriptionId, string priceId)
+    {
+        if (string.IsNullOrEmpty(subscriptionId))
+            throw new ArgumentException("Subscription ID is required", nameof(subscriptionId));
+        if (string.IsNullOrEmpty(priceId))
+            throw new ArgumentException("Price ID is required", nameof(priceId));
+
+        return await ExecuteWithRetryAsync(async () =>
+        {
+            try
+            {
+                var subscriptionService = new SubscriptionService();
+                var subscription = await subscriptionService.GetAsync(subscriptionId);
+                var updateOptions = new SubscriptionUpdateOptions
+                {
+                    Items = new List<SubscriptionItemOptions>
+                    {
+                        new SubscriptionItemOptions
+                        {
+                            Id = subscription.Items.Data[0].Id, // Assumes single item subscription
+                            Price = priceId
+                        }
+                    },
+                    ProrationBehavior = "create_prorations",
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "updated_at", DateTime.UtcNow.ToString("O") },
+                        { "source", "smart_telehealth" }
+                    }
+                };
+                await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
+                _logger.LogInformation("Updated Stripe subscription: {SubscriptionId} to price {PriceId}", subscriptionId, priceId);
+                return true;
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe error updating subscription {SubscriptionId}: {Message}", subscriptionId, ex.Message);
+                throw new InvalidOperationException($"Failed to update Stripe subscription: {ex.Message}", ex);
+            }
+        });
+    }
+
+    public async Task<bool> PauseSubscriptionAsync(string subscriptionId)
+    {
+        if (string.IsNullOrEmpty(subscriptionId))
+            throw new ArgumentException("Subscription ID is required", nameof(subscriptionId));
+
+        return await ExecuteWithRetryAsync(async () =>
+        {
+            try
+            {
+                var subscriptionService = new SubscriptionService();
+                var updateOptions = new SubscriptionUpdateOptions
+                {
+                    PauseCollection = new SubscriptionPauseCollectionOptions
+                    {
+                        Behavior = "keep_as_draft" // or "void" or "mark_uncollectible" as per business needs
+                    },
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "paused_at", DateTime.UtcNow.ToString("O") },
+                        { "source", "smart_telehealth" }
+                    }
+                };
+                await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
+                _logger.LogInformation("Paused Stripe subscription: {SubscriptionId}", subscriptionId);
+                return true;
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe error pausing subscription {SubscriptionId}: {Message}", subscriptionId, ex.Message);
+                throw new InvalidOperationException($"Failed to pause Stripe subscription: {ex.Message}", ex);
+            }
+        });
+    }
+
+    public async Task<bool> ResumeSubscriptionAsync(string subscriptionId)
+    {
+        if (string.IsNullOrEmpty(subscriptionId))
+            throw new ArgumentException("Subscription ID is required", nameof(subscriptionId));
+
+        return await ExecuteWithRetryAsync(async () =>
+        {
+            try
+            {
+                var subscriptionService = new SubscriptionService();
+                var updateOptions = new SubscriptionUpdateOptions
+                {
+                    PauseCollection = null, // Unset pause_collection to resume
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "resumed_at", DateTime.UtcNow.ToString("O") },
+                        { "source", "smart_telehealth" }
+                    }
+                };
+                await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
+                _logger.LogInformation("Resumed Stripe subscription: {SubscriptionId}", subscriptionId);
+                return true;
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe error resuming subscription {SubscriptionId}: {Message}", subscriptionId, ex.Message);
+                throw new InvalidOperationException($"Failed to resume Stripe subscription: {ex.Message}", ex);
+            }
+        });
+    }
+
+    public async Task<bool> ReactivateSubscriptionAsync(string subscriptionId)
+    {
+        if (string.IsNullOrEmpty(subscriptionId))
+            throw new ArgumentException("Subscription ID is required", nameof(subscriptionId));
+
+        return await ExecuteWithRetryAsync(async () =>
+        {
+            try
+            {
+                var subscriptionService = new SubscriptionService();
+                var subscription = await subscriptionService.GetAsync(subscriptionId);
+                if (subscription.CancelAtPeriodEnd == true)
+                {
+                    var updateOptions = new SubscriptionUpdateOptions
+                    {
+                        CancelAtPeriodEnd = false,
+                        Metadata = new Dictionary<string, string>
+                        {
+                            { "reactivated_at", DateTime.UtcNow.ToString("O") },
+                            { "source", "smart_telehealth" }
+                        }
+                    };
+                    await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
+                    _logger.LogInformation("Reactivated Stripe subscription: {SubscriptionId}", subscriptionId);
+                    return true;
+                }
+                else
+                {
+                    _logger.LogWarning("Cannot reactivate subscription {SubscriptionId} because it is not set to cancel at period end.", subscriptionId);
+                    return false;
+                }
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe error reactivating subscription {SubscriptionId}: {Message}", subscriptionId, ex.Message);
+                throw new InvalidOperationException($"Failed to reactivate Stripe subscription: {ex.Message}", ex);
+            }
+        });
+    }
+
+    public async Task<bool> UpdateSubscriptionPaymentMethodAsync(string subscriptionId, string paymentMethodId)
+    {
+        if (string.IsNullOrEmpty(subscriptionId))
+            throw new ArgumentException("Subscription ID is required", nameof(subscriptionId));
+        if (string.IsNullOrEmpty(paymentMethodId))
+            throw new ArgumentException("Payment method ID is required", nameof(paymentMethodId));
+
+        return await ExecuteWithRetryAsync(async () =>
+        {
+            try
+            {
+                var subscriptionService = new SubscriptionService();
+                var updateOptions = new SubscriptionUpdateOptions
+                {
+                    DefaultPaymentMethod = paymentMethodId,
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "updated_payment_method_at", DateTime.UtcNow.ToString("O") },
+                        { "source", "smart_telehealth" }
+                    }
+                };
+                await subscriptionService.UpdateAsync(subscriptionId, updateOptions);
+                _logger.LogInformation("Updated payment method for Stripe subscription: {SubscriptionId}", subscriptionId);
+                return true;
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe error updating payment method for subscription {SubscriptionId}: {Message}", subscriptionId, ex.Message);
+                throw new InvalidOperationException($"Failed to update payment method for Stripe subscription: {ex.Message}", ex);
+            }
+        });
+    }
 
     // Helper Methods
     private string MapStripeStatusToEnum(string status)

@@ -135,7 +135,11 @@ public class PaymentScheduleItemDto
 
 public class CreateBillingCycleDto
 {
+    /// <summary>
+    /// UserId must always be a Guid. The client must send a valid Guid string in JSON (e.g., "userId": "123e4567-e89b-12d3-a456-426614174000").
+    /// </summary>
     public Guid UserId { get; set; }
+    public CreateBillingCycleDto() { }
     public decimal Amount { get; set; }
     public DateTime DueDate { get; set; }
     public string Name { get; set; } = string.Empty;

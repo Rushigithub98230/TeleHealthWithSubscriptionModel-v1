@@ -883,6 +883,11 @@ public class BillingService : IBillingService
         // Not implemented in infrastructure layer
         return await Task.FromResult(ApiResponse<bool>.ErrorResponse("Not implemented in infrastructure layer", 501));
     }
+    /// <summary>
+    /// Creates a new billing cycle record. UserId must always be a Guid.
+    /// </summary>
+    /// <param name="createDto">The billing cycle creation DTO.</param>
+    /// <returns>API response with the created billing record DTO.</returns>
     public async Task<ApiResponse<BillingRecordDto>> CreateBillingCycleAsync(CreateBillingCycleDto createDto)
     {
         var billingRecord = new BillingRecord

@@ -890,9 +890,16 @@ public class BillingService : IBillingService
     /// <returns>API response with the created billing record DTO.</returns>
     public async Task<ApiResponse<BillingRecordDto>> CreateBillingCycleAsync(CreateBillingCycleDto createDto)
     {
+        Guid userId;
+        if (createDto.UserId is Guid guid)
+            userId = guid;
+        else if (createDto.UserId is string str && Guid.TryParse(str, out var parsed))
+            userId = parsed;
+        else
+            throw new ArgumentException("UserId must be a Guid or a valid Guid string.");
         var billingRecord = new BillingRecord
         {
-            UserId = createDto.UserId,
+            UserId = userId,
             Amount = createDto.Amount,
             Description = createDto.Description,
             DueDate = createDto.DueDate,
@@ -901,7 +908,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "BillingCycleCreated", createdRecord.Id.ToString(), "Success");
+        await _auditService.LogPaymentEventAsync(userId.ToString(), "BillingCycleCreated", createdRecord.Id.ToString(), "Success");
         return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Billing cycle created successfully");
     }
     public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetBillingCycleRecordsAsync(Guid billingCycleId)

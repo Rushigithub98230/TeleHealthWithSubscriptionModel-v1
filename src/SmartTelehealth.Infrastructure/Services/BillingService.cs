@@ -854,7 +854,7 @@ public class BillingService : IBillingService
         // Example: summarize billing for a user
         var records = await _billingRepository.GetByUserIdAsync(userId);
         var total = records.Where(r => (!startDate.HasValue || r.CreatedAt >= startDate) && (!endDate.HasValue || r.CreatedAt <= endDate)).Sum(r => r.Amount);
-        var summary = new BillingSummaryDto { UserId = userId.ToString(), TotalBilled = total };
+        var summary = new BillingSummaryDto { UserId = userId, TotalBilled = total };
         return ApiResponse<BillingSummaryDto>.SuccessResponse(summary, "Billing summary generated");
     }
     public async Task<ApiResponse<PaymentScheduleDto>> GetPaymentScheduleAsync(Guid subscriptionId)

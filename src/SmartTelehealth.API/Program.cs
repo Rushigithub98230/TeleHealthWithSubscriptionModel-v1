@@ -176,7 +176,10 @@ if (!app.Environment.IsEnvironment("Test"))
 app.Run();
 
 // Make Program class public for testing
-public partial class Program { } 
+namespace SmartTelehealth.API
+{
+    public partial class Program { }
+}
 
 // Add this class to filter out navigation properties from Swagger
 public class IgnoreNavigationPropertiesSchemaFilter : ISchemaFilter

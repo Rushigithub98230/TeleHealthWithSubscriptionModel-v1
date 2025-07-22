@@ -982,6 +982,9 @@ namespace SmartTelehealth.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<Guid?>("BillingCycleId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("BillingDate")
                         .HasColumnType("datetime2");
 
@@ -2716,6 +2719,127 @@ namespace SmartTelehealth.Infrastructure.Migrations
                     b.ToTable("ProviderCategories", (string)null);
                 });
 
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.Question", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HelpText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MediaUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId");
+
+                    b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.QuestionOption", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MediaUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("QuestionOptions");
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.QuestionnaireTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("QuestionnaireTemplates");
+                });
+
             modelBuilder.Entity("SmartTelehealth.Core.Entities.RefundStatus", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3518,6 +3642,98 @@ namespace SmartTelehealth.Infrastructure.Migrations
                     b.HasIndex("UserRoleId");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.UserAnswer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AnswerText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ResponseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("ResponseId");
+
+                    b.ToTable("UserAnswers");
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.UserAnswerOption", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AnswerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("OptionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnswerId");
+
+                    b.HasIndex("OptionId");
+
+                    b.ToTable("UserAnswerOptions");
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.UserResponse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserResponses");
                 });
 
             modelBuilder.Entity("SmartTelehealth.Core.Entities.UserRole", b =>
@@ -4528,6 +4744,28 @@ namespace SmartTelehealth.Infrastructure.Migrations
                     b.Navigation("Provider");
                 });
 
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.Question", b =>
+                {
+                    b.HasOne("SmartTelehealth.Core.Entities.QuestionnaireTemplate", "Template")
+                        .WithMany("Questions")
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Template");
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.QuestionOption", b =>
+                {
+                    b.HasOne("SmartTelehealth.Core.Entities.Question", "Question")
+                        .WithMany("Options")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
             modelBuilder.Entity("SmartTelehealth.Core.Entities.Subscription", b =>
                 {
                     b.HasOne("SmartTelehealth.Core.Entities.MasterBillingCycle", "BillingCycle")
@@ -4662,6 +4900,44 @@ namespace SmartTelehealth.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("UserRole");
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.UserAnswer", b =>
+                {
+                    b.HasOne("SmartTelehealth.Core.Entities.Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SmartTelehealth.Core.Entities.UserResponse", "Response")
+                        .WithMany("Answers")
+                        .HasForeignKey("ResponseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+
+                    b.Navigation("Response");
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.UserAnswerOption", b =>
+                {
+                    b.HasOne("SmartTelehealth.Core.Entities.UserAnswer", "Answer")
+                        .WithMany("SelectedOptions")
+                        .HasForeignKey("AnswerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartTelehealth.Core.Entities.QuestionOption", "Option")
+                        .WithMany()
+                        .HasForeignKey("OptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Answer");
+
+                    b.Navigation("Option");
                 });
 
             modelBuilder.Entity("SmartTelehealth.Core.Entities.UserSubscriptionPrivilegeUsage", b =>
@@ -4878,6 +5154,16 @@ namespace SmartTelehealth.Infrastructure.Migrations
                     b.Navigation("ProviderCategories");
                 });
 
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.Question", b =>
+                {
+                    b.Navigation("Options");
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.QuestionnaireTemplate", b =>
+                {
+                    b.Navigation("Questions");
+                });
+
             modelBuilder.Entity("SmartTelehealth.Core.Entities.RefundStatus", b =>
                 {
                     b.Navigation("PaymentLogs");
@@ -4941,6 +5227,16 @@ namespace SmartTelehealth.Infrastructure.Migrations
                     b.Navigation("Subscriptions");
 
                     b.Navigation("UploadedDocuments");
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.UserAnswer", b =>
+                {
+                    b.Navigation("SelectedOptions");
+                });
+
+            modelBuilder.Entity("SmartTelehealth.Core.Entities.UserResponse", b =>
+                {
+                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("SmartTelehealth.Core.Entities.UserRole", b =>

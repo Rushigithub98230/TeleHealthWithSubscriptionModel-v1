@@ -890,13 +890,7 @@ public class BillingService : IBillingService
     /// <returns>API response with the created billing record DTO.</returns>
     public async Task<ApiResponse<BillingRecordDto>> CreateBillingCycleAsync(CreateBillingCycleDto createDto)
     {
-        Guid userId;
-        if (createDto.UserId is Guid guid)
-            userId = guid;
-        else if (createDto.UserId is string str && Guid.TryParse(str, out var parsed))
-            userId = parsed;
-        else
-            throw new ArgumentException("UserId must be a Guid or a valid Guid string.");
+        var userId = createDto.UserId;
         var billingRecord = new BillingRecord
         {
             UserId = userId,

@@ -73,6 +73,13 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<SubscriptionStatusHistory> SubscriptionStatusHistories { get; set; }
     public DbSet<PaymentRefund> PaymentRefunds { get; set; }
     
+    public DbSet<QuestionnaireTemplate> QuestionnaireTemplates { get; set; }
+    public DbSet<Question> Questions { get; set; }
+    public DbSet<QuestionOption> QuestionOptions { get; set; }
+    public DbSet<UserResponse> UserResponses { get; set; }
+    public DbSet<UserAnswer> UserAnswers { get; set; }
+    public DbSet<UserAnswerOption> UserAnswerOptions { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -111,6 +118,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         ConfigureSubscriptionPayment(builder);
         ConfigureSubscriptionStatusHistory(builder);
         ConfigurePaymentRefund(builder);
+        ConfigureQuestionnaireSystem(builder);
     }
     
     private void ConfigureMasterTables(ModelBuilder builder)
@@ -1191,6 +1199,49 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .WithMany()
                 .HasForeignKey(e => e.ProcessedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+    }
+
+    private void ConfigureQuestionnaireSystem(ModelBuilder builder)
+    {
+        builder.Entity<QuestionnaireTemplate>(entity =>
+        {
+            entity.HasMany(q => q.Questions)
+                  .WithOne(q => q.Template)
+                  .HasForeignKey(q => q.TemplateId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<Question>(entity =>
+        {
+            entity.HasMany(q => q.Options)
+                  .WithOne(o => o.Question)
+                  .HasForeignKey(o => o.QuestionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<UserResponse>(entity =>
+        {
+            entity.HasMany(r => r.Answers)
+                  .WithOne(a => a.Response)
+                  .HasForeignKey(a => a.ResponseId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<UserAnswer>(entity =>
+        {
+            entity.HasMany(a => a.SelectedOptions)
+                  .WithOne(o => o.Answer)
+                  .HasForeignKey(o => o.AnswerId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<UserAnswerOption>(entity =>
+        {
+            entity.HasOne(o => o.Answer)
+                  .WithMany(a => a.SelectedOptions)
+                  .HasForeignKey(o => o.AnswerId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(o => o.Option)
+                  .WithMany()
+                  .HasForeignKey(o => o.OptionId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 } 

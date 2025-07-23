@@ -1,0 +1,32 @@
+<div class="plans-management">
+  <h2>Subscription Plans Management</h2>
+  <button class="add-plan-btn" (click)="addPlan()">Add Plan</button>
+  <div *ngIf="loading">Loading plans...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+  <table class="plans-table" *ngIf="!loading && plans.length">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Duration</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let plan of plans">
+        <td>{{ plan.id }}</td>
+        <td>{{ plan.name }}</td>
+        <td>{{ plan.price | currency }}</td>
+        <td>{{ plan.duration }}</td>
+        <td>{{ plan.status }}</td>
+        <td>
+          <button (click)="editPlan(plan)">Edit</button>
+          <button (click)="deletePlan(plan)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div *ngIf="!loading && !plans.length && !error">No plans found.</div>
+</div>

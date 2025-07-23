@@ -1,0 +1,48 @@
+.user-management {
+  padding: 2rem;
+}
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.user-table th, .user-table td {
+  border: 1px solid #ddd;
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+.user-table th {
+  background: #f5f5f5;
+}
+.user-table tr:nth-child(even) {
+  background: #fafafa;
+}
+.add-user-btn {
+  background: #388e3c;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 4px;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  cursor: pointer;
+}
+.add-user-btn:hover {
+  background: #2e7031;
+}
+.user-table button {
+  margin-right: 0.5rem;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 0.3rem 0.75rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.user-table button:last-child {
+  margin-right: 0;
+}
+.user-table button:hover {
+  background: #1565c0;
+}

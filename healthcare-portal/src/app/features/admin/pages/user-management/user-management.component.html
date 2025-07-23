@@ -1,0 +1,33 @@
+<div class="user-management">
+  <h2>User Management</h2>
+  <button class="add-user-btn" (click)="addUser()">Add User</button>
+  <div *ngIf="loading">Loading users...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+  <table class="user-table" *ngIf="!loading && users.length">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.id }}</td>
+        <td>{{ user.name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.role }}</td>
+        <td>{{ user.status }}</td>
+        <td>
+          <button (click)="editUser(user)">Edit</button>
+          <button (click)="deleteUser(user)">Delete</button>
+          <button (click)="assignRole(user)">Assign Role</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div *ngIf="!loading && !users.length && !error">No users found.</div>
+</div>

@@ -1,0 +1,21 @@
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { authGuard } from '../../core/auth.guard';
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
+// Import other admin components as needed
+
+const routes: Routes = [
+  {
+    path: 'dashboard',
+    component: DashboardComponent,
+    canActivate: [authGuard],
+    data: { roles: ['Admin', 'SuperAdmin'] }
+  },
+  // Add other admin routes here, all protected by authGuard and role-based access
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class AdminRoutingModule { }

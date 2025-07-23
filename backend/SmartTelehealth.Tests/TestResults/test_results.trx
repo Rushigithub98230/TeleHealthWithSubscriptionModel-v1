@@ -1,0 +1,758 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="e77db8e5-446a-4e7b-93f2-3b56a71e4b14" name="user@LAPTOP-FNR127FP 2025-07-22 04:44:11" runUser="LAPTOP-FNR127FP\user" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2025-07-22T04:44:11.3015873+05:30" queuing="2025-07-22T04:44:11.3015875+05:30" start="2025-07-22T04:44:08.7584641+05:30" finish="2025-07-22T04:44:47.5326286+05:30" />
+  <TestSettings name="default" id="986078f8-5186-404d-8bd5-2a9b4a818477">
+    <Deployment runDeploymentRoot="user_LAPTOP-FNR127FP_2025-07-22_04_44_11" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="608951fb-dc09-42cd-929a-20120c648016" testId="f37f0843-bf24-0d39-e1dc-3228c80d772c" testName="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;checkbox&quot;, optionsJson: &quot;[\&quot;A\&quot;,\&quot;B\&quot;,\&quot;C\&quot;]&quot;, answerJson: &quot;[\&quot;A\&quot;,\&quot;C\&quot;]&quot;)" computerName="LAPTOP-FNR127FP" duration="00:00:00.0033858" startTime="2025-07-22T04:44:19.6291356+05:30" endTime="2025-07-22T04:44:19.6291360+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="608951fb-dc09-42cd-929a-20120c648016" />
+    <UnitTestResult executionId="d46b7268-d456-4932-8ffe-c917e4dc31c8" testId="dc956e10-1c48-51da-6aa0-be74b7be3ebf" testName="CreatePaymentMethodAsync returns payment method ID successfully" computerName="LAPTOP-FNR127FP" duration="00:00:00.2713641" startTime="2025-07-22T04:44:11.0834334+05:30" endTime="2025-07-22T04:44:11.0835343+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d46b7268-d456-4932-8ffe-c917e4dc31c8" />
+    <UnitTestResult executionId="5605f35f-9776-4135-811a-bbdcf7495197" testId="8f7d1f05-821d-32d3-a73e-b2a10c39e885" testName="Webhook payment failure event is handled gracefully" computerName="LAPTOP-FNR127FP" duration="00:00:00.0030513" startTime="2025-07-22T04:44:11.3824257+05:30" endTime="2025-07-22T04:44:11.3824262+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5605f35f-9776-4135-811a-bbdcf7495197" />
+    <UnitTestResult executionId="b8f6465b-1572-40a2-8b4b-8c716ceaa75a" testId="982fd4b2-ece7-4654-2cb4-6c65b0214a0e" testName="Payment failure updates subscription and notifies user" computerName="LAPTOP-FNR127FP" duration="00:00:00.0075085" startTime="2025-07-22T04:44:11.3601653+05:30" endTime="2025-07-22T04:44:11.3601660+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b8f6465b-1572-40a2-8b4b-8c716ceaa75a" />
+    <UnitTestResult executionId="05db4a17-fa42-4831-8fb5-6b7a284347cd" testId="8980a462-383d-5eeb-68fc-325094ba736f" testName="Handles Stripe payment failure and recovery" computerName="LAPTOP-FNR127FP" duration="00:00:03.5733100" startTime="2025-07-22T04:44:32.2017695+05:30" endTime="2025-07-22T04:44:32.2017707+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="05db4a17-fa42-4831-8fb5-6b7a284347cd">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ&#xD;
+           ↓ (pos 0)&#xD;
+Expected: "failed"&#xD;
+Actual:   "succeeded"&#xD;
+           ↑ (pos 0)</Message>
+          <StackTrace>   at SmartTelehealth.Tests.Services.StripeIntegrationTests.Handles_Stripe_Payment_Failure_And_Recovery() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs:line 250&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b521e444-9955-413e-b4b8-792951325924" testId="781f996d-b06a-ff08-db1b-4d277118acd6" testName="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;range&quot;, optionsJson: &quot;{\&quot;min\&quot;:1,\&quot;max\&quot;:10}&quot;, answerJson: &quot;5&quot;)" computerName="LAPTOP-FNR127FP" duration="00:00:00.0210745" startTime="2025-07-22T04:44:19.6165148+05:30" endTime="2025-07-22T04:44:19.6165153+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b521e444-9955-413e-b4b8-792951325924" />
+    <UnitTestResult executionId="b9a9159e-458c-4bf8-b350-2ef9e5afd102" testId="ec179e2b-ea35-84f6-3013-80aacc88eeb7" testName="User can upgrade their subscription plan" computerName="LAPTOP-FNR127FP" duration="00:00:00.0060834" startTime="2025-07-22T04:44:11.3709224+05:30" endTime="2025-07-22T04:44:11.3709231+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b9a9159e-458c-4bf8-b350-2ef9e5afd102" />
+    <UnitTestResult executionId="fe1f7e64-6b82-49e4-84a7-108a484a4e0c" testId="51ab31d0-67f2-0b81-9295-e7fe742b13bc" testName="CreateCustomerAsync returns customer ID successfully" computerName="LAPTOP-FNR127FP" duration="00:00:00.0067873" startTime="2025-07-22T04:44:11.2099932+05:30" endTime="2025-07-22T04:44:11.2099934+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fe1f7e64-6b82-49e4-84a7-108a484a4e0c" />
+    <UnitTestResult executionId="05e178e2-eb45-4324-9920-22b5fbc1891e" testId="d789586b-b221-eb51-5345-c3cad03a1746" testName="GetConsultationByIdAsync throws NotImplementedException" computerName="LAPTOP-FNR127FP" duration="00:00:00.0015143" startTime="2025-07-22T04:44:11.2142213+05:30" endTime="2025-07-22T04:44:11.2142215+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="05e178e2-eb45-4324-9920-22b5fbc1891e" />
+    <UnitTestResult executionId="757973a5-331b-4642-9192-ea3dc44fb698" testId="ef7be729-2889-04cf-3600-7dbc45c7c7b9" testName="UpdateConsultationAsync throws NotImplementedException" computerName="LAPTOP-FNR127FP" duration="00:00:00.0027126" startTime="2025-07-22T04:44:11.2145596+05:30" endTime="2025-07-22T04:44:11.2145598+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="757973a5-331b-4642-9192-ea3dc44fb698" />
+    <UnitTestResult executionId="4b5e1fe7-9bf5-48b5-8b7a-39f90c048f11" testId="0d6a04b6-11ee-74bb-2c2b-0e86aff92187" testName="ProcessRefundAsync throws on error" computerName="LAPTOP-FNR127FP" duration="00:00:00.0228937" startTime="2025-07-22T04:44:11.1215141+05:30" endTime="2025-07-22T04:44:11.1215148+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4b5e1fe7-9bf5-48b5-8b7a-39f90c048f11" />
+    <UnitTestResult executionId="86e2f98c-1f23-4476-9a83-64e4b6e8d3f9" testId="0f987b68-079f-6c2c-4fb1-35b2095a599a" testName="User can view their billing history" computerName="LAPTOP-FNR127FP" duration="00:00:00.0062823" startTime="2025-07-22T04:44:11.3183761+05:30" endTime="2025-07-22T04:44:11.3183765+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="86e2f98c-1f23-4476-9a83-64e4b6e8d3f9" />
+    <UnitTestResult executionId="c50dd5bc-b3a4-498c-92b8-914aabcc6a05" testId="f69d2f37-8aed-0d04-9107-0a3efe3defd3" testName="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;image&quot;, optionsJson: null, answerJson: &quot;https://example.com/image.jpg&quot;)" computerName="LAPTOP-FNR127FP" duration="00:00:00.0031765" startTime="2025-07-22T04:44:19.6330378+05:30" endTime="2025-07-22T04:44:19.6330384+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c50dd5bc-b3a4-498c-92b8-914aabcc6a05" />
+    <UnitTestResult executionId="2a5ac0f4-a39d-4402-adaa-5162552894de" testId="a59cfa31-8f01-7397-7ed3-97901dccb0a8" testName="Admin can create a new subscription plan" computerName="LAPTOP-FNR127FP" duration="00:00:00.0292175" startTime="2025-07-22T04:44:11.2607850+05:30" endTime="2025-07-22T04:44:11.2607854+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2a5ac0f4-a39d-4402-adaa-5162552894de" />
+    <UnitTestResult executionId="ef5dda86-fa7f-4514-8608-6d27277faf65" testId="f58325d2-7b54-998c-4db5-aaf33bfa03d6" testName="Cannot subscribe to a nonexistent plan" computerName="LAPTOP-FNR127FP" duration="00:00:00.0054710" startTime="2025-07-22T04:44:11.2664476+05:30" endTime="2025-07-22T04:44:11.2664485+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ef5dda86-fa7f-4514-8608-6d27277faf65" />
+    <UnitTestResult executionId="98153549-10a9-42eb-b7af-824aa85c32a2" testId="efc662a1-2cc4-c5fb-e4fb-294d2b439277" testName="ProcessPaymentAsync throws on Stripe error" computerName="LAPTOP-FNR127FP" duration="00:00:00.0121209" startTime="2025-07-22T04:44:11.2103763+05:30" endTime="2025-07-22T04:44:11.2103763+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="98153549-10a9-42eb-b7af-824aa85c32a2" />
+    <UnitTestResult executionId="e1d34dde-1f56-4b36-bc9f-2d49e0da3297" testId="0b11c20e-a558-a55d-a16b-c4d251228829" testName="User can reactivate their subscription" computerName="LAPTOP-FNR127FP" duration="00:00:00.0037112" startTime="2025-07-22T04:44:11.3354098+05:30" endTime="2025-07-22T04:44:11.3354103+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e1d34dde-1f56-4b36-bc9f-2d49e0da3297" />
+    <UnitTestResult executionId="0764df6e-3563-4359-8dd4-ea7ca350c425" testId="a5ab23c5-a39b-31b9-8dd9-233f1a0abcc9" testName="Can create and retrieve Stripe invoice for subscription" computerName="LAPTOP-FNR127FP" duration="00:00:05.1536664" startTime="2025-07-22T04:44:47.2829854+05:30" endTime="2025-07-22T04:44:47.2829864+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0764df6e-3563-4359-8dd4-ea7ca350c425" />
+    <UnitTestResult executionId="68ce96a5-5f00-48b0-90c9-93886e8607b4" testId="f09ec95e-3264-85af-f127-0c61d92dbc4a" testName="Cannot cancel already cancelled subscription" computerName="LAPTOP-FNR127FP" duration="00:00:00.0030458" startTime="2025-07-22T04:44:11.3020337+05:30" endTime="2025-07-22T04:44:11.3020343+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="68ce96a5-5f00-48b0-90c9-93886e8607b4" />
+    <UnitTestResult executionId="853bc2dd-5303-41ca-9e0d-401b30c8fdda" testId="44c02df3-ff93-856a-6848-5bf9699f365c" testName="ProcessRefundAsync returns true on success" computerName="LAPTOP-FNR127FP" duration="00:00:00.0067755" startTime="2025-07-22T04:44:11.2101506+05:30" endTime="2025-07-22T04:44:11.2101507+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="853bc2dd-5303-41ca-9e0d-401b30c8fdda" />
+    <UnitTestResult executionId="7e11cda2-d318-4a52-bb1c-b4fe474d802c" testId="ab863e1d-a9db-b67c-8cf2-5f126ef4cb7a" testName="CreateCustomerAsync throws on invalid input" computerName="LAPTOP-FNR127FP" duration="00:00:00.0052600" startTime="2025-07-22T04:44:11.2105066+05:30" endTime="2025-07-22T04:44:11.2105067+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7e11cda2-d318-4a52-bb1c-b4fe474d802c" />
+    <UnitTestResult executionId="9dc772c5-56a0-4120-ae27-056fd69facbb" testId="b239bde5-67a4-55a0-6cfe-64507a81da54" testName="Can create Stripe subscription and validate linkage" computerName="LAPTOP-FNR127FP" duration="00:00:04.4669412" startTime="2025-07-22T04:44:28.6292772+05:30" endTime="2025-07-22T04:44:28.6292779+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9dc772c5-56a0-4120-ae27-056fd69facbb">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ&#xD;
+           ↓ (pos 0)&#xD;
+Expected: "cus_SiRZ5v0v2uUYIg"&#xD;
+Actual:   ""</Message>
+          <StackTrace>   at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Create_Stripe_Subscription() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs:line 76&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c0e4140a-87a0-4cd3-be4b-c7d703f0911d" testId="13d5af54-bc75-998e-5fe7-6d49c7515c46" testName="Can upgrade and downgrade Stripe subscription (proration)" computerName="LAPTOP-FNR127FP" duration="00:00:03.2451479" startTime="2025-07-22T04:44:42.1298252+05:30" endTime="2025-07-22T04:44:42.1298261+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c0e4140a-87a0-4cd3-be4b-c7d703f0911d">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Failed to create Stripe subscription: No such PaymentMethod: 'pm_card_visa'&#xD;
+---- Stripe.StripeException : No such PaymentMethod: 'pm_card_visa'</Message>
+          <StackTrace>   at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 421&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SmartTelehealth.Infrastructure.Services.StripeService.ExecuteWithRetryAsync[T](Func`1 operation) in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 825&#xD;
+   at SmartTelehealth.Infrastructure.Services.StripeService.CreateSubscriptionAsync(String customerId, String priceId, String paymentMethodId) in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 385&#xD;
+   at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Upgrade_And_Downgrade_Stripe_Subscription() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs:line 154&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 245&#xD;
+   at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+   at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+   at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 413</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="72d9a794-c046-487c-aaab-081525f136bd" testId="95a97f9e-7b9d-d41e-bf02-53922bbcdaea" testName="GetUserOneTimeConsultationsAsync returns error on exception" computerName="LAPTOP-FNR127FP" duration="00:00:00.0415972" startTime="2025-07-22T04:44:11.2107945+05:30" endTime="2025-07-22T04:44:11.2107949+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="72d9a794-c046-487c-aaab-081525f136bd" />
+    <UnitTestResult executionId="c8d5ba3e-0fc8-40be-b50e-c5817fe7cc6e" testId="0cd27912-957c-55af-c5ce-43912861512f" testName="Admin can view all subscriptions" computerName="LAPTOP-FNR127FP" duration="00:00:00.0024132" startTime="2025-07-22T04:44:11.3849865+05:30" endTime="2025-07-22T04:44:11.3849870+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c8d5ba3e-0fc8-40be-b50e-c5817fe7cc6e" />
+    <UnitTestResult executionId="68603450-af04-426d-8241-ab861141c5a9" testId="a8e6a116-34aa-1248-72fd-840ba80420c4" testName="Admin can deactivate plan and pause all subscribers" computerName="LAPTOP-FNR127FP" duration="00:00:00.2795096" startTime="2025-07-22T04:44:11.0928276+05:30" endTime="2025-07-22T04:44:11.0928278+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="68603450-af04-426d-8241-ab861141c5a9" />
+    <UnitTestResult executionId="cd7bce8e-65f9-4bc0-9669-43947bd327b9" testId="7c66ee20-43f5-1cbf-c002-ad29dfa5e8b5" testName="Analytics returns correct subscription stats" computerName="LAPTOP-FNR127FP" duration="00:00:00.0341757" startTime="2025-07-22T04:44:11.2146542+05:30" endTime="2025-07-22T04:44:11.2146543+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cd7bce8e-65f9-4bc0-9669-43947bd327b9" />
+    <UnitTestResult executionId="fe12315c-bd43-4f68-aed3-3d53aab38803" testId="dffe9a33-140a-600e-74d5-a6ba4fa0c43d" testName="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;radio&quot;, optionsJson: &quot;[\&quot;Option 1\&quot;,\&quot;Option 2\&quot;]&quot;, answerJson: &quot;Option 1&quot;)" computerName="LAPTOP-FNR127FP" duration="00:00:00.0030279" startTime="2025-07-22T04:44:19.6373934+05:30" endTime="2025-07-22T04:44:19.6373940+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fe12315c-bd43-4f68-aed3-3d53aab38803" />
+    <UnitTestResult executionId="db533e0b-8df6-4030-ba0c-4b31de8dd0ba" testId="8abea404-258d-cce2-ee97-351f21f08fe2" testName="Can create Stripe product and price (plan) dynamically" computerName="LAPTOP-FNR127FP" duration="00:00:00.8953831" startTime="2025-07-22T04:44:36.1138487+05:30" endTime="2025-07-22T04:44:36.1138497+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="db533e0b-8df6-4030-ba0c-4b31de8dd0ba" />
+    <UnitTestResult executionId="2d49cae3-2368-42a2-9261-71850df370cf" testId="bf9ed73b-8ea1-1a90-e85f-aff729761a37" testName="Can create Stripe subscription with trial and transition to paid" computerName="LAPTOP-FNR127FP" duration="00:00:04.5795375" startTime="2025-07-22T04:44:15.4425395+05:30" endTime="2025-07-22T04:44:15.4425405+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2d49cae3-2368-42a2-9261-71850df370cf">
+      <Output>
+        <ErrorInfo>
+          <Message>Stripe.StripeException : No such PaymentMethod: 'pm_card_visa'</Message>
+          <StackTrace>   at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 245&#xD;
+   at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 110&#xD;
+   at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken) in /_/src/Stripe.net/Services/_base/Service.cs:line 100&#xD;
+   at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Create_Subscription_With_Trial_And_Transition_To_Paid() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs:line 230&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e68d58b1-13d1-4513-96ee-9c5a879433b1" testId="5793d425-3092-e2a9-436a-9ad84491ba6d" testName="Can process Stripe subscription renewal" computerName="LAPTOP-FNR127FP" duration="00:00:02.4876497" startTime="2025-07-22T04:44:34.6948657+05:30" endTime="2025-07-22T04:44:34.6948670+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e68d58b1-13d1-4513-96ee-9c5a879433b1">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Failed to create Stripe subscription: No such PaymentMethod: 'pm_card_visa'&#xD;
+---- Stripe.StripeException : No such PaymentMethod: 'pm_card_visa'</Message>
+          <StackTrace>   at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 421&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SmartTelehealth.Infrastructure.Services.StripeService.ExecuteWithRetryAsync[T](Func`1 operation) in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 825&#xD;
+   at SmartTelehealth.Infrastructure.Services.StripeService.CreateSubscriptionAsync(String customerId, String priceId, String paymentMethodId) in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 385&#xD;
+   at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Process_Stripe_Subscription_Renewal() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs:line 270&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 245&#xD;
+   at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 110&#xD;
+   at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken) in /_/src/Stripe.net/Services/_base/Service.cs:line 100&#xD;
+   at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 413</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="eefd9217-875f-4d6e-9d20-3091fc206f92" testId="e2078127-ea68-f430-b358-b00ca9e24d27" testName="DeleteConsultationAsync throws NotImplementedException" computerName="LAPTOP-FNR127FP" duration="00:00:00.0014585" startTime="2025-07-22T04:44:11.2151324+05:30" endTime="2025-07-22T04:44:11.2151325+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="eefd9217-875f-4d6e-9d20-3091fc206f92" />
+    <UnitTestResult executionId="74cc693d-9d00-4ac8-a8f5-f26ae41b53de" testId="b965d120-71a0-c529-6a4a-41a18f18b418" testName="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;text&quot;, optionsJson: null, answerJson: &quot;Sample text answer&quot;)" computerName="LAPTOP-FNR127FP" duration="00:00:00.0077402" startTime="2025-07-22T04:44:19.6250119+05:30" endTime="2025-07-22T04:44:19.6250126+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="74cc693d-9d00-4ac8-a8f5-f26ae41b53de" />
+    <UnitTestResult executionId="e5b550e0-17ab-4576-b1d1-2dbd000c3bdf" testId="830d37fd-456f-f0b0-7888-e44f70edb29d" testName="Patient cannot exceed allowed consultations" computerName="LAPTOP-FNR127FP" duration="00:00:00.0069846" startTime="2025-07-22T04:44:11.2313502+05:30" endTime="2025-07-22T04:44:11.2313505+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e5b550e0-17ab-4576-b1d1-2dbd000c3bdf" />
+    <UnitTestResult executionId="47d4cfb4-ab3b-4c0b-a354-dea014898f25" testId="1adafd00-443c-b998-45fa-a92c8273e01b" testName="Cannot subscribe to the same plan twice" computerName="LAPTOP-FNR127FP" duration="00:00:00.0042912" startTime="2025-07-22T04:44:11.3646570+05:30" endTime="2025-07-22T04:44:11.3646577+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="47d4cfb4-ab3b-4c0b-a354-dea014898f25" />
+    <UnitTestResult executionId="4a66c5a2-2af6-4488-bc37-e7c16bae0beb" testId="a7e4a8ea-273a-388c-3047-ce9aea070bcf" testName="Webhook handler code is implemented and testable" computerName="LAPTOP-FNR127FP" duration="00:00:00.0056016" startTime="2025-07-22T04:44:47.2894275+05:30" endTime="2025-07-22T04:44:47.2894297+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4a66c5a2-2af6-4488-bc37-e7c16bae0beb" />
+    <UnitTestResult executionId="2ed6a79c-eea2-4ffb-9c00-038086ef9d80" testId="dde96649-ca7e-87d1-8332-f45ce8a5a6b7" testName="Subscription plan expiration and renewal" computerName="LAPTOP-FNR127FP" duration="00:00:00.0052258" startTime="2025-07-22T04:44:11.3315195+05:30" endTime="2025-07-22T04:44:11.3315199+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2ed6a79c-eea2-4ffb-9c00-038086ef9d80" />
+    <UnitTestResult executionId="6d74060f-ccb0-4f67-b823-cd845da7b052" testId="156e7562-7c42-3679-df04-524e0a5b78d8" testName="Cannot upgrade to the same plan" computerName="LAPTOP-FNR127FP" duration="00:00:00.0041147" startTime="2025-07-22T04:44:11.3523999+05:30" endTime="2025-07-22T04:44:11.3524005+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6d74060f-ccb0-4f67-b823-cd845da7b052" />
+    <UnitTestResult executionId="96f66fef-eded-4f5e-ab1b-183313f5bdcb" testId="8fb7a0ee-30a6-caeb-bf9a-aa91ba27aadd" testName="User can view all active plans" computerName="LAPTOP-FNR127FP" duration="00:00:00.0026400" startTime="2025-07-22T04:44:11.3930532+05:30" endTime="2025-07-22T04:44:11.3930539+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="96f66fef-eded-4f5e-ab1b-183313f5bdcb" />
+    <UnitTestResult executionId="e4faa576-07fc-43ab-9065-4fd05d8033d6" testId="73b593e9-47a3-ba0d-1f67-570ae412f038" testName="User can view their payment methods" computerName="LAPTOP-FNR127FP" duration="00:00:00.0444725" startTime="2025-07-22T04:44:11.2241976+05:30" endTime="2025-07-22T04:44:11.2241983+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e4faa576-07fc-43ab-9065-4fd05d8033d6" />
+    <UnitTestResult executionId="1f43a009-5fe8-4034-a9bf-b78c65c54028" testId="8b3cdf2d-30dc-62bd-5ac5-7ccf63f62287" testName="User can subscribe to a plan" computerName="LAPTOP-FNR127FP" duration="00:00:00.0053659" startTime="2025-07-22T04:44:11.2720642+05:30" endTime="2025-07-22T04:44:11.2720646+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1f43a009-5fe8-4034-a9bf-b78c65c54028" />
+    <UnitTestResult executionId="7d940b96-62da-4366-a63d-c57f8c34e9b6" testId="1d8f0f23-80c1-7db8-1169-54d631000774" testName="CompleteConsultationAsync throws NotImplementedException" computerName="LAPTOP-FNR127FP" duration="00:00:00.0014290" startTime="2025-07-22T04:44:11.2143599+05:30" endTime="2025-07-22T04:44:11.2143601+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7d940b96-62da-4366-a63d-c57f8c34e9b6" />
+    <UnitTestResult executionId="b050c00e-b46b-40c2-9ff3-8a9148fb8046" testId="0abf5154-43a2-73e2-ff74-d59ffc0c5daa" testName="User can get their subscriptions" computerName="LAPTOP-FNR127FP" duration="00:00:00.0062682" startTime="2025-07-22T04:44:11.3480956+05:30" endTime="2025-07-22T04:44:11.3480961+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b050c00e-b46b-40c2-9ff3-8a9148fb8046" />
+    <UnitTestResult executionId="088e17a4-1a2a-4ee3-b2a8-c6e83d9c4fcb" testId="c802705b-6c34-afeb-709d-b06bc64ec82d" testName="Can process full and partial Stripe refunds" computerName="LAPTOP-FNR127FP" duration="00:00:07.8545527" startTime="2025-07-22T04:44:24.1508024+05:30" endTime="2025-07-22T04:44:24.1508035+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="088e17a4-1a2a-4ee3-b2a8-c6e83d9c4fcb" />
+    <UnitTestResult executionId="f58cc19b-0835-4e06-bf5d-62b3fcb89e6a" testId="436cb11c-41ba-7262-79bb-022ec956c8fe" testName="Can enforce usage limits and block overuse" computerName="LAPTOP-FNR127FP" duration="00:00:00.0050630" startTime="2025-07-22T04:44:11.3902374+05:30" endTime="2025-07-22T04:44:11.3902378+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f58cc19b-0835-4e06-bf5d-62b3fcb89e6a" />
+    <UnitTestResult executionId="96947bee-1872-4be0-9fff-95eeebc88ccd" testId="82065872-8909-8f1a-c75a-87f537efb5b3" testName="User can add a payment method" computerName="LAPTOP-FNR127FP" duration="00:00:00.0096942" startTime="2025-07-22T04:44:11.3119243+05:30" endTime="2025-07-22T04:44:11.3119247+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="96947bee-1872-4be0-9fff-95eeebc88ccd" />
+    <UnitTestResult executionId="a3fa3a7b-295f-4e35-ac99-d55e04a65625" testId="65ff3675-b470-9a18-4ae2-811e166da40f" testName="Patient can purchase a subscription plan successfully" computerName="LAPTOP-FNR127FP" duration="00:00:00.0106924" startTime="2025-07-22T04:44:11.2940428+05:30" endTime="2025-07-22T04:44:11.2940439+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a3fa3a7b-295f-4e35-ac99-d55e04a65625" />
+    <UnitTestResult executionId="d681a042-11f3-4552-a1ef-15acb7e820e1" testId="dc70870c-efd7-024b-927c-eb13eb5f718c" testName="Cannot resume non-paused subscription" computerName="LAPTOP-FNR127FP" duration="00:00:00.0045583" startTime="2025-07-22T04:44:11.2987947+05:30" endTime="2025-07-22T04:44:11.2987954+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d681a042-11f3-4552-a1ef-15acb7e820e1" />
+    <UnitTestResult executionId="2de25cae-2df3-4d23-86b3-b7a42dfef0dc" testId="157d8b60-a00e-4c66-3fcd-79fe4a7834cc" testName="User can cancel their subscription" computerName="LAPTOP-FNR127FP" duration="00:00:00.0572247" startTime="2025-07-22T04:44:11.2102440+05:30" endTime="2025-07-22T04:44:11.2102441+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2de25cae-2df3-4d23-86b3-b7a42dfef0dc" />
+    <UnitTestResult executionId="c8d791c9-d58b-4e2f-8b78-f137ca368052" testId="4ef456ae-30b1-0d7b-aecc-0d515bdfb296" testName="Provider access is restricted by patient subscription status" computerName="LAPTOP-FNR127FP" duration="00:00:00.0058509" startTime="2025-07-22T04:44:11.3417473+05:30" endTime="2025-07-22T04:44:11.3417479+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c8d791c9-d58b-4e2f-8b78-f137ca368052" />
+    <UnitTestResult executionId="4e0ac362-64ec-4f67-b599-45c5a967d8c7" testId="7270d5b4-a86a-8a1d-fa11-7e52126b2f37" testName="CreatePaymentMethodAsync throws on invalid input" computerName="LAPTOP-FNR127FP" duration="00:00:00.0048107" startTime="2025-07-22T04:44:11.2106290+05:30" endTime="2025-07-22T04:44:11.2106294+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4e0ac362-64ec-4f67-b599-45c5a967d8c7" />
+    <UnitTestResult executionId="2b1e3ec2-a1db-4f83-9cdb-b19133077425" testId="94b55cea-fc54-0748-0923-fad80e7e53d2" testName="Recurring billing and payment failure handling" computerName="LAPTOP-FNR127FP" duration="00:00:00.0049801" startTime="2025-07-22T04:44:11.2772869+05:30" endTime="2025-07-22T04:44:11.2772871+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2b1e3ec2-a1db-4f83-9cdb-b19133077425" />
+    <UnitTestResult executionId="a8dbff93-1195-48c7-beae-09f4863618e5" testId="fe3dd812-c5c7-accf-1d3e-18ebd3b5411c" testName="CreateConsultationAsync throws NotImplementedException" computerName="LAPTOP-FNR127FP" duration="00:00:00.3334982" startTime="2025-07-22T04:44:11.1180515+05:30" endTime="2025-07-22T04:44:11.1180523+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a8dbff93-1195-48c7-beae-09f4863618e5" />
+    <UnitTestResult executionId="fdd06903-cd29-496b-b91e-57f3334f966c" testId="c5a3a12d-ba38-4197-3845-bbf0565e0edf" testName="ProcessPaymentAsync returns payment result successfully" computerName="LAPTOP-FNR127FP" duration="00:00:00.0155033" startTime="2025-07-22T04:44:11.0974189+05:30" endTime="2025-07-22T04:44:11.0974191+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fdd06903-cd29-496b-b91e-57f3334f966c" />
+    <UnitTestResult executionId="649fd74f-dfaf-484e-b6e7-576ab4558443" testId="606c612b-6d1f-032e-5422-61485a0fd127" testName="Cannot subscribe to an inactive plan" computerName="LAPTOP-FNR127FP" duration="00:00:00.0034123" startTime="2025-07-22T04:44:11.3745259+05:30" endTime="2025-07-22T04:44:11.3745264+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="649fd74f-dfaf-484e-b6e7-576ab4558443" />
+    <UnitTestResult executionId="aaad5c48-6eee-4e3b-a779-a3fa0fc7d162" testId="7347f335-0e94-7532-336c-050007cbe9a0" testName="Can create and retrieve Stripe customer for new patient subscription" computerName="LAPTOP-FNR127FP" duration="00:00:00.8390877" startTime="2025-07-22T04:44:16.2934541+05:30" endTime="2025-07-22T04:44:16.2934548+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="aaad5c48-6eee-4e3b-a779-a3fa0fc7d162" />
+    <UnitTestResult executionId="0e319b0b-b8ec-417c-b087-453a6752c5df" testId="5f60028d-06a4-f3f6-cab7-6c3533ecd82d" testName="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;textarea&quot;, optionsJson: null, answerJson: &quot;Sample long answer&quot;)" computerName="LAPTOP-FNR127FP" duration="00:00:08.8097611" startTime="2025-07-22T04:44:19.5948301+05:30" endTime="2025-07-22T04:44:19.5948305+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0e319b0b-b8ec-417c-b087-453a6752c5df" />
+    <UnitTestResult executionId="f5e2644d-10d0-4b58-8d49-ce6ee8edd503" testId="0795a23e-65c0-9305-009d-cbe8810e2fa9" testName="Can process Stripe payment and handle success/failure" computerName="LAPTOP-FNR127FP" duration="00:00:00.5214583" startTime="2025-07-22T04:44:35.2164480+05:30" endTime="2025-07-22T04:44:35.2164484+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f5e2644d-10d0-4b58-8d49-ce6ee8edd503">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ&#xD;
+           ↓ (pos 0)&#xD;
+Expected: "succeeded"&#xD;
+Actual:   "failed"&#xD;
+           ↑ (pos 0)</Message>
+          <StackTrace>   at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Process_Stripe_Payment_Success_And_Failure() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs:line 90&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="06e5dfa0-faac-453f-9b35-72a5ec5b88cc" testId="4e354831-846e-ce27-76bf-fc141dd2de08" testName="Can cancel Stripe subscription immediately and at period end" computerName="LAPTOP-FNR127FP" duration="00:00:02.7532973" startTime="2025-07-22T04:44:38.8776657+05:30" endTime="2025-07-22T04:44:38.8776662+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="06e5dfa0-faac-453f-9b35-72a5ec5b88cc">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Failed to create Stripe subscription: No such PaymentMethod: 'pm_card_visa'&#xD;
+---- Stripe.StripeException : No such PaymentMethod: 'pm_card_visa'</Message>
+          <StackTrace>   at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 421&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SmartTelehealth.Infrastructure.Services.StripeService.ExecuteWithRetryAsync[T](Func`1 operation) in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 825&#xD;
+   at SmartTelehealth.Infrastructure.Services.StripeService.CreateSubscriptionAsync(String customerId, String priceId, String paymentMethodId) in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 385&#xD;
+   at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Cancel_And_Reactivate_Stripe_Subscription() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs:line 184&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 245&#xD;
+   at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+   at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+   at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 413</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b05369c5-9754-4685-b7e2-3938febcd040" testId="45ab5d63-27b5-366e-2595-de113b8609f6" testName="CancelConsultationAsync throws NotImplementedException" computerName="LAPTOP-FNR127FP" duration="00:00:00.0015728" startTime="2025-07-22T04:44:11.2150129+05:30" endTime="2025-07-22T04:44:11.2150131+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b05369c5-9754-4685-b7e2-3938febcd040" />
+    <UnitTestResult executionId="c3d18715-a593-4ee5-85fc-b8ad251282fc" testId="21ff28ff-98a7-f3e2-1137-8df4010d243e" testName="Handles Stripe webhook events for subscription lifecycle" computerName="LAPTOP-FNR127FP" duration="00:00:00.0247992" startTime="2025-07-22T04:44:15.4525770+05:30" endTime="2025-07-22T04:44:15.4525789+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c3d18715-a593-4ee5-85fc-b8ad251282fc" />
+    <UnitTestResult executionId="e1b27d34-ffa8-4d51-87b4-f79e1dd7cd99" testId="9027c7a4-9b44-0727-7417-e3e78abcf917" testName="User can get plan by ID" computerName="LAPTOP-FNR127FP" duration="00:00:00.0074774" startTime="2025-07-22T04:44:11.3260883+05:30" endTime="2025-07-22T04:44:11.3260885+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e1b27d34-ffa8-4d51-87b4-f79e1dd7cd99" />
+    <UnitTestResult executionId="2114f8f2-1573-4cbc-b983-fd998947b67a" testId="d0b4c581-dfe1-e2a6-2333-f12c069f1147" testName="StartConsultationAsync throws NotImplementedException" computerName="LAPTOP-FNR127FP" duration="00:00:00.0045281" startTime="2025-07-22T04:44:11.2093127+05:30" endTime="2025-07-22T04:44:11.2093133+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2114f8f2-1573-4cbc-b983-fd998947b67a" />
+    <UnitTestResult executionId="a7329a6e-9767-49bc-8350-5c863ff9202d" testId="a70d3407-8e83-6caf-dd99-a402028e3101" testName="Cannot pause already paused subscription" computerName="LAPTOP-FNR127FP" duration="00:00:00.0058976" startTime="2025-07-22T04:44:11.2147689+05:30" endTime="2025-07-22T04:44:11.2147690+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a7329a6e-9767-49bc-8350-5c863ff9202d" />
+    <UnitTestResult executionId="564ea725-1afe-4a08-ac0e-215766b8d8e1" testId="037defa5-8053-ebc1-7561-75084b1c0ffc" testName="User can pause and resume their subscription" computerName="LAPTOP-FNR127FP" duration="00:00:00.0045325" startTime="2025-07-22T04:44:11.3792196+05:30" endTime="2025-07-22T04:44:11.3792201+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="564ea725-1afe-4a08-ac0e-215766b8d8e1" />
+    <UnitTestResult executionId="4bfaa184-0da5-409e-9080-6abd8f524700" testId="54b45d55-078c-78df-6051-2a9653d11888" testName="GetUserOneTimeConsultationsAsync returns consultations successfully" computerName="LAPTOP-FNR127FP" duration="00:00:00.0258967" startTime="2025-07-22T04:44:11.2148972+05:30" endTime="2025-07-22T04:44:11.2148973+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4bfaa184-0da5-409e-9080-6abd8f524700" />
+    <UnitTestResult executionId="d5146faf-573a-4038-96e2-9bffb2e01877" testId="a74b66ba-365e-b5ca-e576-bcf987171264" testName="User can get subscription by ID" computerName="LAPTOP-FNR127FP" duration="00:00:00.0055661" startTime="2025-07-22T04:44:11.2830628+05:30" endTime="2025-07-22T04:44:11.2830633+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d5146faf-573a-4038-96e2-9bffb2e01877" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="User can pause and resume their subscription" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="037defa5-8053-ebc1-7561-75084b1c0ffc">
+      <Execution id="564ea725-1afe-4a08-ac0e-215766b8d8e1" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_Pause_And_Resume_Subscription" />
+    </UnitTest>
+    <UnitTest name="Can create Stripe product and price (plan) dynamically" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="8abea404-258d-cce2-ee97-351f21f08fe2">
+      <Execution id="db533e0b-8df6-4030-ba0c-4b31de8dd0ba" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Can_Create_Stripe_Product_And_Price" />
+    </UnitTest>
+    <UnitTest name="CreateCustomerAsync returns customer ID successfully" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="51ab31d0-67f2-0b81-9295-e7fe742b13bc">
+      <Execution id="fe1f7e64-6b82-49e4-84a7-108a484a4e0c" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.PaymentServiceTests" name="CreateCustomerAsync_Success" />
+    </UnitTest>
+    <UnitTest name="CreatePaymentMethodAsync returns payment method ID successfully" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="dc956e10-1c48-51da-6aa0-be74b7be3ebf">
+      <Execution id="d46b7268-d456-4932-8ffe-c917e4dc31c8" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.PaymentServiceTests" name="CreatePaymentMethodAsync_Success" />
+    </UnitTest>
+    <UnitTest name="Can enforce usage limits and block overuse" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="436cb11c-41ba-7262-79bb-022ec956c8fe">
+      <Execution id="f58cc19b-0835-4e06-bf5d-62b3fcb89e6a" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Can_Enforce_Usage_Limits_And_Block_Overuse" />
+    </UnitTest>
+    <UnitTest name="Can process Stripe payment and handle success/failure" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="0795a23e-65c0-9305-009d-cbe8810e2fa9">
+      <Execution id="f5e2644d-10d0-4b58-8d49-ce6ee8edd503" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Can_Process_Stripe_Payment_Success_And_Failure" />
+    </UnitTest>
+    <UnitTest name="User can get subscription by ID" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="a74b66ba-365e-b5ca-e576-bcf987171264">
+      <Execution id="d5146faf-573a-4038-96e2-9bffb2e01877" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_Get_Subscription_By_Id" />
+    </UnitTest>
+    <UnitTest name="Webhook payment failure event is handled gracefully" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="8f7d1f05-821d-32d3-a73e-b2a10c39e885">
+      <Execution id="5605f35f-9776-4135-811a-bbdcf7495197" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Webhook_Payment_Failure_Handled_Gracefully" />
+    </UnitTest>
+    <UnitTest name="Handles Stripe webhook events for subscription lifecycle" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="21ff28ff-98a7-f3e2-1137-8df4010d243e">
+      <Execution id="c3d18715-a593-4ee5-85fc-b8ad251282fc" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Handles_Stripe_Webhook_Events_For_Subscription_Lifecycle" />
+    </UnitTest>
+    <UnitTest name="User can cancel their subscription" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="157d8b60-a00e-4c66-3fcd-79fe4a7834cc">
+      <Execution id="2de25cae-2df3-4d23-86b3-b7a42dfef0dc" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_Cancel_Their_Subscription" />
+    </UnitTest>
+    <UnitTest name="Can create Stripe subscription with trial and transition to paid" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="bf9ed73b-8ea1-1a90-e85f-aff729761a37">
+      <Execution id="2d49cae3-2368-42a2-9261-71850df370cf" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Can_Create_Subscription_With_Trial_And_Transition_To_Paid" />
+    </UnitTest>
+    <UnitTest name="User can subscribe to a plan" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="8b3cdf2d-30dc-62bd-5ac5-7ccf63f62287">
+      <Execution id="1f43a009-5fe8-4034-a9bf-b78c65c54028" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_Subscribe_To_A_Plan" />
+    </UnitTest>
+    <UnitTest name="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;range&quot;, optionsJson: &quot;{\&quot;min\&quot;:1,\&quot;max\&quot;:10}&quot;, answerJson: &quot;5&quot;)" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="781f996d-b06a-ff08-db1b-4d277118acd6">
+      <Execution id="b521e444-9955-413e-b4b8-792951325924" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests" name="Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes" />
+    </UnitTest>
+    <UnitTest name="Patient can purchase a subscription plan successfully" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="65ff3675-b470-9a18-4ae2-811e166da40f">
+      <Execution id="a3fa3a7b-295f-4e35-ac99-d55e04a65625" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Patient_Can_Purchase_Subscription" />
+    </UnitTest>
+    <UnitTest name="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;checkbox&quot;, optionsJson: &quot;[\&quot;A\&quot;,\&quot;B\&quot;,\&quot;C\&quot;]&quot;, answerJson: &quot;[\&quot;A\&quot;,\&quot;C\&quot;]&quot;)" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="f37f0843-bf24-0d39-e1dc-3228c80d772c">
+      <Execution id="608951fb-dc09-42cd-929a-20120c648016" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests" name="Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes" />
+    </UnitTest>
+    <UnitTest name="ProcessPaymentAsync returns payment result successfully" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="c5a3a12d-ba38-4197-3845-bbf0565e0edf">
+      <Execution id="fdd06903-cd29-496b-b91e-57f3334f966c" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.PaymentServiceTests" name="ProcessPaymentAsync_Success" />
+    </UnitTest>
+    <UnitTest name="User can get their subscriptions" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="0abf5154-43a2-73e2-ff74-d59ffc0c5daa">
+      <Execution id="b050c00e-b46b-40c2-9ff3-8a9148fb8046" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_Get_Their_Subscriptions" />
+    </UnitTest>
+    <UnitTest name="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;textarea&quot;, optionsJson: null, answerJson: &quot;Sample long answer&quot;)" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="5f60028d-06a4-f3f6-cab7-6c3533ecd82d">
+      <Execution id="0e319b0b-b8ec-417c-b087-453a6752c5df" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests" name="Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes" />
+    </UnitTest>
+    <UnitTest name="Admin can view all subscriptions" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="0cd27912-957c-55af-c5ce-43912861512f">
+      <Execution id="c8d5ba3e-0fc8-40be-b50e-c5817fe7cc6e" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Admin_Can_View_All_Subscriptions" />
+    </UnitTest>
+    <UnitTest name="CreatePaymentMethodAsync throws on invalid input" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="7270d5b4-a86a-8a1d-fa11-7e52126b2f37">
+      <Execution id="4e0ac362-64ec-4f67-b599-45c5a967d8c7" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.PaymentServiceTests" name="CreatePaymentMethodAsync_InvalidInput_Throws" />
+    </UnitTest>
+    <UnitTest name="Can upgrade and downgrade Stripe subscription (proration)" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="13d5af54-bc75-998e-5fe7-6d49c7515c46">
+      <Execution id="c0e4140a-87a0-4cd3-be4b-c7d703f0911d" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Can_Upgrade_And_Downgrade_Stripe_Subscription" />
+    </UnitTest>
+    <UnitTest name="CompleteConsultationAsync throws NotImplementedException" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="1d8f0f23-80c1-7db8-1169-54d631000774">
+      <Execution id="7d940b96-62da-4366-a63d-c57f8c34e9b6" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.ConsultationServiceTests" name="CompleteConsultationAsync_NotImplemented" />
+    </UnitTest>
+    <UnitTest name="User can view all active plans" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="8fb7a0ee-30a6-caeb-bf9a-aa91ba27aadd">
+      <Execution id="96f66fef-eded-4f5e-ab1b-183313f5bdcb" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_View_All_Active_Plans" />
+    </UnitTest>
+    <UnitTest name="Cannot upgrade to the same plan" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="156e7562-7c42-3679-df04-524e0a5b78d8">
+      <Execution id="6d74060f-ccb0-4f67-b823-cd845da7b052" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Cannot_Upgrade_To_Same_Plan" />
+    </UnitTest>
+    <UnitTest name="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;image&quot;, optionsJson: null, answerJson: &quot;https://example.com/image.jpg&quot;)" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="f69d2f37-8aed-0d04-9107-0a3efe3defd3">
+      <Execution id="c50dd5bc-b3a4-498c-92b8-914aabcc6a05" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests" name="Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes" />
+    </UnitTest>
+    <UnitTest name="GetUserOneTimeConsultationsAsync returns error on exception" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="95a97f9e-7b9d-d41e-bf02-53922bbcdaea">
+      <Execution id="72d9a794-c046-487c-aaab-081525f136bd" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.ConsultationServiceTests" name="GetUserOneTimeConsultationsAsync_Exception_ReturnsError" />
+    </UnitTest>
+    <UnitTest name="CancelConsultationAsync throws NotImplementedException" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="45ab5d63-27b5-366e-2595-de113b8609f6">
+      <Execution id="b05369c5-9754-4685-b7e2-3938febcd040" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.ConsultationServiceTests" name="CancelConsultationAsync_NotImplemented" />
+    </UnitTest>
+    <UnitTest name="User can get plan by ID" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="9027c7a4-9b44-0727-7417-e3e78abcf917">
+      <Execution id="e1b27d34-ffa8-4d51-87b4-f79e1dd7cd99" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_Get_Plan_By_Id" />
+    </UnitTest>
+    <UnitTest name="Cannot subscribe to a nonexistent plan" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="f58325d2-7b54-998c-4db5-aaf33bfa03d6">
+      <Execution id="ef5dda86-fa7f-4514-8608-6d27277faf65" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Cannot_Subscribe_To_Nonexistent_Plan" />
+    </UnitTest>
+    <UnitTest name="StartConsultationAsync throws NotImplementedException" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="d0b4c581-dfe1-e2a6-2333-f12c069f1147">
+      <Execution id="2114f8f2-1573-4cbc-b983-fd998947b67a" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.ConsultationServiceTests" name="StartConsultationAsync_NotImplemented" />
+    </UnitTest>
+    <UnitTest name="User can add a payment method" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="82065872-8909-8f1a-c75a-87f537efb5b3">
+      <Execution id="96947bee-1872-4be0-9fff-95eeebc88ccd" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_Add_Payment_Method" />
+    </UnitTest>
+    <UnitTest name="GetConsultationByIdAsync throws NotImplementedException" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="d789586b-b221-eb51-5345-c3cad03a1746">
+      <Execution id="05e178e2-eb45-4324-9920-22b5fbc1891e" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.ConsultationServiceTests" name="GetConsultationByIdAsync_NotImplemented" />
+    </UnitTest>
+    <UnitTest name="Subscription plan expiration and renewal" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="dde96649-ca7e-87d1-8332-f45ce8a5a6b7">
+      <Execution id="2ed6a79c-eea2-4ffb-9c00-038086ef9d80" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Subscription_Expiration_And_Renewal" />
+    </UnitTest>
+    <UnitTest name="Admin can create a new subscription plan" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="a59cfa31-8f01-7397-7ed3-97901dccb0a8">
+      <Execution id="2a5ac0f4-a39d-4402-adaa-5162552894de" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Admin_Can_Create_New_Subscription_Plan" />
+    </UnitTest>
+    <UnitTest name="Recurring billing and payment failure handling" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="94b55cea-fc54-0748-0923-fad80e7e53d2">
+      <Execution id="2b1e3ec2-a1db-4f83-9cdb-b19133077425" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Recurring_Billing_And_Payment_Failure" />
+    </UnitTest>
+    <UnitTest name="CreateConsultationAsync throws NotImplementedException" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="fe3dd812-c5c7-accf-1d3e-18ebd3b5411c">
+      <Execution id="a8dbff93-1195-48c7-beae-09f4863618e5" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.ConsultationServiceTests" name="CreateConsultationAsync_NotImplemented" />
+    </UnitTest>
+    <UnitTest name="Can create and retrieve Stripe invoice for subscription" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="a5ab23c5-a39b-31b9-8dd9-233f1a0abcc9">
+      <Execution id="0764df6e-3563-4359-8dd4-ea7ca350c425" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Can_Create_And_Retrieve_Stripe_Invoice" />
+    </UnitTest>
+    <UnitTest name="Can process Stripe subscription renewal" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="5793d425-3092-e2a9-436a-9ad84491ba6d">
+      <Execution id="e68d58b1-13d1-4513-96ee-9c5a879433b1" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Can_Process_Stripe_Subscription_Renewal" />
+    </UnitTest>
+    <UnitTest name="Payment failure updates subscription and notifies user" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="982fd4b2-ece7-4654-2cb4-6c65b0214a0e">
+      <Execution id="b8f6465b-1572-40a2-8b4b-8c716ceaa75a" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Payment_Failure_Updates_Subscription_And_Notifies_User" />
+    </UnitTest>
+    <UnitTest name="Webhook handler code is implemented and testable" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="a7e4a8ea-273a-388c-3047-ce9aea070bcf">
+      <Execution id="4a66c5a2-2af6-4488-bc37-e7c16bae0beb" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Webhook_Handler_Is_Implemented_And_Testable" />
+    </UnitTest>
+    <UnitTest name="ProcessRefundAsync returns true on success" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="44c02df3-ff93-856a-6848-5bf9699f365c">
+      <Execution id="853bc2dd-5303-41ca-9e0d-401b30c8fdda" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.PaymentServiceTests" name="ProcessRefundAsync_Success" />
+    </UnitTest>
+    <UnitTest name="User can view their payment methods" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="73b593e9-47a3-ba0d-1f67-570ae412f038">
+      <Execution id="e4faa576-07fc-43ab-9065-4fd05d8033d6" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_View_Payment_Methods" />
+    </UnitTest>
+    <UnitTest name="CreateCustomerAsync throws on invalid input" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="ab863e1d-a9db-b67c-8cf2-5f126ef4cb7a">
+      <Execution id="7e11cda2-d318-4a52-bb1c-b4fe474d802c" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.PaymentServiceTests" name="CreateCustomerAsync_InvalidInput_Throws" />
+    </UnitTest>
+    <UnitTest name="UpdateConsultationAsync throws NotImplementedException" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="ef7be729-2889-04cf-3600-7dbc45c7c7b9">
+      <Execution id="757973a5-331b-4642-9192-ea3dc44fb698" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.ConsultationServiceTests" name="UpdateConsultationAsync_NotImplemented" />
+    </UnitTest>
+    <UnitTest name="Can create and retrieve Stripe customer for new patient subscription" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="7347f335-0e94-7532-336c-050007cbe9a0">
+      <Execution id="aaad5c48-6eee-4e3b-a779-a3fa0fc7d162" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Can_Create_And_Retrieve_Stripe_Customer" />
+    </UnitTest>
+    <UnitTest name="Cannot subscribe to an inactive plan" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="606c612b-6d1f-032e-5422-61485a0fd127">
+      <Execution id="649fd74f-dfaf-484e-b6e7-576ab4558443" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Cannot_Subscribe_To_Inactive_Plan" />
+    </UnitTest>
+    <UnitTest name="Cannot pause already paused subscription" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="a70d3407-8e83-6caf-dd99-a402028e3101">
+      <Execution id="a7329a6e-9767-49bc-8350-5c863ff9202d" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Cannot_Pause_Already_Paused_Subscription" />
+    </UnitTest>
+    <UnitTest name="Provider access is restricted by patient subscription status" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="4ef456ae-30b1-0d7b-aecc-0d515bdfb296">
+      <Execution id="c8d791c9-d58b-4e2f-8b78-f137ca368052" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Provider_Access_Restricted_By_Subscription" />
+    </UnitTest>
+    <UnitTest name="GetUserOneTimeConsultationsAsync returns consultations successfully" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="54b45d55-078c-78df-6051-2a9653d11888">
+      <Execution id="4bfaa184-0da5-409e-9080-6abd8f524700" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.ConsultationServiceTests" name="GetUserOneTimeConsultationsAsync_Success" />
+    </UnitTest>
+    <UnitTest name="Can cancel Stripe subscription immediately and at period end" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="4e354831-846e-ce27-76bf-fc141dd2de08">
+      <Execution id="06e5dfa0-faac-453f-9b35-72a5ec5b88cc" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Can_Cancel_And_Reactivate_Stripe_Subscription" />
+    </UnitTest>
+    <UnitTest name="Cannot resume non-paused subscription" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="dc70870c-efd7-024b-927c-eb13eb5f718c">
+      <Execution id="d681a042-11f3-4552-a1ef-15acb7e820e1" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Cannot_Resume_NonPaused_Subscription" />
+    </UnitTest>
+    <UnitTest name="Cannot cancel already cancelled subscription" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="f09ec95e-3264-85af-f127-0c61d92dbc4a">
+      <Execution id="68ce96a5-5f00-48b0-90c9-93886e8607b4" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Cannot_Cancel_Already_Cancelled_Subscription" />
+    </UnitTest>
+    <UnitTest name="User can view their billing history" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="0f987b68-079f-6c2c-4fb1-35b2095a599a">
+      <Execution id="86e2f98c-1f23-4476-9a83-64e4b6e8d3f9" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_View_Billing_History" />
+    </UnitTest>
+    <UnitTest name="Can process full and partial Stripe refunds" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="c802705b-6c34-afeb-709d-b06bc64ec82d">
+      <Execution id="088e17a4-1a2a-4ee3-b2a8-c6e83d9c4fcb" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Can_Process_Stripe_Refunds" />
+    </UnitTest>
+    <UnitTest name="ProcessPaymentAsync throws on Stripe error" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="efc662a1-2cc4-c5fb-e4fb-294d2b439277">
+      <Execution id="98153549-10a9-42eb-b7af-824aa85c32a2" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.PaymentServiceTests" name="ProcessPaymentAsync_StripeError_Throws" />
+    </UnitTest>
+    <UnitTest name="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;radio&quot;, optionsJson: &quot;[\&quot;Option 1\&quot;,\&quot;Option 2\&quot;]&quot;, answerJson: &quot;Option 1&quot;)" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="dffe9a33-140a-600e-74d5-a6ba4fa0c43d">
+      <Execution id="fe12315c-bd43-4f68-aed3-3d53aab38803" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests" name="Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes" />
+    </UnitTest>
+    <UnitTest name="ProcessRefundAsync throws on error" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="0d6a04b6-11ee-74bb-2c2b-0e86aff92187">
+      <Execution id="4b5e1fe7-9bf5-48b5-8b7a-39f90c048f11" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.PaymentServiceTests" name="ProcessRefundAsync_Error_Throws" />
+    </UnitTest>
+    <UnitTest name="Analytics returns correct subscription stats" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="7c66ee20-43f5-1cbf-c002-ad29dfa5e8b5">
+      <Execution id="cd7bce8e-65f9-4bc0-9669-43947bd327b9" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Analytics_Returns_Correct_Stats" />
+    </UnitTest>
+    <UnitTest name="DeleteConsultationAsync throws NotImplementedException" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="e2078127-ea68-f430-b358-b00ca9e24d27">
+      <Execution id="eefd9217-875f-4d6e-9d20-3091fc206f92" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.ConsultationServiceTests" name="DeleteConsultationAsync_NotImplemented" />
+    </UnitTest>
+    <UnitTest name="User can upgrade their subscription plan" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="ec179e2b-ea35-84f6-3013-80aacc88eeb7">
+      <Execution id="b9a9159e-458c-4bf8-b350-2ef9e5afd102" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_Upgrade_Subscription" />
+    </UnitTest>
+    <UnitTest name="Cannot subscribe to the same plan twice" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="1adafd00-443c-b998-45fa-a92c8273e01b">
+      <Execution id="47d4cfb4-ab3b-4c0b-a354-dea014898f25" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Cannot_Subscribe_To_Same_Plan_Twice" />
+    </UnitTest>
+    <UnitTest name="Handles Stripe payment failure and recovery" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="8980a462-383d-5eeb-68fc-325094ba736f">
+      <Execution id="05db4a17-fa42-4831-8fb5-6b7a284347cd" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Handles_Stripe_Payment_Failure_And_Recovery" />
+    </UnitTest>
+    <UnitTest name="User can reactivate their subscription" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="0b11c20e-a558-a55d-a16b-c4d251228829">
+      <Execution id="e1d34dde-1f56-4b36-bc9f-2d49e0da3297" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="User_Can_Reactivate_Subscription" />
+    </UnitTest>
+    <UnitTest name="Admin can deactivate plan and pause all subscribers" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="a8e6a116-34aa-1248-72fd-840ba80420c4">
+      <Execution id="68603450-af04-426d-8241-ab861141c5a9" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Admin_Can_Deactivate_Plan_And_Pause_Subscribers" />
+    </UnitTest>
+    <UnitTest name="Patient cannot exceed allowed consultations" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="830d37fd-456f-f0b0-7888-e44f70edb29d">
+      <Execution id="e5b550e0-17ab-4576-b1d1-2dbd000c3bdf" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.SubscriptionManagementEndToEndTests" name="Patient_Cannot_Exceed_Consultation_Limit" />
+    </UnitTest>
+    <UnitTest name="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests.Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes(type: &quot;text&quot;, optionsJson: null, answerJson: &quot;Sample text answer&quot;)" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="b965d120-71a0-c529-6a4a-41a18f18b418">
+      <Execution id="74cc693d-9d00-4ac8-a8f5-f26ae41b53de" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Integration.CategoryQuestionsControllerTests" name="Superadmin_Can_CRUD_And_User_Can_Answer_DynamicTypes" />
+    </UnitTest>
+    <UnitTest name="Can create Stripe subscription and validate linkage" storage="d:\telehealthwithsubscriptionmodel\src\smarttelehealth.tests\bin\debug\net8.0\smarttelehealth.tests.dll" id="b239bde5-67a4-55a0-6cfe-64507a81da54">
+      <Execution id="9dc772c5-56a0-4120-ae27-056fd69facbb" />
+      <TestMethod codeBase="D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\SmartTelehealth.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SmartTelehealth.Tests.Services.StripeIntegrationTests" name="Can_Create_Stripe_Subscription" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="f37f0843-bf24-0d39-e1dc-3228c80d772c" executionId="608951fb-dc09-42cd-929a-20120c648016" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dc956e10-1c48-51da-6aa0-be74b7be3ebf" executionId="d46b7268-d456-4932-8ffe-c917e4dc31c8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8f7d1f05-821d-32d3-a73e-b2a10c39e885" executionId="5605f35f-9776-4135-811a-bbdcf7495197" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="982fd4b2-ece7-4654-2cb4-6c65b0214a0e" executionId="b8f6465b-1572-40a2-8b4b-8c716ceaa75a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8980a462-383d-5eeb-68fc-325094ba736f" executionId="05db4a17-fa42-4831-8fb5-6b7a284347cd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="781f996d-b06a-ff08-db1b-4d277118acd6" executionId="b521e444-9955-413e-b4b8-792951325924" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ec179e2b-ea35-84f6-3013-80aacc88eeb7" executionId="b9a9159e-458c-4bf8-b350-2ef9e5afd102" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="51ab31d0-67f2-0b81-9295-e7fe742b13bc" executionId="fe1f7e64-6b82-49e4-84a7-108a484a4e0c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d789586b-b221-eb51-5345-c3cad03a1746" executionId="05e178e2-eb45-4324-9920-22b5fbc1891e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ef7be729-2889-04cf-3600-7dbc45c7c7b9" executionId="757973a5-331b-4642-9192-ea3dc44fb698" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0d6a04b6-11ee-74bb-2c2b-0e86aff92187" executionId="4b5e1fe7-9bf5-48b5-8b7a-39f90c048f11" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0f987b68-079f-6c2c-4fb1-35b2095a599a" executionId="86e2f98c-1f23-4476-9a83-64e4b6e8d3f9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f69d2f37-8aed-0d04-9107-0a3efe3defd3" executionId="c50dd5bc-b3a4-498c-92b8-914aabcc6a05" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a59cfa31-8f01-7397-7ed3-97901dccb0a8" executionId="2a5ac0f4-a39d-4402-adaa-5162552894de" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f58325d2-7b54-998c-4db5-aaf33bfa03d6" executionId="ef5dda86-fa7f-4514-8608-6d27277faf65" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="efc662a1-2cc4-c5fb-e4fb-294d2b439277" executionId="98153549-10a9-42eb-b7af-824aa85c32a2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0b11c20e-a558-a55d-a16b-c4d251228829" executionId="e1d34dde-1f56-4b36-bc9f-2d49e0da3297" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a5ab23c5-a39b-31b9-8dd9-233f1a0abcc9" executionId="0764df6e-3563-4359-8dd4-ea7ca350c425" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f09ec95e-3264-85af-f127-0c61d92dbc4a" executionId="68ce96a5-5f00-48b0-90c9-93886e8607b4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="44c02df3-ff93-856a-6848-5bf9699f365c" executionId="853bc2dd-5303-41ca-9e0d-401b30c8fdda" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ab863e1d-a9db-b67c-8cf2-5f126ef4cb7a" executionId="7e11cda2-d318-4a52-bb1c-b4fe474d802c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b239bde5-67a4-55a0-6cfe-64507a81da54" executionId="9dc772c5-56a0-4120-ae27-056fd69facbb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="13d5af54-bc75-998e-5fe7-6d49c7515c46" executionId="c0e4140a-87a0-4cd3-be4b-c7d703f0911d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="95a97f9e-7b9d-d41e-bf02-53922bbcdaea" executionId="72d9a794-c046-487c-aaab-081525f136bd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0cd27912-957c-55af-c5ce-43912861512f" executionId="c8d5ba3e-0fc8-40be-b50e-c5817fe7cc6e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a8e6a116-34aa-1248-72fd-840ba80420c4" executionId="68603450-af04-426d-8241-ab861141c5a9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7c66ee20-43f5-1cbf-c002-ad29dfa5e8b5" executionId="cd7bce8e-65f9-4bc0-9669-43947bd327b9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dffe9a33-140a-600e-74d5-a6ba4fa0c43d" executionId="fe12315c-bd43-4f68-aed3-3d53aab38803" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8abea404-258d-cce2-ee97-351f21f08fe2" executionId="db533e0b-8df6-4030-ba0c-4b31de8dd0ba" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bf9ed73b-8ea1-1a90-e85f-aff729761a37" executionId="2d49cae3-2368-42a2-9261-71850df370cf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5793d425-3092-e2a9-436a-9ad84491ba6d" executionId="e68d58b1-13d1-4513-96ee-9c5a879433b1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e2078127-ea68-f430-b358-b00ca9e24d27" executionId="eefd9217-875f-4d6e-9d20-3091fc206f92" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b965d120-71a0-c529-6a4a-41a18f18b418" executionId="74cc693d-9d00-4ac8-a8f5-f26ae41b53de" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="830d37fd-456f-f0b0-7888-e44f70edb29d" executionId="e5b550e0-17ab-4576-b1d1-2dbd000c3bdf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1adafd00-443c-b998-45fa-a92c8273e01b" executionId="47d4cfb4-ab3b-4c0b-a354-dea014898f25" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a7e4a8ea-273a-388c-3047-ce9aea070bcf" executionId="4a66c5a2-2af6-4488-bc37-e7c16bae0beb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dde96649-ca7e-87d1-8332-f45ce8a5a6b7" executionId="2ed6a79c-eea2-4ffb-9c00-038086ef9d80" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="156e7562-7c42-3679-df04-524e0a5b78d8" executionId="6d74060f-ccb0-4f67-b823-cd845da7b052" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8fb7a0ee-30a6-caeb-bf9a-aa91ba27aadd" executionId="96f66fef-eded-4f5e-ab1b-183313f5bdcb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="73b593e9-47a3-ba0d-1f67-570ae412f038" executionId="e4faa576-07fc-43ab-9065-4fd05d8033d6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8b3cdf2d-30dc-62bd-5ac5-7ccf63f62287" executionId="1f43a009-5fe8-4034-a9bf-b78c65c54028" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1d8f0f23-80c1-7db8-1169-54d631000774" executionId="7d940b96-62da-4366-a63d-c57f8c34e9b6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0abf5154-43a2-73e2-ff74-d59ffc0c5daa" executionId="b050c00e-b46b-40c2-9ff3-8a9148fb8046" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c802705b-6c34-afeb-709d-b06bc64ec82d" executionId="088e17a4-1a2a-4ee3-b2a8-c6e83d9c4fcb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="436cb11c-41ba-7262-79bb-022ec956c8fe" executionId="f58cc19b-0835-4e06-bf5d-62b3fcb89e6a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="82065872-8909-8f1a-c75a-87f537efb5b3" executionId="96947bee-1872-4be0-9fff-95eeebc88ccd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="65ff3675-b470-9a18-4ae2-811e166da40f" executionId="a3fa3a7b-295f-4e35-ac99-d55e04a65625" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dc70870c-efd7-024b-927c-eb13eb5f718c" executionId="d681a042-11f3-4552-a1ef-15acb7e820e1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="157d8b60-a00e-4c66-3fcd-79fe4a7834cc" executionId="2de25cae-2df3-4d23-86b3-b7a42dfef0dc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4ef456ae-30b1-0d7b-aecc-0d515bdfb296" executionId="c8d791c9-d58b-4e2f-8b78-f137ca368052" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7270d5b4-a86a-8a1d-fa11-7e52126b2f37" executionId="4e0ac362-64ec-4f67-b599-45c5a967d8c7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="94b55cea-fc54-0748-0923-fad80e7e53d2" executionId="2b1e3ec2-a1db-4f83-9cdb-b19133077425" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fe3dd812-c5c7-accf-1d3e-18ebd3b5411c" executionId="a8dbff93-1195-48c7-beae-09f4863618e5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c5a3a12d-ba38-4197-3845-bbf0565e0edf" executionId="fdd06903-cd29-496b-b91e-57f3334f966c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="606c612b-6d1f-032e-5422-61485a0fd127" executionId="649fd74f-dfaf-484e-b6e7-576ab4558443" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7347f335-0e94-7532-336c-050007cbe9a0" executionId="aaad5c48-6eee-4e3b-a779-a3fa0fc7d162" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5f60028d-06a4-f3f6-cab7-6c3533ecd82d" executionId="0e319b0b-b8ec-417c-b087-453a6752c5df" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0795a23e-65c0-9305-009d-cbe8810e2fa9" executionId="f5e2644d-10d0-4b58-8d49-ce6ee8edd503" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4e354831-846e-ce27-76bf-fc141dd2de08" executionId="06e5dfa0-faac-453f-9b35-72a5ec5b88cc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="45ab5d63-27b5-366e-2595-de113b8609f6" executionId="b05369c5-9754-4685-b7e2-3938febcd040" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="21ff28ff-98a7-f3e2-1137-8df4010d243e" executionId="c3d18715-a593-4ee5-85fc-b8ad251282fc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9027c7a4-9b44-0727-7417-e3e78abcf917" executionId="e1b27d34-ffa8-4d51-87b4-f79e1dd7cd99" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d0b4c581-dfe1-e2a6-2333-f12c069f1147" executionId="2114f8f2-1573-4cbc-b983-fd998947b67a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a70d3407-8e83-6caf-dd99-a402028e3101" executionId="a7329a6e-9767-49bc-8350-5c863ff9202d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="037defa5-8053-ebc1-7561-75084b1c0ffc" executionId="564ea725-1afe-4a08-ac0e-215766b8d8e1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="54b45d55-078c-78df-6051-2a9653d11888" executionId="4bfaa184-0da5-409e-9080-6abd8f524700" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a74b66ba-365e-b5ca-e576-bcf987171264" executionId="d5146faf-573a-4038-96e2-9bffb2e01877" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="67" executed="67" passed="60" failed="7" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 8.0.18)&#xD;
+[xUnit.net 00:00:00.36]   Discovering: SmartTelehealth.Tests&#xD;
+[xUnit.net 00:00:00.57]   Discovered:  SmartTelehealth.Tests&#xD;
+[xUnit.net 00:00:00.59]   Starting:    SmartTelehealth.Tests&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe product: prod_Siujcvmw7uQHn2 - TrialTestProduct_6213d3b9-f18e-46c2-ab78-330bd88c7fae&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe price: price_1RnSuSCI7YurXiFN3KUT5knu for product prod_Siujcvmw7uQHn2 - 120 usd every 1 month&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe customer: cus_SiujZzRWbMWBPc for testuser_519121e5-f39c-4e4e-86f4-d1f1d2dd3b3b@example.com&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Attached payment method pm_card_visa to customer cus_SiujZzRWbMWBPc&#xD;
+[xUnit.net 00:00:05.36]       Stripe.StripeException : No such PaymentMethod: 'pm_card_visa'&#xD;
+[xUnit.net 00:00:05.36]       Stack Trace:&#xD;
+[xUnit.net 00:00:05.36]         /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs(245,0): at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode)&#xD;
+[xUnit.net 00:00:05.37]         /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs(110,0): at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:05.37]         /_/src/Stripe.net/Services/_base/Service.cs(100,0): at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:05.37]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs(230,0): at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Create_Subscription_With_Trial_And_Transition_To_Paid()&#xD;
+[xUnit.net 00:00:05.37]         --- End of stack trace from previous location ---&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe customer: cus_SiujHx63jsztsy for testuser_5e386e1d-598f-4414-a2a2-931cca3cc310@example.com&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe product: prod_SiujkE7ym6zQw4 - RefundTestProduct_fcf842cc-1e19-4246-8559-f2ad24ce0302&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe price: price_1RnSuWCI7YurXiFNIRBSNlyu for product prod_SiujkE7ym6zQw4 - 50 usd every 1 month&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe customer: cus_SiukqHXBHTii9P for testuser_72511fcc-d9c0-4ddb-81a8-ccaed75c82c4@example.com&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Attached payment method pm_card_visa to customer cus_SiukqHXBHTii9P&#xD;
+[04:44:19 WRN] Failed to determine the https port for redirect.&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Processed payment: pi_3RnSuYCI7YurXiFN0OuEk6IL - 50 usd&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Processed refund for payment intent: pi_3RnSuYCI7YurXiFN0OuEk6IL - 50&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Processed payment: pi_3RnSubCI7YurXiFN0HTGkQLR - 50 usd&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Processed refund for payment intent: pi_3RnSubCI7YurXiFN0HTGkQLR - 20&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe product: prod_SiukEz1R6ET5tX - Test Plan 2d1d7694-4871-4fe2-9703-35f095c07f24&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe price: price_1RnSueCI7YurXiFNKOnFZHro for product prod_SiukEz1R6ET5tX - 199.99 usd every 1 month&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe subscription: sub_1RnSueCI7YurXiFNLmDKe5DN for customer cus_SiRZ5v0v2uUYIg&#xD;
+[xUnit.net 00:00:18.55]       Assert.Equal() Failure: Strings differ&#xD;
+[xUnit.net 00:00:18.56]                  ↓ (pos 0)&#xD;
+[xUnit.net 00:00:18.56]       Expected: "cus_SiRZ5v0v2uUYIg"&#xD;
+[xUnit.net 00:00:18.56]       Actual:   ""&#xD;
+[xUnit.net 00:00:18.56]       Stack Trace:&#xD;
+[xUnit.net 00:00:18.56]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs(76,0): at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Create_Stripe_Subscription()&#xD;
+[xUnit.net 00:00:18.56]         --- End of stack trace from previous location ---&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe product: prod_Siukm1bmUxVGRf - FailTestProduct_f2685c9a-3e3c-4ed4-9c94-7ced6d608b4f&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe price: price_1RnSuiCI7YurXiFNBExF9ECU for product prod_Siukm1bmUxVGRf - 80 usd every 1 month&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe customer: cus_SiukGOi1sLlT17 for testuser_db7dc965-aa1f-42c3-a554-c720f908cd1a@example.com&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Attached payment method pm_card_visa to customer cus_SiukGOi1sLlT17&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Processed payment: pi_3RnSulCI7YurXiFN02mMGVhO - 80 usd&#xD;
+[xUnit.net 00:00:22.13]       Assert.Equal() Failure: Strings differ&#xD;
+[xUnit.net 00:00:22.13]                  ↓ (pos 0)&#xD;
+[xUnit.net 00:00:22.13]       Expected: "failed"&#xD;
+[xUnit.net 00:00:22.13]       Actual:   "succeeded"&#xD;
+[xUnit.net 00:00:22.13]                  ↑ (pos 0)&#xD;
+[xUnit.net 00:00:22.13]       Stack Trace:&#xD;
+[xUnit.net 00:00:22.13]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs(250,0): at SmartTelehealth.Tests.Services.StripeIntegrationTests.Handles_Stripe_Payment_Failure_And_Recovery()&#xD;
+[xUnit.net 00:00:22.13]         --- End of stack trace from previous location ---&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe product: prod_Siukc1UlrQgbkq - RenewalTestProduct_9eedc375-6d44-44cb-badb-b04553644727&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe price: price_1RnSumCI7YurXiFNKLHxqKCr for product prod_Siukc1UlrQgbkq - 60 usd every 1 month&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe customer: cus_Siuk1TphXFwinF for testuser_54f3fb3d-6c7e-4cfb-bbdc-d8c513aeb951@example.com&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Attached payment method pm_card_visa to customer cus_Siuk1TphXFwinF&#xD;
+fail: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe error creating subscription for customer cus_Siuk1TphXFwinF: No such PaymentMethod: 'pm_card_visa'&#xD;
+      Stripe.StripeException: No such PaymentMethod: 'pm_card_visa'&#xD;
+         at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 245&#xD;
+         at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 110&#xD;
+         at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken) in /_/src/Stripe.net/Services/_base/Service.cs:line 100&#xD;
+         at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 413&#xD;
+[xUnit.net 00:00:24.62]       System.InvalidOperationException : Failed to create Stripe subscription: No such PaymentMethod: 'pm_card_visa'&#xD;
+[xUnit.net 00:00:24.62]       ---- Stripe.StripeException : No such PaymentMethod: 'pm_card_visa'&#xD;
+[xUnit.net 00:00:24.62]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.62]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(421,0): at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:24.62]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.62]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(825,0): at SmartTelehealth.Infrastructure.Services.StripeService.ExecuteWithRetryAsync[T](Func`1 operation)&#xD;
+[xUnit.net 00:00:24.62]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(385,0): at SmartTelehealth.Infrastructure.Services.StripeService.CreateSubscriptionAsync(String customerId, String priceId, String paymentMethodId)&#xD;
+[xUnit.net 00:00:24.62]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs(270,0): at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Process_Stripe_Subscription_Renewal()&#xD;
+[xUnit.net 00:00:24.62]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.62]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.62]         /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs(245,0): at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode)&#xD;
+[xUnit.net 00:00:24.62]         /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs(110,0): at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.62]         /_/src/Stripe.net/Services/_base/Service.cs(100,0): at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.62]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(413,0): at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext()&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+fail: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe error processing payment: The `payment_method` parameter supplied pm_1Rn0i7CI7YurXiFNcZwz1VOE belongs to the Customer cus_SiRaxDWmxCnPd5. Please include the Customer in the `customer` parameter on the PaymentIntent.&#xD;
+      Stripe.StripeException: The `payment_method` parameter supplied pm_1Rn0i7CI7YurXiFNcZwz1VOE belongs to the Customer cus_SiRaxDWmxCnPd5. Please include the Customer in the `customer` parameter on the PaymentIntent.&#xD;
+         at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 245&#xD;
+         at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 110&#xD;
+         at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken) in /_/src/Stripe.net/Services/_base/Service.cs:line 100&#xD;
+         at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass18_0.&lt;&lt;ProcessPaymentAsync&gt;b__0&gt;d.MoveNext() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 513&#xD;
+[xUnit.net 00:00:25.15]       Assert.Equal() Failure: Strings differ&#xD;
+[xUnit.net 00:00:25.15]                  ↓ (pos 0)&#xD;
+[xUnit.net 00:00:25.15]       Expected: "succeeded"&#xD;
+[xUnit.net 00:00:25.15]       Actual:   "failed"&#xD;
+[xUnit.net 00:00:25.15]                  ↑ (pos 0)&#xD;
+[xUnit.net 00:00:25.15]       Stack Trace:&#xD;
+[xUnit.net 00:00:25.15]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs(90,0): at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Process_Stripe_Payment_Success_And_Failure()&#xD;
+[xUnit.net 00:00:25.15]         --- End of stack trace from previous location ---&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe product: prod_SiukjfTB3R6wUK - Test Product b48f34fb-990e-49f4-8729-cf538d01dac3&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe price: price_1RnSupCI7YurXiFNMKwLdA5B for product prod_SiukjfTB3R6wUK - 199.99 usd every 1 month&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe product: prod_SiukeSe8b71isZ - CancelTestProduct_de87971c-5834-4e47-bd61-61fbae74acc9&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe price: price_1RnSuqCI7YurXiFNE1J2S8yD for product prod_SiukeSe8b71isZ - 150 usd every 1 month&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe customer: cus_SiuklUBRW7gE9Q for testuser_3e1b3147-9b52-4bda-b562-e207c6dee4e7@example.com&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Attached payment method pm_card_visa to customer cus_SiuklUBRW7gE9Q&#xD;
+fail: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe error creating subscription for customer cus_SiuklUBRW7gE9Q: No such PaymentMethod: 'pm_card_visa'&#xD;
+      Stripe.StripeException: No such PaymentMethod: 'pm_card_visa'&#xD;
+         at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 245&#xD;
+         at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+         at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+         at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 413&#xD;
+[xUnit.net 00:00:28.80]       System.InvalidOperationException : Failed to create Stripe subscription: No such PaymentMethod: 'pm_card_visa'&#xD;
+[xUnit.net 00:00:28.80]       ---- Stripe.StripeException : No such PaymentMethod: 'pm_card_visa'&#xD;
+[xUnit.net 00:00:28.80]       Stack Trace:&#xD;
+[xUnit.net 00:00:28.80]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(421,0): at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:28.81]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:28.81]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(825,0): at SmartTelehealth.Infrastructure.Services.StripeService.ExecuteWithRetryAsync[T](Func`1 operation)&#xD;
+[xUnit.net 00:00:28.81]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(385,0): at SmartTelehealth.Infrastructure.Services.StripeService.CreateSubscriptionAsync(String customerId, String priceId, String paymentMethodId)&#xD;
+[xUnit.net 00:00:28.81]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs(184,0): at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Cancel_And_Reactivate_Stripe_Subscription()&#xD;
+[xUnit.net 00:00:28.81]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:28.81]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:28.81]         /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs(245,0): at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode)&#xD;
+[xUnit.net 00:00:28.81]            at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:28.81]            at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:28.81]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(413,0): at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext()&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe product: prod_SiukzH0vOa7b3e - UpgradeTestProduct_ee71e77a-1da9-44e8-a25b-1020f00025d6&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe price: price_1RnSusCI7YurXiFNFbBG5vkX for product prod_SiukzH0vOa7b3e - 100 usd every 1 month&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe price: price_1RnSutCI7YurXiFN1aWtBp3d for product prod_SiukzH0vOa7b3e - 200 usd every 1 month&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe customer: cus_Siuk37ZGjCptcD for testuser_0bef453e-9220-4f2e-a291-d0c619c322a6@example.com&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Attached payment method pm_card_visa to customer cus_Siuk37ZGjCptcD&#xD;
+fail: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe error creating subscription for customer cus_Siuk37ZGjCptcD: No such PaymentMethod: 'pm_card_visa'&#xD;
+      Stripe.StripeException: No such PaymentMethod: 'pm_card_visa'&#xD;
+         at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode) in /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs:line 245&#xD;
+         at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+         at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+         at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext() in D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs:line 413&#xD;
+[xUnit.net 00:00:32.06]       System.InvalidOperationException : Failed to create Stripe subscription: No such PaymentMethod: 'pm_card_visa'&#xD;
+[xUnit.net 00:00:32.06]       ---- Stripe.StripeException : No such PaymentMethod: 'pm_card_visa'&#xD;
+[xUnit.net 00:00:32.06]       Stack Trace:&#xD;
+[xUnit.net 00:00:32.06]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(421,0): at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:32.06]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:32.06]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(825,0): at SmartTelehealth.Infrastructure.Services.StripeService.ExecuteWithRetryAsync[T](Func`1 operation)&#xD;
+[xUnit.net 00:00:32.06]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(385,0): at SmartTelehealth.Infrastructure.Services.StripeService.CreateSubscriptionAsync(String customerId, String priceId, String paymentMethodId)&#xD;
+[xUnit.net 00:00:32.06]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\Services\StripeIntegrationTests.cs(154,0): at SmartTelehealth.Tests.Services.StripeIntegrationTests.Can_Upgrade_And_Downgrade_Stripe_Subscription()&#xD;
+[xUnit.net 00:00:32.06]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:32.06]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:32.06]         /_/src/Stripe.net/Infrastructure/Public/LiveApiRequestor.cs(245,0): at Stripe.LiveApiRequestor.ProcessResponse[T](StripeResponse response, ApiMode apiMode)&#xD;
+[xUnit.net 00:00:32.06]            at Stripe.LiveApiRequestor.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:32.06]            at Stripe.Service.RequestAsync[T](BaseAddress baseAddress, HttpMethod method, String path, BaseOptions options, RequestOptions requestOptions, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:32.06]         D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Infrastructure\Services\StripeService.cs(413,0): at SmartTelehealth.Infrastructure.Services.StripeService.&lt;&gt;c__DisplayClass15_0.&lt;&lt;CreateSubscriptionAsync&gt;b__0&gt;d.MoveNext()&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe product: prod_SiuksCyHbsvPJx - Test Invoice Plan 119be5fd-1930-4f2f-9d0d-cea03e45843e&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe price: price_1RnSuwCI7YurXiFNbKm8SOvJ for product prod_SiuksCyHbsvPJx - 199.99 usd every 1 month&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Created Stripe subscription: sub_1RnSuwCI7YurXiFN0O9E71KB for customer cus_SiRb76fokmiORv&#xD;
+info: SmartTelehealth.Infrastructure.Services.StripeService[0]&#xD;
+      Stripe service initialized successfully&#xD;
+[xUnit.net 00:00:37.23]   Finished:    SmartTelehealth.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="LAPTOP-FNR127FP" outcome="Error" timestamp="2025-07-22T04:44:15.4310856+05:30">
+        <Text>[xUnit.net 00:00:05.36]     Can create Stripe subscription with trial and transition to paid [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LAPTOP-FNR127FP" outcome="Error" timestamp="2025-07-22T04:44:28.6268799+05:30">
+        <Text>[xUnit.net 00:00:18.55]     Can create Stripe subscription and validate linkage [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LAPTOP-FNR127FP" outcome="Error" timestamp="2025-07-22T04:44:32.2015496+05:30">
+        <Text>[xUnit.net 00:00:22.13]     Handles Stripe payment failure and recovery [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LAPTOP-FNR127FP" outcome="Error" timestamp="2025-07-22T04:44:34.6938175+05:30">
+        <Text>[xUnit.net 00:00:24.62]     Can process Stripe subscription renewal [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LAPTOP-FNR127FP" outcome="Error" timestamp="2025-07-22T04:44:35.2163983+05:30">
+        <Text>[xUnit.net 00:00:25.15]     Can process Stripe payment and handle success/failure [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LAPTOP-FNR127FP" outcome="Error" timestamp="2025-07-22T04:44:38.8729932+05:30">
+        <Text>[xUnit.net 00:00:28.80]     Can cancel Stripe subscription immediately and at period end [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LAPTOP-FNR127FP" outcome="Error" timestamp="2025-07-22T04:44:42.1291873+05:30">
+        <Text>[xUnit.net 00:00:32.06]     Can upgrade and downgrade Stripe subscription (proration) [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

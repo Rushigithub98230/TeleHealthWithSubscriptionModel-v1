@@ -1,0 +1,63 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          SA_PASSWORD: "Your_password123"
+          ACCEPT_EULA: "Y"
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "exit 0"
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build and start backend
+        run: |
+          cd src/SmartTelehealth.API
+          dotnet build
+          nohup dotnet run --urls=http://localhost:5000 &
+
+      - name: Wait for backend to be ready
+        run: |
+          npx wait-on http://localhost:5000/api/health
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install frontend dependencies
+        run: |
+          cd healthcare-portal
+          npm ci
+
+      - name: Build Angular frontend
+        run: |
+          cd healthcare-portal
+          npm run build
+
+      - name: Install Cypress
+        run: |
+          cd healthcare-portal
+          npx cypress install
+
+      - name: Run Cypress E2E tests
+        run: |
+          cd healthcare-portal
+          npx cypress run 

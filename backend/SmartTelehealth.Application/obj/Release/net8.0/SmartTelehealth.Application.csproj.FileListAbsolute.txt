@@ -1,0 +1,16 @@
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Release\net8.0\SmartTelehealth.Application.deps.json
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Release\net8.0\SmartTelehealth.Application.dll
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Release\net8.0\SmartTelehealth.Application.pdb
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Release\net8.0\SmartTelehealth.Core.dll
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Release\net8.0\SmartTelehealth.Core.pdb
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\SmartTelehealth.Application.csproj.AssemblyReference.cache
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\SmartTelehealth.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\SmartTelehealth.Application.AssemblyInfoInputs.cache
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\SmartTelehealth.Application.AssemblyInfo.cs
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\SmartTelehealth.Application.csproj.CoreCompileInputs.cache
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\SmartTelehealth.Application.sourcelink.json
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\SmartTel.F8BB03A2.Up2Date
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\SmartTelehealth.Application.dll
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\refint\SmartTelehealth.Application.dll
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\SmartTelehealth.Application.pdb
+D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Release\net8.0\ref\SmartTelehealth.Application.dll

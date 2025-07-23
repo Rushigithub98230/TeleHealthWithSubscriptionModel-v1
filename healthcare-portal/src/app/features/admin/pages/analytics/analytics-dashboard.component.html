@@ -1,0 +1,63 @@
+<div class="analytics-dashboard">
+  <h2>Analytics Dashboard</h2>
+  <div *ngIf="loading">Loading analytics...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+  <div *ngIf="stats" class="dashboard-cards">
+    <mat-card class="dashboard-card">
+      <mat-card-title>Total Subscriptions</mat-card-title>
+      <mat-card-content>{{ stats.totalSubscriptions }}</mat-card-content>
+    </mat-card>
+    <mat-card class="dashboard-card">
+      <mat-card-title>Active Subscriptions</mat-card-title>
+      <mat-card-content>{{ stats.activeSubscriptions }}</mat-card-content>
+    </mat-card>
+    <mat-card class="dashboard-card">
+      <mat-card-title>Total Revenue</mat-card-title>
+      <mat-card-content>{{ stats.totalRevenue | currency }}</mat-card-content>
+    </mat-card>
+    <mat-card class="dashboard-card">
+      <mat-card-title>Monthly Recurring Revenue</mat-card-title>
+      <mat-card-content>{{ stats.monthlyRecurringRevenue | currency }}</mat-card-content>
+    </mat-card>
+    <mat-card class="dashboard-card">
+      <mat-card-title>Total Users</mat-card-title>
+      <mat-card-content>{{ stats.totalUsers }}</mat-card-content>
+    </mat-card>
+    <mat-card class="dashboard-card">
+      <mat-card-title>Total Providers</mat-card-title>
+      <mat-card-content>{{ stats.totalProviders }}</mat-card-content>
+    </mat-card>
+  </div>
+  <!-- Chart area: add ng2-charts or similar here -->
+  <div class="dashboard-export-bar">
+    <button mat-raised-button color="primary" (click)="exportReport('csv')" aria-label="Export analytics as CSV">Export CSV</button>
+    <button mat-raised-button color="accent" (click)="exportReport('pdf')" aria-label="Export analytics as PDF">Export PDF</button>
+  </div>
+  <div class="dashboard-charts">
+    <div class="dashboard-chart-card">
+      <canvas baseChart
+        [data]="revenueChartData"
+        [options]="revenueChartOptions"
+        chartType="line"
+        aria-label="Revenue Trend Chart">
+      </canvas>
+    </div>
+    <div class="dashboard-chart-card">
+      <canvas baseChart
+        [data]="userGrowthChartData"
+        [options]="userGrowthChartOptions"
+        chartType="line"
+        aria-label="User Growth Chart">
+      </canvas>
+    </div>
+    <div class="dashboard-chart-card">
+      <canvas baseChart
+        [data]="planDistributionChartData"
+        [options]="planDistributionChartOptions"
+        chartType="pie"
+        aria-label="Plan Distribution Chart">
+      </canvas>
+    </div>
+    <!-- TODO: Add more charts for users, plans, etc. -->
+  </div>
+</div> 

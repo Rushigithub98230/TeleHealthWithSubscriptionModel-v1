@@ -1,0 +1,45 @@
+<div class="global-table-wrapper responsive-table" role="region" aria-label="Data Table">
+  <div *ngIf="loading" class="loading-state">
+    <mat-spinner></mat-spinner>
+  </div>
+  <table *ngIf="!loading && data.length > 0" class="global-table" role="table">
+    <thead>
+      <tr role="row">
+        <th *ngIf="selectable" role="columnheader" scope="col">
+          <input type="checkbox" [checked]="isAllSelected()" (change)="$event.target.checked ? selectAll() : clearSelection()" aria-label="Select all rows">
+        </th>
+        <th *ngFor="let col of columns" role="columnheader" scope="col">{{ col.label }}</th>
+        <th *ngIf="actions.length > 0" role="columnheader" scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of data" role="row">
+        <td *ngIf="selectable" role="cell">
+          <input type="checkbox" [checked]="isSelected(row.id)" (change)="toggleSelection(row.id)" [attr.aria-label]="'Select row ' + row.id">
+        </td>
+        <td *ngFor="let col of columns" role="cell">
+          <ng-container *ngIf="!col.cellTemplate; else customCell">
+            {{ row[col.key] }}
+          </ng-container>
+          <ng-template #customCell>
+            <ng-container *ngTemplateOutlet="col.cellTemplate; context: { $implicit: row }"></ng-container>
+          </ng-template>
+        </td>
+        <td *ngIf="actions.length > 0" role="cell">
+          <button *ngFor="let act of actions"
+                  mat-button
+                  [color]="act.color || 'primary'"
+                  (click)="onAction(act.action, row)"
+                  [attr.aria-label]="act.label + ' for row ' + row.id"
+                  tabindex="0">
+            <mat-icon *ngIf="act.icon" aria-hidden="true">{{ act.icon }}</mat-icon>
+            {{ act.label }}
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div *ngIf="!loading && data.length === 0" class="empty-state" role="status" aria-live="polite">
+    No data found.
+  </div>
+</div> 

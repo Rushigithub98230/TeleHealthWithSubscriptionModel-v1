@@ -1,0 +1,186 @@
+<div class="chat-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-overlay">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Connecting to chat...</p>
+  </div>
+
+  <!-- Connection Status -->
+  <div class="connection-status" [class.connected]="isConnected" [class.disconnected]="!isConnected">
+    <mat-icon>{{ isConnected ? 'wifi' : 'wifi_off' }}</mat-icon>
+    <span>{{ connectionStatus }}</span>
+  </div>
+
+  <!-- Chat Layout -->
+  <div class="chat-layout" [class.room-selected]="currentRoom">
+    
+    <!-- Room List Sidebar -->
+    <div class="room-list-sidebar" [class.hidden]="!showRoomList && currentRoom">
+      <div class="sidebar-header">
+        <h3>Chat Rooms</h3>
+        <button mat-icon-button (click)="toggleRoomList()" *ngIf="currentRoom">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="room-list">
+        <div *ngIf="loadingRooms" class="loading-rooms">
+          <mat-spinner diameter="20"></mat-spinner>
+          <span>Loading rooms...</span>
+        </div>
+
+        <div *ngFor="let room of rooms" 
+             class="room-item" 
+             [class.active]="currentRoom?.id === room.id"
+             (click)="selectRoom(room)">
+          <div class="room-avatar">
+            <mat-icon>{{ room.type === 'individual' ? 'person' : 'group' }}</mat-icon>
+          </div>
+          <div class="room-info">
+            <div class="room-name">{{ getRoomDisplayName(room) }}</div>
+            <div class="room-last-message" *ngIf="room.lastMessage">
+              {{ room.lastMessage.content | slice:0:30 }}{{ room.lastMessage.content.length > 30 ? '...' : '' }}
+            </div>
+          </div>
+          <div class="room-meta">
+            <div class="unread-badge" *ngIf="room.unreadCount > 0">
+              {{ room.unreadCount }}
+            </div>
+            <div class="room-status" [class.online]="room.isActive">
+              <mat-icon>{{ room.isActive ? 'fiber_manual_record' : 'fiber_manual_record' }}</mat-icon>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!loadingRooms && rooms.length === 0" class="no-rooms">
+          <mat-icon>chat</mat-icon>
+          <p>No chat rooms available</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-main" *ngIf="currentRoom">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div class="header-left">
+          <button mat-icon-button (click)="backToRooms()" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div class="room-details">
+            <h3>{{ getRoomDisplayName(currentRoom) }}</h3>
+            <span class="room-type">{{ currentRoom.type | titlecase }}</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <button mat-icon-button (click)="toggleParticipants()" [class.active]="showParticipants">
+            <mat-icon>people</mat-icon>
+          </button>
+          <button mat-icon-button [matMenuTriggerFor]="roomMenu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #roomMenu="matMenu">
+            <button mat-menu-item>
+              <mat-icon>search</mat-icon>
+              <span>Search Messages</span>
+            </button>
+            <button mat-menu-item>
+              <mat-icon>notifications</mat-icon>
+              <span>Mute Notifications</span>
+            </button>
+            <button mat-menu-item>
+              <mat-icon>block</mat-icon>
+              <span>Block User</span>
+            </button>
+          </mat-menu>
+        </div>
+      </div>
+
+      <!-- Participants Sidebar -->
+      <div class="participants-sidebar" [class.hidden]="!showParticipants">
+        <div class="participants-header">
+          <h4>Participants ({{ participants.length }})</h4>
+          <button mat-icon-button (click)="toggleParticipants()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <div class="participants-list">
+          <div *ngFor="let participant of participants" class="participant-item">
+            <div class="participant-avatar">
+              <img [src]="participant.avatar || 'assets/default-avatar.png'" [alt]="participant.name">
+              <div class="online-indicator" [class.online]="participant.isOnline"></div>
+            </div>
+            <div class="participant-info">
+              <div class="participant-name">{{ participant.name }}</div>
+              <div class="participant-role">{{ participant.role | titlecase }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages Area -->
+      <div class="messages-container">
+        <div #messageContainer class="messages-list">
+          <!-- Load More Button -->
+          <div *ngIf="hasMoreMessages" class="load-more-container">
+            <button mat-button (click)="loadMoreMessages()" [disabled]="loadingMessages">
+              <mat-spinner diameter="16" *ngIf="loadingMessages"></mat-spinner>
+              <span *ngIf="!loadingMessages">Load More Messages</span>
+            </button>
+          </div>
+
+          <!-- Messages -->
+          <div *ngFor="let message of messages" 
+               class="message-item" 
+               [class.own-message]="isCurrentUser(message)">
+            <app-chat-message
+              [message]="message"
+              [isOwnMessage]="isCurrentUser(message)"
+              [showAvatar]="!isCurrentUser(message)"
+              [showTimestamp]="true"
+              [showReactions]="true"
+              [showMenu]="true"
+              [currentUserId]="getCurrentUserId()"
+              (messageReaction)="onMessageReaction($event)"
+              (messageEdit)="onMessageEdit($event)"
+              (messageDelete)="onMessageDelete($event)"
+              (messageReply)="onMessageReply($event)"
+              (fileDownload)="onFileDownload($event)">
+            </app-chat-message>
+          </div>
+
+          <!-- Typing Indicator -->
+          <div *ngIf="typingUsers.length > 0" class="typing-indicator">
+            <mat-icon>keyboard</mat-icon>
+            <span>{{ getTypingText() }}</span>
+          </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="message-input-container">
+          <app-chat-input
+            [placeholder]="'Type a message...'"
+            [disabled]="!canSendMessage()"
+            [maxLength]="1000"
+            [allowedFileTypes]="['image/*', 'application/pdf', 'text/*', 'audio/*', 'video/*']"
+            [maxFileSize]="10 * 1024 * 1024"
+            [showEmojiPicker]="true"
+            [showFileUpload]="true"
+            [showVoiceMessage]="true"
+            (messageSent)="sendMessage()"
+            (fileSelected)="sendFile($event)"
+            (voiceMessage)="onVoiceMessage()"
+            (typing)="onTyping()">
+          </app-chat-input>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Room Selected -->
+    <div class="no-room-selected" *ngIf="!currentRoom">
+      <mat-icon>chat</mat-icon>
+      <h3>Select a chat room to start messaging</h3>
+      <p>Choose from the available rooms to begin your conversation</p>
+    </div>
+  </div>
+</div> 

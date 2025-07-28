@@ -1,0 +1,418 @@
+.message-item {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  position: relative;
+
+  &.own-message {
+    flex-direction: row-reverse;
+
+    .message-content {
+      background: #2196f3;
+      color: white;
+
+      .message-header {
+        .sender-name {
+          display: none;
+        }
+      }
+
+      .message-reactions {
+        .reaction {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+
+          &.has-reaction {
+            background: rgba(255, 255, 255, 0.3);
+          }
+        }
+      }
+    }
+
+    .message-actions {
+      .action-button {
+        color: #666;
+      }
+    }
+  }
+
+  .message-avatar {
+    img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  }
+
+  .message-content {
+    background: white;
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 70%;
+    position: relative;
+
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+
+      .sender-name {
+        font-weight: 600;
+        color: #333;
+      }
+
+      .message-time {
+        color: #666;
+        font-size: 0.75rem;
+      }
+
+      .message-status {
+        mat-icon {
+          font-size: 1rem;
+          
+          &.sent {
+            color: #666;
+          }
+          
+          &.read {
+            color: #2196f3;
+          }
+        }
+      }
+    }
+
+    .message-body {
+      .text-message {
+        .message-text {
+          line-height: 1.4;
+          word-wrap: break-word;
+        }
+
+        .edit-form {
+          textarea {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 0.5rem;
+            font-family: inherit;
+            font-size: 0.875rem;
+            resize: vertical;
+            min-height: 60px;
+
+            &:focus {
+              outline: none;
+              border-color: #2196f3;
+            }
+          }
+
+          .edit-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+          }
+        }
+      }
+
+      .file-message {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.1);
+        }
+
+        mat-icon {
+          font-size: 2rem;
+          color: #666;
+        }
+
+        .file-info {
+          flex: 1;
+
+          .file-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            word-break: break-word;
+          }
+
+          .file-size {
+            font-size: 0.875rem;
+            color: #666;
+          }
+        }
+      }
+
+      .image-message {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+
+        img {
+          max-width: 300px;
+          max-height: 300px;
+          border-radius: 12px;
+          display: block;
+        }
+
+        .image-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+
+          mat-icon {
+            color: white;
+            font-size: 2rem;
+          }
+        }
+
+        &:hover .image-overlay {
+          opacity: 1;
+        }
+      }
+
+      .audio-message {
+        .audio-player {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem;
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 12px;
+
+          mat-icon {
+            font-size: 2rem;
+            color: #666;
+          }
+
+          .audio-info {
+            flex: 1;
+
+            .audio-name {
+              font-weight: 600;
+              margin-bottom: 0.25rem;
+            }
+
+            .audio-duration {
+              font-size: 0.875rem;
+              color: #666;
+            }
+          }
+        }
+      }
+
+      .video-message {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+
+        video {
+          max-width: 300px;
+          max-height: 200px;
+          border-radius: 12px;
+        }
+
+        .video-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+
+          mat-icon {
+            color: white;
+            font-size: 3rem;
+          }
+        }
+      }
+    }
+
+    .message-reactions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+
+      .reaction {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.1);
+        }
+
+        &.has-reaction {
+          background: rgba(33, 150, 243, 0.1);
+          color: #2196f3;
+        }
+
+        .emoji {
+          font-size: 1rem;
+        }
+
+        .count {
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .reaction-picker {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      z-index: 10;
+
+      .reaction-options {
+        display: flex;
+        gap: 0.25rem;
+
+        .reaction-option {
+          width: 32px;
+          height: 32px;
+          border: none;
+          background: transparent;
+          border-radius: 50%;
+          cursor: pointer;
+          font-size: 1.25rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.2s ease;
+
+          &:hover {
+            background: rgba(0, 0, 0, 0.1);
+          }
+        }
+      }
+    }
+  }
+
+  .message-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+
+    .action-button {
+      color: #666;
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+
+      mat-icon {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  &:hover .message-actions {
+    opacity: 1;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .message-item {
+    .message-content {
+      max-width: 85%;
+
+      .message-body {
+        .image-message img {
+          max-width: 250px;
+          max-height: 250px;
+        }
+
+        .video-message video {
+          max-width: 250px;
+          max-height: 150px;
+        }
+      }
+    }
+
+    .message-actions {
+      opacity: 1;
+    }
+  }
+}
+
+// Dark theme support
+@media (prefers-color-scheme: dark) {
+  .message-item {
+    .message-content {
+      background: #424242;
+      color: white;
+
+      .message-header {
+        .sender-name {
+          color: white;
+        }
+
+        .message-time {
+          color: #ccc;
+        }
+      }
+
+      .message-body {
+        .file-message {
+          background: rgba(255, 255, 255, 0.1);
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.15);
+          }
+        }
+
+        .audio-message .audio-player {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      }
+
+      .message-reactions {
+        .reaction {
+          background: rgba(255, 255, 255, 0.1);
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.15);
+          }
+
+          &.has-reaction {
+            background: rgba(33, 150, 243, 0.2);
+          }
+        }
+      }
+    }
+  }
+} 

@@ -1,0 +1,150 @@
+<div class="chat-input-container" 
+     [class.drag-over]="dragOver"
+     (dragover)="onDragOver($event)"
+     (dragleave)="onDragLeave($event)"
+     (drop)="onDrop($event)">
+  
+  <!-- File Upload Progress -->
+  <div class="upload-progress" *ngIf="isUploading">
+    <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+    <span class="progress-text">Uploading... {{ uploadProgress }}%</span>
+  </div>
+
+  <!-- Selected Files Preview -->
+  <div class="selected-files" *ngIf="selectedFiles.length > 0">
+    <div class="files-header">
+      <span>Selected Files ({{ selectedFiles.length }})</span>
+      <button mat-icon-button (click)="selectedFiles = []">
+        <mat-icon>clear</mat-icon>
+      </button>
+    </div>
+    <div class="file-list">
+      <div *ngFor="let file of selectedFiles" class="file-item">
+        <mat-icon>insert_drive_file</mat-icon>
+        <div class="file-info">
+          <div class="file-name">{{ file.name }}</div>
+          <div class="file-size">{{ formatFileSize(file.size) }}</div>
+        </div>
+        <button mat-icon-button (click)="removeFile(file)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voice Recording Indicator -->
+  <div class="recording-indicator" *ngIf="isRecording">
+    <mat-icon class="recording-icon">mic</mat-icon>
+    <span class="recording-text">Recording... {{ formatRecordingTime(recordingTime) }}</span>
+    <button mat-icon-button color="warn" (click)="stopVoiceRecording()">
+      <mat-icon>stop</mat-icon>
+    </button>
+  </div>
+
+  <!-- Main Input Area -->
+  <div class="input-wrapper">
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <!-- File Upload -->
+      <button mat-icon-button 
+              *ngIf="showFileUpload"
+              (click)="fileInput.click()"
+              [matTooltip]="'Attach file'">
+        <mat-icon>attach_file</mat-icon>
+      </button>
+      <input #fileInput 
+             type="file" 
+             multiple 
+             [accept]="allowedFileTypes.join(',')"
+             (change)="onFileSelected($event)" 
+             style="display: none;">
+
+      <!-- Emoji Picker -->
+      <button mat-icon-button 
+              *ngIf="showEmojiPicker"
+              (click)="toggleEmojiPicker()"
+              [matTooltip]="'Add emoji'">
+        <mat-icon>emoji_emotions</mat-icon>
+      </button>
+
+      <!-- Voice Message -->
+      <button mat-icon-button 
+              *ngIf="showVoiceMessage && !isRecording"
+              (click)="startVoiceRecording()"
+              [matTooltip]="'Voice message'">
+        <mat-icon>mic</mat-icon>
+      </button>
+    </div>
+
+    <!-- Message Input -->
+    <div class="message-input-container">
+      <mat-form-field appearance="outline" class="message-input">
+        <textarea matInput 
+                  #messageInput
+                  [(ngModel)]="messageText"
+                  (input)="onInputChange()"
+                  (keypress)="onKeyPress($event)"
+                  (keydown)="onKeyDown($event)"
+                  [placeholder]="placeholder"
+                  [disabled]="disabled"
+                  [maxlength]="maxLength"
+                  rows="1"
+                  cdkTextareaAutosize
+                  cdkAutosizeMinRows="1"
+                  cdkAutosizeMaxRows="4">
+        </textarea>
+        
+        <!-- Character Counter -->
+        <mat-hint *ngIf="isNearLimit()" 
+                  [class.warning]="isNearLimit()" 
+                  [class.error]="isOverLimit()">
+          {{ getCharacterCount() }}/{{ maxLength }}
+        </mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Send Button -->
+    <div class="send-button-container">
+      <button mat-icon-button 
+              [disabled]="!canSendMessage()"
+              (click)="sendMessage()"
+              class="send-button"
+              [matTooltip]="'Send message'">
+        <mat-icon>{{ isRecording ? 'stop' : 'send' }}</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Emoji Picker Panel -->
+  <div class="emoji-panel" *ngIf="showEmojiPanel">
+    <div class="emoji-header">
+      <span>Emoji</span>
+      <button mat-icon-button (click)="toggleEmojiPicker()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <div class="emoji-categories">
+      <div *ngFor="let category of emojiCategories" class="emoji-category">
+        <div class="category-header">
+          <span class="category-icon">{{ category.icon }}</span>
+          <span class="category-name">{{ category.name }}</span>
+        </div>
+        <div class="emoji-grid">
+          <button *ngFor="let emoji of category.emojis" 
+                  class="emoji-button"
+                  (click)="addEmoji(emoji)"
+                  [matTooltip]="emoji">
+            {{ emoji }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drag & Drop Overlay -->
+  <div class="drag-overlay" *ngIf="dragOver">
+    <mat-icon>cloud_upload</mat-icon>
+    <span>Drop files here to upload</span>
+  </div>
+</div> 

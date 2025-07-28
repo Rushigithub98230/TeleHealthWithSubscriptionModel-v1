@@ -1,0 +1,364 @@
+<div class="fee-management">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <mat-icon>payments</mat-icon>
+        Provider Fee Management
+      </h1>
+      <p class="page-subtitle">
+        Review and approve provider fee proposals
+      </p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="exportToCsv()">
+        <mat-icon>download</mat-icon>
+        Export CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="primary">payments</mat-icon>
+          <h3>Total Fees</h3>
+        </div>
+        <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-subtitle">Fee proposals</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="warn">schedule</mat-icon>
+          <h3>Pending</h3>
+        </div>
+        <div class="stat-value pending">{{ stats.pending }}</div>
+        <div class="stat-subtitle">Awaiting review</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="primary">check_circle</mat-icon>
+          <h3>Approved</h3>
+        </div>
+        <div class="stat-value approved">{{ stats.approved }}</div>
+        <div class="stat-subtitle">Approved fees</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="accent">cancel</mat-icon>
+          <h3>Rejected</h3>
+        </div>
+        <div class="stat-value rejected">{{ stats.rejected }}</div>
+        <div class="stat-subtitle">Rejected fees</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="primary">attach_money</mat-icon>
+          <h3>Avg Proposed</h3>
+        </div>
+        <div class="stat-value">${{ stats.averageProposedFee | number:'1.0-0' }}</div>
+        <div class="stat-subtitle">Average proposed fee</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="primary">account_balance</mat-icon>
+          <h3>Avg Approved</h3>
+        </div>
+        <div class="stat-value">${{ stats.averageApprovedFee | number:'1.0-0' }}</div>
+        <div class="stat-subtitle">Average approved fee</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="primary">trending_up</mat-icon>
+          <h3>Approval Rate</h3>
+        </div>
+        <div class="stat-value">{{ getApprovalRate() | number:'1.0-1' }}%</div>
+        <div class="stat-subtitle">Fee approval rate</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="primary">people</mat-icon>
+          <h3>Providers</h3>
+        </div>
+        <div class="stat-value">{{ stats.totalProviders }}</div>
+        <div class="stat-subtitle">Active providers</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Fees</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search by provider, category, notes...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="status-filter">
+          <mat-label>Filter by Status</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="filterByStatus($event.value)">
+            <mat-option value="all">All Statuses</mat-option>
+            <mat-option value="pending">Pending</mat-option>
+            <mat-option value="approved">Approved</mat-option>
+            <mat-option value="rejected">Rejected</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="category-filter">
+          <mat-label>Filter by Category</mat-label>
+          <mat-select [(ngModel)]="selectedCategory" (selectionChange)="filterByCategory($event.value)">
+            <mat-option value="all">All Categories</mat-option>
+            <mat-option *ngFor="let category of getCategories()" [value]="category">
+              {{ category }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-slide-toggle [(ngModel)]="showOnlyPending" (change)="togglePendingOnly()" class="pending-toggle">
+          Show Only Pending
+        </mat-slide-toggle>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading fee proposals...</p>
+  </div>
+
+  <!-- Fees Table -->
+  <mat-card *ngIf="!loading" class="table-card">
+    <mat-card-content>
+      <div class="table-header">
+        <h3>Provider Fee Proposals</h3>
+        <span class="results-count">{{ filteredFees.length }} of {{ fees.length }} proposals</span>
+      </div>
+
+      <div class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort class="fees-table">
+          
+          <!-- Provider Column -->
+          <ng-container matColumnDef="provider">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Provider</th>
+            <td mat-cell *matCellDef="let item">{{ item.providerName }}</td>
+          </ng-container>
+
+          <!-- Category Column -->
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+            <td mat-cell *matCellDef="let item">{{ item.categoryName }}</td>
+          </ng-container>
+
+          <!-- Proposed Fee Column -->
+          <ng-container matColumnDef="proposedFee">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Proposed Fee</th>
+            <td mat-cell *matCellDef="let item">
+              <div class="fee-info">
+                <span class="fee-amount">${{ item.proposedFee }}</span>
+                <span *ngIf="item.providerNotes" class="fee-notes" matTooltip="{{ item.providerNotes }}">
+                  <mat-icon>info</mat-icon>
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Approved Fee Column -->
+          <ng-container matColumnDef="approvedFee">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Approved Fee</th>
+            <td mat-cell *matCellDef="let item">
+              <span *ngIf="item.approvedFee; else noApprovedFee">${{ item.approvedFee }}</span>
+              <ng-template #noApprovedFee>
+                <span class="no-fee">Not set</span>
+              </ng-template>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+            <td mat-cell *matCellDef="let item">
+              <mat-chip [color]="getStatusColor(item.status)" selected>
+                {{ getStatusText(item.status) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Proposed Date Column -->
+          <ng-container matColumnDef="proposedAt">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Proposed Date</th>
+            <td mat-cell *matCellDef="let item">
+              {{ (item.proposedAt || item.createdAt) | date:'shortDate' }}
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let item">
+              <button mat-icon-button [matMenuTriggerFor]="menu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="openReviewDialog(item)">
+                  <mat-icon>edit</mat-icon>
+                  Review
+                </button>
+                
+                <div *ngIf="item.status.toLowerCase() === 'pending'">
+                  <button mat-menu-item (click)="quickApprove(item)">
+                    <mat-icon>check</mat-icon>
+                    Quick Approve
+                  </button>
+                  <button mat-menu-item (click)="quickReject(item)">
+                    <mat-icon>close</mat-icon>
+                    Quick Reject
+                  </button>
+                </div>
+
+                <button mat-menu-item (click)="viewFeeDetails(item)">
+                  <mat-icon>visibility</mat-icon>
+                  View Details
+                </button>
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredFees.length === 0 && !loading" class="empty-state">
+        <mat-icon>payments</mat-icon>
+        <h3>No fee proposals found</h3>
+        <p *ngIf="searchTerm || selectedStatus !== 'all' || selectedCategory !== 'all'">
+          Try adjusting your search criteria or filters
+        </p>
+        <p *ngIf="!searchTerm && selectedStatus === 'all' && selectedCategory === 'all'">
+          No fee proposals have been submitted yet
+        </p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <mat-card>
+      <mat-card-content>
+        <h3>Quick Actions</h3>
+        <div class="actions-grid">
+          <button mat-raised-button color="primary" (click)="filterByStatus('pending')">
+            <mat-icon>schedule</mat-icon>
+            View Pending ({{ stats.pending }})
+          </button>
+          
+          <button mat-raised-button color="accent" (click)="filterByStatus('approved')">
+            <mat-icon>check_circle</mat-icon>
+            View Approved ({{ stats.approved }})
+          </button>
+          
+          <button mat-raised-button color="warn" (click)="filterByStatus('rejected')">
+            <mat-icon>cancel</mat-icon>
+            View Rejected ({{ stats.rejected }})
+          </button>
+          
+          <button mat-raised-button color="primary" (click)="exportToCsv()">
+            <mat-icon>download</mat-icon>
+            Export Data
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Review Dialog -->
+  <div *ngIf="showReviewDialog" class="dialog-overlay" (click)="closeReviewDialog()">
+    <div class="review-dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>Review Fee Proposal</h2>
+        <button mat-icon-button (click)="closeReviewDialog()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="dialog-content" *ngIf="selectedFee">
+        <div class="fee-details">
+          <div class="detail-row">
+            <span class="label">Provider:</span>
+            <span class="value">{{ selectedFee.providerName }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Category:</span>
+            <span class="value">{{ selectedFee.categoryName }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Proposed Fee:</span>
+            <span class="value">${{ selectedFee.proposedFee }}</span>
+          </div>
+          <div class="detail-row" *ngIf="selectedFee.providerNotes">
+            <span class="label">Provider Notes:</span>
+            <span class="value">{{ selectedFee.providerNotes }}</span>
+          </div>
+        </div>
+
+        <form [formGroup]="reviewForm" class="review-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Review Decision</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="Approved">Approve</mat-option>
+              <mat-option value="Rejected">Reject</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Approved Fee Amount</mat-label>
+            <input matInput type="number" formControlName="approvedFee" placeholder="Enter approved fee amount">
+            <mat-hint>Leave as proposed fee or adjust as needed</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Admin Remarks</mat-label>
+            <textarea matInput formControlName="adminRemarks" rows="3" placeholder="Add any remarks or notes..."></textarea>
+            <mat-hint>{{ reviewForm.get('adminRemarks')?.value?.length || 0 }}/500 characters</mat-hint>
+          </mat-form-field>
+        </form>
+      </div>
+
+      <div class="dialog-actions">
+        <button mat-button (click)="closeReviewDialog()">Cancel</button>
+        <button mat-raised-button color="primary" (click)="submitReview()" [disabled]="!reviewForm.valid">
+          Submit Review
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 

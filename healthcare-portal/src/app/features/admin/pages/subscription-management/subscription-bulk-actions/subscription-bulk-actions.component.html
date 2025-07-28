@@ -1,0 +1,239 @@
+<div class="bulk-actions-container">
+  <!-- Error and Success Messages -->
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-triangle"></i>
+    {{ error }}
+    <button type="button" class="btn-close" (click)="clearError()"></button>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle"></i>
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="clearSuccess()"></button>
+  </div>
+
+  <!-- Header with Selection Controls -->
+  <div class="header-actions">
+    <div class="selection-controls">
+      <div class="selection-info">
+        <span class="selected-count">{{ getSelectedCount() }}</span> of <span class="total-count">{{ getTotalCount() }}</span> subscriptions selected
+      </div>
+      <div class="selection-buttons">
+        <button class="btn btn-sm btn-outline-primary" (click)="selectAllSubscriptions()">
+          <i class="fas fa-check-square"></i> Select All
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" (click)="deselectAllSubscriptions()">
+          <i class="fas fa-square"></i> Clear Selection
+        </button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <input 
+        type="text" 
+        placeholder="Search subscriptions..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        class="search-input">
+      
+      <select 
+        [(ngModel)]="selectedStatus" 
+        (change)="onFilterChange()"
+        class="filter-select">
+        <option value="">All Status</option>
+        <option *ngFor="let status of statuses" [value]="status">
+          {{ status | titlecase }}
+        </option>
+      </select>
+      
+      <select 
+        [(ngModel)]="selectedCategory" 
+        (change)="onFilterChange()"
+        class="filter-select">
+        <option value="">All Categories</option>
+        <option *ngFor="let category of categories" [value]="category">
+          {{ category }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Bulk Action Buttons -->
+  <div class="bulk-action-buttons" *ngIf="getSelectedCount() > 0">
+    <div class="action-grid">
+      <button 
+        *ngFor="let action of actions" 
+        class="action-button"
+        [class]="'action-' + action.value"
+        (click)="openBulkActionModal(action.value)"
+        [disabled]="loading">
+        <i [class]="action.icon"></i>
+        <span>{{ action.label }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Subscriptions Table -->
+  <div class="table-container">
+    <div *ngIf="loading" class="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      Loading subscriptions...
+    </div>
+    
+    <table *ngIf="!loading" class="subscriptions-table">
+      <thead>
+        <tr>
+          <th>
+            <input 
+              type="checkbox" 
+              [checked]="getSelectedCount() === getTotalCount() && getTotalCount() > 0"
+              (change)="getSelectedCount() === getTotalCount() ? deselectAllSubscriptions() : selectAllSubscriptions()">
+          </th>
+          <th>User</th>
+          <th>Plan</th>
+          <th>Status</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let sub of subscriptions" class="subscription-row">
+          <td>
+            <input 
+              type="checkbox" 
+              [checked]="isSubscriptionSelected(sub.id)"
+              (change)="toggleSubscriptionSelection(sub.id)">
+          </td>
+          <td>
+            <div class="user-info">
+              <div class="user-name">{{ sub.userName }}</div>
+              <div class="user-id">ID: {{ sub.userId }}</div>
+            </div>
+          </td>
+          <td>
+            <div class="plan-info">
+              <div class="plan-name">{{ sub.planName }}</div>
+              <div class="plan-description">{{ sub.planDescription }}</div>
+            </div>
+          </td>
+          <td>
+            <span class="status-badge" [class]="getStatusBadgeClass(sub.status)">
+              {{ sub.status | titlecase }}
+            </span>
+            <div *ngIf="sub.isNearExpiration" class="expiring-warning">
+              Expiring soon
+            </div>
+            <div *ngIf="sub.hasPaymentIssues" class="payment-warning">
+              Payment issues
+            </div>
+          </td>
+          <td>
+            <span class="date">{{ sub.startDate | date:'shortDate' }}</span>
+          </td>
+          <td>
+            <span class="date" [class.expired]="sub.isExpired">
+              {{ sub.endDate | date:'shortDate' }}
+            </span>
+          </td>
+          <td>
+            <span class="amount">${{ sub.currentPrice }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div *ngIf="!loading && subscriptions.length === 0" class="empty-state">
+      <i class="fas fa-users"></i>
+      <p>No subscriptions found</p>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Action Modal -->
+<div *ngIf="showBulkActionModal" class="modal-backdrop" (click)="closeBulkActionModal()"></div>
+<div *ngIf="showBulkActionModal" class="modal" role="dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">
+        <i [class]="getActionIcon(currentAction)"></i>
+        {{ getActionLabel(currentAction) }}
+      </h5>
+      <button type="button" class="btn-close" (click)="closeBulkActionModal()"></button>
+    </div>
+    <div class="modal-body">
+      <div class="action-summary">
+        <div class="summary-item">
+          <strong>Action:</strong> {{ getActionLabel(currentAction) }}
+        </div>
+        <div class="summary-item">
+          <strong>Selected Subscriptions:</strong> {{ getSelectedCount() }}
+        </div>
+        <div class="summary-item">
+          <strong>Description:</strong> {{ getActionDescription() }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="actionReason">Reason for Action *</label>
+        <textarea 
+          id="actionReason"
+          [(ngModel)]="actionReason" 
+          class="form-control" 
+          rows="3" 
+          placeholder="Please provide a reason for this bulk action..."
+          required></textarea>
+      </div>
+
+      <div class="warning-message">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Warning:</strong> This action will affect {{ getSelectedCount() }} subscription(s). This action cannot be undone.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeBulkActionModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" (click)="performBulkAction()" [disabled]="loading">
+        <i *ngIf="loading" class="fas fa-spinner fa-spin"></i>
+        Confirm Action
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Results Modal -->
+<div *ngIf="showResultsModal && bulkActionResult" class="modal-backdrop" (click)="closeResultsModal()"></div>
+<div *ngIf="showResultsModal && bulkActionResult" class="modal" role="dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Bulk Action Results</h5>
+      <button type="button" class="btn-close" (click)="closeResultsModal()"></button>
+    </div>
+    <div class="modal-body">
+      <div class="results-summary">
+        <div class="result-item">
+          <strong>Total Processed:</strong> {{ bulkActionResult.totalCount }}
+        </div>
+        <div class="result-item success">
+          <strong>Successful:</strong> {{ bulkActionResult.successCount }}
+        </div>
+        <div class="result-item failure">
+          <strong>Failed:</strong> {{ bulkActionResult.failureCount }}
+        </div>
+      </div>
+
+      <div *ngIf="bulkActionResult.failureCount > 0" class="failure-details">
+        <h6>Failed Operations:</h6>
+        <div class="failure-list">
+          <div *ngFor="let result of bulkActionResult.results" class="failure-item" [ngIf]="!result.success">
+            <strong>Subscription ID:</strong> {{ result.subscriptionId }}
+            <br>
+            <strong>Error:</strong> {{ result.message }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" (click)="closeResultsModal()">Close</button>
+    </div>
+  </div>
+</div> 

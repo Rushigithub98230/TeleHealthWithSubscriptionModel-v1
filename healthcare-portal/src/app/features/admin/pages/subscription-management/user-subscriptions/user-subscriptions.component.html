@@ -1,0 +1,244 @@
+<div class="user-subscriptions-container">
+  <!-- Error and Success Messages -->
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-triangle"></i>
+    {{ error }}
+    <button type="button" class="btn-close" (click)="clearError()"></button>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle"></i>
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="clearSuccess()"></button>
+  </div>
+
+  <!-- Header with Actions -->
+  <div class="header-actions">
+    <div class="filters">
+      <input 
+        type="text" 
+        placeholder="Search by user, email, or plan..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        class="search-input">
+      
+      <select 
+        [(ngModel)]="selectedStatus" 
+        (change)="onFilterChange()"
+        class="filter-select">
+        <option value="">All Status</option>
+        <option *ngFor="let status of statuses" [value]="status">
+          {{ status | titlecase }}
+        </option>
+      </select>
+      
+      <select 
+        [(ngModel)]="selectedCategory" 
+        (change)="onFilterChange()"
+        class="filter-select">
+        <option value="">All Categories</option>
+        <option *ngFor="let category of categories" [value]="category">
+          {{ category }}
+        </option>
+      </select>
+      
+      <select 
+        [(ngModel)]="selectedPlan" 
+        (change)="onFilterChange()"
+        class="filter-select">
+        <option value="">All Plans</option>
+        <option *ngFor="let plan of plans" [value]="plan">
+          {{ plan }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Subscriptions Table -->
+  <div class="table-container">
+    <div *ngIf="loading" class="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      Loading subscriptions...
+    </div>
+    
+    <table *ngIf="!loading" class="subscriptions-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Plan</th>
+          <th>Status</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Next Billing</th>
+          <th>Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let sub of filteredSubscriptions" class="subscription-row">
+          <td>
+            <div class="user-info">
+              <div class="user-name">{{ sub.userName }}</div>
+              <div class="user-id">ID: {{ sub.userId }}</div>
+            </div>
+          </td>
+          <td>
+            <div class="plan-info">
+              <div class="plan-name">{{ sub.planName }}</div>
+              <div class="plan-description">{{ sub.planDescription }}</div>
+            </div>
+          </td>
+          <td>
+            <span class="status-badge" [class]="getStatusBadgeClass(sub.status)">
+              {{ sub.status | titlecase }}
+            </span>
+            <div *ngIf="isSubscriptionExpiringSoon(sub)" class="expiring-warning">
+              Expiring soon
+            </div>
+            <div *ngIf="sub.hasPaymentIssues" class="payment-warning">
+              Payment issues
+            </div>
+          </td>
+          <td>
+            <span class="date">{{ sub.startDate | date:'shortDate' }}</span>
+          </td>
+          <td>
+            <span class="date" [class.expired]="isSubscriptionExpired(sub)">
+              {{ sub.endDate | date:'shortDate' }}
+            </span>
+          </td>
+          <td>
+            <span class="date">{{ sub.nextBillingDate | date:'shortDate' }}</span>
+          </td>
+          <td>
+            <span class="amount">${{ sub.currentPrice }}</span>
+          </td>
+          <td>
+            <div class="actions">
+              <button class="btn-icon" (click)="openDetailsModal(sub)" title="View Details">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button 
+                *ngIf="sub.canPause" 
+                class="btn-icon btn-warning" 
+                (click)="pauseSubscription(sub)" 
+                title="Pause">
+                <i class="fas fa-pause"></i>
+              </button>
+              <button 
+                *ngIf="sub.canResume" 
+                class="btn-icon btn-success" 
+                (click)="resumeSubscription(sub)" 
+                title="Resume">
+                <i class="fas fa-play"></i>
+              </button>
+              <button 
+                *ngIf="sub.canCancel" 
+                class="btn-icon btn-danger" 
+                (click)="cancelSubscription(sub)" 
+                title="Cancel">
+                <i class="fas fa-times"></i>
+              </button>
+              <button 
+                class="btn-icon btn-info" 
+                (click)="extendSubscription(sub)" 
+                title="Extend">
+                <i class="fas fa-calendar-plus"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div *ngIf="!loading && filteredSubscriptions.length === 0" class="empty-state">
+      <i class="fas fa-users"></i>
+      <p>No subscriptions found</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="totalPages > 1" class="pagination-container">
+    <nav aria-label="Subscription pagination">
+      <ul class="pagination">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <a class="page-link" (click)="onPageChange(currentPage - 1)" href="javascript:void(0)">
+            Previous
+          </a>
+        </li>
+        <li *ngFor="let page of [].constructor(totalPages); let i = index" 
+            class="page-item" 
+            [class.active]="currentPage === i + 1">
+          <a class="page-link" (click)="onPageChange(i + 1)" href="javascript:void(0)">
+            {{ i + 1 }}
+          </a>
+        </li>
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <a class="page-link" (click)="onPageChange(currentPage + 1)" href="javascript:void(0)">
+            Next
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<!-- Details Modal -->
+<div *ngIf="showDetailsModal && selectedSubscription" class="modal-backdrop" (click)="closeDetailsModal()"></div>
+<div *ngIf="showDetailsModal && selectedSubscription" class="modal" role="dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Subscription Details</h5>
+      <button type="button" class="btn-close" (click)="closeDetailsModal()"></button>
+    </div>
+    <div class="modal-body">
+      <div class="subscription-details">
+        <div class="detail-row">
+          <strong>User:</strong> {{ selectedSubscription.userName }}
+        </div>
+        <div class="detail-row">
+          <strong>Plan:</strong> {{ selectedSubscription.planName }}
+        </div>
+        <div class="detail-row">
+          <strong>Status:</strong> 
+          <span class="status-badge" [class]="getStatusBadgeClass(selectedSubscription.status)">
+            {{ selectedSubscription.status | titlecase }}
+          </span>
+        </div>
+        <div class="detail-row">
+          <strong>Current Price:</strong> ${{ selectedSubscription.currentPrice }}
+        </div>
+        <div class="detail-row">
+          <strong>Start Date:</strong> {{ selectedSubscription.startDate | date:'mediumDate' }}
+        </div>
+        <div class="detail-row">
+          <strong>End Date:</strong> {{ selectedSubscription.endDate | date:'mediumDate' }}
+        </div>
+        <div class="detail-row">
+          <strong>Next Billing:</strong> {{ selectedSubscription.nextBillingDate | date:'mediumDate' }}
+        </div>
+        <div class="detail-row">
+          <strong>Auto Renew:</strong> {{ selectedSubscription.autoRenew ? 'Yes' : 'No' }}
+        </div>
+        <div *ngIf="selectedSubscription.notes" class="detail-row">
+          <strong>Notes:</strong> {{ selectedSubscription.notes }}
+        </div>
+        <div *ngIf="selectedSubscription.stripeSubscriptionId" class="detail-row">
+          <strong>Stripe ID:</strong> {{ selectedSubscription.stripeSubscriptionId }}
+        </div>
+        <div *ngIf="selectedSubscription.lastPaymentDate" class="detail-row">
+          <strong>Last Payment:</strong> {{ selectedSubscription.lastPaymentDate | date:'mediumDate' }}
+        </div>
+        <div *ngIf="selectedSubscription.failedPaymentAttempts > 0" class="detail-row">
+          <strong>Failed Payments:</strong> {{ selectedSubscription.failedPaymentAttempts }}
+        </div>
+        <div *ngIf="selectedSubscription.isTrialSubscription" class="detail-row">
+          <strong>Trial:</strong> {{ selectedSubscription.trialDurationInDays }} days
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeDetailsModal()">Close</button>
+    </div>
+  </div>
+</div> 

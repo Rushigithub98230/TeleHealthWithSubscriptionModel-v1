@@ -1,0 +1,280 @@
+<div class="provider-onboarding">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <mat-icon>person_add</mat-icon>
+        Provider Onboarding Management
+      </h1>
+      <p class="page-subtitle">
+        Review and manage provider applications
+      </p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="exportToCsv()">
+        <mat-icon>download</mat-icon>
+        Export CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="primary">people</mat-icon>
+          <h3>Total Applications</h3>
+        </div>
+        <div class="stat-value">{{ stats.total }}</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="warn">schedule</mat-icon>
+          <h3>Pending</h3>
+        </div>
+        <div class="stat-value pending">{{ stats.pending }}</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="accent">visibility</mat-icon>
+          <h3>Under Review</h3>
+        </div>
+        <div class="stat-value under-review">{{ stats.underReview }}</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="primary">check_circle</mat-icon>
+          <h3>Approved</h3>
+        </div>
+        <div class="stat-value approved">{{ stats.approved }}</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="accent">cancel</mat-icon>
+          <h3>Rejected</h3>
+        </div>
+        <div class="stat-value rejected">{{ stats.rejected }}</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon color="warn">help</mat-icon>
+          <h3>Needs Info</h3>
+        </div>
+        <div class="stat-value needs-info">{{ stats.requiresMoreInfo }}</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Applications</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search by name, email, specialty...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="status-filter">
+          <mat-label>Filter by Status</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="filterByStatus($event.value)">
+            <mat-option value="all">All Statuses</mat-option>
+            <mat-option value="pending">Pending</mat-option>
+            <mat-option value="underreview">Under Review</mat-option>
+            <mat-option value="approved">Approved</mat-option>
+            <mat-option value="rejected">Rejected</mat-option>
+            <mat-option value="requiresmoreinfo">Needs More Info</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading onboarding applications...</p>
+  </div>
+
+  <!-- Applications Table -->
+  <mat-card *ngIf="!loading" class="table-card">
+    <mat-card-content>
+      <div class="table-header">
+        <h3>Provider Applications</h3>
+        <span class="results-count">{{ filteredOnboardings.length }} of {{ onboardings.length }} applications</span>
+      </div>
+
+      <div class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort class="applications-table">
+          
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Provider Name</th>
+            <td mat-cell *matCellDef="let item">{{ item.firstName }} {{ item.lastName }}</td>
+          </ng-container>
+
+          <!-- Specialty Column -->
+          <ng-container matColumnDef="specialty">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Specialty</th>
+            <td mat-cell *matCellDef="let item">
+              <div class="specialty-info">
+                <span class="specialty-name">{{ item.specialty }}</span>
+                <span *ngIf="item.subSpecialty" class="sub-specialty">{{ item.subSpecialty }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Email Column -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+            <td mat-cell *matCellDef="let item">{{ item.email }}</td>
+          </ng-container>
+
+          <!-- License Number Column -->
+          <ng-container matColumnDef="licenseNumber">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>License Number</th>
+            <td mat-cell *matCellDef="let item">
+              <div class="license-info">
+                <span class="license-number">{{ item.licenseNumber }}</span>
+                <span class="license-state">{{ item.licenseState }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+            <td mat-cell *matCellDef="let item">
+              <mat-chip [color]="getStatusColor(item.status)" selected>
+                {{ getStatusText(item.status) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Created Date Column -->
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Submitted</th>
+            <td mat-cell *matCellDef="let item">
+              {{ item.createdAt | date:'shortDate' }}
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let item">
+              <button mat-icon-button [matMenuTriggerFor]="menu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="viewOnboardingDetails(item.id)">
+                  <mat-icon>visibility</mat-icon>
+                  View Details
+                </button>
+                
+                <div *ngIf="item.status.toLowerCase() === 'pending' || item.status.toLowerCase() === 'underreview'">
+                  <button mat-menu-item (click)="approveOnboarding(item.id)">
+                    <mat-icon>check</mat-icon>
+                    Approve
+                  </button>
+                  <button mat-menu-item (click)="rejectOnboarding(item.id)">
+                    <mat-icon>close</mat-icon>
+                    Reject
+                  </button>
+                  <button mat-menu-item (click)="requestMoreInfo(item.id)">
+                    <mat-icon>help</mat-icon>
+                    Request More Info
+                  </button>
+                </div>
+
+                <div *ngIf="item.governmentIdUrl">
+                  <button mat-menu-item (click)="downloadDocument(item.governmentIdUrl, 'government-id.pdf')">
+                    <mat-icon>download</mat-icon>
+                    Download ID
+                  </button>
+                </div>
+
+                <div *ngIf="item.licenseDocumentUrl">
+                  <button mat-menu-item (click)="downloadDocument(item.licenseDocumentUrl, 'license.pdf')">
+                    <mat-icon>download</mat-icon>
+                    Download License
+                  </button>
+                </div>
+
+                <div *ngIf="item.certificationDocumentUrl">
+                  <button mat-menu-item (click)="downloadDocument(item.certificationDocumentUrl, 'certification.pdf')">
+                    <mat-icon>download</mat-icon>
+                    Download Certification
+                  </button>
+                </div>
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredOnboardings.length === 0 && !loading" class="empty-state">
+        <mat-icon>inbox</mat-icon>
+        <h3>No applications found</h3>
+        <p *ngIf="searchTerm || selectedStatus !== 'all'">
+          Try adjusting your search criteria or status filter
+        </p>
+        <p *ngIf="!searchTerm && selectedStatus === 'all'">
+          No provider applications have been submitted yet
+        </p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <mat-card>
+      <mat-card-content>
+        <h3>Quick Actions</h3>
+        <div class="actions-grid">
+          <button mat-raised-button color="primary" (click)="filterByStatus('pending')">
+            <mat-icon>schedule</mat-icon>
+            View Pending ({{ stats.pending }})
+          </button>
+          
+          <button mat-raised-button color="accent" (click)="filterByStatus('underreview')">
+            <mat-icon>visibility</mat-icon>
+            Under Review ({{ stats.underReview }})
+          </button>
+          
+          <button mat-raised-button color="warn" (click)="filterByStatus('requiresmoreinfo')">
+            <mat-icon>help</mat-icon>
+            Needs Info ({{ stats.requiresMoreInfo }})
+          </button>
+          
+          <button mat-raised-button color="primary" (click)="exportToCsv()">
+            <mat-icon>download</mat-icon>
+            Export Data
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div> 

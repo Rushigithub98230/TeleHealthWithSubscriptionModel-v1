@@ -32,6 +32,8 @@ namespace SmartTelehealth.Application.DTOs
         public string? OldValues { get; set; }
         public string? NewValues { get; set; }
         public string? IpAddress { get; set; }
+        public string? Status { get; set; }
+        public string? ErrorMessage { get; set; }
     }
 
     public class AuditLogSearchDto

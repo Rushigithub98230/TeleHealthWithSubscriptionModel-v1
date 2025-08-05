@@ -163,4 +163,14 @@ public class MedicationDeliveryRepository : IMedicationDeliveryRepository
             .OrderByDescending(m => m.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<MedicationDelivery>> GetAllAsync()
+    {
+        return await _context.MedicationDeliveries
+            .Include(m => m.User)
+            .Include(m => m.Subscription)
+            .Include(m => m.TrackingEvents)
+            .OrderByDescending(m => m.CreatedAt)
+            .ToListAsync();
+    }
 } 

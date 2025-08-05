@@ -17,15 +17,8 @@ public class FileStorageFactory
 
     public IFileStorageService CreateFileStorageService()
     {
-        var storageProvider = _configuration["FileStorage:Provider"]?.ToLowerInvariant() ?? "local";
-
-        return storageProvider switch
-        {
-            "local" => _serviceProvider.GetRequiredService<LocalFileStorageService>(),
-            "azure" => _serviceProvider.GetRequiredService<AzureBlobStorageService>(),
-            "aws" => _serviceProvider.GetRequiredService<AwsS3StorageService>(),
-            _ => _serviceProvider.GetRequiredService<LocalFileStorageService>() // Default to local
-        };
+        var provider = _configuration["FileStorage:Provider"]?.ToLowerInvariant() ?? "local";
+        return CreateFileStorageService(provider);
     }
 
     public IFileStorageService CreateFileStorageService(string provider)
@@ -33,8 +26,8 @@ public class FileStorageFactory
         return provider.ToLowerInvariant() switch
         {
             "local" => _serviceProvider.GetRequiredService<LocalFileStorageService>(),
-            "azure" => _serviceProvider.GetRequiredService<AzureBlobStorageService>(),
-            "aws" => _serviceProvider.GetRequiredService<AwsS3StorageService>(),
+            // "azure" => _serviceProvider.GetRequiredService<AzureBlobStorageService>(),
+            // "aws" => _serviceProvider.GetRequiredService<AwsS3StorageService>(),
             _ => _serviceProvider.GetRequiredService<LocalFileStorageService>() // Default to local
         };
     }

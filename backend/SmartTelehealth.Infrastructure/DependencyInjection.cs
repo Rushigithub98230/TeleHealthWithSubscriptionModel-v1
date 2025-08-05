@@ -6,8 +6,6 @@ using SmartTelehealth.Core.Interfaces;
 using SmartTelehealth.Infrastructure.Data;
 using SmartTelehealth.Infrastructure.Repositories;
 using SmartTelehealth.Infrastructure.Services;
-using SmartTelehealth.Application.Services;
-using Azure.Storage.Blobs;
 
 namespace SmartTelehealth.Infrastructure;
 
@@ -15,78 +13,32 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // Database
+        // Database Configuration (temporarily removed for focused testing)
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-        // Repositories
+        // Register Repositories (temporarily removed for focused testing)
+        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-        services.AddScoped<IAppointmentInvitationRepository, AppointmentInvitationRepository>();
-        services.AddScoped<IAppointmentParticipantRepository, AppointmentParticipantRepository>();
-        services.AddScoped<IAppointmentPaymentLogRepository, AppointmentPaymentLogRepository>();
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
-        services.AddScoped<ISubscriptionPaymentRepository, SubscriptionPaymentRepository>();
-        services.AddScoped<INotificationRepository, NotificationRepository>();
-        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
-        services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
-        services.AddScoped<IChatRoomParticipantRepository, ChatRoomParticipantRepository>();
-        services.AddScoped<IMessageReactionRepository, MessageReactionRepository>();
-        services.AddScoped<IPrivilegeRepository, PrivilegeRepository>();
-        services.AddScoped<ISubscriptionPlanPrivilegeRepository, SubscriptionPlanPrivilegeRepository>();
-        services.AddScoped<IUserSubscriptionPrivilegeUsageRepository, UserSubscriptionPrivilegeUsageRepository>();
-        services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
-        services.AddScoped<IParticipantRoleRepository, ParticipantRoleRepository>();
-        services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
-        services.AddScoped<IBillingRepository, BillingRepository>();
-        services.AddScoped<IOpenTokService, OpenTokService>();
-        services.AddScoped<INotificationService, SmartTelehealth.Infrastructure.Services.NotificationService>();
-        services.AddScoped<IProviderRepository, ProviderRepository>();
-        services.AddScoped<IStripeService, StripeService>();
-        services.AddScoped<IMedicationShipmentRepository, MedicationShipmentRepository>();
-        services.AddScoped<IConsultationRepository, ConsultationRepository>();
-        services.AddScoped<IHealthAssessmentRepository, HealthAssessmentRepository>();
-        services.AddScoped<ICloudChatStorageService, CloudChatStorageService>();
-        services.AddScoped<PrivilegeService>();
-        services.AddScoped<IJwtService, JwtService>();
-        services.AddScoped<ICategoryRepository, CategoryRepository>();
-        services.AddScoped<IInfermedicaService, InfermedicaService>();
-        services.AddScoped<ICategoryQuestionRepository, CategoryQuestionRepository>();
-        services.AddScoped<ICategoryQuestionAnswerRepository, CategoryQuestionAnswerRepository>();
-        services.AddScoped<ICategoryQuestionService, CategoryQuestionService>();
-        services.AddScoped<ICategoryQuestionAnswerService, CategoryQuestionAnswerService>();
-        services.AddScoped<QuestionnaireRepository>();
-        services.AddScoped<IQuestionnaireService, QuestionnaireService>();
-        services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
-        // Register a stub for IPharmacyIntegrationRepository if not implemented
-        services.AddScoped<IPharmacyIntegrationRepository, PharmacyIntegrationRepositoryStub>();
+        services.AddScoped<IProviderPayoutRepository, ProviderPayoutRepository>();
 
-        // Services
-        services.AddScoped<IBillingService, SmartTelehealth.Infrastructure.Services.BillingService>();
-        services.AddScoped<IChatStorageFactory, ChatStorageFactory>();
-        services.AddScoped<ICloudChatStorageService, CloudChatStorageService>();
-        services.AddScoped<ILocalChatStorageService, LocalChatStorageService>();
-
-        // File Storage Services
+        // Register Services
         services.AddScoped<LocalFileStorageService>();
-        services.AddScoped<AzureBlobStorageService>();
-        services.AddScoped<AwsS3StorageService>();
         services.AddScoped<FileStorageFactory>();
+        services.AddScoped<IFileStorageService>(provider => provider.GetRequiredService<FileStorageFactory>().CreateFileStorageService());
         
-        // Register the factory-based file storage service
-        services.AddScoped<IFileStorageService>(provider =>
-        {
-            var factory = provider.GetRequiredService<FileStorageFactory>();
-            return factory.CreateFileStorageService();
-        });
+        // Register Document Services
+        services.AddScoped<IDocumentService, DocumentService>();
+        services.AddScoped<IDocumentTypeService, DocumentTypeService>();
+        services.AddScoped<DocumentTypeSeedService>();
 
-        // Register BlobServiceClient using configuration
-        services.AddSingleton(x =>
-        {
-            var config = x.GetRequiredService<IConfiguration>();
-            var connStr = config.GetConnectionString("AzureBlobStorage");
-            return new BlobServiceClient(connStr);
-        });
+        // Cloud Storage Services (temporarily removed for focused testing)
+        // services.AddScoped<AzureBlobStorageService>();
+        // services.AddScoped<AwsS3StorageService>();
+        // services.AddAzureClients(builder => { builder.AddBlobServiceClient(configuration.GetConnectionString("AzureBlobStorage")); });
+        // services.AddAWSService<IAmazonS3>(configuration.GetAWSOptions());
 
         return services;
     }

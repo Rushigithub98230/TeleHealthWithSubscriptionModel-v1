@@ -18,5 +18,8 @@ namespace SmartTelehealth.Application.DTOs
 
         public static ApiResponse<T> ErrorResponse(string message, List<string> errors, int statusCode = 400)
             => new() { Success = false, Data = default, Message = message, StatusCode = statusCode, Errors = errors };
+
+        public static ApiResponse<T> PaginatedResponse(T? data, int totalCount, int page, int pageSize, string message = "")
+            => new() { Success = true, Data = data, Message = message, StatusCode = 200 };
     }
 } 

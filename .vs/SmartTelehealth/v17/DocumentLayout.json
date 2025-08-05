@@ -3,6 +3,30 @@
   "WorkspaceRootPath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{627CF379-0664-4274-9003-5782A71A4B3E}|backend\\SmartTelehealth.API\\SmartTelehealth.API.csproj|d:\\dayusers\\rushikesh\\personal\\.net projects\\telehealthwithsubscriptionmodel\\backend\\smarttelehealth.api\\hubs\\videocallhub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627CF379-0664-4274-9003-5782A71A4B3E}|backend\\SmartTelehealth.API\\SmartTelehealth.API.csproj|solutionrelative:backend\\smarttelehealth.api\\hubs\\videocallhub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627CF379-0664-4274-9003-5782A71A4B3E}|backend\\SmartTelehealth.API\\SmartTelehealth.API.csproj|d:\\dayusers\\rushikesh\\personal\\.net projects\\telehealthwithsubscriptionmodel\\backend\\smarttelehealth.api\\controllers\\billingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627CF379-0664-4274-9003-5782A71A4B3E}|backend\\SmartTelehealth.API\\SmartTelehealth.API.csproj|solutionrelative:backend\\smarttelehealth.api\\controllers\\billingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627CF379-0664-4274-9003-5782A71A4B3E}|backend\\SmartTelehealth.API\\SmartTelehealth.API.csproj|d:\\dayusers\\rushikesh\\personal\\.net projects\\telehealthwithsubscriptionmodel\\backend\\smarttelehealth.api\\controllers\\subscriptionanalyticscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627CF379-0664-4274-9003-5782A71A4B3E}|backend\\SmartTelehealth.API\\SmartTelehealth.API.csproj|solutionrelative:backend\\smarttelehealth.api\\controllers\\subscriptionanalyticscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627CF379-0664-4274-9003-5782A71A4B3E}|backend\\SmartTelehealth.API\\SmartTelehealth.API.csproj|d:\\dayusers\\rushikesh\\personal\\.net projects\\telehealthwithsubscriptionmodel\\backend\\smarttelehealth.api\\controllers\\analyticscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627CF379-0664-4274-9003-5782A71A4B3E}|backend\\SmartTelehealth.API\\SmartTelehealth.API.csproj|solutionrelative:backend\\smarttelehealth.api\\controllers\\analyticscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627CF379-0664-4274-9003-5782A71A4B3E}|backend\\SmartTelehealth.API\\SmartTelehealth.API.csproj|d:\\dayusers\\rushikesh\\personal\\.net projects\\telehealthwithsubscriptionmodel\\backend\\smarttelehealth.api\\controllers\\paymentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627CF379-0664-4274-9003-5782A71A4B3E}|backend\\SmartTelehealth.API\\SmartTelehealth.API.csproj|solutionrelative:backend\\smarttelehealth.api\\controllers\\paymentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E3984612-E647-40CA-85AA-815F7F46CC71}|backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj|d:\\dayusers\\rushikesh\\personal\\.net projects\\telehealthwithsubscriptionmodel\\backend\\smarttelehealth.infrastructure\\services\\stripeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E3984612-E647-40CA-85AA-815F7F46CC71}|backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj|solutionrelative:backend\\smarttelehealth.infrastructure\\services\\stripeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{655B78CD-E4AC-445D-80A3-F0FB303205A6}|backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj|d:\\dayusers\\rushikesh\\personal\\.net projects\\telehealthwithsubscriptionmodel\\backend\\smarttelehealth.core\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{655B78CD-E4AC-445D-80A3-F0FB303205A6}|backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj|solutionrelative:backend\\smarttelehealth.core\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -70,7 +94,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -78,7 +102,80 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "BillingController.cs",
+              "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\BillingController.cs",
+              "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\BillingController.cs",
+              "ToolTip": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\BillingController.cs",
+              "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\BillingController.cs",
+              "ViewState": "AgIAANEAAAAAAAAAAAAkwOUAAABZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-28T18:14:22.497Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "SubscriptionAnalyticsController.cs",
+              "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\SubscriptionAnalyticsController.cs",
+              "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\SubscriptionAnalyticsController.cs",
+              "ToolTip": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\SubscriptionAnalyticsController.cs",
+              "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\SubscriptionAnalyticsController.cs",
+              "ViewState": "AgIAAHgBAAAAAAAAAAA3wIsBAABKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-28T18:14:10.746Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "VideoCallHub.cs",
+              "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Hubs\\VideoCallHub.cs",
+              "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Hubs\\VideoCallHub.cs",
+              "ToolTip": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Hubs\\VideoCallHub.cs",
+              "RelativeToolTip": "backend\\SmartTelehealth.API\\Hubs\\VideoCallHub.cs",
+              "ViewState": "AgIAAE0AAAAAAAAAAAAkwGEAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-28T18:14:05.51Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AnalyticsController.cs",
+              "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\AnalyticsController.cs",
+              "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\AnalyticsController.cs",
+              "ToolTip": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\AnalyticsController.cs",
+              "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\AnalyticsController.cs",
+              "ViewState": "AgIAAFYAAAAAAAAAAAAkwGoAAAA2AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-28T18:14:01.754Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 4,
+              "Title": "PaymentController.cs",
+              "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\PaymentController.cs",
+              "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\PaymentController.cs",
+              "ToolTip": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\PaymentController.cs",
+              "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\PaymentController.cs",
+              "ViewState": "AgIAADMAAAAAAAAAAAAgwEYAAAB6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-28T18:13:59.142Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "StripeService.cs",
+              "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\Services\\StripeService.cs",
+              "RelativeDocumentMoniker": "backend\\SmartTelehealth.Infrastructure\\Services\\StripeService.cs",
+              "ToolTip": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\Services\\StripeService.cs",
+              "RelativeToolTip": "backend\\SmartTelehealth.Infrastructure\\Services\\StripeService.cs",
+              "ViewState": "AgIAAI4AAAAANDMzMzMDwKoAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-28T18:10:25.708Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
               "Title": "SubscriptionPlan.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\Entities\\SubscriptionPlan.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.Core\\Entities\\SubscriptionPlan.cs",
@@ -86,12 +183,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.Core\\Entities\\SubscriptionPlan.cs",
               "ViewState": "AgIAACkAAAAAAAAAAAA6wEMAAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:19:46.859Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:19:46.859Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 9,
               "Title": "MessageReadReceipt.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\Entities\\MessageReadReceipt.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.Core\\Entities\\MessageReadReceipt.cs",
@@ -99,12 +195,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.Core\\Entities\\MessageReadReceipt.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:19:26.324Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:19:26.324Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 8,
               "Title": "UserResponse.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\Entities\\UserResponse.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.Core\\Entities\\UserResponse.cs",
@@ -112,12 +207,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.Core\\Entities\\UserResponse.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:19:05.338Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:19:05.338Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 7,
               "Title": "SubscriptionStatusHistory.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\Entities\\SubscriptionStatusHistory.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.Core\\Entities\\SubscriptionStatusHistory.cs",
@@ -125,12 +219,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.Core\\Entities\\SubscriptionStatusHistory.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:19:03.363Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:19:03.363Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 6,
               "Title": "User.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\Entities\\User.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.Core\\Entities\\User.cs",
@@ -138,12 +231,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.Core\\Entities\\User.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:19:02.621Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:19:02.621Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 11,
               "Title": "SubscriptionPlanPrivilege.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\Entities\\SubscriptionPlanPrivilege.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.Core\\Entities\\SubscriptionPlanPrivilege.cs",
@@ -151,12 +243,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.Core\\Entities\\SubscriptionPlanPrivilege.cs",
               "ViewState": "AgIAAAEAAAAAAAAAAAAIwAYAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:18:54.394Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:18:54.394Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 12,
               "Title": "SubscriptionPayment.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\Entities\\SubscriptionPayment.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.Core\\Entities\\SubscriptionPayment.cs",
@@ -164,12 +255,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.Core\\Entities\\SubscriptionPayment.cs",
               "ViewState": "AgIAADEAAAAAAAAAAAAYwAUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:18:48.62Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:18:48.62Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 13,
               "Title": "UsersController.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\UsersController.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\UsersController.cs",
@@ -177,12 +267,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\UsersController.cs",
               "ViewState": "AgIAAEAAAAAAAAAAAAAwwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:18:24.339Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:18:24.339Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 14,
               "Title": "QuestionnaireController.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\QuestionnaireController.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\QuestionnaireController.cs",
@@ -190,12 +279,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\QuestionnaireController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACgAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:18:13.403Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:18:13.403Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 17,
               "Title": "StripeWebhookController.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\StripeWebhookController.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\StripeWebhookController.cs",
@@ -203,12 +291,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\StripeWebhookController.cs",
               "ViewState": "AgIAAA4AAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:17:26.588Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:17:26.588Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 15,
               "Title": "StripeTestController.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\StripeTestController.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\StripeTestController.cs",
@@ -216,12 +303,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\StripeTestController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:17:15.015Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:17:15.015Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 19,
               "Title": "ProviderPrivilegesController.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\ProviderPrivilegesController.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\ProviderPrivilegesController.cs",
@@ -229,12 +315,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\ProviderPrivilegesController.cs",
               "ViewState": "AgIAACEAAAAAAAAAAAAowAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:16:58.701Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:16:58.701Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 20,
               "Title": "ProvidersController.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\ProvidersController.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\ProvidersController.cs",
@@ -242,12 +327,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\ProvidersController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:16:57.652Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:16:57.652Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 16,
               "Title": "SubscriptionPlansController.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\SubscriptionPlansController.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\SubscriptionPlansController.cs",
@@ -255,12 +339,11 @@
               "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\SubscriptionPlansController.cs",
               "ViewState": "AgIAABMAAAAAAAAAAAAgwCUAAAA2AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:16:42.74Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:16:42.74Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 18,
               "Title": "StripeController.cs",
               "DocumentMoniker": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.API\\Controllers\\StripeController.cs",
               "RelativeDocumentMoniker": "backend\\SmartTelehealth.API\\Controllers\\StripeController.cs",
@@ -268,8 +351,7 @@
               "RelativeToolTip": "backend\\SmartTelehealth.API\\Controllers\\StripeController.cs",
               "ViewState": "AgIAABsAAAAAAAAAAAAwwBsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-28T05:16:29.827Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-28T05:16:29.827Z"
             }
           ]
         }

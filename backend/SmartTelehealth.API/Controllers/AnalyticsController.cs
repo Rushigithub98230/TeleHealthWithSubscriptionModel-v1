@@ -81,14 +81,13 @@ public class AnalyticsController : ControllerBase
     /// Generate subscription report
     /// </summary>
     [HttpGet("reports/subscriptions")]
-    public async Task<IActionResult> GenerateSubscriptionReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
+    public async Task<IActionResult> GenerateSubscriptionReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "pdf")
     {
         try
         {
-            var reportBytes = await _analyticsService.GenerateSubscriptionReportAsync(startDate, endDate, format);
+            var response = await _analyticsService.GenerateSubscriptionReportAsync(startDate, endDate);
             var fileName = $"subscription-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            
-            return File(reportBytes, GetContentType(format), fileName);
+            return File(response.Data, GetContentType(format), fileName);
         }
         catch (Exception ex)
         {
@@ -100,14 +99,13 @@ public class AnalyticsController : ControllerBase
     /// Generate billing report
     /// </summary>
     [HttpGet("reports/billing")]
-    public async Task<IActionResult> GenerateBillingReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
+    public async Task<IActionResult> GenerateBillingReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "pdf")
     {
         try
         {
-            var reportBytes = await _analyticsService.GenerateBillingReportAsync(startDate, endDate, format);
+            var response = await _analyticsService.GenerateBillingReportAsync(startDate, endDate);
             var fileName = $"billing-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            
-            return File(reportBytes, GetContentType(format), fileName);
+            return File(response.Data, GetContentType(format), fileName);
         }
         catch (Exception ex)
         {
@@ -119,14 +117,13 @@ public class AnalyticsController : ControllerBase
     /// Generate user report
     /// </summary>
     [HttpGet("reports/users")]
-    public async Task<IActionResult> GenerateUserReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
+    public async Task<IActionResult> GenerateUserReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "pdf")
     {
         try
         {
-            var reportBytes = await _analyticsService.GenerateUserReportAsync(startDate, endDate, format);
+            var response = await _analyticsService.GenerateUserReportAsync(startDate, endDate);
             var fileName = $"user-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            
-            return File(reportBytes, GetContentType(format), fileName);
+            return File(response.Data, GetContentType(format), fileName);
         }
         catch (Exception ex)
         {
@@ -138,14 +135,13 @@ public class AnalyticsController : ControllerBase
     /// Generate provider report
     /// </summary>
     [HttpGet("reports/providers")]
-    public async Task<IActionResult> GenerateProviderReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
+    public async Task<IActionResult> GenerateProviderReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "pdf")
     {
         try
         {
-            var reportBytes = await _analyticsService.GenerateProviderReportAsync(startDate, endDate, format);
+            var response = await _analyticsService.GenerateProviderReportAsync(startDate, endDate);
             var fileName = $"provider-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            
-            return File(reportBytes, GetContentType(format), fileName);
+            return File(response.Data, GetContentType(format), fileName);
         }
         catch (Exception ex)
         {

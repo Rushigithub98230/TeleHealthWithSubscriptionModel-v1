@@ -1,11 +1,21 @@
-public class AddPaymentMethodDto
+namespace SmartTelehealth.Application.DTOs
 {
-    public string PaymentMethodId { get; set; } = string.Empty;
-    public string PaymentMethodType { get; set; } = "Card";
-    public string? CardLast4 { get; set; }
-    public string? CardBrand { get; set; }
-    public int? ExpiryMonth { get; set; }
-    public int? ExpiryYear { get; set; }
-    public string? CardholderName { get; set; }
-    public bool IsDefault { get; set; } = false;
+    public class PaymentMethodDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string CustomerId { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public CardDto? Card { get; set; }
+        public bool IsDefault { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class CardDto
+    {
+        public string? Brand { get; set; }
+        public string? Last4 { get; set; }
+        public int ExpMonth { get; set; }
+        public int ExpYear { get; set; }
+        public string? Fingerprint { get; set; }
+    }
 } 

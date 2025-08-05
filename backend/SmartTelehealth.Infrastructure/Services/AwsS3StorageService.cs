@@ -1,42 +1,20 @@
+// Temporarily commented out to fix build errors - will be implemented after LocalFileStorageService testing
+/*
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using SmartTelehealth.Application.DTOs;
 using SmartTelehealth.Application.Interfaces;
-using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using System.Security.Cryptography;
 using System.Text;
-using DTOs = SmartTelehealth.Application.DTOs;
-using Microsoft.Extensions.Configuration;
 
 namespace SmartTelehealth.Infrastructure.Services;
 
 public class AwsS3StorageService : IFileStorageService
 {
-    private readonly ILogger<AwsS3StorageService> _logger;
-    private readonly IAmazonS3 _s3Client;
-    private readonly string _bucketName;
-    private readonly string _encryptionKey;
-
-    public AwsS3StorageService(ILogger<AwsS3StorageService> logger, IConfiguration configuration)
-    {
-        _logger = logger;
-        _bucketName = configuration["FileStorage:Aws:BucketName"] ?? "chat-media";
-        _encryptionKey = configuration["FileStorage:EncryptionKey"] ?? "default-encryption-key-change-in-production";
-
-        var accessKey = configuration["FileStorage:Aws:AccessKey"];
-        var secretKey = configuration["FileStorage:Aws:SecretKey"];
-        var region = configuration["FileStorage:Aws:Region"] ?? "us-east-1";
-
-        if (string.IsNullOrEmpty(accessKey) || string.IsNullOrEmpty(secretKey))
-        {
-            throw new InvalidOperationException("AWS S3 credentials are not configured");
-        }
-
-        _s3Client = new AmazonS3Client(accessKey, secretKey, Amazon.RegionEndpoint.GetBySystemName(region));
-    }
-
+    // Implementation will be added after LocalFileStorageService testing
     public Task<ApiResponse<string>> UploadFileAsync(byte[] fileData, string fileName, string contentType) => throw new NotImplementedException();
     public Task<ApiResponse<byte[]>> DownloadFileAsync(string filePath) => throw new NotImplementedException();
     public Task<ApiResponse<bool>> DeleteFileAsync(string filePath) => throw new NotImplementedException();
@@ -57,27 +35,5 @@ public class AwsS3StorageService : IFileStorageService
     public Task<ApiResponse<StorageInfoDto>> GetStorageInfoAsync() => throw new NotImplementedException();
     public Task<ApiResponse<bool>> CleanupExpiredFilesAsync() => throw new NotImplementedException();
     public Task<ApiResponse<bool>> ArchiveOldFilesAsync(string sourcePath, string archivePath, TimeSpan ageThreshold) => throw new NotImplementedException();
-
-    private async Task EnsureBucketExistsAsync()
-    {
-        try
-        {
-            var headRequest = new HeadBucketRequest
-            {
-                BucketName = _bucketName
-            };
-
-            await _s3Client.HeadBucketAsync(headRequest);
-        }
-        catch (AmazonS3Exception ex) when (ex.ErrorCode == "NotFound")
-        {
-            var putRequest = new PutBucketRequest
-            {
-                BucketName = _bucketName,
-                UseClientRegion = true
-            };
-
-            await _s3Client.PutBucketAsync(putRequest);
-        }
-    }
-} 
+}
+*/ 

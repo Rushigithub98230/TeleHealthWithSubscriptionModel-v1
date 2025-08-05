@@ -21,6 +21,11 @@ public class SubscriptionPlan : BaseEntity
     public bool IsTrialAllowed { get; set; } = false;
     public int TrialDurationInDays { get; set; } = 0;
     
+    // Marketing and display properties
+    public bool IsMostPopular { get; set; } = false;
+    
+    public bool IsTrending { get; set; } = false;
+    
     public int DisplayOrder { get; set; }
     
     [Column(TypeName = "decimal(18,2)")]

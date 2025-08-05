@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj": {}
+    "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj": {}
   },
   "projects": {
-    "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
+    "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj",
+        "projectUniqueName": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj",
         "projectName": "SmartTelehealth.Application",
-        "projectPath": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj",
-        "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-        "outputPath": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\obj\\",
+        "projectPath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj",
+        "packagesPath": "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\",
+        "outputPath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\user\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\rushikeshchaudhari\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -32,8 +32,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
-                "projectPath": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj"
+              "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
+                "projectPath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj"
               }
             }
           }
@@ -48,7 +48,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -107,24 +107,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
+    "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
+        "projectUniqueName": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
         "projectName": "SmartTelehealth.Core",
-        "projectPath": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
-        "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-        "outputPath": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\obj\\",
+        "projectPath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj",
+        "packagesPath": "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\",
+        "outputPath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\user\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\rushikeshchaudhari\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -151,7 +151,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -182,24 +182,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj": {
+    "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj",
+        "projectUniqueName": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj",
         "projectName": "SmartTelehealth.Infrastructure",
-        "projectPath": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj",
-        "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-        "outputPath": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\obj\\",
+        "projectPath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\",
+        "outputPath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\user\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\rushikeshchaudhari\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -214,11 +214,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
-                "projectPath": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj"
+              "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj": {
+                "projectPath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Application\\SmartTelehealth.Application.csproj"
               },
-              "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
-                "projectPath": "D:\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj"
+              "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj": {
+                "projectPath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Core\\SmartTelehealth.Core.csproj"
               }
             }
           }
@@ -233,7 +233,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -308,7 +308,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

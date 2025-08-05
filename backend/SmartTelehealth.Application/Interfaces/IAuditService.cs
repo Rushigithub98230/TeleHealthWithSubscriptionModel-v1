@@ -19,5 +19,6 @@ namespace SmartTelehealth.Application.Interfaces
         Task LogPaymentEventAsync(string userId, string action, string? entityId = null, string? status = null, string? errorMessage = null);
         Task LogSubscriptionEventAsync(string userId, string action, string? subscriptionId = null, string? status = null);
         Task LogConsultationEventAsync(string userId, string action, string? consultationId = null, string? status = null);
+        Task LogActionAsync(string entity, string action, string entityId, string description);
     }
 } 

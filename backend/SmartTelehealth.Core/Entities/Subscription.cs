@@ -17,10 +17,11 @@ public class Subscription : BaseEntity
         public const string PaymentFailed = "PaymentFailed";
         public const string TrialActive = "TrialActive";
         public const string TrialExpired = "TrialExpired";
+        public const string Suspended = "Suspended"; // Added
         
         public static readonly string[] ValidStatuses = 
         {
-            Pending, Active, Paused, Cancelled, Expired, PaymentFailed, TrialActive, TrialExpired
+            Pending, Active, Paused, Cancelled, Expired, PaymentFailed, TrialActive, TrialExpired, Suspended
         };
     }
     #endregion
@@ -71,6 +72,8 @@ public class Subscription : BaseEntity
     public DateTime? ResumedDate { get; set; }  // Renamed from ResumedAt for consistency
     public DateTime? CancelledDate { get; set; }
     public DateTime? ExpirationDate { get; set; }
+    public DateTime? SuspendedDate { get; set; } // Added
+    public DateTime? LastBillingDate { get; set; } // Added
     
     [MaxLength(500)]
     public string? CancellationReason { get; set; }

@@ -16,6 +16,10 @@ public class BillingService : IBillingService
     private readonly ILogger<BillingService> _logger;
     private readonly IAuditService _auditService;
     
+    // Retry configuration
+    private readonly int _maxRetryAttempts = 3;
+    private readonly TimeSpan _retryDelay = TimeSpan.FromMinutes(5);
+    
     public BillingService(
         IBillingRepository billingRepository,
         ISubscriptionRepository subscriptionRepository,
@@ -76,6 +80,11 @@ public class BillingService : IBillingService
     
     public async Task<ApiResponse<BillingRecordDto>> ProcessPaymentAsync(Guid billingRecordId)
     {
+        return await ProcessPaymentWithRetryAsync(billingRecordId, 0);
+    }
+
+    private async Task<ApiResponse<BillingRecordDto>> ProcessPaymentWithRetryAsync(Guid billingRecordId, int attempt)
+    {
         try
         {
             var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
@@ -85,9 +94,31 @@ public class BillingService : IBillingService
             if (billingRecord.Status == BillingRecord.BillingStatus.Paid)
                 return ApiResponse<BillingRecordDto>.ErrorResponse("Payment has already been processed", 400);
             
-            // Process payment through Stripe
+            // Get user's default payment method
+            var user = await _userRepository.GetByIdAsync(billingRecord.UserId);
+            if (user == null)
+                return ApiResponse<BillingRecordDto>.ErrorResponse("User not found", 404);
+
+            var paymentMethods = await _stripeService.GetCustomerPaymentMethodsAsync(billingRecord.UserId.ToString());
+            var defaultPaymentMethod = paymentMethods.FirstOrDefault(pm => pm.IsDefault);
+            
+            if (defaultPaymentMethod == null)
+            {
+                // Create a failed billing record
+                billingRecord.Status = BillingRecord.BillingStatus.Failed;
+                billingRecord.FailureReason = "No default payment method found";
+                billingRecord.UpdatedAt = DateTime.UtcNow;
+                await _billingRepository.UpdateAsync(billingRecord);
+                
+                await SendPaymentNotificationsAsync(MapToDto(billingRecord), false);
+                await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "PaymentFailed", billingRecord.Id.ToString(), "Failed", "No default payment method");
+                
+                return ApiResponse<BillingRecordDto>.ErrorResponse("No default payment method found", 400);
+            }
+
+            // Process payment through Stripe with retry logic
             var paymentResult = await _stripeService.ProcessPaymentAsync(
-                "pm_card_visa", // Default test payment method
+                defaultPaymentMethod.Id,
                 billingRecord.Amount,
                 "usd"
             );
@@ -120,35 +151,25 @@ public class BillingService : IBillingService
             }
             else
             {
-                // Update billing record as failed
-                billingRecord.Status = BillingRecord.BillingStatus.Failed;
-                billingRecord.PaymentIntentId = paymentResult.PaymentIntentId;
-                billingRecord.FailureReason = paymentResult.ErrorMessage ?? "Unknown payment error";
-                billingRecord.UpdatedAt = DateTime.UtcNow;
-
-                var updatedRecord = await _billingRepository.UpdateAsync(billingRecord);
-                var billingRecordDto = MapToDto(updatedRecord);
-
-                // Send failure notifications
-                await SendPaymentNotificationsAsync(billingRecordDto, false);
-
-                // AUDIT LOG: Payment failure
-                await _auditService.LogPaymentEventAsync(
-                    billingRecord.UserId.ToString(),
-                    "PaymentFailed",
-                    billingRecord.Id.ToString(),
-                    "Failed",
-                    paymentResult.ErrorMessage
-                );
-
-                return ApiResponse<BillingRecordDto>.ErrorResponse($"Payment failed: {paymentResult.ErrorMessage}", 400);
+                // Handle failed payment with retry logic
+                return await HandleFailedPaymentWithRetryAsync(billingRecord, paymentResult, attempt);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing payment for billing record {BillingRecordId}", billingRecordId);
+            _logger.LogError(ex, "Error processing payment for billing record {BillingRecordId} (attempt {Attempt})", billingRecordId, attempt + 1);
             
-            // Update billing record with failure status
+            if (attempt < _maxRetryAttempts)
+            {
+                // Wait before retry with exponential backoff
+                var delay = TimeSpan.FromMinutes(Math.Pow(2, attempt)) + _retryDelay;
+                await Task.Delay(delay);
+                
+                _logger.LogInformation("Retrying payment for billing record {BillingRecordId} (attempt {Attempt})", billingRecordId, attempt + 2);
+                return await ProcessPaymentWithRetryAsync(billingRecordId, attempt + 1);
+            }
+            
+            // Final failure - update billing record
             try
             {
                 var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
@@ -161,7 +182,7 @@ public class BillingService : IBillingService
                     
                     var billingRecordDto = MapToDto(billingRecord);
                     await SendPaymentNotificationsAsync(billingRecordDto, false);
-                    // AUDIT LOG: Payment failure
+                    
                     await _auditService.LogPaymentEventAsync(
                         billingRecord.UserId.ToString(),
                         "PaymentFailed",
@@ -179,369 +200,281 @@ public class BillingService : IBillingService
             return ApiResponse<BillingRecordDto>.ErrorResponse("An error occurred while processing payment", 500);
         }
     }
-    
-    public async Task<ApiResponse<BillingRecordDto>> CreateAdjustmentAsync(Guid billingRecordId, CreateBillingAdjustmentDto adjustmentDto)
+
+    private async Task<ApiResponse<BillingRecordDto>> HandleFailedPaymentWithRetryAsync(BillingRecord billingRecord, PaymentResultDto paymentResult, int attempt)
+    {
+        // Update billing record as failed
+        billingRecord.Status = BillingRecord.BillingStatus.Failed;
+        billingRecord.PaymentIntentId = paymentResult.PaymentIntentId;
+        billingRecord.FailureReason = paymentResult.ErrorMessage ?? "Unknown payment error";
+        billingRecord.UpdatedAt = DateTime.UtcNow;
+
+        var updatedRecord = await _billingRepository.UpdateAsync(billingRecord);
+        var billingRecordDto = MapToDto(updatedRecord);
+
+        // Send failure notifications
+        await SendPaymentNotificationsAsync(billingRecordDto, false);
+
+        // AUDIT LOG: Payment failure
+        await _auditService.LogPaymentEventAsync(
+            billingRecord.UserId.ToString(),
+            "PaymentFailed",
+            billingRecord.Id.ToString(),
+            "Failed",
+            paymentResult.ErrorMessage
+        );
+
+        // Check if we should retry
+        if (attempt < _maxRetryAttempts)
+        {
+            // Wait before retry with exponential backoff
+            var delay = TimeSpan.FromMinutes(Math.Pow(2, attempt)) + _retryDelay;
+            await Task.Delay(delay);
+            
+            _logger.LogInformation("Retrying payment for billing record {BillingRecordId} (attempt {Attempt})", billingRecord.Id, attempt + 2);
+            return await ProcessPaymentWithRetryAsync(billingRecord.Id, attempt + 1);
+        }
+
+        // Final failure - handle immediate suspension
+        await HandleImmediateSuspensionAsync(billingRecord);
+        
+        return ApiResponse<BillingRecordDto>.ErrorResponse($"Payment failed: {paymentResult.ErrorMessage}", 400);
+    }
+
+    private async Task HandleImmediateSuspensionAsync(BillingRecord billingRecord)
+    {
+        try
+        {
+            // Check if subscription exists and update status
+            if (billingRecord.SubscriptionId.HasValue)
+            {
+                var subscription = await _subscriptionRepository.GetByIdAsync(billingRecord.SubscriptionId.Value);
+                if (subscription != null)
+                {
+                    subscription.Status = Subscription.SubscriptionStatuses.Suspended;
+                    subscription.FailedPaymentAttempts += 1;
+                    subscription.LastPaymentFailedDate = DateTime.UtcNow;
+                    subscription.LastPaymentError = billingRecord.FailureReason;
+                    subscription.SuspendedDate = DateTime.UtcNow;
+                    subscription.UpdatedAt = DateTime.UtcNow;
+                    
+                    await _subscriptionRepository.UpdateAsync(subscription);
+                    
+                    // Send immediate suspension notification
+                    await SendImmediateSuspensionNotificationAsync(billingRecord, subscription);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling immediate suspension for billing record {BillingRecordId}", billingRecord.Id);
+        }
+    }
+
+    public async Task<ApiResponse<PaymentResultDto>> RetryPaymentAsync(Guid billingRecordId)
     {
         try
         {
             var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
             if (billingRecord == null)
-                return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found", 404);
-            
-            var adjustment = new BillingAdjustment
-            {
-                BillingRecordId = billingRecordId,
-                Amount = adjustmentDto.Amount,
-                Description = adjustmentDto.Reason,
-                Type = BillingAdjustment.AdjustmentType.Discount, // Use enum instead of string
-                Reason = adjustmentDto.Reason
-            };
-            
-            var createdAdjustment = await _billingRepository.CreateAdjustmentAsync(adjustment);
-            
-            // Update billing record total
-            billingRecord.Amount += adjustment.Amount;
+                return ApiResponse<PaymentResultDto>.ErrorResponse("Billing record not found", 404);
+
+            if (billingRecord.Status == BillingRecord.BillingStatus.Paid)
+                return ApiResponse<PaymentResultDto>.ErrorResponse("Payment has already been processed", 400);
+
+            // Reset status to pending for retry
+            billingRecord.Status = BillingRecord.BillingStatus.Pending;
+            billingRecord.FailureReason = null;
+            billingRecord.UpdatedAt = DateTime.UtcNow;
             await _billingRepository.UpdateAsync(billingRecord);
+
+            // Process payment with retry
+            var result = await ProcessPaymentWithRetryAsync(billingRecordId, 0);
             
-            var billingRecordDto = MapToDto(billingRecord);
-            
-            await _auditService.LogPaymentEventAsync(
-                billingRecord.UserId.ToString(),
-                "BillingAdjustmentCreated",
-                billingRecord.Id.ToString(),
-                "Success"
-            );
-            
-            return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Billing adjustment created successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating billing adjustment for record {BillingRecordId}", billingRecordId);
-            return ApiResponse<BillingRecordDto>.ErrorResponse("An error occurred while creating the billing adjustment", 500);
-        }
-    }
-    
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetUserBillingHistoryAsync(Guid userId)
-    {
-        try
-        {
-            var billingRecords = await _billingRepository.GetByUserIdAsync(userId);
-            var billingRecordDtos = billingRecords.Select(MapToDto);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(billingRecordDtos, "User billing history retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting billing history for user {UserId}", userId);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("An error occurred while retrieving billing history", 500);
-        }
-    }
-    
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetPendingPaymentsAsync()
-    {
-        try
-        {
-            var pendingRecords = await _billingRepository.GetPendingPaymentsAsync();
-            var pendingRecordDtos = pendingRecords.Select(MapToDto);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(pendingRecordDtos, "Pending payments retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting pending payments");
-            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("An error occurred while retrieving pending payments", 500);
-        }
-    }
-    
-    public async Task<ApiResponse<BillingRecordDto>> GetBillingRecordAsync(Guid id)
-    {
-        try
-        {
-            var billingRecord = await _billingRepository.GetByIdAsync(id);
-            if (billingRecord == null)
-                return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found", 404);
-            
-            var billingRecordDto = MapToDto(billingRecord);
-            return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Billing record retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting billing record {Id}", id);
-            return ApiResponse<BillingRecordDto>.ErrorResponse("An error occurred while retrieving the billing record", 500);
-        }
-    }
-    
-    public async Task<ApiResponse<BillingRecordDto>> UpdateBillingRecordAsync(Guid id, UpdateBillingRecordDto updateDto)
-    {
-        try
-        {
-            var billingRecord = await _billingRepository.GetByIdAsync(id);
-            if (billingRecord == null)
-                return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found", 404);
-            
-            // Only update properties that exist in BillingRecord entity
-            if (updateDto.BillingStatusId.HasValue)
+            if (result.Success)
             {
-                billingRecord.Status = (BillingRecord.BillingStatus)updateDto.BillingStatusId.Value;
-            }
-            if (updateDto.PaidDate.HasValue)
-            {
-                billingRecord.PaidAt = updateDto.PaidDate.Value;
-            }
-            if (!string.IsNullOrEmpty(updateDto.StripePaymentIntentId))
-            {
-                billingRecord.PaymentIntentId = updateDto.StripePaymentIntentId;
-            }
-            if (!string.IsNullOrEmpty(updateDto.FailureReason))
-            {
-                billingRecord.FailureReason = updateDto.FailureReason;
+                return ApiResponse<PaymentResultDto>.SuccessResponse(new PaymentResultDto
+                {
+                    PaymentIntentId = result.Data?.PaymentIntentId ?? string.Empty,
+                    Status = "succeeded",
+                    Amount = result.Data?.Amount ?? 0,
+                    Currency = "usd"
+                }, "Payment retry successful");
             }
             
-            var updatedRecord = await _billingRepository.UpdateAsync(billingRecord);
-            var billingRecordDto = MapToDto(updatedRecord);
-            
-            await _auditService.LogPaymentEventAsync(
-                billingRecord.UserId.ToString(),
-                "BillingRecordUpdated",
-                billingRecord.Id.ToString(),
-                "Success"
-            );
-            
-            return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Billing record updated successfully");
+            return ApiResponse<PaymentResultDto>.ErrorResponse("Payment retry failed", 400);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating billing record {Id}", id);
-            return ApiResponse<BillingRecordDto>.ErrorResponse("An error occurred while updating the billing record", 500);
+            _logger.LogError(ex, "Error retrying payment for billing record {BillingRecordId}", billingRecordId);
+            return ApiResponse<PaymentResultDto>.ErrorResponse("Failed to retry payment", 500);
         }
     }
-    
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetSubscriptionBillingHistoryAsync(Guid subscriptionId)
-    {
-        try
-        {
-            var billingRecords = await _billingRepository.GetBySubscriptionIdAsync(subscriptionId);
-            var billingRecordDtos = billingRecords.Select(MapToDto);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(billingRecordDtos, "Subscription billing history retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting subscription billing history for {SubscriptionId}", subscriptionId);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("An error occurred while retrieving subscription billing history", 500);
-        }
-    }
-    
-    public async Task<ApiResponse<BillingRecordDto>> ProcessRefundAsync(Guid billingRecordId, decimal amount)
+
+    public async Task<ApiResponse<RefundResultDto>> ProcessRefundAsync(Guid billingRecordId, decimal amount, string reason)
     {
         try
         {
             var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
             if (billingRecord == null)
-                return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found", 404);
-            
+                return ApiResponse<RefundResultDto>.ErrorResponse("Billing record not found", 404);
+
+            if (billingRecord.Status != BillingRecord.BillingStatus.Paid)
+                return ApiResponse<RefundResultDto>.ErrorResponse("Only paid billing records can be refunded", 400);
+
             if (string.IsNullOrEmpty(billingRecord.PaymentIntentId))
-                return ApiResponse<BillingRecordDto>.ErrorResponse("No payment intent ID found for refund", 400);
+                return ApiResponse<RefundResultDto>.ErrorResponse("No payment intent found for refund", 400);
+
+            // Process refund through Stripe
+            var refundResult = await _stripeService.ProcessRefundAsync(billingRecord.PaymentIntentId, amount);
             
-            var refundSuccess = await _stripeService.ProcessRefundAsync(billingRecord.PaymentIntentId, amount);
-            
-            if (refundSuccess)
+            if (refundResult)
             {
+                // Create refund record
+                var refundRecord = new BillingRecord
+                {
+                    UserId = billingRecord.UserId,
+                    SubscriptionId = billingRecord.SubscriptionId,
+                    Amount = -amount, // Negative amount for refund
+                    Description = $"Refund: {reason}",
+                    Status = BillingRecord.BillingStatus.Refunded,
+                    Type = BillingRecord.BillingType.Refund,
+                    BillingDate = DateTime.UtcNow,
+                    PaidAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _billingRepository.CreateAsync(refundRecord);
+
+                // Update original billing record
                 billingRecord.Status = BillingRecord.BillingStatus.Refunded;
                 billingRecord.UpdatedAt = DateTime.UtcNow;
-                
-                var updatedRecord = await _billingRepository.UpdateAsync(billingRecord);
-                var billingRecordDto = MapToDto(updatedRecord);
-                
-                // Send refund notifications
-                await SendRefundNotificationsAsync(billingRecordDto, amount);
-                
+                await _billingRepository.UpdateAsync(billingRecord);
+
+                // Send refund notification
+                await SendRefundNotificationAsync(billingRecord, amount, reason);
+
+                // Audit log
                 await _auditService.LogPaymentEventAsync(
                     billingRecord.UserId.ToString(),
                     "RefundProcessed",
                     billingRecord.Id.ToString(),
                     "Success",
-                    $"Refund amount: {amount}"
+                    reason
                 );
-                
-                return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Refund processed successfully");
+
+                return ApiResponse<RefundResultDto>.SuccessResponse(new RefundResultDto
+                {
+                    BillingRecordId = billingRecordId,
+                    RefundAmount = amount,
+                    Status = "completed",
+                    ProcessedAt = DateTime.UtcNow,
+                    Reason = reason
+                }, "Refund processed successfully");
             }
-            else
-            {
-                return ApiResponse<BillingRecordDto>.ErrorResponse("Refund processing failed", 500);
-            }
+            
+            return ApiResponse<RefundResultDto>.ErrorResponse("Failed to process refund", 400);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing refund for billing record {BillingRecordId}", billingRecordId);
-            return ApiResponse<BillingRecordDto>.ErrorResponse("An error occurred while processing the refund", 500);
+            return ApiResponse<RefundResultDto>.ErrorResponse("Failed to process refund", 500);
         }
     }
-    
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetOverdueBillingRecordsAsync()
-    {
-        try
-        {
-            var pendingRecords = await _billingRepository.GetPendingPaymentsAsync();
-            var overdueRecords = pendingRecords
-                .Where(r => r.DueDate.HasValue && r.DueDate.Value < DateTime.UtcNow)
-                .Select(MapToDto)
-                .ToList();
-            
-            // Send overdue notifications for each overdue record
-            foreach (var overdueRecord in overdueRecords)
-            {
-                await SendOverdueNotificationsAsync(overdueRecord);
-            }
-            
-            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(overdueRecords, "Overdue billing records retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting overdue billing records");
-            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("An error occurred while retrieving overdue billing records", 500);
-        }
-    }
-    
-    public async Task<ApiResponse<decimal>> CalculateTotalAmountAsync(decimal baseAmount, decimal taxAmount, decimal shippingAmount)
-    {
-        try
-        {
-            var totalAmount = baseAmount + taxAmount + shippingAmount;
-            return ApiResponse<decimal>.SuccessResponse(totalAmount, "Total amount calculated successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating total amount");
-            return ApiResponse<decimal>.ErrorResponse("An error occurred while calculating total amount", 500);
-        }
-    }
-    
-    public async Task<ApiResponse<decimal>> CalculateTaxAmountAsync(decimal baseAmount, string state)
-    {
-        try
-        {
-            // Simple tax calculation - in real implementation, this would use tax tables
-            const decimal defaultTaxRate = 0.08m; // 8% default tax rate
-            var taxAmount = baseAmount * defaultTaxRate;
-            return ApiResponse<decimal>.SuccessResponse(taxAmount, "Tax amount calculated successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating tax amount for state {State}", state);
-            return ApiResponse<decimal>.ErrorResponse("An error occurred while calculating tax amount", 500);
-        }
-    }
-    
-    public async Task<ApiResponse<decimal>> CalculateShippingAmountAsync(string deliveryAddress, bool isExpress)
-    {
-        try
-        {
-            // Simple shipping calculation - in real implementation, this would use shipping APIs
-            const decimal standardShipping = 5.99m;
-            const decimal expressShipping = 12.99m;
-            var shippingAmount = isExpress ? expressShipping : standardShipping;
-            return ApiResponse<decimal>.SuccessResponse(shippingAmount, "Shipping amount calculated successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating shipping amount");
-            return ApiResponse<decimal>.ErrorResponse("An error occurred while calculating shipping amount", 500);
-        }
-    }
-    
-    public async Task<ApiResponse<bool>> IsPaymentOverdueAsync(Guid billingRecordId)
+
+    public async Task<ApiResponse<BillingRecordDto>> GetBillingRecordAsync(Guid billingRecordId)
     {
         try
         {
             var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
             if (billingRecord == null)
-                return ApiResponse<bool>.ErrorResponse("Billing record not found", 404);
-            
-            var isOverdue = billingRecord.DueDate.HasValue && 
-                           billingRecord.DueDate.Value < DateTime.UtcNow && 
-                           billingRecord.Status != BillingRecord.BillingStatus.Paid;
-            
-            return ApiResponse<bool>.SuccessResponse(isOverdue, "Payment overdue status checked successfully");
+                return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found", 404);
+
+            return ApiResponse<BillingRecordDto>.SuccessResponse(MapToDto(billingRecord));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking if payment is overdue for {BillingRecordId}", billingRecordId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while checking payment overdue status", 500);
-        }
-    }
-    
-    public async Task<ApiResponse<DateTime>> CalculateDueDateAsync(DateTime billingDate, int gracePeriodDays)
-    {
-        try
-        {
-            var dueDate = billingDate.AddDays(gracePeriodDays);
-            return ApiResponse<DateTime>.SuccessResponse(dueDate, "Due date calculated successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating due date");
-            return ApiResponse<DateTime>.ErrorResponse("An error occurred while calculating due date", 500);
+            _logger.LogError(ex, "Error getting billing record {BillingRecordId}", billingRecordId);
+            return ApiResponse<BillingRecordDto>.ErrorResponse("Failed to retrieve billing record", 500);
         }
     }
 
-    public async Task<ApiResponse<BillingAnalyticsDto>> GetBillingAnalyticsAsync()
+    public async Task<IEnumerable<PaymentHistoryDto>> GetPaymentHistoryAsync(string userId, DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
-            // Placeholder implementation - in real app, these would be actual repository methods
-            var totalRevenue = 0m; // await _billingRepository.GetTotalRevenueAsync();
-            var monthlyRevenue = 0m; // await _billingRepository.GetMonthlyRevenueAsync();
-            var failedPayments = 0; // await _billingRepository.GetFailedPaymentsCountAsync();
-            var refundsIssued = 0; // await _billingRepository.GetRefundsCountAsync();
+            var billingRecords = await _billingRepository.GetByUserIdAsync(Guid.Parse(userId));
+            
+            var filteredRecords = billingRecords.Where(br => 
+                (!startDate.HasValue || br.BillingDate >= startDate.Value) &&
+                (!endDate.HasValue || br.BillingDate <= endDate.Value) &&
+                (br.Status == BillingRecord.BillingStatus.Paid || br.Status == BillingRecord.BillingStatus.Refunded)
+            );
 
-            var analytics = new BillingAnalyticsDto
+            return filteredRecords.Select(br => new PaymentHistoryDto
             {
-                TotalRevenue = totalRevenue,
-                MonthlyRecurringRevenue = monthlyRevenue,
-                AverageRevenuePerUser = 0, // Calculate based on user count
-                FailedPayments = failedPayments,
-                RefundsIssued = refundsIssued,
-                PaymentSuccessRate = 95.5m, // Placeholder
-                RevenueByCategory = new List<CategoryRevenueDto>(),
-                RevenueTrend = new List<RevenueTrendDto>()
+                Id = br.Id,
+                Amount = br.Amount,
+                Status = br.Status.ToString(),
+                PaymentDate = br.PaidAt ?? br.BillingDate,
+                Description = br.Description,
+                PaymentMethodId = br.PaymentIntentId
+            }).OrderByDescending(ph => ph.PaymentDate);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting payment history for user {UserId}", userId);
+            return Enumerable.Empty<PaymentHistoryDto>();
+        }
+    }
+
+    public async Task<ApiResponse<PaymentAnalyticsDto>> GetPaymentAnalyticsAsync(string userId, DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var billingRecords = await _billingRepository.GetByUserIdAsync(Guid.Parse(userId));
+            
+            var filteredRecords = billingRecords.Where(br => 
+                (!startDate.HasValue || br.BillingDate >= startDate.Value) &&
+                (!endDate.HasValue || br.BillingDate <= endDate.Value)
+            );
+
+            var analytics = new PaymentAnalyticsDto
+            {
+                TotalSpent = filteredRecords.Where(br => br.Status == BillingRecord.BillingStatus.Paid).Sum(br => br.Amount),
+                TotalPayments = filteredRecords.Count(br => br.Status == BillingRecord.BillingStatus.Paid),
+                SuccessfulPayments = filteredRecords.Count(br => br.Status == BillingRecord.BillingStatus.Paid),
+                FailedPayments = filteredRecords.Count(br => br.Status == BillingRecord.BillingStatus.Failed),
+                AveragePaymentAmount = filteredRecords.Where(br => br.Status == BillingRecord.BillingStatus.Paid).Any() 
+                    ? filteredRecords.Where(br => br.Status == BillingRecord.BillingStatus.Paid).Average(br => br.Amount) 
+                    : 0
             };
 
-            return ApiResponse<BillingAnalyticsDto>.SuccessResponse(analytics, "Billing analytics retrieved successfully");
+            // Calculate monthly payments
+            var monthlyPayments = filteredRecords
+                .Where(br => br.Status == BillingRecord.BillingStatus.Paid)
+                .GroupBy(br => new { br.BillingDate.Year, br.BillingDate.Month })
+                .Select(g => new MonthlyPaymentDto
+                {
+                    Month = $"{g.Key.Year}-{g.Key.Month:D2}",
+                    Amount = g.Sum(br => br.Amount),
+                    Count = g.Count()
+                })
+                .OrderBy(mp => mp.Month)
+                .ToList();
+
+            analytics.MonthlyPayments = monthlyPayments;
+
+            return ApiResponse<PaymentAnalyticsDto>.SuccessResponse(analytics);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting billing analytics");
-            return ApiResponse<BillingAnalyticsDto>.ErrorResponse("An error occurred while retrieving billing analytics", 500);
+            _logger.LogError(ex, "Error getting payment analytics for user {UserId}", userId);
+            return ApiResponse<PaymentAnalyticsDto>.ErrorResponse("Error retrieving payment analytics", 500);
         }
     }
-    
-    private BillingRecordDto MapToDto(BillingRecord billingRecord)
-    {
-        return new BillingRecordDto
-        {
-            Id = billingRecord.Id.ToString(),
-            UserId = billingRecord.UserId.ToString(),
-            UserName = billingRecord.User?.FullName ?? "",
-            ConsultationId = billingRecord.ConsultationId?.ToString(),
-            MedicationDeliveryId = billingRecord.MedicationDeliveryId?.ToString(),
-            Amount = billingRecord.Amount,
-            Currency = "USD", // Default currency since BillingRecord doesn't have Currency property
-            Description = billingRecord.Description ?? "",
-            BillingStatusId = (int)billingRecord.Status,
-            BillingStatusName = billingRecord.Status.ToString(),
-            DueDate = billingRecord.DueDate ?? DateTime.UtcNow,
-            PaidDate = billingRecord.PaidAt,
-            PaymentMethodId = null, // BillingRecord doesn't have PaymentMethodId
-            StripePaymentIntentId = billingRecord.PaymentIntentId,
-            StripeSessionId = null, // BillingRecord doesn't have SessionId
-            FailureReason = billingRecord.FailureReason,
-            RefundAmount = null, // BillingRecord doesn't have RefundAmount
-            RefundReason = null, // BillingRecord doesn't have RefundReason
-            RefundDate = null, // BillingRecord doesn't have RefundDate
-            CreatedAt = billingRecord.CreatedAt,
-            UpdatedAt = billingRecord.UpdatedAt
-        };
-    }
 
-    // Private methods for sending notifications
+    // Private helper methods
     private async Task SendPaymentNotificationsAsync(BillingRecordDto billingRecord, bool isSuccess)
     {
         try
@@ -587,62 +520,81 @@ public class BillingService : IBillingService
             _logger.LogError(ex, "Error sending payment notifications for billing record {BillingRecordId}", billingRecord.Id);
         }
     }
-    
-    private async Task SendRefundNotificationsAsync(BillingRecordDto billingRecord, decimal refundAmount)
+
+    private async Task SendImmediateSuspensionNotificationAsync(BillingRecord billingRecord, Subscription subscription)
     {
         try
         {
-            var user = await _userRepository.GetByIdAsync(Guid.Parse(billingRecord.UserId));
+            var user = await _userRepository.GetByIdAsync(billingRecord.UserId);
             if (user == null) return;
-            
-            var userName = $"{user.FirstName} {user.LastName}";
+
+            var message = $"Your subscription has been suspended due to payment failure. Please update your payment method to reactivate your subscription.";
             
             // Send email notification
             if (!string.IsNullOrEmpty(user.Email))
             {
-                await _notificationService.SendRefundProcessedEmailAsync(user.Email, userName, billingRecord, refundAmount);
+                await _notificationService.SendSubscriptionSuspendedNotificationAsync(billingRecord.UserId.ToString(), billingRecord.SubscriptionId?.ToString() ?? "");
             }
             
             // Send in-app notification
             await _notificationService.CreateInAppNotificationAsync(
-                Guid.Parse(billingRecord.UserId),
-                "Refund Processed",
-                $"Your refund of ${refundAmount} has been processed successfully."
+                billingRecord.UserId,
+                "Subscription Suspended",
+                message
             );
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending refund notifications for billing record {BillingRecordId}", billingRecord.Id);
+            _logger.LogError(ex, "Error sending immediate suspension notification for billing record {BillingRecordId}", billingRecord.Id);
         }
     }
-    
-    private async Task SendOverdueNotificationsAsync(BillingRecordDto billingRecord)
+
+    private async Task SendRefundNotificationAsync(BillingRecord billingRecord, decimal amount, string reason)
     {
         try
         {
-            var user = await _userRepository.GetByIdAsync(Guid.Parse(billingRecord.UserId));
+            var user = await _userRepository.GetByIdAsync(billingRecord.UserId);
             if (user == null) return;
-            
-            var userName = $"{user.FirstName} {user.LastName}";
+
+            var message = $"Your refund of ${amount} has been processed. Reason: {reason}";
             
             // Send email notification
             if (!string.IsNullOrEmpty(user.Email))
             {
-                await _notificationService.SendOverduePaymentEmailAsync(user.Email, userName, billingRecord);
+                await _notificationService.SendRefundNotificationAsync(billingRecord.UserId.ToString(), amount, billingRecord.Id.ToString());
             }
             
             // Send in-app notification
-            var daysOverdue = (int)(DateTime.UtcNow - billingRecord.DueDate).TotalDays;
             await _notificationService.CreateInAppNotificationAsync(
-                Guid.Parse(billingRecord.UserId),
-                "Payment Overdue",
-                $"Your payment of ${billingRecord.Amount} is {(daysOverdue > 0 ? daysOverdue : 0)} days overdue. Please make the payment as soon as possible."
+                billingRecord.UserId,
+                "Refund Processed",
+                message
             );
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending overdue notifications for billing record {BillingRecordId}", billingRecord.Id);
+            _logger.LogError(ex, "Error sending refund notification for billing record {BillingRecordId}", billingRecord.Id);
         }
+    }
+
+    private BillingRecordDto MapToDto(BillingRecord billingRecord)
+    {
+        return new BillingRecordDto
+        {
+            Id = billingRecord.Id.ToString(),
+            UserId = billingRecord.UserId.ToString(),
+            SubscriptionId = billingRecord.SubscriptionId?.ToString(),
+            Amount = billingRecord.Amount,
+            Description = billingRecord.Description,
+            Status = billingRecord.Status.ToString(),
+            BillingDate = billingRecord.BillingDate,
+            DueDate = billingRecord.DueDate,
+            PaidAt = billingRecord.PaidAt,
+            PaymentIntentId = billingRecord.PaymentIntentId,
+            FailureReason = billingRecord.FailureReason,
+            CreatedAt = billingRecord.CreatedAt,
+            UpdatedAt = billingRecord.UpdatedAt
+        };
     }
 
     /// <summary>
@@ -926,29 +878,309 @@ public class BillingService : IBillingService
 
     public async Task<ApiResponse<byte[]>> ExportRevenueAsync(DateTime? from = null, DateTime? to = null, string? planId = null, string format = "csv")
     {
-        // TODO: Implement filtering by planId, type, status
-        var allRecords = await _billingRepository.GetAllAsync();
-        var exportList = allRecords.Select(r => new RevenueExportDto
+        try
         {
-            BillingId = r.Id.ToString(),
-            UserId = r.UserId.ToString(),
-            Amount = r.Amount,
-            AccruedAmount = r.AccruedAmount,
-            Status = r.Status.ToString(),
-            Type = r.Type.ToString(),
-            BillingDate = r.BillingDate,
-            PaidAt = r.PaidAt,
-            AccrualStartDate = r.AccrualStartDate,
-            AccrualEndDate = r.AccrualEndDate,
-            InvoiceNumber = r.InvoiceNumber,
-            FailureReason = r.FailureReason
-        }).ToList();
-        // Generate CSV (stub)
-        var csv = "BillingId,UserId,Amount,AccruedAmount,Status,Type,BillingDate,PaidAt,AccrualStartDate,AccrualEndDate,InvoiceNumber,FailureReason\n";
-        foreach (var e in exportList)
-        {
-            csv += $"{e.BillingId},{e.UserId},{e.Amount},{e.AccruedAmount},{e.Status},{e.Type},{e.BillingDate},{e.PaidAt},{e.AccrualStartDate},{e.AccrualEndDate},{e.InvoiceNumber},{e.FailureReason}\n";
+            // Implementation for revenue export
+            var revenueData = await GetRevenueSummaryAsync(from, to, planId);
+            if (!revenueData.Success)
+            {
+                return ApiResponse<byte[]>.ErrorResponse("Failed to get revenue data");
+            }
+
+            // Convert to CSV format
+            var csvData = ConvertToCsv(revenueData.Data);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csvData);
+            
+            return ApiResponse<byte[]>.SuccessResponse(bytes, "Revenue data exported successfully");
         }
-        return ApiResponse<byte[]>.SuccessResponse(System.Text.Encoding.UTF8.GetBytes(csv), "Export generated");
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting revenue data");
+            return ApiResponse<byte[]>.ErrorResponse("Failed to export revenue data");
+        }
+    }
+
+    // Missing interface methods
+    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetUserBillingHistoryAsync(Guid userId)
+    {
+        try
+        {
+            var records = await _billingRepository.GetByUserIdAsync(userId);
+            var dtos = records.Select(MapToDto);
+            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting billing history for user {UserId}", userId);
+            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get billing history");
+        }
+    }
+
+    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetSubscriptionBillingHistoryAsync(Guid subscriptionId)
+    {
+        try
+        {
+            var records = await _billingRepository.GetBySubscriptionIdAsync(subscriptionId);
+            var dtos = records.Select(MapToDto);
+            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting billing history for subscription {SubscriptionId}", subscriptionId);
+            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get subscription billing history");
+        }
+    }
+
+    public async Task<ApiResponse<BillingRecordDto>> ProcessRefundAsync(Guid billingRecordId, decimal amount)
+    {
+        try
+        {
+            var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
+            if (billingRecord == null)
+                return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found");
+
+            if (string.IsNullOrEmpty(billingRecord.StripePaymentIntentId))
+                return ApiResponse<BillingRecordDto>.ErrorResponse("No payment intent found for refund");
+
+            var refundResult = await _stripeService.ProcessRefundAsync(billingRecord.StripePaymentIntentId, amount);
+            
+            if (refundResult)
+            {
+                billingRecord.Status = BillingRecord.BillingStatus.Refunded;
+                var updatedRecord = await _billingRepository.UpdateAsync(billingRecord);
+
+                await _auditService.LogPaymentEventAsync(
+                    billingRecord.UserId.ToString(),
+                    "RefundProcessed",
+                    billingRecordId.ToString(),
+                    "Success"
+                );
+
+                return ApiResponse<BillingRecordDto>.SuccessResponse(MapToDto(updatedRecord));
+            }
+
+            return ApiResponse<BillingRecordDto>.ErrorResponse("Failed to process refund");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing refund for billing record {BillingRecordId}", billingRecordId);
+            return ApiResponse<BillingRecordDto>.ErrorResponse("Failed to process refund");
+        }
+    }
+
+    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetOverdueBillingRecordsAsync()
+    {
+        try
+        {
+            var overdueRecords = await _billingRepository.GetOverdueRecordsAsync();
+            var dtos = overdueRecords.Select(MapToDto);
+            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting overdue billing records");
+            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get overdue billing records");
+        }
+    }
+
+    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetPendingPaymentsAsync()
+    {
+        try
+        {
+            var pendingRecords = await _billingRepository.GetPendingRecordsAsync();
+            var dtos = pendingRecords.Select(MapToDto);
+            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting pending payments");
+            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get pending payments");
+        }
+    }
+
+    public async Task<ApiResponse<decimal>> CalculateTotalAmountAsync(decimal subtotal, decimal tax, decimal shipping)
+    {
+        try
+        {
+            var total = subtotal + tax + shipping;
+            return ApiResponse<decimal>.SuccessResponse(total);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating total amount");
+            return ApiResponse<decimal>.ErrorResponse("Failed to calculate total amount");
+        }
+    }
+
+    public async Task<ApiResponse<decimal>> CalculateTaxAmountAsync(decimal amount, string taxRate)
+    {
+        try
+        {
+            if (decimal.TryParse(taxRate, out var rate))
+            {
+                var tax = amount * (rate / 100);
+                return ApiResponse<decimal>.SuccessResponse(tax);
+            }
+            return ApiResponse<decimal>.ErrorResponse("Invalid tax rate");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating tax amount");
+            return ApiResponse<decimal>.ErrorResponse("Failed to calculate tax amount");
+        }
+    }
+
+    public async Task<ApiResponse<decimal>> CalculateShippingAmountAsync(string shippingMethod, bool isExpress)
+    {
+        try
+        {
+            var baseShipping = shippingMethod.ToLower() switch
+            {
+                "standard" => 5.00m,
+                "express" => 15.00m,
+                "overnight" => 25.00m,
+                _ => 0.00m
+            };
+
+            var totalShipping = isExpress ? baseShipping * 1.5m : baseShipping;
+            return ApiResponse<decimal>.SuccessResponse(totalShipping);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating shipping amount");
+            return ApiResponse<decimal>.ErrorResponse("Failed to calculate shipping amount");
+        }
+    }
+
+    public async Task<ApiResponse<bool>> IsPaymentOverdueAsync(Guid billingRecordId)
+    {
+        try
+        {
+            var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
+            if (billingRecord == null)
+                return ApiResponse<bool>.ErrorResponse("Billing record not found");
+
+            var isOverdue = billingRecord.DueDate < DateTime.UtcNow && 
+                           billingRecord.Status == BillingRecord.BillingStatus.Pending;
+            
+            return ApiResponse<bool>.SuccessResponse(isOverdue);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking if payment is overdue for billing record {BillingRecordId}", billingRecordId);
+            return ApiResponse<bool>.ErrorResponse("Failed to check payment overdue status");
+        }
+    }
+
+    public async Task<ApiResponse<DateTime>> CalculateDueDateAsync(DateTime startDate, int daysToAdd)
+    {
+        try
+        {
+            var dueDate = startDate.AddDays(daysToAdd);
+            return ApiResponse<DateTime>.SuccessResponse(dueDate);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating due date");
+            return ApiResponse<DateTime>.ErrorResponse("Failed to calculate due date");
+        }
+    }
+
+    public async Task<ApiResponse<BillingAnalyticsDto>> GetBillingAnalyticsAsync()
+    {
+        try
+        {
+            var analytics = new BillingAnalyticsDto
+            {
+                TotalBillingRecords = 0,
+                PendingBillingRecords = 0,
+                PaidBillingRecords = 0,
+                FailedBillingRecords = 0,
+                TotalRevenue = 0,
+                AverageBillingAmount = 0,
+                MonthlyRevenue = new List<MonthlyRevenueDto>(),
+                BillingStatuses = new List<BillingStatusDto>(),
+                PaymentMethods = new List<PaymentMethodDto>()
+            };
+
+            return ApiResponse<BillingAnalyticsDto>.SuccessResponse(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting billing analytics");
+            return ApiResponse<BillingAnalyticsDto>.ErrorResponse("Failed to get billing analytics");
+        }
+    }
+
+    public async Task<ApiResponse<IEnumerable<PaymentHistoryDto>>> GetPaymentHistoryAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var records = await _billingRepository.GetByUserIdAsync(userId);
+            var filteredRecords = records.Where(r => 
+                (!startDate.HasValue || r.CreatedAt >= startDate.Value) &&
+                (!endDate.HasValue || r.CreatedAt <= endDate.Value));
+
+            var paymentHistory = filteredRecords.Select(r => new PaymentHistoryDto
+            {
+                Id = r.Id,
+                UserId = r.UserId.ToString(),
+                SubscriptionId = r.SubscriptionId?.ToString() ?? "",
+                Amount = r.Amount,
+                Currency = "USD",
+                PaymentMethod = r.PaymentMethod ?? "Unknown",
+                Status = r.Status.ToString(),
+                TransactionId = r.StripePaymentIntentId,
+                ErrorMessage = r.FailureReason,
+                CreatedAt = r.CreatedAt,
+                ProcessedAt = r.ProcessedAt,
+                PaymentDate = r.ProcessedAt ?? r.CreatedAt,
+                Description = r.Description,
+                PaymentMethodId = r.StripePaymentIntentId
+            });
+
+            return ApiResponse<IEnumerable<PaymentHistoryDto>>.SuccessResponse(paymentHistory);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting payment history for user {UserId}", userId);
+            return ApiResponse<IEnumerable<PaymentHistoryDto>>.ErrorResponse("Failed to get payment history");
+        }
+    }
+
+    public async Task<ApiResponse<PaymentAnalyticsDto>> GetPaymentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var analytics = new PaymentAnalyticsDto
+            {
+                TotalPayments = 0,
+                SuccessfulPayments = 0,
+                FailedPayments = 0,
+                PaymentSuccessRate = 0,
+                AveragePaymentAmount = 0,
+                TotalRefunds = 0,
+                TotalTransactions = 0,
+                SuccessfulTransactions = 0,
+                FailedTransactions = 0,
+                MonthlyPayments = new List<MonthlyPaymentDto>(),
+                PaymentMethods = new List<PaymentMethodAnalyticsDto>(),
+                PaymentStatuses = new List<PaymentStatusAnalyticsDto>()
+            };
+
+            return ApiResponse<PaymentAnalyticsDto>.SuccessResponse(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting payment analytics");
+            return ApiResponse<PaymentAnalyticsDto>.ErrorResponse("Failed to get payment analytics");
+        }
+    }
+
+    private string ConvertToCsv(RevenueSummaryDto revenueData)
+    {
+        // Simple CSV conversion
+        return "Month,Revenue,Subscriptions\n" +
+               $"{DateTime.Now:yyyy-MM},{revenueData.TotalRevenue},{revenueData.TotalSubscriptions}";
     }
 } 

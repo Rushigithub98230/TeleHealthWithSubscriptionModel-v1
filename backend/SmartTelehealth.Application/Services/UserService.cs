@@ -22,6 +22,8 @@ public class UserService : IUserService
     private readonly ILogger<UserService> _logger;
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
+    private readonly IDocumentService _documentService;
+    private readonly IDocumentTypeService _documentTypeService;
 
     public UserService(
         IUserRepository userRepository,
@@ -29,7 +31,9 @@ public class UserService : IUserService
         IStripeService stripeService,
         ILogger<UserService> logger,
         UserManager<User> userManager,
-        IMapper mapper)
+        IMapper mapper,
+        IDocumentService documentService,
+        IDocumentTypeService documentTypeService)
     {
         _userRepository = userRepository;
         _notificationService = notificationService;
@@ -37,6 +41,8 @@ public class UserService : IUserService
         _logger = logger;
         _userManager = userManager;
         _mapper = mapper;
+        _documentService = documentService;
+        _documentTypeService = documentTypeService;
     }
 
     // User profile operations
@@ -107,50 +113,156 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<object>> UploadProfilePictureAsync(Guid userId, IFormFile file)
+    // --- DOCUMENT MANAGEMENT (Updated to use centralized DocumentService) ---
+    
+    public async Task<ApiResponse<DocumentDto>> UploadProfilePictureAsync(Guid userId, IFormFile file)
     {
         try
         {
+            // Validate user exists
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return ApiResponse<DocumentDto>.ErrorResponse("User not found", 404);
+
+            // Validate file
             if (file == null || file.Length == 0)
-                return ApiResponse<object>.ErrorResponse("No file provided");
+                return ApiResponse<DocumentDto>.ErrorResponse("No file provided", 400);
 
             // Validate file type
-            var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
-            if (!allowedTypes.Contains(file.ContentType))
-                return ApiResponse<object>.ErrorResponse("Invalid file type. Only JPEG, PNG, and GIF are allowed");
+            var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif" };
+            if (!allowedTypes.Contains(file.ContentType.ToLower()))
+                return ApiResponse<DocumentDto>.ErrorResponse("Invalid file type. Only JPEG, PNG, and GIF are allowed.", 400);
 
             // Validate file size (max 5MB)
             if (file.Length > 5 * 1024 * 1024)
-                return ApiResponse<object>.ErrorResponse("File size too large. Maximum size is 5MB");
+                return ApiResponse<DocumentDto>.ErrorResponse("File size too large. Maximum size is 5MB.", 400);
 
-            // Generate unique filename
-            var fileName = $"{userId}_{DateTime.UtcNow:yyyyMMddHHmmss}_{file.FileName}";
-            var filePath = Path.Combine("wwwroot", "uploads", "profiles", fileName);
-
-            // Ensure directory exists
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-
-            // Save file
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            // Convert file to bytes
+            byte[] fileBytes;
+            using (var memoryStream = new MemoryStream())
             {
-                await file.CopyToAsync(stream);
+                await file.CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
             }
 
-            // Update user profile picture
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user != null)
+            // Get document type for profile pictures
+            var profilePictureTypes = await _documentTypeService.GetAllDocumentTypesAsync(true);
+            var profilePictureType = profilePictureTypes.Data?.FirstOrDefault(dt => 
+                dt.Name.ToLower().Contains("profile") || 
+                dt.Name.ToLower().Contains("picture") ||
+                dt.Name.ToLower().Contains("avatar") ||
+                dt.Name.ToLower().Contains("photo"));
+
+            if (profilePictureType == null)
             {
-                user.ProfilePicture = $"/uploads/profiles/{fileName}";
-                user.UpdatedAt = DateTime.UtcNow;
+                return ApiResponse<DocumentDto>.ErrorResponse("No suitable document type found for profile pictures", 400);
+            }
+
+            // Create upload request for centralized document service
+            var uploadRequest = new UploadDocumentRequest
+            {
+                FileData = fileBytes,
+                FileName = file.FileName,
+                ContentType = file.ContentType,
+                EntityType = "User",
+                EntityId = userId,
+                ReferenceType = "profile_picture",
+                Description = $"Profile picture for user {user.FirstName} {user.LastName}",
+                IsPublic = true, // Profile pictures are typically public
+                IsEncrypted = false,
+                DocumentTypeId = profilePictureType.DocumentTypeId,
+                CreatedById = userId
+            };
+
+            // Upload using centralized document service
+            var result = await _documentService.UploadDocumentAsync(uploadRequest);
+            
+            if (result.Success)
+            {
+                // Update user profile picture URL
+                user.ProfilePicture = result.Data?.DownloadUrl ?? result.Data?.FilePath;
                 await _userRepository.UpdateAsync(user);
             }
 
-            return ApiResponse<object>.SuccessResponse(new { imageUrl = $"/uploads/profiles/{fileName}" });
+            return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error uploading profile picture: {UserId}", userId);
-            return ApiResponse<object>.ErrorResponse($"Failed to upload profile picture: {ex.Message}");
+            _logger.LogError(ex, "Error uploading profile picture for user {UserId}", userId);
+            return ApiResponse<DocumentDto>.ErrorResponse($"Failed to upload profile picture: {ex.Message}");
+        }
+    }
+
+    public async Task<ApiResponse<IEnumerable<DocumentDto>>> GetUserDocumentsAsync(Guid userId, string? referenceType = null)
+    {
+        try
+        {
+            // Validate user exists
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse("User not found", 404);
+
+            // Get documents using centralized document service
+            if (!string.IsNullOrEmpty(referenceType))
+            {
+                var documentsResult = await _documentService.GetDocumentsByReferenceTypeAsync("User", userId, referenceType);
+                return documentsResult;
+            }
+            else
+            {
+                var documentsResult = await _documentService.GetDocumentsByEntityAsync("User", userId);
+                return documentsResult;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting documents for user {UserId}", userId);
+            return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse($"Failed to get user documents: {ex.Message}");
+        }
+    }
+
+    public async Task<ApiResponse<DocumentDto>> UploadUserDocumentAsync(Guid userId, UploadDocumentRequest request)
+    {
+        try
+        {
+            // Validate user exists
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return ApiResponse<DocumentDto>.ErrorResponse("User not found", 404);
+
+            // Override entity information to ensure it's linked to the user
+            request.EntityType = "User";
+            request.EntityId = userId;
+            request.CreatedById = userId;
+
+            // Upload using centralized document service
+            var result = await _documentService.UploadDocumentAsync(request);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading document for user {UserId}", userId);
+            return ApiResponse<DocumentDto>.ErrorResponse($"Failed to upload user document: {ex.Message}");
+        }
+    }
+
+    public async Task<ApiResponse<bool>> DeleteUserDocumentAsync(Guid documentId, Guid userId)
+    {
+        try
+        {
+            // Validate user exists
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return ApiResponse<bool>.ErrorResponse("User not found", 404);
+
+            // Delete using centralized document service
+            var result = await _documentService.DeleteDocumentAsync(documentId, userId);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting document {DocumentId} for user {UserId}", documentId, userId);
+            return ApiResponse<bool>.ErrorResponse($"Failed to delete user document: {ex.Message}");
         }
     }
 

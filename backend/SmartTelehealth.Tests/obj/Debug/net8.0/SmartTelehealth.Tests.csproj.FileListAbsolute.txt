@@ -1,9 +1,0 @@
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\.msCoverageSourceRootsMapping_SmartTelehealth.Tests
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\bin\Debug\net8.0\CoverletSourceRootsMapping_SmartTelehealth.Tests
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\obj\Debug\net8.0\SmartTelehealth.Tests.csproj.AssemblyReference.cache
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\obj\Debug\net8.0\MvcTestingAppManifest.json
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\obj\Debug\net8.0\SmartTelehealth.Tests.GeneratedMSBuildEditorConfig.editorconfig
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\obj\Debug\net8.0\SmartTelehealth.Tests.AssemblyInfoInputs.cache
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\obj\Debug\net8.0\SmartTelehealth.Tests.AssemblyInfo.cs
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\obj\Debug\net8.0\SmartTelehealth.Tests.csproj.CoreCompileInputs.cache
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Tests\obj\Debug\net8.0\SmartTelehealth.Tests.sourcelink.json

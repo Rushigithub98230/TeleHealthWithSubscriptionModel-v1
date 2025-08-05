@@ -36,4 +36,13 @@ public interface ISubscriptionRepository
     Task<IEnumerable<Subscription>> GetSubscriptionsByPlanIdAsync(Guid planId);
     Task AddStatusHistoryAsync(SubscriptionStatusHistory history);
     Task AddPaymentRefundAsync(PaymentRefund refund);
+    // Added for category lookup by name
+    Task<Category?> GetCategoryByNameAsync(string categoryName);
+    
+    // Added missing methods for AutomatedBillingService
+    Task<IEnumerable<Subscription>> GetSuspendedSubscriptionsAsync();
+    Task<IEnumerable<Subscription>> GetSubscriptionsWithResetUsageAsync();
+    Task ResetUsageCountersAsync();
+    Task<IEnumerable<Subscription>> GetSubscriptionsInDateRangeAsync(DateTime startDate, DateTime endDate);
+    Task<IEnumerable<Subscription>> GetSubscriptionsWithFailedPaymentsAsync();
 } 

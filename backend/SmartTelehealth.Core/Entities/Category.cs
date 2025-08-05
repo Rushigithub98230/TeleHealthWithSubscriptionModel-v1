@@ -45,6 +45,11 @@ public class Category : BaseEntity
     
     public int OneTimeConsultationDurationMinutes { get; set; } = 30;
     
+    // Marketing and display properties
+    public bool IsMostPopular { get; set; } = false;
+    
+    public bool IsTrending { get; set; } = false;
+    
     // Optional: Add navigation property for plans by billing cycle
     public virtual ICollection<SubscriptionPlan> SubscriptionPlans { get; set; } = new List<SubscriptionPlan>();
     public virtual ICollection<ProviderCategory> ProviderCategories { get; set; } = new List<ProviderCategory>();

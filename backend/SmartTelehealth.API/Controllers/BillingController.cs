@@ -227,7 +227,7 @@ public class BillingController : ControllerBase
                 BillingRecordId = id,
                 IsOverdue = isOverdue,
                 DueDate = billingRecord.DueDate,
-                DaysOverdue = Math.Max(0, (int)(DateTime.UtcNow - billingRecord.DueDate).TotalDays)
+                DaysOverdue = Math.Max(0, (int)((billingRecord.DueDate.HasValue ? (DateTime.UtcNow - billingRecord.DueDate.Value) : TimeSpan.Zero).TotalDays))
             };
             return Ok(new ApiResponse<OverdueStatusDto>
             {
@@ -300,11 +300,6 @@ public class BillingController : ControllerBase
         }
         return userId;
     }
-}
-
-public class RefundRequestDto
-{
-    public decimal Amount { get; set; }
 }
 
 public class BillingCalculationRequestDto

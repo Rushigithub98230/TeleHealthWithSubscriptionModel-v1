@@ -8,5 +8,5 @@ import { Component } from '@angular/core';
   styleUrl: './marketing-home.component.scss'
 })
 export class MarketingHomeComponent {
-
+  currentYear = new Date().getFullYear();
 }

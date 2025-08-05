@@ -102,9 +102,8 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "CreateSubscriptionPlan",
                     "SubscriptionPlan",
+                    "CreateSubscriptionPlan",
                     null,
                     $"Created subscription plan: {createDto.Name}"
                 );
@@ -133,9 +132,8 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "UpdateSubscriptionPlan",
                     "SubscriptionPlan",
+                    "UpdateSubscriptionPlan",
                     id,
                     $"Updated subscription plan: {updateDto.Name}"
                 );
@@ -161,9 +159,8 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "DeleteSubscriptionPlan",
                     "SubscriptionPlan",
+                    "DeleteSubscriptionPlan",
                     id,
                     $"Deleted subscription plan: {id}"
                 );
@@ -189,9 +186,8 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "ActivateSubscriptionPlan",
                     "SubscriptionPlan",
+                    "ActivateSubscriptionPlan",
                     id,
                     $"Activated subscription plan: {id}"
                 );
@@ -217,9 +213,8 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "DeactivateSubscriptionPlan",
                     "SubscriptionPlan",
+                    "DeactivateSubscriptionPlan",
                     id,
                     $"Deactivated subscription plan: {id}"
                 );
@@ -320,11 +315,10 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "CancelUserSubscription",
                     "Subscription",
+                    "CancelUserSubscription",
                     id,
-                    $"Cancelled user subscription: {id}, Reason: {reason}"
+                    $"Cancelled user subscription: {id}"
                 );
             }
             return StatusCode(response.StatusCode, response);
@@ -348,11 +342,10 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "PauseUserSubscription",
                     "Subscription",
+                    "PauseUserSubscription",
                     id,
-                    $"Paused user subscription: {id}, Reason: {reason}"
+                    $"Paused user subscription: {id}"
                 );
             }
             return StatusCode(response.StatusCode, response);
@@ -376,9 +369,8 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "ResumeUserSubscription",
                     "Subscription",
+                    "ResumeUserSubscription",
                     id,
                     $"Resumed user subscription: {id}"
                 );
@@ -412,11 +404,10 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "ExtendUserSubscription",
                     "Subscription",
+                    "ExtendUserSubscription",
                     id,
-                    $"Extended user subscription: {id}, New end date: {extendDto.NewEndDate}, Reason: {extendDto.Reason}"
+                    $"Extended user subscription: {id}"
                 );
             }
             return StatusCode(response.StatusCode, response);
@@ -494,9 +485,8 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "CreateCategory",
                     "Category",
+                    "CreateCategory",
                     null,
                     $"Created category: {createDto.Name}"
                 );
@@ -522,9 +512,8 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "UpdateCategory",
                     "Category",
+                    "UpdateCategory",
                     id.ToString(),
                     $"Updated category: {updateDto.Name}"
                 );
@@ -550,9 +539,8 @@ public class SubscriptionManagementController : ControllerBase
             if (response.Success)
             {
                 await _auditService.LogActionAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                    "DeleteCategory",
                     "Category",
+                    "DeleteCategory",
                     id.ToString(),
                     $"Deleted category: {id}"
                 );
@@ -650,11 +638,10 @@ public class SubscriptionManagementController : ControllerBase
 
                         // Log audit
                         await _auditService.LogActionAsync(
-                            User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
-                            $"Bulk{request.Action}Subscription",
                             "Subscription",
-                            subscriptionId,
-                            $"Bulk {request.Action} subscription: {subscriptionId}, Reason: {request.Reason}"
+                            "BulkAction",
+                            null,
+                            $"Performed bulk action: {request.Action} on {request.SubscriptionIds.Count} subscriptions"
                         );
                     }
                     else

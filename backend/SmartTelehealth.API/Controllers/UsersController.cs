@@ -399,9 +399,9 @@ namespace SmartTelehealth.API.Controllers
                     });
                 }
 
-                var addPaymentMethodDto = new AddPaymentMethodDto
+                var addPaymentMethodDto = new SmartTelehealth.Application.DTOs.AddPaymentMethodDto
                 {
-                    IsDefault = createDto.IsDefault
+                    PaymentMethodId = createDto.Token
                 };
                 var result = await _userService.AddPaymentMethodAsync(userId, addPaymentMethodDto);
                 return Ok(result);

@@ -14,15 +14,18 @@ public class NotificationService : INotificationService
     private readonly IConfiguration _configuration;
     private readonly ILogger<NotificationService> _logger;
     private readonly INotificationRepository _notificationRepository;
+    private readonly IUserRepository _userRepository;
     
     public NotificationService(
         IConfiguration configuration, 
         ILogger<NotificationService> logger,
-        INotificationRepository notificationRepository)
+        INotificationRepository notificationRepository,
+        IUserRepository userRepository)
     {
         _configuration = configuration;
         _logger = logger;
         _notificationRepository = notificationRepository;
+        _userRepository = userRepository;
     }
     
     // Email notifications with SMTP implementation
@@ -209,7 +212,7 @@ public class NotificationService : INotificationService
                 <ul>
                     <li>Amount: ${billingRecord.Amount}</li>
                     <li>Due Date: {billingRecord.DueDate:MM/dd/yyyy}</li>
-                    <li>Days Overdue: {(int)(DateTime.UtcNow - billingRecord.DueDate).TotalDays}</li>
+                    <li>Days Overdue: {(int)((billingRecord.DueDate.HasValue ? (DateTime.UtcNow - billingRecord.DueDate.Value) : TimeSpan.Zero).TotalDays)}</li>
                     <li>Description: {billingRecord.Description}</li>
                 </ul>
                 <p>Please make the payment as soon as possible to avoid any service interruptions.</p>
@@ -750,4 +753,132 @@ public class NotificationService : INotificationService
     public Task SendEmailVerificationAsync(string email, string userName, string verificationToken) => throw new NotImplementedException();
     public Task SendSubscriptionWelcomeEmailAsync(string email, string userName, SubscriptionDto subscription) => throw new NotImplementedException();
     public Task SendSubscriptionCancellationEmailAsync(string email, string userName, SubscriptionDto subscription) => throw new NotImplementedException();
+    public async Task SendSubscriptionSuspensionEmailAsync(string email, string userName, SubscriptionDto subscription)
+    {
+        try
+        {
+            var subject = "Subscription Suspended";
+            var body = $@"
+                <h2>Subscription Suspended</h2>
+                <p>Hello {userName},</p>
+                <p>Your subscription to <strong>{subscription.PlanName}</strong> has been suspended.</p>
+                <p>If you believe this is a mistake or have questions, please contact support.</p>
+                <br>
+                <p>Best regards,<br>Smart Telehealth Team</p>";
+            await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Subscription suspension email sent to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending subscription suspension email to {Email}", email);
+            throw;
+        }
+    }
+
+    public async Task SendNotificationAsync(string userId, string title, string message)
+    {
+        try
+        {
+            var notification = new Notification
+            {
+                Id = Guid.NewGuid(),
+                UserId = Guid.Parse(userId),
+                Title = title,
+                Message = message,
+                Type = NotificationType.InApp,
+                Status = NotificationStatus.Unread,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+                ScheduledAt = DateTime.UtcNow
+            };
+            await _notificationRepository.CreateAsync(notification);
+            _logger.LogInformation("In-app notification sent to {UserId}: {Title}", userId, title);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending in-app notification to {UserId}", userId);
+            throw;
+        }
+    }
+
+    public async Task SendSubscriptionSuspendedNotificationAsync(string userId, string subscriptionId)
+    {
+        try
+        {
+            // Get user details from the user service
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+            if (user == null) return;
+
+            var subject = "Subscription Suspended";
+            var body = $@"
+                <h2>Subscription Suspended</h2>
+                <p>Hello {user.FullName},</p>
+                <p>Your subscription (ID: {subscriptionId}) has been suspended due to payment issues.</p>
+                <p>Please update your payment method to reactivate your subscription.</p>
+                <br>
+                <p>Best regards,<br>Smart Telehealth Team</p>";
+            
+            await SendEmailAsync(user.Email, subject, body);
+            _logger.LogInformation("Subscription suspended notification sent to {Email} for subscription {SubscriptionId}", user.Email, subscriptionId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending subscription suspended notification to user {UserId} for subscription {SubscriptionId}", userId, subscriptionId);
+            throw;
+        }
+    }
+
+    public async Task SendRefundNotificationAsync(string userId, decimal amount, string billingRecordId)
+    {
+        try
+        {
+            // Get user details from the user service
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+            if (user == null) return;
+
+            var subject = "Refund Processed";
+            var body = $@"
+                <h2>Refund Processed</h2>
+                <p>Hello {user.FullName},</p>
+                <p>A refund of <strong>${amount}</strong> has been processed for billing record {billingRecordId}.</p>
+                <p>The refund will appear in your account within 3-5 business days.</p>
+                <br>
+                <p>Best regards,<br>Smart Telehealth Team</p>";
+            
+            await SendEmailAsync(user.Email, subject, body);
+            _logger.LogInformation("Refund notification sent to {Email} for amount {Amount} and billing record {BillingRecordId}", user.Email, amount, billingRecordId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending refund notification to user {UserId} for amount {Amount} and billing record {BillingRecordId}", userId, amount, billingRecordId);
+            throw;
+        }
+    }
+
+    public async Task SendSubscriptionReactivatedNotificationAsync(string userId, string subscriptionId)
+    {
+        try
+        {
+            // Get user details from the user service
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+            if (user == null) return;
+
+            var subject = "Subscription Reactivated";
+            var body = $@"
+                <h2>Subscription Reactivated</h2>
+                <p>Hello {user.FullName},</p>
+                <p>Your subscription (ID: {subscriptionId}) has been successfully reactivated.</p>
+                <p>You now have access to all your subscription benefits.</p>
+                <br>
+                <p>Best regards,<br>Smart Telehealth Team</p>";
+            
+            await SendEmailAsync(user.Email, subject, body);
+            _logger.LogInformation("Subscription reactivated notification sent to {Email} for subscription {SubscriptionId}", user.Email, subscriptionId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending subscription reactivated notification to user {UserId} for subscription {SubscriptionId}", userId, subscriptionId);
+            throw;
+        }
+    }
 } 

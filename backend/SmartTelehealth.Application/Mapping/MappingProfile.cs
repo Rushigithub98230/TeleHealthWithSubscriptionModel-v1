@@ -141,6 +141,8 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsFeatured, opt => opt.MapFrom(src => src.IsFeatured))
             .ForMember(dest => dest.IsTrialAllowed, opt => opt.MapFrom(src => src.IsTrialAllowed))
             .ForMember(dest => dest.TrialDurationInDays, opt => opt.MapFrom(src => src.TrialDurationInDays))
+            .ForMember(dest => dest.IsMostPopular, opt => opt.MapFrom(src => src.IsMostPopular))
+            .ForMember(dest => dest.IsTrending, opt => opt.MapFrom(src => src.IsTrending))
             .ForMember(dest => dest.DisplayOrder, opt => opt.MapFrom(src => src.DisplayOrder))
             .ForMember(dest => dest.StripeProductId, opt => opt.MapFrom(src => src.StripeProductId))
             .ForMember(dest => dest.StripeMonthlyPriceId, opt => opt.MapFrom(src => src.StripeMonthlyPriceId))
@@ -155,6 +157,28 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsCurrentlyAvailable, opt => opt.MapFrom(src => src.IsCurrentlyAvailable))
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
+
+        // Category mappings
+        CreateMap<Category, CategoryDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.Icon, opt => opt.MapFrom(src => src.Icon))
+            .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Color))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.DisplayOrder, opt => opt.MapFrom(src => src.DisplayOrder))
+            .ForMember(dest => dest.Features, opt => opt.MapFrom(src => src.Features))
+            .ForMember(dest => dest.ConsultationDescription, opt => opt.MapFrom(src => src.ConsultationDescription))
+            .ForMember(dest => dest.BasePrice, opt => opt.MapFrom(src => src.BasePrice))
+            .ForMember(dest => dest.ConsultationDurationMinutes, opt => opt.MapFrom(src => src.ConsultationDurationMinutes))
+            .ForMember(dest => dest.RequiresHealthAssessment, opt => opt.MapFrom(src => src.RequiresHealthAssessment))
+            .ForMember(dest => dest.AllowsMedicationDelivery, opt => opt.MapFrom(src => src.AllowsMedicationDelivery))
+            .ForMember(dest => dest.AllowsFollowUpMessaging, opt => opt.MapFrom(src => src.AllowsFollowUpMessaging))
+            .ForMember(dest => dest.AllowsOneTimeConsultation, opt => opt.MapFrom(src => src.AllowsOneTimeConsultation))
+            .ForMember(dest => dest.OneTimeConsultationDurationMinutes, opt => opt.MapFrom(src => src.OneTimeConsultationDurationMinutes))
+            .ForMember(dest => dest.IsMostPopular, opt => opt.MapFrom(src => src.IsMostPopular))
+            .ForMember(dest => dest.IsTrending, opt => opt.MapFrom(src => src.IsTrending))
+            .ForMember(dest => dest.SubscriptionPlans, opt => opt.MapFrom(src => src.SubscriptionPlans));
 
         // Chat mappings
         CreateMap<ChatRoom, ChatRoomDto>()

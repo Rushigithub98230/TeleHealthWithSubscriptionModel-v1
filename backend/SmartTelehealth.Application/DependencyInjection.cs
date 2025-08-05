@@ -24,7 +24,21 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IProviderService, ProviderService>();
-        services.AddScoped<ISubscriptionService, SubscriptionService>();
+        services.AddScoped<ISubscriptionService, SubscriptionService>(provider =>
+            new SubscriptionService(
+                provider.GetRequiredService<SmartTelehealth.Core.Interfaces.ISubscriptionRepository>(),
+                provider.GetRequiredService<AutoMapper.IMapper>(),
+                provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<SubscriptionService>>(),
+                provider.GetRequiredService<IStripeService>(),
+                provider.GetRequiredService<PrivilegeService>(),
+                provider.GetRequiredService<INotificationService>(),
+                provider.GetRequiredService<IAuditService>(),
+                provider.GetRequiredService<IUserService>(),
+                provider.GetRequiredService<SmartTelehealth.Core.Interfaces.ISubscriptionPlanPrivilegeRepository>(),
+                provider.GetRequiredService<SmartTelehealth.Core.Interfaces.IUserSubscriptionPrivilegeUsageRepository>(),
+                provider.GetRequiredService<IBillingService>()
+            )
+        );
         services.AddScoped<IConsultationService, ConsultationService>();
         services.AddScoped<IHealthAssessmentService, HealthAssessmentService>();
         services.AddScoped<IAuditService, AuditService>();
@@ -41,6 +55,12 @@ public static class DependencyInjection
         services.AddScoped<IMessagingService, MessagingService>();
         services.AddScoped<ChatService>();
         services.AddScoped<ChatRoomService>();
+        
+        // Register Video Call Services
+        services.AddScoped<IVideoCallService, VideoCallService>();
+        
+        // Register Questionnaire Service
+        services.AddScoped<IQuestionnaireService, QuestionnaireService>();
         
         return services;
     }

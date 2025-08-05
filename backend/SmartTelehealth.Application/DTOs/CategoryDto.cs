@@ -18,6 +18,11 @@ public class CategoryDto
     public bool AllowsFollowUpMessaging { get; set; }
     public bool AllowsOneTimeConsultation { get; set; }
     public int OneTimeConsultationDurationMinutes { get; set; }
+    
+    // Marketing and display properties
+    public bool IsMostPopular { get; set; }
+    public bool IsTrending { get; set; }
+    
     public List<SubscriptionPlanDto> SubscriptionPlans { get; set; } = new();
 }
 
@@ -29,6 +34,10 @@ public class CreateCategoryDto
     public string? Color { get; set; }
     public bool IsActive { get; set; } = true;
     public int DisplayOrder { get; set; } = 0;
+    
+    // Marketing and display properties
+    public bool IsMostPopular { get; set; } = false;
+    public bool IsTrending { get; set; } = false;
 }
 
 public class UpdateCategoryDto
@@ -37,6 +46,10 @@ public class UpdateCategoryDto
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;
+    
+    // Marketing and display properties
+    public bool IsMostPopular { get; set; } = false;
+    public bool IsTrending { get; set; } = false;
 }
 
  

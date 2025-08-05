@@ -38,7 +38,80 @@ public class AnalyticsService : IAnalyticsService
         _mapper = mapper;
     }
 
-    public async Task<ApiResponse<SubscriptionAnalyticsDto>> GetSubscriptionAnalyticsAsync()
+    public async Task<ApiResponse<RevenueAnalyticsDto>> GetRevenueAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var analytics = new RevenueAnalyticsDto
+            {
+                TotalRevenue = await GetTotalRevenueAsync(startDate, endDate),
+                MonthlyRevenue = await GetMonthlyRecurringRevenueAsync(),
+                AnnualRevenue = await GetAnnualRecurringRevenueAsync(),
+                TotalSubscriptions = await GetTotalSubscriptionsAsync(),
+                ActiveSubscriptions = await GetActiveSubscriptionsAsync(),
+                NewSubscriptionsThisMonth = await GetNewSubscriptionsThisMonthAsync(),
+                CancelledSubscriptionsThisMonth = await GetCancelledSubscriptionsAsync(),
+                AverageRevenuePerSubscription = await CalculateAverageSubscriptionValueAsync(),
+                TotalRefunds = await GetRefundsIssuedAsync(startDate, endDate)
+            };
+
+            return ApiResponse<RevenueAnalyticsDto>.SuccessResponse(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting revenue analytics");
+            return ApiResponse<RevenueAnalyticsDto>.ErrorResponse("Error retrieving revenue analytics", 500);
+        }
+    }
+
+    public async Task<ApiResponse<UserActivityAnalyticsDto>> GetUserActivityAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var analytics = new UserActivityAnalyticsDto
+            {
+                TotalUsers = await GetTotalUsersAsync(),
+                ActiveUsers = await GetActiveUsersAsync(),
+                NewUsersThisMonth = await GetNewUsersThisMonthAsync(),
+                UsersWithActiveSubscriptions = await GetActiveSubscriptionsAsync(),
+                AverageConsultationsPerUser = 0, // TODO: Implement
+                AverageMessagesPerUser = 0, // TODO: Implement
+                TotalLogins = 0 // TODO: Implement
+            };
+
+            return ApiResponse<UserActivityAnalyticsDto>.SuccessResponse(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user activity analytics");
+            return ApiResponse<UserActivityAnalyticsDto>.ErrorResponse("Error retrieving user activity analytics", 500);
+        }
+    }
+
+    public async Task<ApiResponse<AppointmentAnalyticsDto>> GetAppointmentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var analytics = new AppointmentAnalyticsDto
+            {
+                TotalAppointments = 0, // TODO: Implement
+                CompletedAppointments = 0, // TODO: Implement
+                CancelledAppointments = 0, // TODO: Implement
+                PendingAppointments = 0, // TODO: Implement
+                CompletionRate = 0, // TODO: Implement
+                AverageAppointmentDuration = 0 // TODO: Implement
+            };
+
+            return ApiResponse<AppointmentAnalyticsDto>.SuccessResponse(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting appointment analytics");
+            return ApiResponse<AppointmentAnalyticsDto>.ErrorResponse("Error retrieving appointment analytics", 500);
+        }
+    }
+
+    public async Task<ApiResponse<SubscriptionAnalyticsDto>> GetSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -719,6 +792,143 @@ public class AnalyticsService : IAnalyticsService
         {
             _logger.LogError(ex, "Error getting total subscriptions");
             return 0;
+        }
+    }
+
+    // Additional interface methods with correct signatures
+    public async Task<ApiResponse<BillingAnalyticsDto>> GetBillingAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var analytics = new BillingAnalyticsDto
+            {
+                TotalRevenue = await GetTotalRevenueAsync(startDate, endDate),
+                FailedPayments = await GetFailedPaymentsAsync(startDate, endDate),
+                PaymentSuccessRate = await CalculatePaymentSuccessRateAsync(startDate, endDate),
+                AverageRevenuePerUser = await CalculateAverageRevenuePerUserAsync(),
+                RefundsIssued = await GetRefundsIssuedAsync(startDate, endDate)
+            };
+
+            return ApiResponse<BillingAnalyticsDto>.SuccessResponse(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting billing analytics");
+            return ApiResponse<BillingAnalyticsDto>.ErrorResponse("Error retrieving billing analytics", 500);
+        }
+    }
+
+    public async Task<ApiResponse<UserAnalyticsDto>> GetUserAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var analytics = new UserAnalyticsDto
+            {
+                TotalUsers = await GetTotalUsersAsync(),
+                ActiveUsers = await GetActiveUsersAsync(),
+                NewUsersThisMonth = await GetNewUsersThisMonthAsync(),
+                UserRetentionRate = await CalculateUserRetentionRateAsync(),
+                AverageUserLifetime = await CalculateAverageUserLifetimeAsync()
+            };
+
+            return ApiResponse<UserAnalyticsDto>.SuccessResponse(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user analytics");
+            return ApiResponse<UserAnalyticsDto>.ErrorResponse("Error retrieving user analytics", 500);
+        }
+    }
+
+    public async Task<ApiResponse<ProviderAnalyticsDto>> GetProviderAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var analytics = new ProviderAnalyticsDto
+            {
+                TotalProviders = await GetTotalProvidersAsync(),
+                ActiveProviders = await GetActiveProvidersAsync(),
+                AverageProviderRating = await CalculateAverageProviderRatingAsync()
+            };
+
+            return ApiResponse<ProviderAnalyticsDto>.SuccessResponse(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting provider analytics");
+            return ApiResponse<ProviderAnalyticsDto>.ErrorResponse("Error retrieving provider analytics", 500);
+        }
+    }
+
+
+
+    public async Task<ApiResponse<byte[]>> GenerateSubscriptionReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var reportData = await GenerateSubscriptionReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
+            return ApiResponse<byte[]>.SuccessResponse(reportData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating subscription report");
+            return ApiResponse<byte[]>.ErrorResponse("Error generating subscription report", 500);
+        }
+    }
+
+    public async Task<ApiResponse<byte[]>> GenerateBillingReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var reportData = await GenerateBillingReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
+            return ApiResponse<byte[]>.SuccessResponse(reportData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating billing report");
+            return ApiResponse<byte[]>.ErrorResponse("Error generating billing report", 500);
+        }
+    }
+
+    public async Task<ApiResponse<byte[]>> GenerateUserReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var reportData = await GenerateUserReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
+            return ApiResponse<byte[]>.SuccessResponse(reportData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating user report");
+            return ApiResponse<byte[]>.ErrorResponse("Error generating user report", 500);
+        }
+    }
+
+    public async Task<ApiResponse<byte[]>> GenerateProviderReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var reportData = await GenerateProviderReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
+            return ApiResponse<byte[]>.SuccessResponse(reportData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating provider report");
+            return ApiResponse<byte[]>.ErrorResponse("Error generating provider report", 500);
+        }
+    }
+
+    public async Task<ApiResponse<byte[]>> ExportSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var reportData = await GenerateSubscriptionReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "csv");
+            return ApiResponse<byte[]>.SuccessResponse(reportData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting subscription analytics");
+            return ApiResponse<byte[]>.ErrorResponse("Error exporting subscription analytics", 500);
         }
     }
 } 

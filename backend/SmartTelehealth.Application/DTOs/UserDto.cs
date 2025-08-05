@@ -197,17 +197,7 @@ namespace SmartTelehealth.Application.DTOs
         public string? MedicalHistory { get; set; }
     }
 
-    public class PaymentMethodDto
-    {
-        public string PaymentMethodId { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
-        public string Brand { get; set; } = string.Empty;
-        public string Last4 { get; set; } = string.Empty;
-        public int ExpMonth { get; set; }
-        public int ExpYear { get; set; }
-        public bool IsDefault { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
+
 
     public class CreatePaymentMethodDto
     {

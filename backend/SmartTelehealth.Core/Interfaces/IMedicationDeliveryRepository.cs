@@ -16,4 +16,5 @@ public interface IMedicationDeliveryRepository
     Task<int> GetPendingDeliveryCountAsync();
     Task<IEnumerable<MedicationDelivery>> GetDeliveriesByDateRangeAsync(DateTime startDate, DateTime endDate);
     Task<MedicationDelivery?> GetByTrackingNumberAsync(string trackingNumber);
+    Task<IEnumerable<MedicationDelivery>> GetAllAsync();
 } 

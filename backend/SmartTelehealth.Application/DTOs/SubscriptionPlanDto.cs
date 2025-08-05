@@ -17,6 +17,11 @@ public class SubscriptionPlanDto
     public bool IsFeatured { get; set; }
     public bool IsTrialAllowed { get; set; }
     public int TrialDurationInDays { get; set; }
+    
+    // Marketing and display properties
+    public bool IsMostPopular { get; set; }
+    public bool IsTrending { get; set; }
+    
     public int DisplayOrder { get; set; }
     public string? StripeProductId { get; set; }
     public string? StripeMonthlyPriceId { get; set; }

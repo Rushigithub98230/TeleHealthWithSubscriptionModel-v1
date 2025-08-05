@@ -20,6 +20,11 @@ public class CreateSubscriptionPlanDto
     public int DeliveryFrequencyDays { get; set; } = 30;
     public int MaxPauseDurationDays { get; set; } = 90;
     public bool IsActive { get; set; } = true;
+    
+    // Marketing and display properties
+    public bool IsMostPopular { get; set; } = false;
+    public bool IsTrending { get; set; } = false;
+    
     public int DisplayOrder { get; set; }
     [MaxLength(1000)]
     public string? Features { get; set; }

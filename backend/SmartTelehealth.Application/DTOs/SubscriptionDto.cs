@@ -53,6 +53,7 @@ namespace SmartTelehealth.Application.DTOs
         public bool CanResume { get; set; }
         public bool CanCancel { get; set; }
         public bool CanRenew { get; set; }
+        public decimal UsagePercentage { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public Guid BillingCycleId { get; set; }
@@ -90,6 +91,10 @@ namespace SmartTelehealth.Application.DTOs
         public bool? IsPaused { get; set; }
         public string? CancellationReason { get; set; }
         public string UserId { get; set; } = string.Empty;
+        // Added properties
+        public string? Status { get; set; }
+        public bool? AutoRenew { get; set; }
+        public string? Notes { get; set; }
     }
 
     public class UpgradeSubscriptionDto
@@ -180,7 +185,12 @@ namespace SmartTelehealth.Application.DTOs
         public Guid BillingCycleId { get; set; }
         public Guid CurrencyId { get; set; }
         public bool IsActive { get; set; }
-        // Removed: MonthlyPrice, QuarterlyPrice, AnnualPrice
+        
+        // Marketing and display properties
+        public bool IsMostPopular { get; set; } = false;
+        public bool IsTrending { get; set; } = false;
+        
+        public int? DisplayOrder { get; set; } // Added property
     }
 
     public class SubscriptionStatusHistoryDto

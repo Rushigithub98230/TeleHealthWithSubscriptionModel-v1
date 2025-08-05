@@ -80,6 +80,17 @@ public class BillingRecord : BaseEntity
     [MaxLength(500)]
     public string? FailureReason { get; set; }
     
+    [MaxLength(100)]
+    public string? PaymentMethod { get; set; }
+    
+    [MaxLength(100)]
+    public string? TransactionId { get; set; }
+    
+    [MaxLength(500)]
+    public string? ErrorMessage { get; set; }
+    
+    public DateTime? ProcessedAt { get; set; }
+    
     public bool IsRecurring { get; set; } = false;
     
     public DateTime? NextBillingDate { get; set; }

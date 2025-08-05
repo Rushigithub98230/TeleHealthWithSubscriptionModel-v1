@@ -1,32 +1,16 @@
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Application.deps.json
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Application.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Application.pdb
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Core.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Core.pdb
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.csproj.AssemblyReference.cache
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.GeneratedMSBuildEditorConfig.editorconfig
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.AssemblyInfoInputs.cache
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.AssemblyInfo.cs
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.csproj.CoreCompileInputs.cache
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.sourcelink.json
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\SmartTel.F8BB03A2.Up2Date
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\refint\SmartTelehealth.Application.dll
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.pdb
-D:\TeleHealthWithSubscriptionModel\src\SmartTelehealth.Application\obj\Debug\net8.0\ref\SmartTelehealth.Application.dll
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Application.deps.json
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Application.dll
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Application.pdb
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Core.dll
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Core.pdb
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.csproj.AssemblyReference.cache
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.GeneratedMSBuildEditorConfig.editorconfig
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.AssemblyInfoInputs.cache
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.AssemblyInfo.cs
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.csproj.CoreCompileInputs.cache
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.sourcelink.json
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTel.F8BB03A2.Up2Date
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.dll
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\refint\SmartTelehealth.Application.dll
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.pdb
-D:\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\ref\SmartTelehealth.Application.dll
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Application.deps.json
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Application.dll
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Application.pdb
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Core.dll
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\bin\Debug\net8.0\SmartTelehealth.Core.pdb
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.csproj.AssemblyReference.cache
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.AssemblyInfoInputs.cache
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.AssemblyInfo.cs
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.csproj.CoreCompileInputs.cache
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.sourcelink.json
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTel.F8BB03A2.Up2Date
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.dll
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\refint\SmartTelehealth.Application.dll
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\SmartTelehealth.Application.pdb
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\backend\SmartTelehealth.Application\obj\Debug\net8.0\ref\SmartTelehealth.Application.dll

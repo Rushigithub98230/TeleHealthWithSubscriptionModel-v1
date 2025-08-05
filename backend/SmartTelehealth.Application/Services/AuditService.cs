@@ -5,6 +5,9 @@ using SmartTelehealth.Application.DTOs;
 using SmartTelehealth.Application.Interfaces;
 using SmartTelehealth.Core.Entities;
 using SmartTelehealth.Core.Interfaces;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SmartTelehealth.Application.Services
 {
@@ -14,6 +17,7 @@ namespace SmartTelehealth.Application.Services
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<AuditService> _logger;
+        private readonly string _encryptionKey;
 
         public AuditService(
             IAuditLogRepository auditLogRepository,
@@ -25,6 +29,7 @@ namespace SmartTelehealth.Application.Services
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+            _encryptionKey = Environment.GetEnvironmentVariable("AUDIT_ENCRYPTION_KEY") ?? "default-encryption-key-change-in-production";
         }
 
         public async Task<ApiResponse<AuditLogDto>> GetAuditLogByIdAsync(Guid id)
@@ -60,11 +65,21 @@ namespace SmartTelehealth.Application.Services
                     auditLog.UserAgent = httpContext.Request.Headers["User-Agent"].ToString();
                 }
 
+                // Encrypt sensitive data for payment events
+                if (auditLog.EntityType == "Payment")
+                {
+                    auditLog.Description = EncryptSensitiveData(auditLog.Description);
+                    if (!string.IsNullOrEmpty(auditLog.EntityId))
+                    {
+                        auditLog.EntityId = EncryptSensitiveData(auditLog.EntityId);
+                    }
+                }
+
                 var createdLog = await _auditLogRepository.CreateAsync(auditLog);
                 
-                // Also log to file for debugging
-                _logger.LogInformation("AUDIT: {Action} by {UserId} on {EntityType} {EntityId} - {Description}",
-                    auditLog.Action, auditLog.UserId, auditLog.EntityType, auditLog.EntityId, auditLog.Description);
+                // Log to file with sanitized data
+                _logger.LogInformation("AUDIT: {Action} by {UserId} on {EntityType} - {SanitizedDescription}",
+                    auditLog.Action, auditLog.UserId, auditLog.EntityType, SanitizeDescription(auditLog.Description));
 
                 var dto = _mapper.Map<AuditLogDto>(createdLog);
                 return ApiResponse<AuditLogDto>.SuccessResponse(dto, "Audit log created successfully", 201);
@@ -232,13 +247,19 @@ namespace SmartTelehealth.Application.Services
 
         public async Task LogPaymentEventAsync(string userId, string action, string? entityId = null, string? status = null, string? errorMessage = null)
         {
+            // Sanitize payment data for logging
+            var sanitizedEntityId = SanitizePaymentData(entityId);
+            var sanitizedErrorMessage = SanitizePaymentData(errorMessage);
+            
             var createDto = new CreateAuditLogDto
             {
                 Action = action,
                 EntityType = "Payment",
-                EntityId = entityId ?? "",
+                EntityId = sanitizedEntityId ?? "",
                 UserId = userId,
-                Description = $"Payment {action} for user {userId}"
+                Description = $"Payment {action} for user {userId}",
+                Status = status,
+                ErrorMessage = sanitizedErrorMessage
             };
 
             await CreateAuditLogAsync(createDto);
@@ -270,6 +291,96 @@ namespace SmartTelehealth.Application.Services
             };
 
             await CreateAuditLogAsync(createDto);
+        }
+
+        public async Task LogActionAsync(string entity, string action, string entityId, string description)
+        {
+            var createDto = new CreateAuditLogDto
+            {
+                Action = action,
+                EntityType = entity,
+                EntityId = entityId,
+                UserId = GetCurrentUserId(), // fallback to empty if not available
+                Description = description
+            };
+            await CreateAuditLogAsync(createDto);
+        }
+
+        // Helper to get userId from context (if available)
+        private string GetCurrentUserId()
+        {
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value;
+            return userId ?? string.Empty;
+        }
+
+        // PCI-Compliant Payment Data Sanitization
+        private string? SanitizePaymentData(string? data)
+        {
+            if (string.IsNullOrEmpty(data)) return data;
+
+            // Remove or mask sensitive payment information
+            var sanitized = data
+                .Replace(Regex.Replace(data, @"\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b", "****-****-****-****"), "") // Credit card numbers
+                .Replace(Regex.Replace(data, @"\b\d{3}-\d{2}-\d{4}\b", "***-**-****"), "") // SSN
+                .Replace(Regex.Replace(data, @"\b\d{3}\d{2}\d{4}\b", "******"), ""); // SSN without dashes
+
+            return sanitized;
+        }
+
+        // Encrypt sensitive data for storage
+        private string EncryptSensitiveData(string data)
+        {
+            try
+            {
+                using var aes = Aes.Create();
+                aes.Key = Encoding.UTF8.GetBytes(_encryptionKey.PadRight(32).Substring(0, 32));
+                aes.IV = new byte[16];
+
+                using var encryptor = aes.CreateEncryptor();
+                var dataBytes = Encoding.UTF8.GetBytes(data);
+                var encryptedBytes = encryptor.TransformFinalBlock(dataBytes, 0, dataBytes.Length);
+                
+                return Convert.ToBase64String(encryptedBytes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error encrypting sensitive data");
+                return "[ENCRYPTION_ERROR]";
+            }
+        }
+
+        // Decrypt sensitive data for retrieval
+        private string DecryptSensitiveData(string encryptedData)
+        {
+            try
+            {
+                using var aes = Aes.Create();
+                aes.Key = Encoding.UTF8.GetBytes(_encryptionKey.PadRight(32).Substring(0, 32));
+                aes.IV = new byte[16];
+
+                using var decryptor = aes.CreateDecryptor();
+                var encryptedBytes = Convert.FromBase64String(encryptedData);
+                var decryptedBytes = decryptor.TransformFinalBlock(encryptedBytes, 0, encryptedBytes.Length);
+                
+                return Encoding.UTF8.GetString(decryptedBytes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error decrypting sensitive data");
+                return "[DECRYPTION_ERROR]";
+            }
+        }
+
+        // Sanitize description for file logging
+        private string SanitizeDescription(string description)
+        {
+            if (string.IsNullOrEmpty(description)) return description;
+
+            // Remove sensitive patterns from log output
+            return Regex.Replace(description, 
+                @"(?:payment|card|account|routing|swift|iban|bic)\s*[:=]\s*\S+", 
+                "[REDACTED]", 
+                RegexOptions.IgnoreCase);
         }
     }
 } 

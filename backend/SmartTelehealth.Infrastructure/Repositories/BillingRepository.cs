@@ -41,5 +41,19 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .Where(br => br.BillingCycleId == billingCycleId)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<BillingRecord>> GetOverdueRecordsAsync()
+        {
+            return await _context.BillingRecords
+                .Where(br => br.Status == BillingRecord.BillingStatus.Pending && br.DueDate < DateTime.UtcNow)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<BillingRecord>> GetPendingRecordsAsync()
+        {
+            return await _context.BillingRecords
+                .Where(br => br.Status == BillingRecord.BillingStatus.Pending)
+                .ToListAsync();
+        }
     }
 } 

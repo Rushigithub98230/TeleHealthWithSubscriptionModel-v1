@@ -17,6 +17,7 @@ public interface INotificationService
     Task SendSubscriptionConfirmationAsync(string email, string userName, SubscriptionDto subscription);
     Task SendSubscriptionWelcomeEmailAsync(string email, string userName, SubscriptionDto subscription);
     Task SendSubscriptionCancellationEmailAsync(string email, string userName, SubscriptionDto subscription);
+    Task SendSubscriptionSuspensionEmailAsync(string email, string userName, SubscriptionDto subscription);
     Task SendPaymentReminderAsync(string email, string userName, BillingRecordDto billingRecord);
     Task SendConsultationReminderAsync(string email, string userName, ConsultationDto consultation);
     Task SendPasswordResetEmailAsync(string email, string resetToken);
@@ -41,4 +42,10 @@ public interface INotificationService
     // Utility methods
     Task<ApiResponse<bool>> IsEmailValidAsync(string email);
     Task<ApiResponse<bool>> SendSmsAsync(string phoneNumber, string message);
+    Task SendNotificationAsync(string userId, string title, string message);
+    
+    // Added missing methods for BillingService and AutomatedBillingService
+    Task SendSubscriptionSuspendedNotificationAsync(string userId, string subscriptionId);
+    Task SendRefundNotificationAsync(string userId, decimal amount, string billingRecordId);
+    Task SendSubscriptionReactivatedNotificationAsync(string userId, string subscriptionId);
 } 

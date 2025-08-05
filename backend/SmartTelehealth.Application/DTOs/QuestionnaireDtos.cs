@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SmartTelehealth.Core.Entities;
 
 namespace SmartTelehealth.Application.DTOs
 {
@@ -27,22 +28,28 @@ namespace SmartTelehealth.Application.DTOs
     {
         public Guid Id { get; set; }
         public string Text { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
+        public QuestionType Type { get; set; } = QuestionType.Text;
         public bool IsRequired { get; set; }
         public int Order { get; set; }
         public string? HelpText { get; set; }
         public string? MediaUrl { get; set; }
+        public decimal? MinValue { get; set; }
+        public decimal? MaxValue { get; set; }
+        public decimal? StepValue { get; set; }
         public List<QuestionOptionDto> Options { get; set; } = new();
     }
 
     public class CreateQuestionDto
     {
         public string Text { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
+        public QuestionType Type { get; set; } = QuestionType.Text;
         public bool IsRequired { get; set; }
         public int Order { get; set; }
         public string? HelpText { get; set; }
         public string? MediaUrl { get; set; }
+        public decimal? MinValue { get; set; }
+        public decimal? MaxValue { get; set; }
+        public decimal? StepValue { get; set; }
         public List<CreateQuestionOptionDto> Options { get; set; } = new();
     }
 
@@ -69,6 +76,7 @@ namespace SmartTelehealth.Application.DTOs
         public Guid UserId { get; set; }
         public Guid CategoryId { get; set; }
         public Guid TemplateId { get; set; }
+        public ResponseStatus Status { get; set; } = ResponseStatus.Completed;
         public List<UserAnswerDto> Answers { get; set; } = new();
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
@@ -79,6 +87,7 @@ namespace SmartTelehealth.Application.DTOs
         public Guid UserId { get; set; }
         public Guid CategoryId { get; set; }
         public Guid TemplateId { get; set; }
+        public ResponseStatus Status { get; set; } = ResponseStatus.Completed;
         public List<CreateUserAnswerDto> Answers { get; set; } = new();
     }
 
@@ -87,6 +96,8 @@ namespace SmartTelehealth.Application.DTOs
         public Guid Id { get; set; }
         public Guid QuestionId { get; set; }
         public string? AnswerText { get; set; }
+        public decimal? NumericValue { get; set; }
+        public DateTime? DateTimeValue { get; set; }
         public List<Guid> SelectedOptionIds { get; set; } = new();
         public DateTime CreatedAt { get; set; }
     }
@@ -95,6 +106,8 @@ namespace SmartTelehealth.Application.DTOs
     {
         public Guid QuestionId { get; set; }
         public string? AnswerText { get; set; }
+        public decimal? NumericValue { get; set; }
+        public DateTime? DateTimeValue { get; set; }
         public List<Guid> SelectedOptionIds { get; set; } = new();
     }
 } 

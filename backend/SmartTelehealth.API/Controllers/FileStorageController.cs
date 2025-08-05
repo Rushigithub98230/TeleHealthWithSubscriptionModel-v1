@@ -77,7 +77,7 @@ public class FileStorageController : ControllerBase
                     
                     fileUploads.Add(new FileUploadDto
                     {
-                        FileData = memoryStream.ToArray(),
+                        Content = memoryStream.ToArray(),
                         FileName = file.FileName,
                         ContentType = file.ContentType
                     });

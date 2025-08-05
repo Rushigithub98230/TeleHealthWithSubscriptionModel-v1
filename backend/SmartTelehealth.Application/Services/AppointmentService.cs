@@ -21,6 +21,8 @@ public class AppointmentService : IAppointmentService
     private readonly INotificationService _notificationService;
     private readonly IStripeService _stripeService;
     private readonly IParticipantRoleRepository _participantRoleRepository;
+    private readonly IDocumentService _documentService;
+    private readonly IDocumentTypeService _documentTypeService;
     // Add other dependencies as needed (e.g., chat, audit, config)
 
     private const int DefaultMaxParticipants = 8;
@@ -34,7 +36,9 @@ public class AppointmentService : IAppointmentService
         IOpenTokService openTokService,
         INotificationService notificationService,
         IStripeService stripeService,
-        IParticipantRoleRepository participantRoleRepository
+        IParticipantRoleRepository participantRoleRepository,
+        IDocumentService documentService,
+        IDocumentTypeService documentTypeService
     )
     {
         _appointmentRepository = appointmentRepository;
@@ -46,6 +50,139 @@ public class AppointmentService : IAppointmentService
         _notificationService = notificationService;
         _stripeService = stripeService;
         _participantRoleRepository = participantRoleRepository;
+        _documentService = documentService;
+        _documentTypeService = documentTypeService;
+    }
+
+    // --- DOCUMENT MANAGEMENT (Updated to use centralized DocumentService) ---
+    
+    public async Task<ApiResponse<DocumentDto>> UploadDocumentAsync(Guid appointmentId, UploadDocumentDto uploadDto)
+    {
+        try
+        {
+            // Validate appointment exists
+            var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
+            if (appointment == null)
+                return ApiResponse<DocumentDto>.ErrorResponse("Appointment not found", 404);
+
+            // Convert base64 to bytes
+            byte[] fileBytes;
+            try
+            {
+                fileBytes = Convert.FromBase64String(uploadDto.FileContent);
+            }
+            catch
+            {
+                return ApiResponse<DocumentDto>.ErrorResponse("Invalid file content format", 400);
+            }
+
+            // Get document type for appointment documents (you can make this configurable)
+            var appointmentDocumentTypes = await _documentTypeService.GetAllDocumentTypesAsync(true);
+            var appointmentDocType = appointmentDocumentTypes.Data?.FirstOrDefault(dt => 
+                dt.Name.ToLower().Contains("appointment") || 
+                dt.Name.ToLower().Contains("medical") ||
+                dt.Name.ToLower().Contains("report"));
+
+            if (appointmentDocType == null)
+            {
+                return ApiResponse<DocumentDto>.ErrorResponse("No suitable document type found for appointment documents", 400);
+            }
+
+            // Create upload request for centralized document service
+            var uploadRequest = new UploadDocumentRequest
+            {
+                FileData = fileBytes,
+                FileName = uploadDto.FileName,
+                ContentType = uploadDto.FileType,
+                EntityType = "Appointment",
+                EntityId = appointmentId,
+                ReferenceType = "appointment_document",
+                Description = $"Document uploaded for appointment {appointmentId}",
+                IsPublic = false,
+                IsEncrypted = false,
+                DocumentTypeId = appointmentDocType.DocumentTypeId,
+                CreatedById = appointment.PatientId // or get from current user context
+            };
+
+            // Upload using centralized document service
+            var result = await _documentService.UploadDocumentAsync(uploadRequest);
+            
+            if (result.Success)
+            {
+                // Update appointment document count
+                appointment.DocumentCount++;
+                await _appointmentRepository.UpdateAsync(appointment);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<DocumentDto>.ErrorResponse($"Failed to upload document: {ex.Message}");
+        }
+    }
+
+    public async Task<ApiResponse<IEnumerable<DocumentDto>>> GetAppointmentDocumentsAsync(Guid appointmentId)
+    {
+        try
+        {
+            // Validate appointment exists
+            var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
+            if (appointment == null)
+                return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse("Appointment not found", 404);
+
+            // Get documents using centralized document service
+            var documentsResult = await _documentService.GetDocumentsByEntityAsync("Appointment", appointmentId);
+            
+            if (documentsResult.Success)
+            {
+                return ApiResponse<IEnumerable<DocumentDto>>.SuccessResponse(documentsResult.Data);
+            }
+
+            return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse("Failed to retrieve appointment documents");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse($"Failed to get appointment documents: {ex.Message}");
+        }
+    }
+
+    public async Task<ApiResponse<bool>> DeleteDocumentAsync(Guid documentId)
+    {
+        try
+        {
+            // Get current user ID from context (you'll need to implement this based on your authentication)
+            var currentUserId = Guid.Empty; // Replace with actual user ID from context
+
+            // Delete using centralized document service
+            var result = await _documentService.DeleteDocumentAsync(documentId, currentUserId);
+            
+            if (result.Success)
+            {
+                // Update appointment document count
+                var document = await _documentService.GetDocumentAsync(documentId);
+                if (document.Success && document.Data != null)
+                {
+                    var references = document.Data.References;
+                    var appointmentRef = references.FirstOrDefault(r => r.EntityType == "Appointment");
+                    if (appointmentRef != null && Guid.TryParse(appointmentRef.EntityId.ToString(), out var appointmentId))
+                    {
+                        var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
+                        if (appointment != null)
+                        {
+                            appointment.DocumentCount = Math.Max(0, appointment.DocumentCount - 1);
+                            await _appointmentRepository.UpdateAsync(appointment);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<bool>.ErrorResponse($"Failed to delete document: {ex.Message}");
+        }
     }
 
     // --- PARTICIPANT MANAGEMENT ---
@@ -98,12 +235,11 @@ public class AppointmentService : IAppointmentService
             };
             await _invitationRepository.CreateAsync(invitation);
             // Send email/SMS with meeting link (stub)
-            // await _notificationService.SendAppointmentInviteAsync(email, phone, appointmentId, message); // Uncomment if implemented
             return ApiResponse<AppointmentInvitationDto>.SuccessResponse(MapToDto(invitation));
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentInvitationDto>.ErrorResponse($"Failed to invite external user: {ex.Message}");
+            return ApiResponse<AppointmentInvitationDto>.ErrorResponse($"Failed to invite external: {ex.Message}");
         }
     }
 
@@ -1005,24 +1141,6 @@ public class AppointmentService : IAppointmentService
     public Task<ApiResponse<PaymentStatusDto>> GetPaymentStatusAsync(Guid appointmentId)
     {
         // TODO: Implement get payment status
-        throw new NotImplementedException();
-    }
-
-    public Task<ApiResponse<AppointmentDocumentDto>> UploadDocumentAsync(Guid appointmentId, UploadDocumentDto uploadDto)
-    {
-        // TODO: Implement upload document
-        throw new NotImplementedException();
-    }
-
-    public Task<ApiResponse<IEnumerable<AppointmentDocumentDto>>> GetAppointmentDocumentsAsync(Guid appointmentId)
-    {
-        // TODO: Implement get appointment documents
-        throw new NotImplementedException();
-    }
-
-    public Task<ApiResponse<bool>> DeleteDocumentAsync(Guid documentId)
-    {
-        // TODO: Implement delete document
         throw new NotImplementedException();
     }
 

@@ -15,6 +15,8 @@ public interface IStripeService
     Task<bool> SetDefaultPaymentMethodAsync(string customerId, string paymentMethodId);
     Task<bool> RemovePaymentMethodAsync(string customerId, string paymentMethodId);
     Task<IEnumerable<PaymentMethodDto>> GetCustomerPaymentMethodsAsync(string customerId);
+    Task<bool> ValidatePaymentMethodAsync(string paymentMethodId);
+    Task<PaymentMethodValidationDto> ValidatePaymentMethodDetailedAsync(string paymentMethodId);
     
     // Product Management
     Task<string> CreateProductAsync(string name, string description);

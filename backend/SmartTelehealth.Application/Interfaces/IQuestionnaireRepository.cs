@@ -14,6 +14,7 @@ namespace SmartTelehealth.Application.Interfaces
         Task UpdateTemplateAsync(QuestionnaireTemplate template);
         Task DeleteTemplateAsync(Guid id);
         Task<UserResponse?> GetUserResponseAsync(Guid userId, Guid templateId);
+        Task<UserResponse?> GetUserResponseByIdAsync(Guid id);
         Task<IEnumerable<UserResponse>> GetUserResponsesByCategoryAsync(Guid userId, Guid categoryId);
         Task AddUserResponseAsync(UserResponse response);
     }

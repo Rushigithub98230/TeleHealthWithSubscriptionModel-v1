@@ -104,12 +104,31 @@ namespace SmartTelehealth.Application.DTOs
         public decimal MonthlyGrowth { get; set; }
         public Dictionary<string, int> SubscriptionsByPlan { get; set; } = new();
         public Dictionary<string, int> SubscriptionsByStatus { get; set; } = new();
+        
+        // Additional properties for individual subscription analytics
+        public string SubscriptionId { get; set; } = string.Empty;
+        public string PlanName { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime StartDate { get; set; }
+        public DateTime NextBillingDate { get; set; }
+        public decimal TotalAmountPaid { get; set; }
+        public int PaymentCount { get; set; }
+        public decimal AveragePaymentAmount { get; set; }
+        public UsageStatisticsDto UsageStatistics { get; set; } = new();
+        public List<PaymentHistoryDto> PaymentHistory { get; set; } = new();
     }
 
     public class BillingAnalyticsDto
     {
+        public int TotalBillingRecords { get; set; } // Added
+        public int PendingBillingRecords { get; set; } // Added
+        public int PaidBillingRecords { get; set; } // Added
+        public int FailedBillingRecords { get; set; } // Added
         public decimal TotalRevenue { get; set; }
-        public decimal MonthlyRevenue { get; set; }
+        public decimal AverageBillingAmount { get; set; } // Added
+        public List<MonthlyRevenueDto> MonthlyRevenue { get; set; } = new(); // Added
+        public List<BillingStatusDto> BillingStatuses { get; set; } = new(); // Added
+        public List<PaymentMethodDto> PaymentMethods { get; set; } = new(); // Added
         public decimal OutstandingAmount { get; set; }
         public decimal PaidAmount { get; set; }
         public int TotalInvoices { get; set; }
@@ -242,5 +261,20 @@ namespace SmartTelehealth.Application.DTOs
         public string Endpoint { get; set; } = string.Empty;
         public string UserAgent { get; set; } = string.Empty;
         public string IpAddress { get; set; } = string.Empty;
+    }
+
+    // Added missing DTOs for BillingAnalyticsDto
+    public class MonthlyRevenueDto
+    {
+        public string Month { get; set; } = string.Empty;
+        public decimal Revenue { get; set; }
+        public int BillingCount { get; set; }
+    }
+
+    public class BillingStatusDto
+    {
+        public string Status { get; set; } = string.Empty;
+        public int Count { get; set; }
+        public decimal TotalAmount { get; set; }
     }
 } 

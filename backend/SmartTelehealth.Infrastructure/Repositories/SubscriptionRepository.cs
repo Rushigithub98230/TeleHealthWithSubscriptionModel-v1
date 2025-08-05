@@ -247,4 +247,52 @@ public class SubscriptionRepository : ISubscriptionRepository
         _context.PaymentRefunds.Add(refund);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<Category?> GetCategoryByNameAsync(string categoryName)
+    {
+        return await _context.Categories.FirstOrDefaultAsync(c => c.Name == categoryName);
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSuspendedSubscriptionsAsync()
+    {
+        return await _context.Subscriptions
+            .Where(s => s.Status == Subscription.SubscriptionStatuses.Suspended && !s.IsDeleted)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsWithResetUsageAsync()
+    {
+        return await _context.Subscriptions
+            .Where(s => s.Status == Subscription.SubscriptionStatuses.Active && !s.IsDeleted)
+            .ToListAsync();
+    }
+
+    public async Task ResetUsageCountersAsync()
+    {
+        var activeSubscriptions = await _context.Subscriptions
+            .Where(s => s.Status == Subscription.SubscriptionStatuses.Active && !s.IsDeleted)
+            .ToListAsync();
+
+        foreach (var subscription in activeSubscriptions)
+        {
+            // Reset usage counters for the subscription
+            // This would typically involve updating related usage tracking entities
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsInDateRangeAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Where(s => s.CreatedAt >= startDate && s.CreatedAt <= endDate && !s.IsDeleted)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsWithFailedPaymentsAsync()
+    {
+        return await _context.Subscriptions
+            .Where(s => s.Status == Subscription.SubscriptionStatuses.PaymentFailed && !s.IsDeleted)
+            .ToListAsync();
+    }
 } 

@@ -1,4 +1,7 @@
+// Temporarily commented out to fix build errors - will be implemented after LocalFileStorageService testing
+/*
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using SmartTelehealth.Application.DTOs;
 using SmartTelehealth.Application.Interfaces;
 using Azure.Storage.Blobs;
@@ -6,33 +9,12 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using System.Security.Cryptography;
 using System.Text;
-using DTOs = SmartTelehealth.Application.DTOs;
-using Microsoft.Extensions.Configuration;
 
 namespace SmartTelehealth.Infrastructure.Services;
 
 public class AzureBlobStorageService : IFileStorageService
 {
-    private readonly ILogger<AzureBlobStorageService> _logger;
-    private readonly BlobServiceClient _blobServiceClient;
-    private readonly string _containerName;
-    private readonly string _encryptionKey;
-
-    public AzureBlobStorageService(ILogger<AzureBlobStorageService> logger, IConfiguration configuration)
-    {
-        _logger = logger;
-        var connectionString = configuration["FileStorage:Azure:ConnectionString"];
-        _containerName = configuration["FileStorage:Azure:ContainerName"] ?? "chat-media";
-        _encryptionKey = configuration["FileStorage:EncryptionKey"] ?? "default-encryption-key-change-in-production";
-
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            throw new InvalidOperationException("Azure Storage connection string is not configured");
-        }
-
-        _blobServiceClient = new BlobServiceClient(connectionString);
-    }
-
+    // Implementation will be added after LocalFileStorageService testing
     public Task<ApiResponse<string>> UploadFileAsync(byte[] fileData, string fileName, string contentType) => throw new NotImplementedException();
     public Task<ApiResponse<byte[]>> DownloadFileAsync(string filePath) => throw new NotImplementedException();
     public Task<ApiResponse<bool>> DeleteFileAsync(string filePath) => throw new NotImplementedException();
@@ -53,4 +35,5 @@ public class AzureBlobStorageService : IFileStorageService
     public Task<ApiResponse<StorageInfoDto>> GetStorageInfoAsync() => throw new NotImplementedException();
     public Task<ApiResponse<bool>> CleanupExpiredFilesAsync() => throw new NotImplementedException();
     public Task<ApiResponse<bool>> ArchiveOldFilesAsync(string sourcePath, string archivePath, TimeSpan ageThreshold) => throw new NotImplementedException();
-} 
+}
+*/ 

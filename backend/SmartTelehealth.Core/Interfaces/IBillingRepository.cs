@@ -17,4 +17,8 @@ public interface IBillingRepository
     Task<IEnumerable<BillingAdjustment>> GetAdjustmentsByBillingRecordIdAsync(Guid billingRecordId);
     Task<IEnumerable<BillingRecord>> GetAllAsync();
     Task<IEnumerable<BillingRecord>> GetByBillingCycleIdAsync(Guid billingCycleId);
+    
+    // Added missing methods for BillingService
+    Task<IEnumerable<BillingRecord>> GetOverdueRecordsAsync();
+    Task<IEnumerable<BillingRecord>> GetPendingRecordsAsync();
 } 

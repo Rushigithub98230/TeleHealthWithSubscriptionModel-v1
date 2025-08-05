@@ -68,8 +68,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<SubscriptionPlanPrivilege> SubscriptionPlanPrivileges { get; set; }
     public DbSet<UserSubscriptionPrivilegeUsage> UserSubscriptionPrivilegeUsages { get; set; }
     
-    public DbSet<CategoryQuestion> CategoryQuestions { get; set; }
-    public DbSet<CategoryQuestionAnswer> CategoryQuestionAnswers { get; set; }
+            // CategoryQuestion and CategoryQuestionAnswer removed - redundant with Questionnaire system
     public DbSet<SubscriptionStatusHistory> SubscriptionStatusHistories { get; set; }
     public DbSet<PaymentRefund> PaymentRefunds { get; set; }
     
@@ -79,6 +78,16 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<UserResponse> UserResponses { get; set; }
     public DbSet<UserAnswer> UserAnswers { get; set; }
     public DbSet<UserAnswerOption> UserAnswerOptions { get; set; }
+    
+    public DbSet<ProviderOnboarding> ProviderOnboardings { get; set; }
+    public DbSet<ProviderFee> ProviderFees { get; set; }
+    public DbSet<CategoryFeeRange> CategoryFeeRanges { get; set; }
+    
+    // Chat-related entities
+    public DbSet<ChatSession> ChatSessions { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
+    public DbSet<ChatAttachment> ChatAttachments { get; set; }
+    public DbSet<ServiceConstraint> ServiceConstraints { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -118,6 +127,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         ConfigureSubscriptionPayment(builder);
         ConfigureSubscriptionStatusHistory(builder);
         ConfigurePaymentRefund(builder);
+        ConfigureCategoryFeeRange(builder);
+        ConfigureProviderFee(builder);
         ConfigureQuestionnaireSystem(builder);
     }
     
@@ -1202,46 +1213,297 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         });
     }
 
+    private void ConfigureCategoryFeeRange(ModelBuilder builder)
+    {
+        builder.Entity<CategoryFeeRange>(entity =>
+        {
+            entity.ToTable("CategoryFeeRanges");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CategoryId).IsRequired();
+            entity.Property(e => e.MinimumFee).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.MaximumFee).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.PlatformCommission).IsRequired().HasPrecision(18, 2);
+            entity.HasOne(e => e.Category)
+                .WithMany()
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private void ConfigureProviderFee(ModelBuilder builder)
+    {
+        builder.Entity<ProviderFee>(entity =>
+        {
+            entity.ToTable("ProviderFees");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ProviderId).IsRequired();
+            entity.Property(e => e.CategoryId).IsRequired();
+            entity.Property(e => e.ProposedFee).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.ApprovedFee).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+            entity.HasOne(e => e.Provider)
+                .WithMany()
+                .HasForeignKey(e => e.ProviderId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Category)
+                .WithMany()
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
     private void ConfigureQuestionnaireSystem(ModelBuilder builder)
     {
         builder.Entity<QuestionnaireTemplate>(entity =>
         {
+            entity.ToTable("QuestionnaireTemplates");
+            entity.HasKey(e => e.Id);
+            
+            // Properties
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.CategoryId).IsRequired();
+            entity.Property(e => e.IsActive).IsRequired();
+            entity.Property(e => e.Version).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.IsDeleted).IsRequired();
+            
+            // Relationships
+            entity.HasOne<Category>()
+                  .WithMany()
+                  .HasForeignKey(e => e.CategoryId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            
             entity.HasMany(q => q.Questions)
                   .WithOne(q => q.Template)
                   .HasForeignKey(q => q.TemplateId)
                   .OnDelete(DeleteBehavior.Cascade);
+                  
+            entity.HasMany(q => q.UserResponses)
+                  .WithOne(r => r.Template)
+                  .HasForeignKey(r => r.TemplateId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            
+            // Indexes
+            entity.HasIndex(e => e.CategoryId);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.IsDeleted);
+            entity.HasIndex(e => new { e.CategoryId, e.IsActive, e.IsDeleted });
         });
+        
         builder.Entity<Question>(entity =>
         {
+            entity.ToTable("Questions");
+            entity.HasKey(e => e.Id);
+            
+            // Properties
+            entity.Property(e => e.TemplateId).IsRequired();
+            entity.Property(e => e.Text).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.Type).IsRequired().HasConversion<int>();
+            entity.Property(e => e.IsRequired).IsRequired();
+            entity.Property(e => e.Order).IsRequired();
+            entity.Property(e => e.HelpText).HasMaxLength(200);
+            entity.Property(e => e.MediaUrl).HasMaxLength(500);
+            entity.Property(e => e.MinValue).HasPrecision(18, 2);
+            entity.Property(e => e.MaxValue).HasPrecision(18, 2);
+            entity.Property(e => e.StepValue).HasPrecision(18, 2);
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.IsDeleted).IsRequired();
+            
+            // Relationships
+            entity.HasOne(q => q.Template)
+                  .WithMany(t => t.Questions)
+                  .HasForeignKey(q => q.TemplateId)
+                  .OnDelete(DeleteBehavior.Cascade);
+                  
             entity.HasMany(q => q.Options)
                   .WithOne(o => o.Question)
                   .HasForeignKey(o => o.QuestionId)
                   .OnDelete(DeleteBehavior.Cascade);
+                  
+            entity.HasMany(q => q.UserAnswers)
+                  .WithOne(a => a.Question)
+                  .HasForeignKey(a => a.QuestionId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            
+            // Indexes
+            entity.HasIndex(e => e.TemplateId);
+            entity.HasIndex(e => e.Order);
+            entity.HasIndex(e => e.Type);
+            entity.HasIndex(e => e.IsDeleted);
+            entity.HasIndex(e => new { e.TemplateId, e.Order });
+            entity.HasIndex(e => new { e.TemplateId, e.IsDeleted });
+            
+            // Constraints
+            entity.HasCheckConstraint("CK_Questions_Order_Positive", "[Order] > 0");
+            entity.HasCheckConstraint("CK_Questions_Range_Values", 
+                "([Type] != 6) OR ([MinValue] IS NULL AND [MaxValue] IS NULL) OR ([MinValue] IS NOT NULL AND [MaxValue] IS NOT NULL AND [MinValue] < [MaxValue])");
         });
+        
+        builder.Entity<QuestionOption>(entity =>
+        {
+            entity.ToTable("QuestionOptions");
+            entity.HasKey(e => e.Id);
+            
+            // Properties
+            entity.Property(e => e.QuestionId).IsRequired();
+            entity.Property(e => e.Text).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Value).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Order).IsRequired();
+            entity.Property(e => e.MediaUrl).HasMaxLength(500);
+            entity.Property(e => e.IsCorrect).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.IsDeleted).IsRequired();
+            
+            // Relationships
+            entity.HasOne(o => o.Question)
+                  .WithMany(q => q.Options)
+                  .HasForeignKey(o => o.QuestionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+                  
+            entity.HasMany(o => o.UserAnswerOptions)
+                  .WithOne(uao => uao.Option)
+                  .HasForeignKey(uao => uao.OptionId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            
+            // Indexes
+            entity.HasIndex(e => e.QuestionId);
+            entity.HasIndex(e => e.Order);
+            entity.HasIndex(e => e.IsCorrect);
+            entity.HasIndex(e => e.IsDeleted);
+            entity.HasIndex(e => new { e.QuestionId, e.Order });
+            entity.HasIndex(e => new { e.QuestionId, e.IsDeleted });
+            
+            // Constraints
+            entity.HasCheckConstraint("CK_QuestionOptions_Order_Positive", "[Order] > 0");
+        });
+        
         builder.Entity<UserResponse>(entity =>
         {
+            entity.ToTable("UserResponses");
+            entity.HasKey(e => e.Id);
+            
+            // Properties
+            entity.Property(e => e.UserId).IsRequired();
+            entity.Property(e => e.CategoryId).IsRequired();
+            entity.Property(e => e.TemplateId).IsRequired();
+            entity.Property(e => e.Status).IsRequired().HasConversion<int>();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.IsDeleted).IsRequired();
+            
+            // Relationships
+            entity.HasOne<Category>()
+                  .WithMany()
+                  .HasForeignKey(e => e.CategoryId)
+                  .OnDelete(DeleteBehavior.Restrict);
+                  
+            entity.HasOne(r => r.Template)
+                  .WithMany(t => t.UserResponses)
+                  .HasForeignKey(r => r.TemplateId)
+                  .OnDelete(DeleteBehavior.Restrict);
+                  
             entity.HasMany(r => r.Answers)
                   .WithOne(a => a.Response)
                   .HasForeignKey(a => a.ResponseId)
                   .OnDelete(DeleteBehavior.Cascade);
+            
+            // Indexes
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.CategoryId);
+            entity.HasIndex(e => e.TemplateId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.IsDeleted);
+            entity.HasIndex(e => new { e.UserId, e.TemplateId });
+            entity.HasIndex(e => new { e.UserId, e.Status, e.IsDeleted });
+            
+            // Constraints
+            entity.HasCheckConstraint("CK_UserResponses_Status_Valid", 
+                "[Status] IN (1, 2, 3, 4, 5, 6, 7)");
         });
+        
         builder.Entity<UserAnswer>(entity =>
         {
-            entity.HasMany(a => a.SelectedOptions)
-                  .WithOne(o => o.Answer)
-                  .HasForeignKey(o => o.AnswerId)
+            entity.ToTable("UserAnswers");
+            entity.HasKey(e => e.Id);
+            
+            // Properties
+            entity.Property(e => e.ResponseId).IsRequired();
+            entity.Property(e => e.QuestionId).IsRequired();
+            entity.Property(e => e.AnswerText).HasMaxLength(4000);
+            entity.Property(e => e.NumericValue).HasPrecision(18, 2);
+            entity.Property(e => e.DateTimeValue).IsRequired(false);
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.IsDeleted).IsRequired();
+            
+            // Relationships
+            entity.HasOne(a => a.Response)
+                  .WithMany(r => r.Answers)
+                  .HasForeignKey(a => a.ResponseId)
                   .OnDelete(DeleteBehavior.Cascade);
+                  
+            entity.HasOne(a => a.Question)
+                  .WithMany(q => q.UserAnswers)
+                  .HasForeignKey(a => a.QuestionId)
+                  .OnDelete(DeleteBehavior.Restrict);
+                  
+            entity.HasMany(a => a.SelectedOptions)
+                  .WithOne(uao => uao.Answer)
+                  .HasForeignKey(uao => uao.AnswerId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            // Indexes
+            entity.HasIndex(e => e.ResponseId);
+            entity.HasIndex(e => e.QuestionId);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.IsDeleted);
+            entity.HasIndex(e => new { e.ResponseId, e.QuestionId });
+            entity.HasIndex(e => new { e.ResponseId, e.IsDeleted });
+            
+            // Constraints
+            entity.HasCheckConstraint("CK_UserAnswers_Answer_Type_Valid", 
+                "([AnswerText] IS NOT NULL) OR ([NumericValue] IS NOT NULL) OR ([DateTimeValue] IS NOT NULL) OR EXISTS (SELECT 1 FROM UserAnswerOptions WHERE AnswerId = Id)");
         });
+        
         builder.Entity<UserAnswerOption>(entity =>
         {
-            entity.HasOne(o => o.Answer)
+            entity.ToTable("UserAnswerOptions");
+            entity.HasKey(e => e.Id);
+            
+            // Properties
+            entity.Property(e => e.AnswerId).IsRequired();
+            entity.Property(e => e.OptionId).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.IsDeleted).IsRequired();
+            
+            // Relationships
+            entity.HasOne(uao => uao.Answer)
                   .WithMany(a => a.SelectedOptions)
-                  .HasForeignKey(o => o.AnswerId)
+                  .HasForeignKey(uao => uao.AnswerId)
+                  .OnDelete(DeleteBehavior.Cascade);
+                  
+            entity.HasOne(uao => uao.Option)
+                  .WithMany(o => o.UserAnswerOptions)
+                  .HasForeignKey(uao => uao.OptionId)
                   .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(o => o.Option)
-                  .WithMany()
-                  .HasForeignKey(o => o.OptionId)
-                  .OnDelete(DeleteBehavior.Restrict);
+            
+            // Indexes
+            entity.HasIndex(e => e.AnswerId);
+            entity.HasIndex(e => e.OptionId);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.IsDeleted);
+            entity.HasIndex(e => new { e.AnswerId, e.OptionId });
+            
+            // Unique constraint to prevent duplicate selections
+            entity.HasIndex(e => new { e.AnswerId, e.OptionId, e.IsDeleted })
+                  .IsUnique()
+                  .HasFilter("[IsDeleted] = 0");
         });
     }
 } 

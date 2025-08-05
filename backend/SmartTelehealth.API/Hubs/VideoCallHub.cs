@@ -262,7 +262,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.ToggleVideoAsync(Guid.Parse(callId), userId, enabled);
+            var result = await _videoCallService.ToggleVideoAsync(Guid.Parse(callId), enabled);
             
             if (result.Success)
             {
@@ -291,7 +291,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.ToggleAudioAsync(Guid.Parse(callId), userId, enabled);
+            var result = await _videoCallService.ToggleAudioAsync(Guid.Parse(callId), enabled);
             
             if (result.Success)
             {
@@ -320,7 +320,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.StartScreenSharingAsync(Guid.Parse(callId), userId);
+            var result = await _videoCallService.StartScreenSharingAsync(Guid.Parse(callId));
             
             if (result.Success)
             {
@@ -349,7 +349,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.StopScreenSharingAsync(Guid.Parse(callId), userId);
+            var result = await _videoCallService.StopScreenSharingAsync(Guid.Parse(callId));
             
             if (result.Success)
             {
@@ -378,14 +378,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var qualityDto = new UpdateCallQualityDto
-            {
-                AudioQuality = audioQuality,
-                VideoQuality = videoQuality,
-                NetworkQuality = networkQuality
-            };
-
-            var result = await _videoCallService.UpdateCallQualityAsync(Guid.Parse(callId), userId, qualityDto);
+            var result = await _videoCallService.UpdateCallQualityAsync(Guid.Parse(callId), audioQuality, videoQuality, networkQuality);
             
             if (result.Success)
             {

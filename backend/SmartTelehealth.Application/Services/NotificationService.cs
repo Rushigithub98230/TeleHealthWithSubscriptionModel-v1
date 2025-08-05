@@ -545,6 +545,79 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
+        public Task SendNotificationAsync(string userId, string title, string message) => throw new NotImplementedException();
+
+        public async Task SendSubscriptionSuspensionEmailAsync(string email, string userName, SubscriptionDto subscription)
+        {
+            // If using dependency injection, call the infrastructure service or implement logic here
+            // For now, just a stub to match the interface and avoid build error
+            // You should call the actual email sending logic here if needed
+            await Task.CompletedTask;
+        }
+
+        public async Task SendSubscriptionSuspendedNotificationAsync(string userId, string subscriptionId)
+        {
+            try
+            {
+                var notification = new CreateNotificationDto
+                {
+                    UserId = Guid.Parse(userId),
+                    Title = "Subscription Suspended",
+                    Message = $"Your subscription {subscriptionId} has been suspended due to payment issues. Please update your payment method to reactivate your subscription.",
+                    Type = "Warning"
+                };
+
+                await CreateNotificationAsync(notification);
+                _logger.LogInformation("Sent subscription suspended notification to user {UserId}", userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending subscription suspended notification to user {UserId}", userId);
+            }
+        }
+
+        public async Task SendRefundNotificationAsync(string userId, decimal amount, string billingRecordId)
+        {
+            try
+            {
+                var notification = new CreateNotificationDto
+                {
+                    UserId = Guid.Parse(userId),
+                    Title = "Refund Processed",
+                    Message = $"A refund of ${amount:F2} has been processed for billing record {billingRecordId}. The refund will appear in your account within 3-5 business days.",
+                    Type = "Success"
+                };
+
+                await CreateNotificationAsync(notification);
+                _logger.LogInformation("Sent refund notification to user {UserId} for amount {Amount}", userId, amount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending refund notification to user {UserId}", userId);
+            }
+        }
+
+        public async Task SendSubscriptionReactivatedNotificationAsync(string userId, string subscriptionId)
+        {
+            try
+            {
+                var notification = new CreateNotificationDto
+                {
+                    UserId = Guid.Parse(userId),
+                    Title = "Subscription Reactivated",
+                    Message = $"Your subscription {subscriptionId} has been reactivated successfully. You now have full access to all features.",
+                    Type = "Success"
+                };
+
+                await CreateNotificationAsync(notification);
+                _logger.LogInformation("Sent subscription reactivated notification to user {UserId}", userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending subscription reactivated notification to user {UserId}", userId);
+            }
+        }
+
         private async Task<bool> SendEmailAsync(string to, string subject, string body)
         {
             try

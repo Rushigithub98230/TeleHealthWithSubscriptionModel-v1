@@ -2,22 +2,24 @@ using SmartTelehealth.Application.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace SmartTelehealth.Application.Interfaces
 {
     public interface IQuestionnaireService
     {
         // Template CRUD
-        Task<QuestionnaireTemplateDto?> GetTemplateByIdAsync(Guid id);
-        Task<IEnumerable<QuestionnaireTemplateDto>> GetTemplatesByCategoryAsync(Guid categoryId);
+        Task<ApiResponse<QuestionnaireTemplateDto>> GetTemplateByIdAsync(Guid id);
+        Task<ApiResponse<List<QuestionnaireTemplateDto>>> GetTemplatesByCategoryAsync(Guid categoryId);
         Task<IEnumerable<QuestionnaireTemplateDto>> GetAllTemplatesAsync();
-        Task<Guid> CreateTemplateAsync(CreateQuestionnaireTemplateDto dto);
-        Task UpdateTemplateAsync(Guid id, CreateQuestionnaireTemplateDto dto);
-        Task DeleteTemplateAsync(Guid id);
+        Task<ApiResponse<Guid>> CreateTemplateAsync(CreateQuestionnaireTemplateDto dto, List<IFormFile> files);
+        Task<ApiResponse<object>> UpdateTemplateAsync(Guid id, CreateQuestionnaireTemplateDto dto, List<IFormFile> files);
+        Task<ApiResponse<object>> DeleteTemplateAsync(Guid id);
 
         // User responses
-        Task<UserResponseDto?> GetUserResponseAsync(Guid userId, Guid templateId);
-        Task<IEnumerable<UserResponseDto>> GetUserResponsesByCategoryAsync(Guid userId, Guid categoryId);
-        Task<Guid> SubmitUserResponseAsync(CreateUserResponseDto dto);
+        Task<ApiResponse<UserResponseDto>> GetUserResponseAsync(Guid userId, Guid templateId);
+        Task<ApiResponse<UserResponseDto>> GetUserResponseByIdAsync(Guid id);
+        Task<ApiResponse<List<UserResponseDto>>> GetUserResponsesByCategoryAsync(Guid userId, Guid categoryId);
+        Task<ApiResponse<Guid>> SubmitUserResponseAsync(CreateUserResponseDto dto);
     }
 } 

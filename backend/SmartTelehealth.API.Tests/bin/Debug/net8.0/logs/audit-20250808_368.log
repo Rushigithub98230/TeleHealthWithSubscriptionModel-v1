@@ -1,0 +1,21 @@
+2025-08-08 17:55:28.397 +05:30 [INF] Subscription Background Service started
+2025-08-08 17:55:28.414 +05:30 [INF] Stripe service initialized successfully
+2025-08-08 17:55:28.414 +05:30 [INF] Starting automated billing process
+2025-08-08 17:55:28.414 +05:30 [INF] Starting recurring billing process
+2025-08-08 17:55:28.415 +05:30 [INF] Completed recurring billing process
+2025-08-08 17:55:28.415 +05:30 [INF] Automated billing completed
+2025-08-08 17:55:28.415 +05:30 [INF] Starting lifecycle management process
+2025-08-08 17:55:28.416 +05:30 [INF] Lifecycle management completed. Expired: 0, Trial Expired: 0
+2025-08-08 17:55:28.416 +05:30 [INF] Automated billing service started
+2025-08-08 17:55:28.416 +05:30 [INF] Stripe service initialized successfully
+2025-08-08 17:55:28.417 +05:30 [INF] Starting automated billing cycle at "2025-08-08T12:25:28.4170884Z"
+2025-08-08 17:55:28.417 +05:30 [INF] Found 0 subscriptions due for billing
+2025-08-08 17:55:28.417 +05:30 [INF] Found 0 suspended subscriptions
+2025-08-08 17:55:28.417 +05:30 [INF] Found 0 subscriptions with usage counters to reset
+2025-08-08 17:55:28.417 +05:30 [INF] Completed automated billing cycle at "2025-08-08T12:25:28.4175961Z"
+2025-08-08 17:55:28.591 +05:30 [WRN] Failed to determine the https port for redirect.
+2025-08-08 17:55:28.603 +05:30 [INF] Stripe service initialized successfully
+2025-08-08 17:55:28.632 +05:30 [INF] Stripe service initialized successfully
+2025-08-08 17:55:30.133 +05:30 [INF] Automated billing service stopped
+2025-08-08 17:55:30.134 +05:30 [INF] Subscription Background Service cancelled
+2025-08-08 17:55:30.134 +05:30 [INF] Subscription Background Service stopped

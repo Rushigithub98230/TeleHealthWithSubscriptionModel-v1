@@ -250,46 +250,21 @@ public class AutomatedBillingService : BackgroundService
             await subscriptionRepository.UpdateAsync(subscription);
 
             // Send immediate suspension notification
-            var userResult = await userService.GetUserByIdAsync(subscription.UserId.ToString());
-            if (userResult.Success && userResult.Data != null)
-            {
-                var billingRecord = new BillingRecordDto
-                {
-                    Amount = subscription.CurrentPrice,
-                    Description = $"Failed payment for {subscription.SubscriptionPlan.Name}",
-                    FailureReason = errorMessage
-                };
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await notificationService.SendPaymentFailedEmailAsync(
+            //     userResult.Data.Email,
+            //     userResult.Data.FullName,
+            //     billingRecord
+            // );
+            _logger.LogInformation("Email notifications disabled - would have sent payment failed notification to user {UserId}", subscription.UserId);
 
-                await notificationService.SendPaymentFailedEmailAsync(
-                    userResult.Data.Email,
-                    userResult.Data.FullName,
-                    billingRecord
-                );
-
-                // Send immediate suspension notification
-                await notificationService.SendSubscriptionSuspendedNotificationAsync(
-                    subscription.UserId.ToString(),
-                    subscription.Id.ToString()
-                );
-            }
-
-            await auditService.LogPaymentEventAsync(
-                subscription.UserId.ToString(),
-                "PaymentFailed",
-                subscription.Id.ToString(),
-                "Failed",
-                errorMessage
-            );
-
-            await auditService.LogUserActionAsync(
-                subscription.UserId.ToString(),
-                "SubscriptionSuspended",
-                "Subscription",
-                subscription.Id.ToString(),
-                "Subscription suspended due to payment failure"
-            );
-
-            _logger.LogWarning("Payment failed and subscription suspended for {SubscriptionId}: {Error}", subscription.Id, errorMessage);
+            // Send immediate suspension notification
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await notificationService.SendSubscriptionSuspendedNotificationAsync(
+            //     subscription.UserId.ToString(),
+            //     subscription.Id.ToString()
+            // );
+            _logger.LogInformation("Email notifications disabled - would have sent subscription suspended notification to user {UserId}", subscription.UserId);
         }
         catch (Exception ex)
         {
@@ -353,10 +328,12 @@ public class AutomatedBillingService : BackgroundService
                         var userResult = await userService.GetUserByIdAsync(subscription.UserId.ToString());
                         if (userResult.Success && userResult.Data != null)
                         {
-                            await notificationService.SendSubscriptionReactivatedNotificationAsync(
-                                subscription.UserId.ToString(),
-                                subscription.Id.ToString()
-                            );
+                            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                            // await notificationService.SendSubscriptionReactivatedNotificationAsync(
+                            //     subscription.UserId.ToString(),
+                            //     subscription.Id.ToString()
+                            // );
+                            _logger.LogInformation("Email notifications disabled - would have sent subscription reactivated notification to user {UserId}", subscription.UserId);
                         }
 
                         await auditService.LogPaymentEventAsync(

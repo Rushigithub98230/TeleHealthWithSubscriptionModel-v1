@@ -15,6 +15,21 @@ namespace SmartTelehealth.API.Controllers
             _stripeService = stripeService;
         }
 
+        [HttpGet("test-connection")]
+        public async Task<IActionResult> TestConnection()
+        {
+            try
+            {
+                // Test Stripe connection by attempting to list customers
+                var customers = await _stripeService.ListCustomersAsync();
+                return Ok(new { success = true, message = "Stripe connection successful", customerCount = customers.Count() });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = "Stripe connection failed", error = ex.Message });
+            }
+        }
+
         [HttpPost("create-checkout-session")]
         public async Task<IActionResult> CreateCheckoutSession([FromBody] CheckoutSessionRequest request)
         {

@@ -28,7 +28,7 @@ public class DocumentTypeService : IDocumentTypeService
         try
         {
             // Check if document type with same name already exists
-            var existingType = await _documentTypeRepository.GetAllAsync(dt => 
+            var existingType = await _documentTypeRepository.FindAsync(dt =>
                 dt.Name.ToLower() == request.Name.ToLower() && !dt.IsDeleted);
             
             if (existingType.Any())
@@ -75,10 +75,11 @@ public class DocumentTypeService : IDocumentTypeService
             }
 
             // Get document count for this type
-            var documentCount = await _documentRepository.GetAllAsync(d => 
+            var documentCount = await _documentRepository.FindAsync(d =>
                 d.DocumentTypeId == documentTypeId && !d.IsDeleted);
+            var count = documentCount.Count();
 
-            return ApiResponse<DocumentTypeDto>.SuccessResponse(MapToDto(documentType, documentCount.Count()));
+            return ApiResponse<DocumentTypeDto>.SuccessResponse(MapToDto(documentType, count));
         }
         catch (Exception ex)
         {
@@ -106,7 +107,7 @@ public class DocumentTypeService : IDocumentTypeService
             // Check if name is being changed and if it conflicts with existing types
             if (!string.IsNullOrEmpty(request.Name) && request.Name.ToLower() != documentType.Name.ToLower())
             {
-                var existingType = await _documentTypeRepository.GetAllAsync(dt => 
+                var existingType = await _documentTypeRepository.FindAsync(dt => 
                     dt.Name.ToLower() == request.Name.ToLower() && 
                     dt.DocumentTypeId != documentTypeId && 
                     !dt.IsDeleted);
@@ -176,7 +177,7 @@ public class DocumentTypeService : IDocumentTypeService
             }
 
             // Check if there are documents using this type
-            var documentsUsingType = await _documentRepository.GetAllAsync(d => 
+            var documentsUsingType = await _documentRepository.FindAsync(d => 
                 d.DocumentTypeId == documentTypeId && !d.IsDeleted);
             
             if (documentsUsingType.Any())
@@ -184,7 +185,7 @@ public class DocumentTypeService : IDocumentTypeService
                 return ApiResponse<bool>.ErrorResponse("Cannot delete document type that has associated documents", 400);
             }
 
-            await _documentTypeRepository.DeleteAsync(documentTypeId);
+            await _documentTypeRepository.DeleteAsync(documentType);
             await _documentTypeRepository.SaveChangesAsync();
 
             return ApiResponse<bool>.SuccessResponse(true);
@@ -239,15 +240,16 @@ public class DocumentTypeService : IDocumentTypeService
                 filter = dt => !dt.IsDeleted && dt.IsActive == isActive.Value;
             }
 
-            var documentTypes = await _documentTypeRepository.GetAllAsync(filter);
+            var documentTypes = await _documentTypeRepository.FindAsync(filter);
             var documentTypeDtos = new List<DocumentTypeDto>();
 
             foreach (var docType in documentTypes.OrderBy(dt => dt.DisplayOrder).ThenBy(dt => dt.Name))
             {
-                var documentCount = await _documentRepository.GetAllAsync(d => 
+                var documentCount = await _documentRepository.FindAsync(d =>
                     d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
+                var count = documentCount.Count();
 
-                documentTypeDtos.Add(MapToDto(docType, documentCount.Count()));
+                documentTypeDtos.Add(MapToDto(docType, count));
             }
 
             return ApiResponse<List<DocumentTypeDto>>.SuccessResponse(documentTypeDtos);
@@ -290,15 +292,16 @@ public class DocumentTypeService : IDocumentTypeService
                 filter = dt => !dt.IsDeleted && dt.CreatedAt <= request.CreatedTo.Value;
             }
 
-            var documentTypes = await _documentTypeRepository.GetAllAsync(filter);
+            var documentTypes = await _documentTypeRepository.FindAsync(filter);
             var documentTypeDtos = new List<DocumentTypeDto>();
 
             foreach (var docType in documentTypes.OrderBy(dt => dt.DisplayOrder).ThenBy(dt => dt.Name))
             {
-                var documentCount = await _documentRepository.GetAllAsync(d => 
+                var documentCount = await _documentRepository.FindAsync(d =>
                     d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
+                var count = documentCount.Count();
 
-                documentTypeDtos.Add(MapToDto(docType, documentCount.Count()));
+                documentTypeDtos.Add(MapToDto(docType, count));
             }
 
             // Apply pagination
@@ -325,15 +328,16 @@ public class DocumentTypeService : IDocumentTypeService
     {
         try
         {
-            var systemTypes = await _documentTypeRepository.GetAllAsync(dt => 
+            var systemTypes = await _documentTypeRepository.FindAsync(dt => 
                 !dt.IsDeleted && dt.IsSystemDefined && dt.IsActive);
             
             var documentTypeDtos = new List<DocumentTypeDto>();
             foreach (var docType in systemTypes.OrderBy(dt => dt.DisplayOrder).ThenBy(dt => dt.Name))
             {
-                var documentCount = await _documentRepository.GetAllAsync(d => 
+                var documentCount = await _documentRepository.FindAsync(d =>
                     d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
-                documentTypeDtos.Add(MapToDto(docType, documentCount.Count()));
+                var count = documentCount.Count();
+                documentTypeDtos.Add(MapToDto(docType, count));
             }
 
             return ApiResponse<List<DocumentTypeDto>>.SuccessResponse(documentTypeDtos);
@@ -349,15 +353,16 @@ public class DocumentTypeService : IDocumentTypeService
     {
         try
         {
-            var adminTypes = await _documentTypeRepository.GetAllAsync(dt => 
+            var adminTypes = await _documentTypeRepository.FindAsync(dt => 
                 !dt.IsDeleted && !dt.IsSystemDefined && dt.IsActive);
             
             var documentTypeDtos = new List<DocumentTypeDto>();
             foreach (var docType in adminTypes.OrderBy(dt => dt.DisplayOrder).ThenBy(dt => dt.Name))
             {
-                var documentCount = await _documentRepository.GetAllAsync(d => 
+                var documentCount = await _documentRepository.FindAsync(d =>
                     d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
-                documentTypeDtos.Add(MapToDto(docType, documentCount.Count()));
+                var count = documentCount.Count();
+                documentTypeDtos.Add(MapToDto(docType, count));
             }
 
             return ApiResponse<List<DocumentTypeDto>>.SuccessResponse(documentTypeDtos);
@@ -378,12 +383,12 @@ public class DocumentTypeService : IDocumentTypeService
     {
         try
         {
-            var documentTypes = await _documentTypeRepository.GetAllAsync(dt => !dt.IsDeleted && dt.IsActive);
+            var documentTypes = await _documentTypeRepository.FindAsync(dt => !dt.IsDeleted && dt.IsActive);
             var documentTypeStats = new List<(DocumentType Type, int Count)>();
 
             foreach (var docType in documentTypes)
             {
-                var documentCount = await _documentRepository.GetAllAsync(d => 
+                var documentCount = await _documentRepository.FindAsync(d =>
                     d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
                 
                 documentTypeStats.Add((docType, documentCount.Count()));
@@ -678,7 +683,7 @@ public class DocumentTypeService : IDocumentTypeService
         try
         {
             // Get document types based on entity type
-            var documentTypes = await _documentTypeRepository.GetAllAsync(dt => 
+            var documentTypes = await _documentTypeRepository.FindAsync(dt => 
                 !dt.IsDeleted && dt.IsActive && 
                 (isActive == null || dt.IsActive == isActive.Value));
 
@@ -686,10 +691,11 @@ public class DocumentTypeService : IDocumentTypeService
 
             foreach (var docType in documentTypes.OrderBy(dt => dt.DisplayOrder).ThenBy(dt => dt.Name))
             {
-                var documentCount = await _documentRepository.GetAllAsync(d => 
+                var documentCount = await _documentRepository.FindAsync(d =>
                     d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
+                var count = documentCount.Count();
 
-                filteredTypes.Add(MapToDto(docType, documentCount.Count()));
+                filteredTypes.Add(MapToDto(docType, count));
             }
 
             return ApiResponse<List<DocumentTypeDto>>.SuccessResponse(filteredTypes);

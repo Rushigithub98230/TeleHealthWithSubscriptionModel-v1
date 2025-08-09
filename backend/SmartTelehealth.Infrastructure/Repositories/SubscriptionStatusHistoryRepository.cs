@@ -14,52 +14,85 @@ public class SubscriptionStatusHistoryRepository : ISubscriptionStatusHistoryRep
         _context = context;
     }
 
-    public async Task<SubscriptionStatusHistory> GetByIdAsync(Guid id)
+    public async Task<SubscriptionStatusHistory?> GetByIdAsync(Guid id)
     {
         return await _context.SubscriptionStatusHistories
-            .Include(ssh => ssh.Subscription)
-            .FirstOrDefaultAsync(ssh => ssh.Id == id);
+            .Include(h => h.Subscription)
+            .FirstOrDefaultAsync(h => h.Id == id && !h.IsDeleted);
     }
 
     public async Task<IEnumerable<SubscriptionStatusHistory>> GetBySubscriptionIdAsync(Guid subscriptionId)
     {
         return await _context.SubscriptionStatusHistories
-            .Include(ssh => ssh.Subscription)
-            .Where(ssh => ssh.SubscriptionId == subscriptionId)
-            .OrderByDescending(ssh => ssh.CreatedAt)
+            .Include(h => h.Subscription)
+            .Where(h => h.SubscriptionId == subscriptionId && !h.IsDeleted)
+            .OrderByDescending(h => h.ChangedAt)
             .ToListAsync();
     }
 
-    public async Task<SubscriptionStatusHistory> CreateAsync(SubscriptionStatusHistory statusHistory)
+    public async Task<IEnumerable<SubscriptionStatusHistory>> GetByStatusAsync(string status)
     {
-        _context.SubscriptionStatusHistories.Add(statusHistory);
-        await _context.SaveChangesAsync();
-        return statusHistory;
+        return await _context.SubscriptionStatusHistories
+            .Include(h => h.Subscription)
+            .Where(h => h.ToStatus == status && !h.IsDeleted)
+            .OrderByDescending(h => h.ChangedAt)
+            .ToListAsync();
     }
 
-    public async Task<SubscriptionStatusHistory> UpdateAsync(SubscriptionStatusHistory statusHistory)
+    public async Task<IEnumerable<SubscriptionStatusHistory>> GetByDateRangeAsync(DateTime startDate, DateTime endDate)
     {
-        _context.SubscriptionStatusHistories.Update(statusHistory);
+        return await _context.SubscriptionStatusHistories
+            .Include(h => h.Subscription)
+            .Where(h => h.ChangedAt >= startDate && h.ChangedAt <= endDate && !h.IsDeleted)
+            .OrderByDescending(h => h.ChangedAt)
+            .ToListAsync();
+    }
+
+    public async Task<SubscriptionStatusHistory> CreateAsync(SubscriptionStatusHistory history)
+    {
+        history.CreatedAt = DateTime.UtcNow;
+        _context.SubscriptionStatusHistories.Add(history);
         await _context.SaveChangesAsync();
-        return statusHistory;
+        return history;
+    }
+
+    public async Task<SubscriptionStatusHistory> UpdateAsync(SubscriptionStatusHistory history)
+    {
+        history.UpdatedAt = DateTime.UtcNow;
+        _context.SubscriptionStatusHistories.Update(history);
+        await _context.SaveChangesAsync();
+        return history;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var statusHistory = await GetByIdAsync(id);
-        if (statusHistory == null)
-            return false;
+        var history = await _context.SubscriptionStatusHistories.FindAsync(id);
+        if (history == null) return false;
 
-        _context.SubscriptionStatusHistories.Remove(statusHistory);
+        history.IsDeleted = true;
+        history.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<IEnumerable<SubscriptionStatusHistory>> GetAllAsync()
+    public async Task<bool> ExistsAsync(Guid id)
     {
         return await _context.SubscriptionStatusHistories
-            .Include(ssh => ssh.Subscription)
-            .OrderByDescending(ssh => ssh.CreatedAt)
-            .ToListAsync();
+            .AnyAsync(h => h.Id == id && !h.IsDeleted);
+    }
+
+    public async Task<int> GetCountBySubscriptionIdAsync(Guid subscriptionId)
+    {
+        return await _context.SubscriptionStatusHistories
+            .CountAsync(h => h.SubscriptionId == subscriptionId && !h.IsDeleted);
+    }
+
+    public async Task<SubscriptionStatusHistory?> GetLatestBySubscriptionIdAsync(Guid subscriptionId)
+    {
+        return await _context.SubscriptionStatusHistories
+            .Include(h => h.Subscription)
+            .Where(h => h.SubscriptionId == subscriptionId && !h.IsDeleted)
+            .OrderByDescending(h => h.ChangedAt)
+            .FirstOrDefaultAsync();
     }
 } 

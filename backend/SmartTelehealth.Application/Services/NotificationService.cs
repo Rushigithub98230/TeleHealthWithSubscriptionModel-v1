@@ -127,7 +127,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Thank you for joining SmartTelehealth. We're excited to have you on board!</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent welcome email to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -148,7 +150,9 @@ namespace SmartTelehealth.Application.Services
                     <p>If you didn't create an account, please ignore this email.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent email verification to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -169,7 +173,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Start Date: {subscription.StartDate:MMM dd, yyyy}</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent subscription confirmation to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -188,7 +194,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Welcome to your new {subscription.PlanName} subscription!</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent subscription welcome email to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -207,7 +215,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Your subscription to {subscription.PlanName} has been cancelled.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent subscription cancellation email to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -226,7 +236,9 @@ namespace SmartTelehealth.Application.Services
                     <p>This is a reminder that your payment of ${billingRecord.Amount} is due on {billingRecord.DueDate:MMM dd, yyyy}.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent payment reminder to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -245,7 +257,9 @@ namespace SmartTelehealth.Application.Services
                     <p>This is a reminder for your consultation on {consultation.ScheduledAt:MMM dd, yyyy} at {consultation.ScheduledAt:HH:mm}.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent consultation reminder to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -265,7 +279,9 @@ namespace SmartTelehealth.Application.Services
                     <p>If you didn't request this, please ignore this email.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent password reset email to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -284,7 +300,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Your medication delivery status: {delivery.Status}</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent delivery notification to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -303,7 +321,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Your subscription to {subscription.PlanName} has been paused.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent subscription paused notification to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -322,7 +342,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Your subscription to {subscription.PlanName} has been resumed.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent subscription resumed notification to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -341,7 +363,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Your subscription to {subscription.PlanName} has been cancelled.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent subscription cancelled notification to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -360,7 +384,9 @@ namespace SmartTelehealth.Application.Services
                     <p>You have a new message from your provider.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent provider message notification to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -379,7 +405,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Your payment of ${billingRecord.Amount} has been processed successfully.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent payment success email to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -398,7 +426,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Your payment of ${billingRecord.Amount} has failed. Please try again.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent payment failed email to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -417,7 +447,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Your refund of ${refundAmount} has been processed.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent refund processed email to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -436,7 +468,9 @@ namespace SmartTelehealth.Application.Services
                     <p>Your payment of ${billingRecord.Amount} is overdue. Please make payment as soon as possible.</p>
                     <p>Best regards,<br>The SmartTelehealth Team</p>";
 
-                await SendEmailAsync(email, subject, body);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent overdue payment email to {Email}", email);
             }
             catch (Exception ex)
             {
@@ -618,23 +652,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        private async Task<bool> SendEmailAsync(string to, string subject, string body)
-        {
-            try
-            {
-                // In a real implementation, this would use an email service like SendGrid, MailKit, etc.
-                _logger.LogInformation("Sending email to {To} with subject: {Subject}", to, subject);
-                
-                // Simulate email sending
-                await Task.Delay(100);
-                
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending email to {To}", to);
-                return false;
-            }
-        }
+        // EMAIL FUNCTIONALITY DISABLED - SendEmailAsync method removed
+        // TODO: Re-enable email functionality when needed
     }
 } 

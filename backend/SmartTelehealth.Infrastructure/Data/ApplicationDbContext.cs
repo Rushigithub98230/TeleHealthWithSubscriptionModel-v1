@@ -43,6 +43,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<MessageReadReceipt> MessageReadReceipts { get; set; }
     public DbSet<MedicationDelivery> MedicationDeliveries { get; set; }
     public DbSet<DeliveryTracking> DeliveryTracking { get; set; }
+    public DbSet<Prescription> Prescriptions { get; set; }
+    public DbSet<PrescriptionItem> PrescriptionItems { get; set; }
     public DbSet<BillingRecord> BillingRecords { get; set; }
     public DbSet<BillingAdjustment> BillingAdjustments { get; set; }
     public DbSet<ProviderCategory> ProviderCategories { get; set; }
@@ -57,6 +59,10 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<AppointmentDocument> AppointmentDocuments { get; set; }
     public DbSet<AppointmentReminder> AppointmentReminders { get; set; }
     public DbSet<AppointmentEvent> AppointmentEvents { get; set; }
+    
+    // Document management
+    public DbSet<Document> Documents { get; set; }
+    public DbSet<DocumentReference> DocumentReferences { get; set; }
         
     // Video Call entities
     public DbSet<VideoCall> VideoCalls { get; set; }
@@ -129,6 +135,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         ConfigurePaymentRefund(builder);
         ConfigureCategoryFeeRange(builder);
         ConfigureProviderFee(builder);
+        ConfigureDocument(builder);
         ConfigureQuestionnaireSystem(builder);
     }
     
@@ -240,7 +247,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Description).HasMaxLength(200);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.SortOrder).HasDefaultValue(0);
+            entity.Property(e => e.DisplayOrder).HasDefaultValue(0);
             entity.Property(e => e.Icon).HasMaxLength(50);
         });
         
@@ -1095,7 +1102,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 
             // Master table relationship
             entity.HasOne(e => e.DocumentType)
-                .WithMany(e => e.Documents)
+                .WithMany()
                 .HasForeignKey(e => e.DocumentTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
@@ -1180,18 +1187,15 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         builder.Entity<SubscriptionStatusHistory>(entity =>
         {
             entity.ToTable("SubscriptionStatusHistories");
-            entity.Property(e => e.FromStatus).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.FromStatus).HasMaxLength(50);
             entity.Property(e => e.ToStatus).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Reason).HasMaxLength(500);
+            entity.Property(e => e.ChangedByUserId).HasMaxLength(100);
             entity.Property(e => e.Metadata).HasMaxLength(1000);
             entity.HasOne(e => e.Subscription)
                 .WithMany(s => s.StatusHistory)
                 .HasForeignKey(e => e.SubscriptionId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(e => e.ChangedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.ChangedByUserId)
-                .OnDelete(DeleteBehavior.SetNull);
         });
     }
     private void ConfigurePaymentRefund(ModelBuilder builder)
@@ -1465,9 +1469,9 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.HasIndex(e => new { e.ResponseId, e.QuestionId });
             entity.HasIndex(e => new { e.ResponseId, e.IsDeleted });
             
-            // Constraints
-            entity.HasCheckConstraint("CK_UserAnswers_Answer_Type_Valid", 
-                "([AnswerText] IS NOT NULL) OR ([NumericValue] IS NOT NULL) OR ([DateTimeValue] IS NOT NULL) OR EXISTS (SELECT 1 FROM UserAnswerOptions WHERE AnswerId = Id)");
+            // Constraints - Removed complex check constraint that uses subquery
+            // entity.HasCheckConstraint("CK_UserAnswers_Answer_Type_Valid", 
+            //     "([AnswerText] IS NOT NULL) OR ([NumericValue] IS NOT NULL) OR ([DateTimeValue] IS NOT NULL) OR EXISTS (SELECT 1 FROM UserAnswerOptions WHERE AnswerId = Id)");
         });
         
         builder.Entity<UserAnswerOption>(entity =>
@@ -1504,6 +1508,111 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.HasIndex(e => new { e.AnswerId, e.OptionId, e.IsDeleted })
                   .IsUnique()
                   .HasFilter("[IsDeleted] = 0");
+        });
+    }
+    
+    private void ConfigureDocument(ModelBuilder builder)
+    {
+        builder.Entity<Document>(entity =>
+        {
+            entity.ToTable("Documents");
+            entity.HasKey(e => e.Id);
+            
+            // Properties
+            entity.Property(e => e.DocumentId).IsRequired();
+            entity.Property(e => e.OriginalName).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.UniqueName).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.FilePath).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.FolderPath).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.ContentType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.FileSize).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.DocumentTypeId).IsRequired();
+            entity.Property(e => e.DocumentCategory).HasMaxLength(50);
+            entity.Property(e => e.IsEncrypted).IsRequired();
+            entity.Property(e => e.EncryptionKey).HasMaxLength(100);
+            entity.Property(e => e.IsPublic).IsRequired();
+            entity.Property(e => e.CreatedById).IsRequired();
+            entity.Property(e => e.DeletedById).IsRequired(false);
+            entity.Property(e => e.DeletedAt).IsRequired(false);
+            entity.Property(e => e.IsActive).IsRequired();
+            entity.Property(e => e.IsDeleted).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            
+            // Relationships - Use NO ACTION to avoid cascade conflicts
+            entity.HasOne(e => e.DocumentType)
+                .WithMany(dt => dt.Documents)
+                .HasForeignKey(e => e.DocumentTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+                
+            entity.HasOne(e => e.DeletedBy)
+                .WithMany()
+                .HasForeignKey(e => e.DeletedById)
+                .OnDelete(DeleteBehavior.NoAction);
+                
+            entity.HasMany(e => e.References)
+                .WithOne(r => r.Document)
+                .HasForeignKey(r => r.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Indexes
+            entity.HasIndex(e => e.DocumentId).IsUnique();
+            entity.HasIndex(e => e.DocumentTypeId);
+            entity.HasIndex(e => e.CreatedById);
+            entity.HasIndex(e => e.DeletedById);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.IsDeleted);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.UpdatedAt);
+            entity.HasIndex(e => new { e.CreatedById, e.IsDeleted });
+            entity.HasIndex(e => new { e.DocumentTypeId, e.IsDeleted });
+        });
+        
+        builder.Entity<DocumentReference>(entity =>
+        {
+            entity.ToTable("DocumentReferences");
+            entity.HasKey(e => e.Id);
+            
+            // Properties
+            entity.Property(e => e.DocumentId).IsRequired();
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.EntityId).IsRequired();
+            entity.Property(e => e.ReferenceType).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.IsPublic).IsRequired();
+            entity.Property(e => e.ExpiresAt).IsRequired(false);
+            entity.Property(e => e.CreatedById).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.IsDeleted).IsRequired();
+            
+            // Relationships
+            entity.HasOne(e => e.Document)
+                .WithMany(d => d.References)
+                .HasForeignKey(e => e.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            // Indexes
+            entity.HasIndex(e => e.DocumentId);
+            entity.HasIndex(e => e.EntityType);
+            entity.HasIndex(e => e.EntityId);
+            entity.HasIndex(e => e.CreatedById);
+            entity.HasIndex(e => e.IsDeleted);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.DocumentId, e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.IsDeleted });
         });
     }
 } 

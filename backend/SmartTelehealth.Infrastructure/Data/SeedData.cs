@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartTelehealth.Core.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace SmartTelehealth.Infrastructure.Data;
 
@@ -125,22 +126,61 @@ public static class SeedData
             context.ConsultationModes.AddRange(consultationModes);
         }
 
+        // Create a system user for seeding purposes
+        var systemUserId = Guid.NewGuid();
+        var adminRole = context.UserRoles.FirstOrDefault(r => r.Name == "Admin");
+        if (adminRole == null)
+        {
+            throw new InvalidOperationException("Admin role not found. Please ensure UserRoles are seeded first.");
+        }
+
+        if (!context.Users.Any())
+        {
+            var systemUser = new User
+            {
+                Id = systemUserId,
+                FirstName = "System",
+                LastName = "Admin",
+                Email = "system@smarttelehealth.com",
+                UserName = "system@smarttelehealth.com",
+                PhoneNumber = "0000000000",
+                DateOfBirth = DateTime.UtcNow.AddYears(-30),
+                Gender = "Other",
+                Address = "System Address",
+                City = "System City",
+                State = "System State",
+                ZipCode = "00000",
+                IsActive = true,
+                UserRoleId = adminRole.Id
+            };
+            context.Users.Add(systemUser);
+            context.SaveChanges();
+        }
+        else
+        {
+            systemUserId = context.Users.First().Id;
+        }
+
+        // Temporarily disabled DocumentTypes seeding due to foreign key constraint issues
+        // TODO: Fix DocumentTypes seeding after backend is running
+        /*
         if (!context.DocumentTypes.Any())
         {
             var documentTypes = new List<DocumentType>
             {
-                new DocumentType { Id = Guid.NewGuid(), Name = "Prescription", Description = "Medical prescription", SortOrder = 1, Icon = "file-text" },
-                new DocumentType { Id = Guid.NewGuid(), Name = "LabReport", Description = "Laboratory report", SortOrder = 2, Icon = "file-text" },
-                new DocumentType { Id = Guid.NewGuid(), Name = "Invoice", Description = "Payment invoice", SortOrder = 3, Icon = "file-text" },
-                new DocumentType { Id = Guid.NewGuid(), Name = "MedicalRecord", Description = "Medical record", SortOrder = 4, Icon = "file-text" },
-                new DocumentType { Id = Guid.NewGuid(), Name = "ConsentForm", Description = "Consent form", SortOrder = 5, Icon = "file-text" },
-                new DocumentType { Id = Guid.NewGuid(), Name = "Referral", Description = "Medical referral", SortOrder = 6, Icon = "file-text" },
-                new DocumentType { Id = Guid.NewGuid(), Name = "Image", Description = "Medical image", SortOrder = 7, Icon = "image" },
-                new DocumentType { Id = Guid.NewGuid(), Name = "Video", Description = "Medical video", SortOrder = 8, Icon = "video" },
-                new DocumentType { Id = Guid.NewGuid(), Name = "Audio", Description = "Medical audio", SortOrder = 9, Icon = "volume-2" }
+                new DocumentType { Id = Guid.NewGuid(), Name = "Prescription", Description = "Medical prescription", DisplayOrder = 1, Icon = "file-text", CreatedById = systemUserId },
+                new DocumentType { Id = Guid.NewGuid(), Name = "LabReport", Description = "Laboratory report", DisplayOrder = 2, Icon = "file-text", CreatedById = systemUserId },
+                new DocumentType { Id = Guid.NewGuid(), Name = "Invoice", Description = "Payment invoice", DisplayOrder = 3, Icon = "file-text", CreatedById = systemUserId },
+                new DocumentType { Id = Guid.NewGuid(), Name = "MedicalRecord", Description = "Medical record", DisplayOrder = 4, Icon = "file-text", CreatedById = systemUserId },
+                new DocumentType { Id = Guid.NewGuid(), Name = "ConsentForm", Description = "Consent form", DisplayOrder = 5, Icon = "file-text", CreatedById = systemUserId },
+                new DocumentType { Id = Guid.NewGuid(), Name = "Referral", Description = "Medical referral", DisplayOrder = 6, Icon = "file-text", CreatedById = systemUserId },
+                new DocumentType { Id = Guid.NewGuid(), Name = "Image", Description = "Medical image", DisplayOrder = 7, Icon = "image", CreatedById = systemUserId },
+                new DocumentType { Id = Guid.NewGuid(), Name = "Video", Description = "Medical video", DisplayOrder = 8, Icon = "video", CreatedById = systemUserId },
+                new DocumentType { Id = Guid.NewGuid(), Name = "Audio", Description = "Medical audio", DisplayOrder = 9, Icon = "volume-2", CreatedById = systemUserId }
             };
             context.DocumentTypes.AddRange(documentTypes);
         }
+        */
 
         if (!context.ReminderTypes.Any())
         {
@@ -316,10 +356,78 @@ public static class SeedData
         }
     }
 
-    public static async Task SeedAsync(ApplicationDbContext context)
+    public static async Task SeedAsync(ApplicationDbContext context, UserManager<User> userManager, RoleManager<Role> roleManager)
     {
-        // This method will be called during startup to seed the database
-        // Implementation can be added here as needed
-        await Task.CompletedTask;
+        // Enable seeding to create default admin user
+        // Seed master tables
+        SeedMasterTables(context);
+        
+        // Create Identity roles if they don't exist
+        var adminRoleName = "Admin";
+        var userRoleName = "User";
+        var providerRoleName = "Provider";
+        
+        if (!await roleManager.RoleExistsAsync(adminRoleName))
+        {
+            await roleManager.CreateAsync(new Role(adminRoleName) { Description = "System administrators" });
+        }
+        
+        if (!await roleManager.RoleExistsAsync(userRoleName))
+        {
+            await roleManager.CreateAsync(new Role(userRoleName) { Description = "Regular users" });
+        }
+        
+        if (!await roleManager.RoleExistsAsync(providerRoleName))
+        {
+            await roleManager.CreateAsync(new Role(providerRoleName) { Description = "Healthcare providers" });
+        }
+        
+        // Create default admin user with proper Identity role assignment
+        var adminEmail = "admin@test.com";
+        var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
+        
+        if (existingAdmin == null)
+        {
+            var adminRole = context.UserRoles.FirstOrDefault(r => r.Name == "Admin");
+            var adminUser = new User
+            {
+                FirstName = "Admin",
+                LastName = "User",
+                Email = adminEmail,
+                UserName = adminEmail,
+                PhoneNumber = "1234567890",
+                DateOfBirth = DateTime.UtcNow.AddYears(-30),
+                Gender = "Other",
+                Address = "Admin Address",
+                City = "Admin City",
+                State = "Admin State",
+                ZipCode = "12345",
+                IsActive = true,
+                UserRoleId = adminRole?.Id ?? Guid.NewGuid(),
+                UserType = "Admin"
+            };
+            
+            var result = await userManager.CreateAsync(adminUser, "Admin123!");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, adminRoleName);
+            }
+        }
+        else
+        {
+            // Ensure existing admin has the role assigned
+            var isInRole = await userManager.IsInRoleAsync(existingAdmin, adminRoleName);
+            if (!isInRole)
+            {
+                await userManager.AddToRoleAsync(existingAdmin, adminRoleName);
+            }
+            
+            // Update the UserType property for backward compatibility
+            if (string.IsNullOrEmpty(existingAdmin.UserType) || existingAdmin.UserType != "Admin")
+            {
+                existingAdmin.UserType = "Admin";
+                await userManager.UpdateAsync(existingAdmin);
+            }
+        }
     }
 } 

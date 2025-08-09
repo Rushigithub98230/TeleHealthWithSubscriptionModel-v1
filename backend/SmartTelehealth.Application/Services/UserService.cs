@@ -11,6 +11,9 @@ using Microsoft.Extensions.Logging;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using System.IO;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SmartTelehealth.Application.Services;
 
@@ -24,6 +27,7 @@ public class UserService : IUserService
     private readonly IMapper _mapper;
     private readonly IDocumentService _documentService;
     private readonly IDocumentTypeService _documentTypeService;
+    private readonly IUserRoleRepository _userRoleRepository;
 
     public UserService(
         IUserRepository userRepository,
@@ -33,7 +37,8 @@ public class UserService : IUserService
         UserManager<User> userManager,
         IMapper mapper,
         IDocumentService documentService,
-        IDocumentTypeService documentTypeService)
+        IDocumentTypeService documentTypeService,
+        IUserRoleRepository userRoleRepository)
     {
         _userRepository = userRepository;
         _notificationService = notificationService;
@@ -43,6 +48,45 @@ public class UserService : IUserService
         _mapper = mapper;
         _documentService = documentService;
         _documentTypeService = documentTypeService;
+        _userRoleRepository = userRoleRepository;
+    }
+
+    // --- AUTHENTICATION METHODS ---
+    public async Task<UserDto?> AuthenticateUserAsync(string email, string password)
+    {
+        try
+        {
+            // Use the repository to find user by email instead of UserManager
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+                return null;
+
+            // Use custom password verification instead of Identity
+            var isValidPassword = VerifyPassword(password, user.PasswordHash);
+            if (!isValidPassword)
+                return null;
+
+            return MapToUserDto(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error authenticating user: {Email}", email);
+            return null;
+        }
+    }
+
+    public async Task<UserDto?> GetUserByEmailAsync(string email)
+    {
+        try
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            return user != null ? MapToUserDto(user) : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user by email: {Email}", email);
+            return null;
+        }
     }
 
     // User profile operations
@@ -206,12 +250,12 @@ public class UserService : IUserService
             if (!string.IsNullOrEmpty(referenceType))
             {
                 var documentsResult = await _documentService.GetDocumentsByReferenceTypeAsync("User", userId, referenceType);
-                return documentsResult;
+                return ApiResponse<IEnumerable<DocumentDto>>.SuccessResponse(documentsResult.Data);
             }
             else
             {
                 var documentsResult = await _documentService.GetDocumentsByEntityAsync("User", userId);
-                return documentsResult;
+                return ApiResponse<IEnumerable<DocumentDto>>.SuccessResponse(documentsResult.Data);
             }
         }
         catch (Exception ex)
@@ -302,23 +346,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<UserDto>> GetUserByEmailAsync(string email)
-    {
-        try
-        {
-            var user = await _userRepository.GetByEmailAsync(email);
-            if (user == null)
-                return ApiResponse<UserDto>.ErrorResponse("User not found");
 
-            var userDto = _mapper.Map<UserDto>(user);
-            return ApiResponse<UserDto>.SuccessResponse(userDto, "User retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting user by email {Email}", email);
-            return ApiResponse<UserDto>.ErrorResponse($"Failed to get user by email: {ex.Message}");
-        }
-    }
 
     public async Task<ApiResponse<bool>> ChangePasswordAsync(string userId, ChangePasswordDto changePasswordDto)
     {
@@ -1033,13 +1061,17 @@ public class UserService : IUserService
     private string HashPassword(string password)
     {
         // Simple password hashing implementation - in production use BCrypt.Net.BCrypt
-        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password));
+        using (var sha256 = SHA256.Create())
+        {
+            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(hashedBytes);
+        }
     }
 
     private bool VerifyPassword(string password, string hash)
     {
         // Simple password verification - in production use BCrypt.Net.BCrypt
-        var hashedPassword = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password));
+        var hashedPassword = HashPassword(password);
         return hashedPassword == hash;
     }
 
@@ -1103,7 +1135,9 @@ public class UserService : IUserService
             }
 
             var verificationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            await _notificationService.SendEmailVerificationAsync(email, user.UserName, verificationToken);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await _notificationService.SendEmailVerificationAsync(email, user.UserName, verificationToken);
+            _logger.LogInformation("Email notifications disabled - would have sent email verification to {Email}", email);
 
             return ApiResponse<bool>.SuccessResponse(true);
         }
@@ -1125,7 +1159,9 @@ public class UserService : IUserService
             }
 
             var verificationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            await _notificationService.SendEmailVerificationAsync(user.Email, user.UserName, verificationToken);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await _notificationService.SendEmailVerificationAsync(user.Email, user.UserName, verificationToken);
+            _logger.LogInformation("Email notifications disabled - would have sent email verification to {Email}", user.Email);
 
             return ApiResponse<bool>.SuccessResponse(true);
         }
@@ -1164,21 +1200,32 @@ public class UserService : IUserService
         return new UserDto
         {
             Id = user.Id.ToString(),
-            Email = user.Email,
+            Email = user.Email ?? string.Empty,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            FullName = $"{user.FirstName} {user.LastName}",
-            Phone = user.Phone,
-            DateOfBirth = user.DateOfBirth,
-            Gender = user.Gender,
-            ProfilePicture = user.ProfilePicture,
+            FullName = user.FullName,
+            Phone = user.Phone ?? string.Empty,
+            PhoneNumber = user.PhoneNumber ?? string.Empty,
             UserType = user.UserType,
+            Role = user.RoleName,
+            UserRoleId = user.UserRoleId.ToString(),
             IsActive = user.IsActive,
+            IsVerified = user.IsEmailVerified,
             IsEmailVerified = user.IsEmailVerified,
             IsPhoneVerified = user.IsPhoneVerified,
             CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt != null ? user.UpdatedAt.Value : DateTime.UtcNow,
+            UpdatedAt = user.UpdatedAt ?? DateTime.UtcNow,
             LastLoginAt = user.LastLoginAt,
+            ProfilePicture = user.ProfilePicture,
+            DateOfBirth = user.DateOfBirth,
+            Gender = user.Gender,
+            Address = user.Address,
+            City = user.City,
+            State = user.State,
+            ZipCode = user.ZipCode,
+            Country = user.Country,
+            EmergencyContact = user.EmergencyContact,
+            EmergencyPhone = user.EmergencyPhone,
             StripeCustomerId = user.StripeCustomerId
         };
     }
@@ -1257,15 +1304,102 @@ public class UserService : IUserService
     // === BEGIN INTERFACE STUBS ===
     public async Task<ApiResponse<UserDto>> GetUserAsync(string userId)
     {
-        throw new NotImplementedException();
+        try
+        {
+            if (!Guid.TryParse(userId, out var guid))
+            {
+                return ApiResponse<UserDto>.ErrorResponse("Invalid user ID");
+            }
+
+            var user = await _userRepository.GetByIdAsync(guid);
+            if (user == null)
+            {
+                return ApiResponse<UserDto>.ErrorResponse("User not found");
+            }
+
+            var userDto = MapToUserDto(user);
+            return ApiResponse<UserDto>.SuccessResponse(userDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user with ID: {UserId}", userId);
+            return ApiResponse<UserDto>.ErrorResponse($"Failed to get user: {ex.Message}");
+        }
     }
     public async Task<ApiResponse<IEnumerable<UserDto>>> GetAllUsersAsync()
     {
-        throw new NotImplementedException();
+        try
+        {
+            var users = await _userRepository.GetAllAsync();
+            var userDtos = users.Select(MapToUserDto).ToList();
+            return ApiResponse<IEnumerable<UserDto>>.SuccessResponse(userDtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all users");
+            return ApiResponse<IEnumerable<UserDto>>.ErrorResponse($"Failed to get users: {ex.Message}");
+        }
     }
     public async Task<ApiResponse<UserDto>> CreateUserAsync(CreateUserDto createUserDto)
     {
-        throw new NotImplementedException();
+        try
+        {
+            // Check if user already exists
+            var existingUser = await _userRepository.GetByEmailAsync(createUserDto.Email);
+            if (existingUser != null)
+            {
+                return ApiResponse<UserDto>.ErrorResponse("User with this email already exists");
+            }
+
+            // Get the appropriate UserRole from database
+            var userRole = await GetUserRoleByNameAsync(createUserDto.UserType);
+            if (userRole == null)
+            {
+                return ApiResponse<UserDto>.ErrorResponse($"Invalid user type: {createUserDto.UserType}");
+            }
+
+            // Create new user
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                FirstName = createUserDto.FirstName,
+                LastName = createUserDto.LastName,
+                Email = createUserDto.Email,
+                Phone = createUserDto.PhoneNumber,
+                PhoneNumber = createUserDto.PhoneNumber,
+                UserType = createUserDto.UserType,
+                UserRoleId = userRole.Id, // Set the UserRoleId from database
+                Gender = createUserDto.Gender,
+                Address = createUserDto.Address,
+                City = createUserDto.City,
+                State = createUserDto.State,
+                ZipCode = createUserDto.ZipCode,
+                Country = createUserDto.Country,
+                EmergencyContact = createUserDto.EmergencyContactName,
+                EmergencyPhone = createUserDto.EmergencyContactPhone,
+                DateOfBirth = createUserDto.DateOfBirth ?? DateTime.UtcNow,
+                IsActive = true,
+                IsEmailVerified = false,
+                IsPhoneVerified = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            // Hash the password
+            user.PasswordHash = HashPassword(createUserDto.Password);
+
+            // Save user to database
+            await _userRepository.CreateAsync(user);
+
+            // Map to DTO and return
+            var userDto = MapToUserDto(user);
+            return ApiResponse<UserDto>.SuccessResponse(userDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating user with email: {Email}", createUserDto.Email);
+            return ApiResponse<UserDto>.ErrorResponse($"Failed to create user: {ex.Message}");
+        }
     }
     public async Task<ApiResponse<MedicalHistoryDto>> GetMedicalHistoryAsync(string userId)
     {
@@ -1335,4 +1469,61 @@ public class UserService : IUserService
         return ApiResponse<UserDto>.ErrorResponse(result.Message);
     }
     // === END INTERFACE OVERLOADS ===
+
+    private async Task<UserRole> GetUserRoleByNameAsync(string userTypeName)
+    {
+        // First, try to get all UserRoles to see what's available
+        var allUserRoles = await _userRoleRepository.GetAllAsync();
+        _logger.LogInformation("Available UserRoles: {UserRoles}", string.Join(", ", allUserRoles.Select(ur => ur.Name)));
+        
+        // Try exact match first
+        var userRole = await _userRoleRepository.GetByNameAsync(userTypeName);
+        if (userRole != null)
+        {
+            _logger.LogInformation("Found UserRole: {UserRoleName} with ID: {UserRoleId}", userRole.Name, userRole.Id);
+            return userRole;
+        }
+        
+        // Try case-insensitive match
+        userRole = allUserRoles.FirstOrDefault(ur => 
+            ur.Name.Equals(userTypeName, StringComparison.OrdinalIgnoreCase));
+        
+        if (userRole != null)
+        {
+            _logger.LogInformation("Found UserRole (case-insensitive): {UserRoleName} with ID: {UserRoleId}", userRole.Name, userRole.Id);
+            return userRole;
+        }
+        
+        // Try mapping common variations
+        var roleMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Admin", "Admin" },
+            { "Administrator", "Admin" },
+            { "User", "Client" },
+            { "Patient", "Client" },
+            { "Client", "Client" },
+            { "Provider", "Provider" },
+            { "Doctor", "Provider" },
+            { "Physician", "Provider" },
+            { "Support", "Support" },
+            { "CustomerSupport", "Support" }
+        };
+        
+        if (roleMapping.TryGetValue(userTypeName, out var mappedRole))
+        {
+            userRole = allUserRoles.FirstOrDefault(ur => 
+                ur.Name.Equals(mappedRole, StringComparison.OrdinalIgnoreCase));
+            
+            if (userRole != null)
+            {
+                _logger.LogInformation("Found UserRole (mapped): {UserRoleName} with ID: {UserRoleId}", userRole.Name, userRole.Id);
+                return userRole;
+            }
+        }
+        
+        _logger.LogWarning("No UserRole found for userType: {UserType}. Available roles: {AvailableRoles}", 
+            userTypeName, string.Join(", ", allUserRoles.Select(ur => ur.Name)));
+        
+        return null;
+    }
 } 

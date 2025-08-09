@@ -96,9 +96,10 @@ namespace SmartTelehealth.Application.Services
                 // Log audit
                 await _auditService.LogActionAsync("ProviderFee", "Create", createDto.ProviderId.ToString(), $"Created fee proposal for category {category.Name}");
 
-                // Send notification to admin
-                await _notificationService.SendNotificationAsync("Admin", "New Fee Proposal", 
-                    $"Provider {provider.FirstName} {provider.LastName} has submitted a new fee proposal for {category.Name}");
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await _notificationService.SendNotificationAsync("Admin", "New Fee Proposal",
+                //     $"Provider {fee.ProviderId} has submitted a new fee proposal for {fee.CategoryName} with rate {fee.Rate:C}");
+                _logger.LogInformation("Email notifications disabled - would have sent admin notification for new fee proposal");
 
                 return new ApiResponse<ProviderFeeDto>
                 {
@@ -342,8 +343,10 @@ namespace SmartTelehealth.Application.Services
                 await _auditService.LogActionAsync("ProviderFee", "Review", fee.ProviderId.ToString(), $"Reviewed fee proposal {id} with status {reviewDto.Status}");
 
                 // Send notification to provider
-                await _notificationService.SendNotificationAsync(fee.ProviderId.ToString(), "Fee Proposal Reviewed", 
-                    $"Your fee proposal has been {reviewDto.Status.ToLower()}");
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await _notificationService.SendNotificationAsync(fee.ProviderId.ToString(), "Fee Proposal Reviewed",
+                //     $"Your fee proposal for {fee.CategoryName} has been reviewed and {reviewDto.Status.ToLower()}.");
+                _logger.LogInformation("Email notifications disabled - would have sent provider notification for fee proposal review");
 
                 return new ApiResponse<ProviderFeeDto>
                 {

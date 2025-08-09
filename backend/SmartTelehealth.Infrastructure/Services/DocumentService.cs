@@ -4,7 +4,6 @@ using SmartTelehealth.Application.Interfaces;
 using SmartTelehealth.Core.Entities;
 using SmartTelehealth.Core.Interfaces;
 using System.Linq.Expressions;
-using SmartTelehealth.Application.Requests;
 
 namespace SmartTelehealth.Infrastructure.Services;
 
@@ -156,8 +155,8 @@ public class DocumentService : IDocumentService
                 DeletedAt = document.DeletedAt,
                 IsActive = document.IsActive,
                 IsDeleted = document.IsDeleted,
-                DownloadUrl = await _fileStorageService.GetFileUrlAsync(document.FilePath).Result.DataAsync(),
-                SecureUrl = await _fileStorageService.GetSecureUrlAsync(document.FilePath).Result.DataAsync(),
+                DownloadUrl = (await _fileStorageService.GetFileUrlAsync(document.FilePath)).Data,
+                SecureUrl = (await _fileStorageService.GetSecureUrlAsync(document.FilePath)).Data,
                 References = new List<DocumentReferenceDto> { new DocumentReferenceDto { DocumentId = reference.DocumentId, EntityType = reference.EntityType, EntityId = reference.EntityId, ReferenceType = reference.ReferenceType } }
             });
         }
@@ -205,7 +204,7 @@ public class DocumentService : IDocumentService
             } : null;
 
             // 4. Get references
-            var references = await _referenceRepository.GetAllAsync(r => r.DocumentId == documentId && !r.IsDeleted);
+            var references = await _referenceRepository.FindAsync(r => r.DocumentId == documentId && !r.IsDeleted);
 
             // 5. Return document DTO
             return ApiResponse<DocumentDto>.SuccessResponse(new DocumentDto
@@ -305,7 +304,7 @@ public class DocumentService : IDocumentService
             }
 
             // 4. Delete references
-            var references = await _referenceRepository.GetAllAsync(r => r.DocumentId == documentId);
+            var references = await _referenceRepository.FindAsync(r => r.DocumentId == documentId);
             foreach (var reference in references)
             {
                 reference.IsDeleted = true;
@@ -314,7 +313,7 @@ public class DocumentService : IDocumentService
             await _referenceRepository.SaveChangesAsync();
 
             // 5. Delete document
-            await _documentRepository.DeleteAsync(documentId);
+            await _documentRepository.DeleteAsync(document);
             await _documentRepository.SaveChangesAsync();
 
             return ApiResponse<bool>.SuccessResponse(true);
@@ -365,7 +364,7 @@ public class DocumentService : IDocumentService
     {
         try
         {
-            var references = await _referenceRepository.GetAllAsync(r => 
+            var references = await _referenceRepository.FindAsync(r => 
                 r.EntityType == entityType && 
                 r.EntityId == entityId && 
                 !r.IsDeleted);
@@ -393,7 +392,7 @@ public class DocumentService : IDocumentService
     {
         try
         {
-            var references = await _referenceRepository.GetAllAsync(r => 
+            var references = await _referenceRepository.FindAsync(r => 
                 r.EntityType == entityType && 
                 r.EntityId == entityId && 
                 r.ReferenceType == referenceType && 
@@ -439,7 +438,7 @@ public class DocumentService : IDocumentService
             {
                 // This would require a join with DocumentType table
                 // For now, we'll filter by document type name in memory
-                var documentTypes = await _documentTypeRepository.GetAllAsync(dt => 
+                var documentTypes = await _documentTypeRepository.FindAsync(dt => 
                     dt.Name.ToLower().Contains(request.DocumentTypeName.ToLower()) && !dt.IsDeleted);
                 var documentTypeIds = documentTypes.Select(dt => dt.DocumentTypeId).ToList();
                 searchExpression = d => documentTypeIds.Contains(d.DocumentTypeId) && !d.IsDeleted;
@@ -460,7 +459,7 @@ public class DocumentService : IDocumentService
                 searchExpression = d => d.CreatedAt <= request.CreatedTo.Value && !d.IsDeleted;
             }
 
-            var documents = await _documentRepository.GetAllAsync(searchExpression);
+            var documents = await _documentRepository.FindAsync(searchExpression);
             var documentDtos = new List<DocumentDto>();
 
             foreach (var document in documents)
@@ -529,7 +528,7 @@ public class DocumentService : IDocumentService
     {
         try
         {
-            var reference = await _referenceRepository.GetAllAsync(r => 
+            var reference = await _referenceRepository.FindAsync(r => 
                 r.DocumentId == documentId && 
                 r.EntityType == entityType && 
                 r.EntityId == entityId && 
@@ -559,7 +558,7 @@ public class DocumentService : IDocumentService
     {
         try
         {
-            var references = await _referenceRepository.GetAllAsync(r => r.DocumentId == documentId && !r.IsDeleted);
+            var references = await _referenceRepository.FindAsync(r => r.DocumentId == documentId && !r.IsDeleted);
 
             var referenceDtos = references.Select(r => new DocumentReferenceDto
             {
@@ -607,7 +606,7 @@ public class DocumentService : IDocumentService
             }
 
             // Check references for access
-            var references = await _referenceRepository.GetAllAsync(r => 
+            var references = await _referenceRepository.FindAsync(r => 
                 r.DocumentId == documentId && 
                 !r.IsDeleted);
 
@@ -745,7 +744,7 @@ public class DocumentService : IDocumentService
     {
         try
         {
-            var references = await _referenceRepository.GetAllAsync(r => r.DocumentId == documentId && !r.IsDeleted);
+            var references = await _referenceRepository.FindAsync(r => r.DocumentId == documentId && !r.IsDeleted);
             var reference = references.FirstOrDefault();
 
             if (reference == null)

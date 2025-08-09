@@ -41,8 +41,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Welcome email sent to {Email} for user {UserName}", email, userName);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent welcome email to {Email} for user {UserName}", email, userName);
         }
         catch (Exception ex)
         {
@@ -71,8 +72,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Subscription confirmation email sent to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent subscription confirmation to {Email} for subscription {SubscriptionId}", email, subscription.Id);
         }
         catch (Exception ex)
         {
@@ -100,8 +102,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Payment reminder email sent to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent payment reminder to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
         }
         catch (Exception ex)
         {
@@ -130,8 +133,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Payment success email sent to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent payment success email to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
         }
         catch (Exception ex)
         {
@@ -159,8 +163,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Payment failed email sent to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent payment failed email to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
         }
         catch (Exception ex)
         {
@@ -189,8 +194,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Refund processed email sent to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent refund processed email to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
         }
         catch (Exception ex)
         {
@@ -219,8 +225,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Overdue payment email sent to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent overdue payment email to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
         }
         catch (Exception ex)
         {
@@ -356,8 +363,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Consultation reminder email sent to {Email} for consultation {ConsultationId}", email, consultation.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent consultation reminder to {Email} for consultation {ConsultationId}", email, consultation.Id);
         }
         catch (Exception ex)
         {
@@ -380,8 +388,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Password reset email sent to {Email}", email);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent password reset email to {Email}", email);
         }
         catch (Exception ex)
         {
@@ -408,8 +417,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Delivery notification email sent to {Email} for delivery {DeliveryId}", email, delivery.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent delivery notification to {Email} for delivery {DeliveryId}", email, delivery.Id);
         }
         catch (Exception ex)
         {
@@ -431,8 +441,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Subscription paused notification email sent to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent subscription paused notification to {Email} for subscription {SubscriptionId}", email, subscription.Id);
         }
         catch (Exception ex)
         {
@@ -454,8 +465,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Subscription resumed notification email sent to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent subscription resumed notification to {Email} for subscription {SubscriptionId}", email, subscription.Id);
         }
         catch (Exception ex)
         {
@@ -477,8 +489,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Subscription cancelled notification email sent to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent subscription cancelled notification to {Email} for subscription {SubscriptionId}", email, subscription.Id);
         }
         catch (Exception ex)
         {
@@ -502,8 +515,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Provider message notification email sent to {Email} for message {MessageId}", email, message.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent provider message notification to {Email} for message {MessageId}", email, message.Id);
         }
         catch (Exception ex)
         {
@@ -548,58 +562,8 @@ public class NotificationService : INotificationService
         }
     }
     
-    // Private method for sending emails via SMTP
-    private async Task SendEmailAsync(string toEmail, string subject, string body)
-    {
-        try
-        {
-            var smtpSettings = _configuration.GetSection("SmtpSettings");
-            var smtpServer = smtpSettings["Server"];
-            var smtpPortStr = smtpSettings["Port"];
-            var smtpUsername = smtpSettings["Username"];
-            var smtpPassword = smtpSettings["Password"];
-            var fromEmail = smtpSettings["FromEmail"];
-            var fromName = smtpSettings["FromName"];
-            
-            if (string.IsNullOrEmpty(smtpServer) || string.IsNullOrEmpty(smtpPortStr) || 
-                string.IsNullOrEmpty(smtpUsername) || string.IsNullOrEmpty(smtpPassword) ||
-                string.IsNullOrEmpty(fromEmail) || string.IsNullOrEmpty(fromName))
-            {
-                _logger.LogWarning("SMTP settings are not properly configured. Email will not be sent.");
-                return;
-            }
-            
-            if (!int.TryParse(smtpPortStr, out var smtpPort))
-            {
-                _logger.LogError("Invalid SMTP port configuration: {Port}", smtpPortStr);
-                return;
-            }
-            
-            using var client = new SmtpClient(smtpServer, smtpPort)
-            {
-                EnableSsl = true,
-                Credentials = new NetworkCredential(smtpUsername, smtpPassword)
-            };
-            
-            var mailMessage = new MailMessage
-            {
-                From = new MailAddress(fromEmail, fromName),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            };
-            
-            mailMessage.To.Add(toEmail);
-            
-            await client.SendMailAsync(mailMessage);
-            _logger.LogInformation("Email sent successfully to {Email}", toEmail);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error sending email to {Email}", toEmail);
-            throw;
-        }
-    }
+    // EMAIL FUNCTIONALITY DISABLED - SendEmailAsync method removed
+    // TODO: Re-enable email functionality when needed
 
     public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetNotificationsAsync()
     {
@@ -750,9 +714,73 @@ public class NotificationService : INotificationService
     }
 
     public Task<ApiResponse<NotificationDto>> UpdateNotificationAsync(Guid id, object updateNotificationDto) => throw new NotImplementedException();
-    public Task SendEmailVerificationAsync(string email, string userName, string verificationToken) => throw new NotImplementedException();
-    public Task SendSubscriptionWelcomeEmailAsync(string email, string userName, SubscriptionDto subscription) => throw new NotImplementedException();
-    public Task SendSubscriptionCancellationEmailAsync(string email, string userName, SubscriptionDto subscription) => throw new NotImplementedException();
+    public async Task SendEmailVerificationAsync(string email, string userName, string verificationToken)
+    {
+        try
+        {
+            var subject = "Email Verification";
+            var body = $@"
+                <h2>Email Verification</h2>
+                <p>Hello {userName},</p>
+                <p>Please verify your email address by clicking the link below:</p>
+                <p><a href='{_configuration["AppUrl"]}/verify-email?token={verificationToken}'>Verify Email</a></p>
+                <br>
+                <p>Best regards,<br>Smart Telehealth Team</p>";
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent email verification to {Email}", email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending email verification to {Email}", email);
+            throw;
+        }
+    }
+
+    public async Task SendSubscriptionWelcomeEmailAsync(string email, string userName, SubscriptionDto subscription)
+    {
+        try
+        {
+            var subject = "Welcome to Smart Telehealth";
+            var body = $@"
+                <h2>Welcome to Smart Telehealth!</h2>
+                <p>Hello {userName},</p>
+                <p>Thank you for subscribing to <strong>{subscription.PlanName}</strong>.</p>
+                <p>Your subscription is now active and you can start using our services.</p>
+                <br>
+                <p>Best regards,<br>Smart Telehealth Team</p>";
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent subscription welcome email to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending subscription welcome email to {Email}", email);
+            throw;
+        }
+    }
+    public async Task SendSubscriptionCancellationEmailAsync(string email, string userName, SubscriptionDto subscription)
+    {
+        try
+        {
+            var subject = "Subscription Cancelled";
+            var body = $@"
+                <h2>Subscription Cancelled</h2>
+                <p>Hello {userName},</p>
+                <p>Your subscription to <strong>{subscription.PlanName}</strong> has been cancelled.</p>
+                <p>If you have any questions or would like to reactivate your subscription, please contact support.</p>
+                <br>
+                <p>Best regards,<br>Smart Telehealth Team</p>";
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent subscription cancellation email to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending subscription cancellation email to {Email}", email);
+            throw;
+        }
+    }
     public async Task SendSubscriptionSuspensionEmailAsync(string email, string userName, SubscriptionDto subscription)
     {
         try
@@ -765,8 +793,9 @@ public class NotificationService : INotificationService
                 <p>If you believe this is a mistake or have questions, please contact support.</p>
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
-            await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Subscription suspension email sent to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent subscription suspension email to {Email} for subscription {SubscriptionId}", email, subscription.Id);
         }
         catch (Exception ex)
         {
@@ -818,8 +847,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(user.Email, subject, body);
-            _logger.LogInformation("Subscription suspended notification sent to {Email} for subscription {SubscriptionId}", user.Email, subscriptionId);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(user.Email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent subscription suspended notification to {Email} for subscription {SubscriptionId}", user.Email, subscriptionId);
         }
         catch (Exception ex)
         {
@@ -845,8 +875,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(user.Email, subject, body);
-            _logger.LogInformation("Refund notification sent to {Email} for amount {Amount} and billing record {BillingRecordId}", user.Email, amount, billingRecordId);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(user.Email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent refund notification to {Email} for amount {Amount} and billing record {BillingRecordId}", user.Email, amount, billingRecordId);
         }
         catch (Exception ex)
         {
@@ -872,8 +903,9 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            await SendEmailAsync(user.Email, subject, body);
-            _logger.LogInformation("Subscription reactivated notification sent to {Email} for subscription {SubscriptionId}", user.Email, subscriptionId);
+            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+            // await SendEmailAsync(user.Email, subject, body);
+            _logger.LogInformation("Email sending disabled - would have sent subscription reactivated notification to {Email} for subscription {SubscriptionId}", user.Email, subscriptionId);
         }
         catch (Exception ex)
         {

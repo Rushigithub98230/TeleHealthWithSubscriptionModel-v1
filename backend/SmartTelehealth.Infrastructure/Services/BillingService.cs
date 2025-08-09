@@ -533,7 +533,9 @@ public class BillingService : IBillingService
             // Send email notification
             if (!string.IsNullOrEmpty(user.Email))
             {
-                await _notificationService.SendSubscriptionSuspendedNotificationAsync(billingRecord.UserId.ToString(), billingRecord.SubscriptionId?.ToString() ?? "");
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await _notificationService.SendSubscriptionSuspendedNotificationAsync(billingRecord.UserId.ToString(), billingRecord.SubscriptionId?.ToString() ?? "");
+                _logger.LogInformation("Email notifications disabled - would have sent subscription suspended notification to user {UserId}", billingRecord.UserId);
             }
             
             // Send in-app notification
@@ -905,14 +907,29 @@ public class BillingService : IBillingService
     {
         try
         {
-            var records = await _billingRepository.GetByUserIdAsync(userId);
-            var dtos = records.Select(MapToDto);
+            var billingRecords = await _billingRepository.GetByUserIdAsync(userId);
+            var dtos = billingRecords.Select(MapToDto);
             return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting billing history for user {UserId}", userId);
             return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get billing history");
+        }
+    }
+
+    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetAllBillingRecordsAsync()
+    {
+        try
+        {
+            var billingRecords = await _billingRepository.GetAllAsync();
+            var dtos = billingRecords.Select(MapToDto);
+            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all billing records");
+            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get billing records");
         }
     }
 

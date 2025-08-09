@@ -8,9 +8,8 @@ public class SubscriptionStatusHistory : BaseEntity
     public Guid SubscriptionId { get; set; }
     public virtual Subscription Subscription { get; set; } = null!;
     
-    [Required]
     [MaxLength(50)]
-    public string FromStatus { get; set; } = string.Empty;
+    public string? FromStatus { get; set; }
     
     [Required]
     [MaxLength(50)]
@@ -19,12 +18,17 @@ public class SubscriptionStatusHistory : BaseEntity
     [MaxLength(500)]
     public string? Reason { get; set; }
     
-    public Guid? ChangedByUserId { get; set; }
-    public virtual User? ChangedByUser { get; set; }
+    [MaxLength(100)]
+    public string? ChangedByUserId { get; set; }
     
     [Required]
     public DateTime ChangedAt { get; set; }
     
     [MaxLength(1000)]
-    public string? Metadata { get; set; } // JSON for additional context
+    public string? Metadata { get; set; }
+    
+                // Computed properties (not mapped to database)
+            public bool IsStatusChange => !string.IsNullOrEmpty(FromStatus) && FromStatus != ToStatus;
+
+            public TimeSpan DurationInPreviousStatus => FromStatus != null ? ChangedAt - CreatedAt : TimeSpan.Zero;
 } 

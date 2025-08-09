@@ -222,18 +222,45 @@ public class SubscriptionRepository : ISubscriptionRepository
             .FirstOrDefaultAsync();
     }
 
-    // --- MISSING INTERFACE METHODS (STUBS) ---
-    public Task<IEnumerable<Subscription>> GetAllSubscriptionsAsync()
-        => Task.FromResult<IEnumerable<Subscription>>(new List<Subscription>());
+    // --- COMPLETED INTERFACE METHODS ---
+    public async Task<IEnumerable<Subscription>> GetAllSubscriptionsAsync()
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Include(s => s.BillingCycle)
+            .Where(s => !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
 
-    public Task<IEnumerable<Subscription>> GetSubscriptionsByDateRangeAsync(DateTime start, DateTime end)
-        => Task.FromResult<IEnumerable<Subscription>>(new List<Subscription>());
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByDateRangeAsync(DateTime start, DateTime end)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.CreatedAt >= start && s.CreatedAt <= end && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
 
-    public Task<SubscriptionPlan> UpdatePlanAsync(SubscriptionPlan plan)
-        => throw new NotImplementedException();
+    public async Task<SubscriptionPlan> UpdatePlanAsync(SubscriptionPlan plan)
+    {
+        plan.UpdatedAt = DateTime.UtcNow;
+        _context.SubscriptionPlans.Update(plan);
+        await _context.SaveChangesAsync();
+        return plan;
+    }
 
-    public Task<IEnumerable<Subscription>> GetSubscriptionsByPlanIdAsync(Guid planId)
-        => Task.FromResult<IEnumerable<Subscription>>(new List<Subscription>());
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByPlanIdAsync(Guid planId)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.SubscriptionPlanId == planId && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
 
     // New: Add status history
     public async Task AddStatusHistoryAsync(SubscriptionStatusHistory history)
@@ -293,6 +320,266 @@ public class SubscriptionRepository : ISubscriptionRepository
     {
         return await _context.Subscriptions
             .Where(s => s.Status == Subscription.SubscriptionStatuses.PaymentFailed && !s.IsDeleted)
+            .ToListAsync();
+    }
+
+    // Additional missing methods for comprehensive subscription management
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByBillingCycleAsync(string billingCycle)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Include(s => s.BillingCycle)
+            .Where(s => s.BillingCycle.Name == billingCycle && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByPriceRangeAsync(decimal minPrice, decimal maxPrice)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.CurrentPrice >= minPrice && s.CurrentPrice <= maxPrice && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByAutoRenewAsync(bool autoRenew)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.AutoRenew == autoRenew && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByTrialStatusAsync(bool isTrial)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.IsTrialSubscription == isTrial && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByProviderAsync(Guid providerId)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.ProviderId == providerId && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByCategoryAsync(Guid categoryId)
+    {
+        var planIds = await _context.Categories
+            .Where(c => c.Id == categoryId)
+            .SelectMany(c => c.SubscriptionPlans)
+            .Where(sp => sp.IsActive && !sp.IsDeleted)
+            .Select(sp => sp.Id)
+            .ToListAsync();
+
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => planIds.Contains(s.SubscriptionPlanId) && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByPaymentMethodAsync(string paymentMethodId)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.PaymentMethodId == paymentMethodId && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByStripeCustomerIdAsync(string stripeCustomerId)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.StripeCustomerId == stripeCustomerId && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByLastBillingDateAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.LastBillingDate >= startDate && s.LastBillingDate <= endDate && !s.IsDeleted)
+            .OrderByDescending(s => s.LastBillingDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByNextBillingDateAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.NextBillingDate >= startDate && s.NextBillingDate <= endDate && !s.IsDeleted)
+            .OrderByDescending(s => s.NextBillingDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByFailedPaymentAttemptsAsync(int maxAttempts)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.FailedPaymentAttempts >= maxAttempts && !s.IsDeleted)
+            .OrderByDescending(s => s.FailedPaymentAttempts)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByLastPaymentErrorAsync(string errorPattern)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.LastPaymentError != null && s.LastPaymentError.Contains(errorPattern) && !s.IsDeleted)
+            .OrderByDescending(s => s.UpdatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByUsageThresholdAsync(int usageThreshold)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.TotalUsageCount >= usageThreshold && !s.IsDeleted)
+            .OrderByDescending(s => s.TotalUsageCount)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByPrivilegeAsync(string privilegeName)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .ThenInclude(sp => sp.PlanPrivileges)
+            .Where(s => s.SubscriptionPlan.PlanPrivileges.Any(pp => pp.Privilege.Name == privilegeName) && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByExpirationDateAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.EndDate >= startDate && s.EndDate <= endDate && !s.IsDeleted)
+            .OrderBy(s => s.EndDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByTrialEndDateAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.TrialEndDate >= startDate && s.TrialEndDate <= endDate && !s.IsDeleted)
+            .OrderBy(s => s.TrialEndDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByPauseDateAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.PausedDate >= startDate && s.PausedDate <= endDate && !s.IsDeleted)
+            .OrderByDescending(s => s.PausedDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByResumeDateAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.ResumedDate >= startDate && s.ResumedDate <= endDate && !s.IsDeleted)
+            .OrderByDescending(s => s.ResumedDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByCancellationDateAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.CancelledDate >= startDate && s.CancelledDate <= endDate && !s.IsDeleted)
+            .OrderByDescending(s => s.CancelledDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsBySuspensionDateAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.SuspendedDate >= startDate && s.SuspendedDate <= endDate && !s.IsDeleted)
+            .OrderByDescending(s => s.SuspendedDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByLastPaymentFailedDateAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Where(s => s.LastPaymentFailedDate >= startDate && s.LastPaymentFailedDate <= endDate && !s.IsDeleted)
+            .OrderByDescending(s => s.LastPaymentFailedDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetTrialSubscriptionsAsync()
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Include(s => s.BillingCycle)
+            .Where(s => s.IsTrialSubscription && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByPlanCategoryAsync(Guid categoryId)
+    {
+        var planIds = await _context.Categories
+            .Where(c => c.Id == categoryId)
+            .SelectMany(c => c.SubscriptionPlans)
+            .Where(sp => sp.IsActive && !sp.IsDeleted)
+            .Select(sp => sp.Id)
+            .ToListAsync();
+
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Include(s => s.BillingCycle)
+            .Where(s => planIds.Contains(s.SubscriptionPlanId) && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByUsageCountAsync(int minUsageCount)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.User)
+            .Include(s => s.SubscriptionPlan)
+            .Include(s => s.BillingCycle)
+            .Where(s => s.TotalUsageCount >= minUsageCount && !s.IsDeleted)
+            .OrderByDescending(s => s.TotalUsageCount)
             .ToListAsync();
     }
 } 

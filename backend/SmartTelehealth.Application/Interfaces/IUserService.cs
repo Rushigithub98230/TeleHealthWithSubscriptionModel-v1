@@ -5,12 +5,15 @@ namespace SmartTelehealth.Application.Interfaces
 {
     public interface IUserService
     {
+        // --- AUTHENTICATION ---
+        Task<UserDto?> AuthenticateUserAsync(string email, string password);
+        Task<UserDto?> GetUserByEmailAsync(string email);
+        
         // --- USER MANAGEMENT ---
         Task<ApiResponse<UserDto>> GetUserByIdAsync(string userId);
         Task<ApiResponse<UserDto>> UpdateUserAsync(string userId, UpdateUserDto updateDto);
         Task<ApiResponse<bool>> DeleteUserAsync(string userId);
         Task<ApiResponse<IEnumerable<UserDto>>> GetUsersByRoleAsync(string role);
-        Task<ApiResponse<UserDto>> GetUserByEmailAsync(string email);
         Task<ApiResponse<bool>> ChangePasswordAsync(string userId, ChangePasswordDto changePasswordDto);
         Task<ApiResponse<bool>> ResetPasswordAsync(string email);
         Task<ApiResponse<bool>> ConfirmPasswordResetAsync(string email, string resetToken, string newPassword);

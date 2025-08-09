@@ -1,0 +1,183 @@
+2025-08-07 00:00:03.779 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 00:00:40.602 +05:30 [INF] Available UserRoles: 
+2025-08-07 00:00:40.603 +05:30 [WRN] No UserRole found for userType: Admin. Available roles: 
+2025-08-07 00:00:48.001 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 00:00:54.023 +05:30 [INF] Available UserRoles: 
+2025-08-07 00:00:54.024 +05:30 [WRN] No UserRole found for userType: Admin. Available roles: 
+2025-08-07 00:01:05.554 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 00:01:08.256 +05:30 [INF] Available UserRoles: 
+2025-08-07 00:01:08.258 +05:30 [WRN] No UserRole found for userType: Client. Available roles: 
+2025-08-07 00:02:08.818 +05:30 [WRN] The foreign key property 'QuestionnaireTemplate.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 00:02:08.874 +05:30 [WRN] The foreign key property 'UserResponse.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 11:06:57.020 +05:30 [WRN] The foreign key property 'QuestionnaireTemplate.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 11:06:57.067 +05:30 [WRN] The foreign key property 'UserResponse.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 11:07:00.438 +05:30 [WRN] Failed to determine the https port for redirect.
+2025-08-07 11:08:56.432 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 11:09:02.105 +05:30 [INF] Available UserRoles: 
+2025-08-07 11:09:02.137 +05:30 [WRN] No UserRole found for userType: Admin. Available roles: 
+2025-08-07 11:11:25.485 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 11:11:28.968 +05:30 [INF] Available UserRoles: 
+2025-08-07 11:11:28.994 +05:30 [WRN] No UserRole found for userType: Client. Available roles: 
+2025-08-07 11:28:55.719 +05:30 [WRN] The foreign key property 'QuestionnaireTemplate.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 11:28:55.761 +05:30 [WRN] The foreign key property 'UserResponse.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 11:28:57.008 +05:30 [ERR] An exception occurred in the database while saving changes for context type 'SmartTelehealth.Infrastructure.Data.ApplicationDbContext'.
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): The MERGE statement conflicted with the FOREIGN KEY constraint "FK_DocumentTypes_Users_CreatedById". The conflict occurred in database "SmartTelehealthDb", table "dbo.Users", column 'Id'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryHasMoreRows(Boolean& moreRows)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryReadInternal(Boolean setTimeout, Boolean& more)
+   at Microsoft.Data.SqlClient.SqlDataReader.Read()
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDataReader.Read()
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSet(Int32 startCommandIndex, RelationalDataReader reader)
+ClientConnectionId:56566564-7d12-4c3d-9dee-fd091bdfb90e
+Error Number:547,State:0,Class:16
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSet(Int32 startCommandIndex, RelationalDataReader reader)
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.Consume(RelationalDataReader reader)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.Execute(IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.Execute(IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.Execute(IEnumerable`1 commandBatches, IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChanges(IList`1 entries)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(IList`1 entriesToSave)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(StateManager stateManager, Boolean acceptAllChangesOnSuccess)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.<>c.<SaveChanges>b__112_0(DbContext _, ValueTuple`2 t)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(Boolean acceptAllChangesOnSuccess)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChanges(Boolean acceptAllChangesOnSuccess)
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): The MERGE statement conflicted with the FOREIGN KEY constraint "FK_DocumentTypes_Users_CreatedById". The conflict occurred in database "SmartTelehealthDb", table "dbo.Users", column 'Id'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryHasMoreRows(Boolean& moreRows)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryReadInternal(Boolean setTimeout, Boolean& more)
+   at Microsoft.Data.SqlClient.SqlDataReader.Read()
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDataReader.Read()
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSet(Int32 startCommandIndex, RelationalDataReader reader)
+ClientConnectionId:56566564-7d12-4c3d-9dee-fd091bdfb90e
+Error Number:547,State:0,Class:16
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSet(Int32 startCommandIndex, RelationalDataReader reader)
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.Consume(RelationalDataReader reader)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.Execute(IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.Execute(IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.Execute(IEnumerable`1 commandBatches, IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChanges(IList`1 entries)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(IList`1 entriesToSave)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(StateManager stateManager, Boolean acceptAllChangesOnSuccess)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.<>c.<SaveChanges>b__112_0(DbContext _, ValueTuple`2 t)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(Boolean acceptAllChangesOnSuccess)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChanges(Boolean acceptAllChangesOnSuccess)
+2025-08-07 11:31:59.628 +05:30 [WRN] The foreign key property 'QuestionnaireTemplate.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 11:31:59.660 +05:30 [WRN] The foreign key property 'UserResponse.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 11:32:00.922 +05:30 [ERR] An exception occurred in the database while saving changes for context type 'SmartTelehealth.Infrastructure.Data.ApplicationDbContext'.
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): The MERGE statement conflicted with the FOREIGN KEY constraint "FK_DocumentTypes_Users_CreatedById". The conflict occurred in database "SmartTelehealthDb", table "dbo.Users", column 'Id'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryHasMoreRows(Boolean& moreRows)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryReadInternal(Boolean setTimeout, Boolean& more)
+   at Microsoft.Data.SqlClient.SqlDataReader.Read()
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDataReader.Read()
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSet(Int32 startCommandIndex, RelationalDataReader reader)
+ClientConnectionId:214a38fa-bdf8-4e11-a7f5-7435db405de0
+Error Number:547,State:0,Class:16
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSet(Int32 startCommandIndex, RelationalDataReader reader)
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.Consume(RelationalDataReader reader)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.Execute(IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.Execute(IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.Execute(IEnumerable`1 commandBatches, IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChanges(IList`1 entries)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(IList`1 entriesToSave)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(StateManager stateManager, Boolean acceptAllChangesOnSuccess)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.<>c.<SaveChanges>b__112_0(DbContext _, ValueTuple`2 t)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(Boolean acceptAllChangesOnSuccess)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChanges(Boolean acceptAllChangesOnSuccess)
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): The MERGE statement conflicted with the FOREIGN KEY constraint "FK_DocumentTypes_Users_CreatedById". The conflict occurred in database "SmartTelehealthDb", table "dbo.Users", column 'Id'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryHasMoreRows(Boolean& moreRows)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryReadInternal(Boolean setTimeout, Boolean& more)
+   at Microsoft.Data.SqlClient.SqlDataReader.Read()
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDataReader.Read()
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSet(Int32 startCommandIndex, RelationalDataReader reader)
+ClientConnectionId:214a38fa-bdf8-4e11-a7f5-7435db405de0
+Error Number:547,State:0,Class:16
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSet(Int32 startCommandIndex, RelationalDataReader reader)
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.Consume(RelationalDataReader reader)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.Execute(IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.Execute(IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.Execute(IEnumerable`1 commandBatches, IRelationalConnection connection)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChanges(IList`1 entries)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(IList`1 entriesToSave)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(StateManager stateManager, Boolean acceptAllChangesOnSuccess)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.<>c.<SaveChanges>b__112_0(DbContext _, ValueTuple`2 t)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChanges(Boolean acceptAllChangesOnSuccess)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChanges(Boolean acceptAllChangesOnSuccess)
+2025-08-07 12:11:10.568 +05:30 [WRN] The foreign key property 'QuestionnaireTemplate.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 12:11:10.604 +05:30 [WRN] The foreign key property 'UserResponse.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 12:11:13.400 +05:30 [WRN] Failed to determine the https port for redirect.
+2025-08-07 12:13:28.270 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:13:49.830 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:14:28.801 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:15:58.437 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:16:10.399 +05:30 [INF] Available UserRoles: Support, Admin, Client, Provider
+2025-08-07 12:16:10.462 +05:30 [INF] Found UserRole: Admin with ID: "0b71f4de-76e3-44ff-bb99-43628e5f5ad3"
+2025-08-07 12:16:17.500 +05:30 [INF] User registered successfully: rcpatient@yopmail.com
+2025-08-07 12:16:51.911 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:17:25.651 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:18:18.000 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:20:04.853 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:20:05.405 +05:30 [INF] Available UserRoles: Support, Admin, Client, Provider
+2025-08-07 12:20:05.407 +05:30 [INF] Found UserRole: Admin with ID: "0b71f4de-76e3-44ff-bb99-43628e5f5ad3"
+2025-08-07 12:20:05.412 +05:30 [INF] User registered successfully: AdminTest@yopmail.com
+2025-08-07 12:20:54.692 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:21:30.929 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:22:26.233 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:22:30.502 +05:30 [INF] Available UserRoles: Support, Admin, Client, Provider
+2025-08-07 12:22:30.503 +05:30 [INF] Found UserRole: Admin with ID: "0b71f4de-76e3-44ff-bb99-43628e5f5ad3"
+2025-08-07 12:22:30.509 +05:30 [INF] User registered successfully: admin@test.com
+2025-08-07 12:22:35.558 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:22:38.851 +05:30 [INF] Available UserRoles: Support, Admin, Client, Provider
+2025-08-07 12:22:38.855 +05:30 [INF] Found UserRole: Provider with ID: "c13e1cfb-b128-4fc5-9df1-7f5f66f45114"
+2025-08-07 12:22:38.857 +05:30 [INF] User registered successfully: provider@test.com
+2025-08-07 12:22:43.864 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:22:48.860 +05:30 [INF] Available UserRoles: Support, Admin, Client, Provider
+2025-08-07 12:22:48.861 +05:30 [INF] Found UserRole: Client with ID: "709b2996-8fd3-4cd0-a513-47d06894bcf8"
+2025-08-07 12:22:48.865 +05:30 [INF] User registered successfully: client@test.com
+2025-08-07 12:24:04.282 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:24:44.426 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:25:31.376 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:25:42.614 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:25:46.040 +05:30 [INF] Available UserRoles: Support, Admin, Client, Provider
+2025-08-07 12:25:46.042 +05:30 [INF] Found UserRole: Admin with ID: "0b71f4de-76e3-44ff-bb99-43628e5f5ad3"
+2025-08-07 12:25:46.047 +05:30 [INF] User registered successfully: testadmin@test.com
+2025-08-07 12:25:50.733 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:27:21.637 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 12:27:43.746 +05:30 [WRN] The foreign key property 'QuestionnaireTemplate.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 12:27:43.800 +05:30 [WRN] The foreign key property 'UserResponse.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 12:27:45.620 +05:30 [WRN] Failed to determine the https port for redirect.
+2025-08-07 12:28:20.996 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 13:11:16.530 +05:30 [WRN] The foreign key property 'QuestionnaireTemplate.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 13:11:16.564 +05:30 [WRN] The foreign key property 'UserResponse.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 13:11:18.716 +05:30 [WRN] Failed to determine the https port for redirect.
+2025-08-07 13:11:39.999 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 13:13:11.598 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 13:13:30.657 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 13:14:22.091 +05:30 [INF] Stripe service initialized successfully
+2025-08-07 13:16:45.716 +05:30 [WRN] The foreign key property 'QuestionnaireTemplate.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-08-07 13:16:45.776 +05:30 [WRN] The foreign key property 'UserResponse.CategoryId1' was created in shadow state because a conflicting property with the simple name 'CategoryId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.

@@ -1,6 +1,7 @@
 using SmartTelehealth.Core.Interfaces;
 using SmartTelehealth.Core.Entities;
 using SmartTelehealth.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,20 +11,125 @@ namespace SmartTelehealth.Infrastructure.Repositories
     public class PrescriptionRepository : IPrescriptionRepository
     {
         private readonly ApplicationDbContext _context;
+        
         public PrescriptionRepository(ApplicationDbContext context)
         {
             _context = context;
         }
-        public Task<Prescription> GetByIdAsync(Guid id) => Task.FromResult<Prescription>(null);
-        public Task<IEnumerable<Prescription>> GetByUserIdAsync(Guid userId) => Task.FromResult<IEnumerable<Prescription>>(new List<Prescription>());
-        public Task<IEnumerable<Prescription>> GetByProviderIdAsync(Guid providerId) => Task.FromResult<IEnumerable<Prescription>>(new List<Prescription>());
-        public Task<IEnumerable<Prescription>> GetByStatusAsync(string status) => Task.FromResult<IEnumerable<Prescription>>(new List<Prescription>());
-        public Task<Prescription> CreateAsync(Prescription prescription) => Task.FromResult<Prescription>(null);
-        public Task<Prescription> UpdateAsync(Prescription prescription) => Task.FromResult<Prescription>(null);
-        public Task<bool> DeleteAsync(Guid id) => Task.FromResult(false);
-        public Task<IEnumerable<Prescription>> GetOverduePrescriptionsAsync() => Task.FromResult<IEnumerable<Prescription>>(new List<Prescription>());
-        public Task<IEnumerable<Prescription>> GetRefillRequestsAsync(Guid userId) => Task.FromResult<IEnumerable<Prescription>>(new List<Prescription>());
-        public Task<int> GetPrescriptionCountAsync(Guid userId) => Task.FromResult(0);
-        public Task<decimal> GetPrescriptionTotalAsync(Guid userId) => Task.FromResult(0m);
+        
+        public async Task<Prescription?> GetByIdAsync(Guid id)
+        {
+            return await _context.Prescriptions
+                .Include(p => p.Items)
+                .Include(p => p.Consultation)
+                .Include(p => p.Provider)
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+        }
+        
+        public async Task<IEnumerable<Prescription>> GetByUserIdAsync(Guid userId)
+        {
+            return await _context.Prescriptions
+                .Include(p => p.Items)
+                .Include(p => p.Consultation)
+                .Include(p => p.Provider)
+                .Where(p => p.UserId == userId && !p.IsDeleted)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<IEnumerable<Prescription>> GetByProviderIdAsync(Guid providerId)
+        {
+            return await _context.Prescriptions
+                .Include(p => p.Items)
+                .Include(p => p.Consultation)
+                .Include(p => p.User)
+                .Where(p => p.ProviderId == providerId && !p.IsDeleted)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<IEnumerable<Prescription>> GetByStatusAsync(string status)
+        {
+            return await _context.Prescriptions
+                .Include(p => p.Items)
+                .Include(p => p.Consultation)
+                .Include(p => p.Provider)
+                .Include(p => p.User)
+                .Where(p => p.Status == status && !p.IsDeleted)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<Prescription> CreateAsync(Prescription prescription)
+        {
+            prescription.CreatedAt = DateTime.UtcNow;
+            prescription.UpdatedAt = DateTime.UtcNow;
+            
+            if (string.IsNullOrEmpty(prescription.Status))
+                prescription.Status = "pending";
+                
+            _context.Prescriptions.Add(prescription);
+            await _context.SaveChangesAsync();
+            return prescription;
+        }
+        
+        public async Task<Prescription> UpdateAsync(Prescription prescription)
+        {
+            prescription.UpdatedAt = DateTime.UtcNow;
+            _context.Prescriptions.Update(prescription);
+            await _context.SaveChangesAsync();
+            return prescription;
+        }
+        
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var prescription = await _context.Prescriptions.FindAsync(id);
+            if (prescription == null) return false;
+
+            prescription.IsDeleted = true;
+            prescription.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        
+        public async Task<IEnumerable<Prescription>> GetOverduePrescriptionsAsync()
+        {
+            var cutoffDate = DateTime.UtcNow.AddDays(-30); // Prescriptions older than 30 days
+            return await _context.Prescriptions
+                .Include(p => p.Items)
+                .Include(p => p.Consultation)
+                .Include(p => p.Provider)
+                .Include(p => p.User)
+                .Where(p => p.Status == "pending" && p.CreatedAt < cutoffDate && !p.IsDeleted)
+                .OrderBy(p => p.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<IEnumerable<Prescription>> GetRefillRequestsAsync(Guid userId)
+        {
+            return await _context.Prescriptions
+                .Include(p => p.Items)
+                .Include(p => p.Consultation)
+                .Include(p => p.Provider)
+                .Where(p => p.UserId == userId && p.Status == "refill_requested" && !p.IsDeleted)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<int> GetPrescriptionCountAsync(Guid userId)
+        {
+            return await _context.Prescriptions
+                .CountAsync(p => p.UserId == userId && !p.IsDeleted);
+        }
+        
+        public async Task<decimal> GetPrescriptionTotalAsync(Guid userId)
+        {
+            // This would typically calculate the total cost of prescriptions
+            // For now, return a placeholder value
+            return await _context.Prescriptions
+                .Where(p => p.UserId == userId && !p.IsDeleted)
+                .CountAsync() * 50.0m; // Placeholder calculation
+        }
     }
 } 

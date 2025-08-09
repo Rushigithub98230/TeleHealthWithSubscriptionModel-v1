@@ -16,43 +16,148 @@ namespace SmartTelehealth.Infrastructure.Repositories
         {
             _context = context;
         }
-        public Task<BillingRecord> GetByIdAsync(Guid id) => Task.FromResult<BillingRecord>(null);
-        public Task<IEnumerable<BillingRecord>> GetByUserIdAsync(Guid userId) => Task.FromResult<IEnumerable<BillingRecord>>(new List<BillingRecord>());
-        public Task<IEnumerable<BillingRecord>> GetBySubscriptionIdAsync(Guid subscriptionId) => Task.FromResult<IEnumerable<BillingRecord>>(new List<BillingRecord>());
-        public Task<BillingRecord> CreateAsync(BillingRecord billingRecord) => Task.FromResult<BillingRecord>(null);
-        public Task<BillingRecord> UpdateAsync(BillingRecord billingRecord) => Task.FromResult<BillingRecord>(null);
-        public Task<bool> DeleteAsync(Guid id) => Task.FromResult(false);
-        public Task<IEnumerable<BillingRecord>> GetPendingPaymentsAsync() => Task.FromResult<IEnumerable<BillingRecord>>(new List<BillingRecord>());
-        public Task<IEnumerable<BillingRecord>> GetOverduePaymentsAsync() => Task.FromResult<IEnumerable<BillingRecord>>(new List<BillingRecord>());
-        public Task<IEnumerable<BillingRecord>> GetFailedPaymentsAsync() => Task.FromResult<IEnumerable<BillingRecord>>(new List<BillingRecord>());
-        public Task<BillingAdjustment> CreateAdjustmentAsync(BillingAdjustment adjustment) => Task.FromResult<BillingAdjustment>(null);
-        public Task<IEnumerable<BillingAdjustment>> GetAdjustmentsByBillingRecordIdAsync(Guid billingRecordId)
+        
+        public async Task<BillingRecord?> GetByIdAsync(Guid id)
         {
-            return Task.FromResult<IEnumerable<BillingAdjustment>>(new List<BillingAdjustment>());
+            return await _context.BillingRecords
+                .Include(br => br.User)
+                .Include(br => br.Subscription)
+                .Include(br => br.Currency)
+                .FirstOrDefaultAsync(br => br.Id == id);
         }
+        
+        public async Task<IEnumerable<BillingRecord>> GetByUserIdAsync(Guid userId)
+        {
+            return await _context.BillingRecords
+                .Include(br => br.Subscription)
+                .Include(br => br.Currency)
+                .Where(br => br.UserId == userId)
+                .OrderByDescending(br => br.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<IEnumerable<BillingRecord>> GetBySubscriptionIdAsync(Guid subscriptionId)
+        {
+            return await _context.BillingRecords
+                .Include(br => br.User)
+                .Include(br => br.Currency)
+                .Where(br => br.SubscriptionId == subscriptionId)
+                .OrderByDescending(br => br.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<BillingRecord> CreateAsync(BillingRecord billingRecord)
+        {
+            billingRecord.CreatedAt = DateTime.UtcNow;
+            billingRecord.UpdatedAt = DateTime.UtcNow;
+            _context.BillingRecords.Add(billingRecord);
+            await _context.SaveChangesAsync();
+            return billingRecord;
+        }
+        
+        public async Task<BillingRecord> UpdateAsync(BillingRecord billingRecord)
+        {
+            billingRecord.UpdatedAt = DateTime.UtcNow;
+            _context.BillingRecords.Update(billingRecord);
+            await _context.SaveChangesAsync();
+            return billingRecord;
+        }
+        
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var billingRecord = await _context.BillingRecords.FindAsync(id);
+            if (billingRecord == null)
+                return false;
+                
+            _context.BillingRecords.Remove(billingRecord);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        
+        public async Task<IEnumerable<BillingRecord>> GetPendingPaymentsAsync()
+        {
+            return await _context.BillingRecords
+                .Include(br => br.User)
+                .Include(br => br.Subscription)
+                .Where(br => br.Status == BillingRecord.BillingStatus.Pending)
+                .OrderBy(br => br.DueDate)
+                .ToListAsync();
+        }
+        
+        public async Task<IEnumerable<BillingRecord>> GetOverduePaymentsAsync()
+        {
+            return await _context.BillingRecords
+                .Include(br => br.User)
+                .Include(br => br.Subscription)
+                .Where(br => br.Status == BillingRecord.BillingStatus.Pending && br.DueDate < DateTime.UtcNow)
+                .OrderBy(br => br.DueDate)
+                .ToListAsync();
+        }
+        
+        public async Task<IEnumerable<BillingRecord>> GetFailedPaymentsAsync()
+        {
+            return await _context.BillingRecords
+                .Include(br => br.User)
+                .Include(br => br.Subscription)
+                .Where(br => br.Status == BillingRecord.BillingStatus.Failed)
+                .OrderByDescending(br => br.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<BillingAdjustment> CreateAdjustmentAsync(BillingAdjustment adjustment)
+        {
+            adjustment.CreatedAt = DateTime.UtcNow;
+            _context.BillingAdjustments.Add(adjustment);
+            await _context.SaveChangesAsync();
+            return adjustment;
+        }
+        
+        public async Task<IEnumerable<BillingAdjustment>> GetAdjustmentsByBillingRecordIdAsync(Guid billingRecordId)
+        {
+            return await _context.BillingAdjustments
+                .Include(ba => ba.BillingRecord)
+                .Where(ba => ba.BillingRecordId == billingRecordId)
+                .OrderByDescending(ba => ba.CreatedAt)
+                .ToListAsync();
+        }
+        
         public async Task<IEnumerable<BillingRecord>> GetAllAsync()
         {
-            return await _context.BillingRecords.ToListAsync();
+            return await _context.BillingRecords
+                .Include(br => br.User)
+                .Include(br => br.Subscription)
+                .Include(br => br.Currency)
+                .OrderByDescending(br => br.CreatedAt)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<BillingRecord>> GetByBillingCycleIdAsync(Guid billingCycleId)
         {
             return await _context.BillingRecords
+                .Include(br => br.User)
+                .Include(br => br.Subscription)
                 .Where(br => br.BillingCycleId == billingCycleId)
+                .OrderByDescending(br => br.CreatedAt)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<BillingRecord>> GetOverdueRecordsAsync()
         {
             return await _context.BillingRecords
+                .Include(br => br.User)
+                .Include(br => br.Subscription)
                 .Where(br => br.Status == BillingRecord.BillingStatus.Pending && br.DueDate < DateTime.UtcNow)
+                .OrderBy(br => br.DueDate)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<BillingRecord>> GetPendingRecordsAsync()
         {
             return await _context.BillingRecords
+                .Include(br => br.User)
+                .Include(br => br.Subscription)
                 .Where(br => br.Status == BillingRecord.BillingStatus.Pending)
+                .OrderBy(br => br.DueDate)
                 .ToListAsync();
         }
     }

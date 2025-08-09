@@ -1,7 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
-using SmartTelehealth.Application.Interfaces;
-using SmartTelehealth.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SmartTelehealth.Application.DTOs;
+using SmartTelehealth.Application.Interfaces;
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
 namespace SmartTelehealth.API.Controllers

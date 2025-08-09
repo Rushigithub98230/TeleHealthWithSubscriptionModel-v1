@@ -29,6 +29,31 @@ public class BillingController : ControllerBase
         _subscriptionService = subscriptionService;
     }
 
+    [HttpGet("records")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponse<IEnumerable<BillingRecordDto>>>> GetAllBillingRecords()
+    {
+        try
+        {
+            // For admin users, get all records; for regular users, get only their records
+            if (User.IsInRole("Admin") || User.IsInRole("Superadmin"))
+            {
+                var allRecords = await _billingService.GetAllBillingRecordsAsync();
+                return Ok(new { data = allRecords.Data });
+            }
+            else
+            {
+                var userId = GetCurrentUserId();
+                var userRecords = await _billingService.GetUserBillingHistoryAsync(userId);
+                return Ok(new { data = userRecords.Data });
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { data = new List<BillingRecordDto>() });
+        }
+    }
+
     /// <summary>
     /// Download invoice PDF for a billing record
     /// </summary>

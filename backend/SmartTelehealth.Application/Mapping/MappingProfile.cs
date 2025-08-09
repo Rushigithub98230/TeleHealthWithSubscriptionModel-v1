@@ -29,6 +29,15 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ConsultationModeId, opt => opt.MapFrom(src => src.ConsultationModeId));
 
         // Subscription mappings
+        CreateMap<CreateSubscriptionDto, Subscription>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => Guid.Parse(src.UserId)))
+            .ForMember(dest => dest.SubscriptionPlanId, opt => opt.MapFrom(src => Guid.Parse(src.PlanId)))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Active"))
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+
         CreateMap<Subscription, SubscriptionDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()))
@@ -84,7 +93,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.FromStatus, opt => opt.MapFrom(src => src.FromStatus))
             .ForMember(dest => dest.ToStatus, opt => opt.MapFrom(src => src.ToStatus))
             .ForMember(dest => dest.Reason, opt => opt.MapFrom(src => src.Reason))
-            .ForMember(dest => dest.ChangedByUserId, opt => opt.MapFrom(src => src.ChangedByUserId.HasValue ? src.ChangedByUserId.Value.ToString() : null))
+            .ForMember(dest => dest.ChangedByUserId, opt => opt.MapFrom(src => src.ChangedByUserId))
             .ForMember(dest => dest.ChangedAt, opt => opt.MapFrom(src => src.ChangedAt))
             .ForMember(dest => dest.Metadata, opt => opt.MapFrom(src => src.Metadata));
         CreateMap<SubscriptionPayment, SubscriptionPaymentDto>()
@@ -193,5 +202,74 @@ public class MappingProfile : Profile
         CreateMap<Notification, NotificationDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()));
+
+        // BillingRecord mappings
+        CreateMap<CreateBillingRecordDto, BillingRecord>()
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => Guid.Parse(src.UserId)))
+            .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.SubscriptionId) ? (Guid?)null : Guid.Parse(src.SubscriptionId)))
+            .ForMember(dest => dest.ConsultationId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.ConsultationId) ? (Guid?)null : Guid.Parse(src.ConsultationId)))
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.DueDate, opt => opt.MapFrom(src => src.DueDate))
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type))
+            .ForMember(dest => dest.StripeInvoiceId, opt => opt.MapFrom(src => src.StripeInvoiceId))
+            .ForMember(dest => dest.StripePaymentIntentId, opt => opt.MapFrom(src => src.StripePaymentIntentId))
+            .ForMember(dest => dest.TaxAmount, opt => opt.MapFrom(src => src.TaxAmount))
+            .ForMember(dest => dest.ShippingAmount, opt => opt.MapFrom(src => src.ShippingAmount))
+            .ForMember(dest => dest.BillingDate, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => Guid.Empty)) // Default currency
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => BillingRecord.BillingStatus.Pending));
+
+        CreateMap<BillingRecord, BillingRecordDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()))
+            .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => src.SubscriptionId.HasValue ? src.SubscriptionId.Value.ToString() : null))
+            .ForMember(dest => dest.ConsultationId, opt => opt.MapFrom(src => src.ConsultationId.HasValue ? src.ConsultationId.Value.ToString() : null))
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.DueDate, opt => opt.MapFrom(src => src.DueDate))
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+            .ForMember(dest => dest.StripeInvoiceId, opt => opt.MapFrom(src => src.StripeInvoiceId))
+            .ForMember(dest => dest.StripePaymentIntentId, opt => opt.MapFrom(src => src.StripePaymentIntentId))
+            .ForMember(dest => dest.TaxAmount, opt => opt.MapFrom(src => src.TaxAmount))
+            .ForMember(dest => dest.ShippingAmount, opt => opt.MapFrom(src => src.ShippingAmount))
+            .ForMember(dest => dest.BillingDate, opt => opt.MapFrom(src => src.BillingDate))
+            .ForMember(dest => dest.PaidAt, opt => opt.MapFrom(src => src.PaidAt))
+            .ForMember(dest => dest.InvoiceNumber, opt => opt.MapFrom(src => src.InvoiceNumber))
+            .ForMember(dest => dest.FailureReason, opt => opt.MapFrom(src => src.FailureReason))
+            .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod))
+            .ForMember(dest => dest.IsRecurring, opt => opt.MapFrom(src => src.IsRecurring))
+            .ForMember(dest => dest.PaymentIntentId, opt => opt.MapFrom(src => src.PaymentIntentId))
+            .ForMember(dest => dest.AccruedAmount, opt => opt.MapFrom(src => src.AccruedAmount))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
+
+        // AuditLog mappings
+        CreateMap<CreateAuditLogDto, AuditLog>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+            .ForMember(dest => dest.Action, opt => opt.MapFrom(src => src.Action))
+            .ForMember(dest => dest.EntityType, opt => opt.MapFrom(src => src.EntityType))
+            .ForMember(dest => dest.EntityId, opt => opt.MapFrom(src => src.EntityId))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.OldValues, opt => opt.MapFrom(src => src.OldValues))
+            .ForMember(dest => dest.NewValues, opt => opt.MapFrom(src => src.NewValues))
+            .ForMember(dest => dest.IpAddress, opt => opt.MapFrom(src => src.IpAddress))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+            .ForMember(dest => dest.ErrorMessage, opt => opt.MapFrom(src => src.ErrorMessage))
+            .ForMember(dest => dest.Timestamp, opt => opt.MapFrom(src => DateTime.UtcNow));
+
+        CreateMap<AuditLog, AuditLogDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()))
+            .ForMember(dest => dest.Action, opt => opt.MapFrom(src => src.Action))
+            .ForMember(dest => dest.EntityType, opt => opt.MapFrom(src => src.EntityType))
+            .ForMember(dest => dest.EntityId, opt => opt.MapFrom(src => src.EntityId))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.OldValues, opt => opt.MapFrom(src => src.OldValues))
+            .ForMember(dest => dest.NewValues, opt => opt.MapFrom(src => src.NewValues))
+            .ForMember(dest => dest.IpAddress, opt => opt.MapFrom(src => src.IpAddress))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
     }
 } 

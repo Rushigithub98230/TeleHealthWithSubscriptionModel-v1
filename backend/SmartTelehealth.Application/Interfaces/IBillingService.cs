@@ -10,6 +10,7 @@ public interface IBillingService
     Task<ApiResponse<BillingRecordDto>> GetBillingRecordAsync(Guid id);
     Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetUserBillingHistoryAsync(Guid userId);
     Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetSubscriptionBillingHistoryAsync(Guid subscriptionId);
+    Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetAllBillingRecordsAsync();
     Task<ApiResponse<BillingRecordDto>> ProcessPaymentAsync(Guid billingRecordId);
     Task<ApiResponse<BillingRecordDto>> ProcessRefundAsync(Guid billingRecordId, decimal amount);
     Task<ApiResponse<RefundResultDto>> ProcessRefundAsync(Guid billingRecordId, decimal amount, string reason);
@@ -46,6 +47,7 @@ public interface IBillingService
     Task<ApiResponse<bool>> UpdatePaymentMethodAsync(Guid billingRecordId, string paymentMethodId);
     Task<ApiResponse<BillingRecordDto>> CreateBillingCycleAsync(CreateBillingCycleDto createDto);
     Task<ApiResponse<BillingRecordDto>> ProcessBillingCycleAsync(Guid billingCycleId);
+    Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetBillingCycleRecordsAsync(Guid billingCycleId);
     Task<ApiResponse<RevenueSummaryDto>> GetRevenueSummaryAsync(DateTime? from = null, DateTime? to = null, string? planId = null);
     Task<ApiResponse<byte[]>> ExportRevenueAsync(DateTime? from = null, DateTime? to = null, string? planId = null, string format = "csv");
 } 

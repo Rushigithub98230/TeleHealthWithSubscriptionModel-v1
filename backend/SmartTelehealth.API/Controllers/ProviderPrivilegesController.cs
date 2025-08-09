@@ -4,6 +4,7 @@ using SmartTelehealth.Application.Services;
 using SmartTelehealth.Core.Entities;
 using SmartTelehealth.Core.Interfaces;
 using SmartTelehealth.Application.DTOs;
+using Microsoft.AspNetCore.Http;
 
 namespace SmartTelehealth.API.Controllers;
 

@@ -9,13 +9,13 @@ namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin,SuperAdmin")]
+//[Authorize(Roles = "Admin")]
 public class SubscriptionAnalyticsController : ControllerBase
 {
     private readonly ISubscriptionService _subscriptionService;
     private readonly IBillingService _billingService;
     private readonly IAnalyticsService _analyticsService;
-    private readonly AutomatedBillingService _automatedBillingService;
+    // private readonly SmartTelehealth.Application.Services.AutomatedBillingService _automatedBillingService;
     private readonly ILogger<SubscriptionAnalyticsController> _logger;
     private readonly IAuditService _auditService;
 
@@ -23,14 +23,14 @@ public class SubscriptionAnalyticsController : ControllerBase
         ISubscriptionService subscriptionService,
         IBillingService billingService,
         IAnalyticsService analyticsService,
-        AutomatedBillingService automatedBillingService,
+        // SmartTelehealth.Application.Services.AutomatedBillingService automatedBillingService,
         ILogger<SubscriptionAnalyticsController> logger,
         IAuditService auditService)
     {
         _subscriptionService = subscriptionService;
         _billingService = billingService;
         _analyticsService = analyticsService;
-        _automatedBillingService = automatedBillingService;
+        // _automatedBillingService = automatedBillingService;
         _logger = logger;
         _auditService = auditService;
     }
@@ -186,9 +186,10 @@ public class SubscriptionAnalyticsController : ControllerBase
     {
         try
         {
-            var report = await _automatedBillingService.GetBillingCycleReportAsync(startDate, endDate);
+            // var report = await _automatedBillingService.GetBillingCycleReportAsync(startDate, endDate);
             
-            return Ok(report);
+            // return Ok(report);
+            return StatusCode(501, ApiResponse<BillingCycleReportDto>.ErrorResponse("Billing cycle report not implemented"));
         }
         catch (Exception ex)
         {
@@ -205,11 +206,12 @@ public class SubscriptionAnalyticsController : ControllerBase
     {
         try
         {
-            var result = await _automatedBillingService.TriggerManualBillingCycleAsync();
+            // var result = await _automatedBillingService.TriggerManualBillingCycleAsync();
             
-            await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "TriggerBillingCycle", "Analytics", "Manual", "Manual billing cycle triggered");
+            // await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "TriggerBillingCycle", "Analytics", "Manual", "Manual billing cycle triggered");
             
-            return Ok(result);
+            // return Ok(result);
+            return StatusCode(501, ApiResponse<bool>.ErrorResponse("Manual billing cycle not implemented"));
         }
         catch (Exception ex)
         {

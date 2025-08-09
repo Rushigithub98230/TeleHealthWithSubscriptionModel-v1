@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "acencUG+Pf4=",
+  "dgSpecHash": "OjGl84nOSls=",
   "success": true,
   "projectFilePath": "D:\\DayUsers\\Rushikesh\\Personal\\.Net Projects\\TeleHealthWithSubscriptionModel\\backend\\SmartTelehealth.Infrastructure\\SmartTelehealth.Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -14,15 +14,10 @@
     "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\azure.storage.common\\12.17.0\\azure.storage.common.12.17.0.nupkg.sha512",
     "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\enums.net\\5.0.0\\enums.net.5.0.0.nupkg.sha512",
     "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\epoch.net\\4.1.0\\epoch.net.4.1.0.nupkg.sha512",
-    "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\fluentvalidation\\11.8.1\\fluentvalidation.11.8.1.nupkg.sha512",
-    "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\fluentvalidation.aspnetcore\\11.3.0\\fluentvalidation.aspnetcore.11.3.0.nupkg.sha512",
-    "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\11.5.1\\fluentvalidation.dependencyinjectionextensions.11.5.1.nupkg.sha512",
     "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\handy.dotnetcore-compatibility.colortranslations\\0.2.1\\handy.dotnetcore-compatibility.colortranslations.0.2.1.nupkg.sha512",
     "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\jose-jwt\\5.0.0\\jose-jwt.5.0.0.nupkg.sha512",
     "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\jwt\\10.1.0\\jwt.10.1.0.nupkg.sha512",
-    "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\mediatr\\12.2.0\\mediatr.12.2.0.nupkg.sha512",
-    "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
     "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\microsoft.aspnetcore.authentication\\2.2.0\\microsoft.aspnetcore.authentication.2.2.0.nupkg.sha512",
     "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.2.0\\microsoft.aspnetcore.authentication.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\rushikeshchaudhari\\.nuget\\packages\\microsoft.aspnetcore.authentication.cookies\\2.2.0\\microsoft.aspnetcore.authentication.cookies.2.2.0.nupkg.sha512",

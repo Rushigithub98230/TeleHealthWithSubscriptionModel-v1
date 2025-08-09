@@ -70,7 +70,7 @@ builder.Services.AddIdentity<User, Role>(options =>
 .AddDefaultTokenProviders();
 
 // JWT Authentication Configuration
-var jwtSettings = builder.Configuration.GetSection("Jwt");
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"] ?? "default-secret-key-for-development-only");
 
 builder.Services.AddAuthentication(options =>
@@ -167,9 +167,12 @@ if (!app.Environment.IsEnvironment("Test"))
     using (var scope = app.Services.CreateScope())
     {
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+        
         context.Database.EnsureCreated();
         // Seed the database
-        await SeedData.SeedAsync(context);
+        await SeedData.SeedAsync(context, userManager, roleManager);
     }
 }
 

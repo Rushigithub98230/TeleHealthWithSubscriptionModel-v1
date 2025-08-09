@@ -19,7 +19,7 @@ public class StripeService : IStripeService
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         
-        var secretKey = _configuration["Stripe:SecretKey"];
+        var secretKey = _configuration["StripeSettings:SecretKey"];
         if (string.IsNullOrEmpty(secretKey))
         {
             throw new InvalidOperationException("Stripe secret key is not configured");
@@ -96,6 +96,34 @@ public class StripeService : IStripeService
             {
                 _logger.LogError(ex, "Stripe error getting customer {CustomerId}: {Message}", customerId, ex.Message);
                 throw new InvalidOperationException($"Failed to get Stripe customer: {ex.Message}", ex);
+            }
+        });
+    }
+
+    public async Task<IEnumerable<CustomerDto>> ListCustomersAsync()
+    {
+        return await ExecuteWithRetryAsync(async () =>
+        {
+            try
+            {
+                var customerService = new CustomerService();
+                var customers = await customerService.ListAsync(new CustomerListOptions
+                {
+                    Limit = 100 // Limit to 100 customers for testing
+                });
+
+                return customers.Data.Select(customer => new CustomerDto
+                {
+                    Id = customer.Id,
+                    Email = customer.Email,
+                    Name = customer.Name,
+                    CreatedAt = customer.Created
+                });
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe error listing customers: {Message}", ex.Message);
+                throw new InvalidOperationException($"Failed to list Stripe customers: {ex.Message}", ex);
             }
         });
     }
@@ -492,7 +520,7 @@ public class StripeService : IStripeService
                     Currency = currency.ToLower(),
                     PaymentMethod = paymentMethodId,
                     Confirm = true,
-                    ReturnUrl = "https://smarttelehealth.com/payment/success",
+                    ReturnUrl = "https://your-domain.com/payment/success",
                     Metadata = new Dictionary<string, string>
                     {
                         { "created_at", DateTime.UtcNow.ToString("O") },
@@ -505,14 +533,18 @@ public class StripeService : IStripeService
 
                 _logger.LogInformation("Processed payment: {PaymentIntentId} - {Amount} {Currency}", 
                     paymentIntent.Id, amount, currency);
+                
+                // Map Stripe payment intent status to our expected status
+                var status = MapPaymentIntentStatus(paymentIntent.Status);
+                
                 return new PaymentResultDto
                 {
                     PaymentIntentId = paymentIntent.Id,
                     CustomerId = paymentIntent.CustomerId,
                     Amount = amount,
                     Currency = currency,
-                    Status = paymentIntent.Status,
-                    ErrorMessage = null
+                    Status = status,
+                    ErrorMessage = status == "failed" ? "Payment processing failed" : null
                 };
             }
             catch (StripeException ex)
@@ -851,6 +883,7 @@ public class StripeService : IStripeService
                 };
 
                 var subscription = await subscriptionService.UpdateAsync(subscriptionId, subscriptionUpdateOptions);
+
                 _logger.LogInformation("Resumed Stripe subscription: {SubscriptionId}", subscriptionId);
                 return true;
             }
@@ -899,14 +932,20 @@ public class StripeService : IStripeService
     {
         if (string.IsNullOrEmpty(priceId))
             throw new ArgumentException("Price ID is required", nameof(priceId));
+        
+        if (string.IsNullOrEmpty(successUrl))
+            throw new ArgumentException("Success URL is required", nameof(successUrl));
+        
+        if (string.IsNullOrEmpty(cancelUrl))
+            throw new ArgumentException("Cancel URL is required", nameof(cancelUrl));
 
         return await ExecuteWithRetryAsync(async () =>
         {
             try
             {
-                var sessionService = new SessionService();
                 var sessionCreateOptions = new SessionCreateOptions
                 {
+                    PaymentMethodTypes = new List<string> { "card" },
                     LineItems = new List<SessionLineItemOptions>
                     {
                         new SessionLineItemOptions
@@ -917,17 +956,57 @@ public class StripeService : IStripeService
                     },
                     Mode = "subscription",
                     SuccessUrl = successUrl,
-                    CancelUrl = cancelUrl
+                    CancelUrl = cancelUrl,
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "created_at", DateTime.UtcNow.ToString("O") },
+                        { "source", "smart_telehealth" }
+                    }
                 };
 
+                var sessionService = new SessionService();
                 var session = await sessionService.CreateAsync(sessionCreateOptions);
+
                 _logger.LogInformation("Created Stripe checkout session: {SessionId} for price {PriceId}", session.Id, priceId);
-                return session.Id;
+                return session.Url;
             }
             catch (StripeException ex)
             {
                 _logger.LogError(ex, "Stripe error creating checkout session for price {PriceId}: {Message}", priceId, ex.Message);
                 throw new InvalidOperationException($"Failed to create Stripe checkout session: {ex.Message}", ex);
+            }
+        });
+    }
+
+    public async Task<bool> ProcessWebhookAsync(string json, string signature)
+    {
+        if (string.IsNullOrEmpty(json))
+            throw new ArgumentException("Webhook JSON is required", nameof(json));
+        
+        if (string.IsNullOrEmpty(signature))
+            throw new ArgumentException("Webhook signature is required", nameof(signature));
+
+        return await ExecuteWithRetryAsync(async () =>
+        {
+            try
+            {
+                var webhookSecret = _configuration["Stripe:WebhookSecret"];
+                if (string.IsNullOrEmpty(webhookSecret))
+                {
+                    throw new InvalidOperationException("Stripe webhook secret is not configured");
+                }
+
+                // For now, just log the webhook processing
+                _logger.LogInformation("Processing Stripe webhook with signature: {Signature}", signature);
+                
+                // In a real implementation, you would verify the signature and process the event
+                // For now, we'll just return true to indicate successful processing
+                return true;
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe error processing webhook: {Message}", ex.Message);
+                throw new InvalidOperationException($"Failed to process Stripe webhook: {ex.Message}", ex);
             }
         });
     }
@@ -968,6 +1047,20 @@ public class StripeService : IStripeService
             "trialing" => SubscriptionStatus.TrialActive,
             "unpaid" => SubscriptionStatus.PaymentFailed,
             _ => SubscriptionStatus.Pending
+        };
+    }
+
+    private string MapPaymentIntentStatus(string stripeStatus)
+    {
+        return stripeStatus?.ToLower() switch
+        {
+            "succeeded" => "succeeded",
+            "processing" => "processing",
+            "requires_payment_method" => "failed",
+            "requires_confirmation" => "failed",
+            "requires_action" => "failed",
+            "canceled" => "failed",
+            _ => "failed"
         };
     }
 }

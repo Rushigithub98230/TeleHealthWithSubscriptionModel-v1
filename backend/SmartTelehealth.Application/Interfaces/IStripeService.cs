@@ -7,6 +7,7 @@ public interface IStripeService
     // Customer Management
     Task<string> CreateCustomerAsync(string email, string name);
     Task<CustomerDto> GetCustomerAsync(string customerId);
+    Task<IEnumerable<CustomerDto>> ListCustomersAsync();
     
     // Payment Methods
     Task<string> CreatePaymentMethodAsync(string customerId, string paymentMethodId);
@@ -35,13 +36,14 @@ public interface IStripeService
     Task<bool> UpdateSubscriptionAsync(string subscriptionId, string priceId);
     Task<bool> PauseSubscriptionAsync(string subscriptionId);
     Task<bool> ResumeSubscriptionAsync(string subscriptionId);
-    Task<bool> ReactivateSubscriptionAsync(string subscriptionId);
-    Task<bool> UpdateSubscriptionPaymentMethodAsync(string subscriptionId, string paymentMethodId);
     
     // Payment Processing
     Task<PaymentResultDto> ProcessPaymentAsync(string paymentMethodId, decimal amount, string currency);
     Task<bool> ProcessRefundAsync(string paymentIntentId, decimal amount);
     
-    // Stripe Checkout
+    // Checkout Sessions
     Task<string> CreateCheckoutSessionAsync(string priceId, string successUrl, string cancelUrl);
+    
+    // Webhook Processing
+    Task<bool> ProcessWebhookAsync(string json, string signature);
 } 

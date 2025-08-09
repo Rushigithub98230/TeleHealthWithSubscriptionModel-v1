@@ -130,8 +130,10 @@ public class SubscriptionService : ISubscriptionService
             var userResult = await _userService.GetUserByIdAsync(createDto.UserId);
             if (userResult.Success && userResult.Data != null)
             {
-                await _notificationService.SendSubscriptionConfirmationAsync(userResult.Data.Email, userResult.Data.FullName, dto);
-                await _notificationService.SendSubscriptionWelcomeEmailAsync(userResult.Data.Email, userResult.Data.FullName, dto);
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await _notificationService.SendSubscriptionConfirmationAsync(userResult.Data.Email, userResult.Data.FullName, dto);
+                // await _notificationService.SendSubscriptionWelcomeEmailAsync(userResult.Data.Email, userResult.Data.FullName, dto);
+                _logger.LogInformation("Email notifications disabled - would have sent confirmation emails to {Email}", userResult.Data.Email);
             }
             
             // Audit log
@@ -184,7 +186,11 @@ public class SubscriptionService : ISubscriptionService
             // Send cancellation email
             var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
             if (userResult.Success && userResult.Data != null)
-                await _notificationService.SendSubscriptionCancellationEmailAsync(userResult.Data.Email, userResult.Data.FullName, dto);
+            {
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await _notificationService.SendSubscriptionCancellationEmailAsync(userResult.Data.Email, userResult.Data.FullName, dto);
+                _logger.LogInformation("Email notifications disabled - would have sent cancellation email to {Email}", userResult.Data.Email);
+            }
             
             // Audit log
             await _auditService.LogUserActionAsync(entity.UserId.ToString(), "CancelSubscription", "Subscription", subscriptionId, reason ?? "Subscription cancelled");
@@ -233,10 +239,14 @@ public class SubscriptionService : ISubscriptionService
             
             var dto = _mapper.Map<SubscriptionDto>(updated);
             
-            // Send pause notification
+            // Send pause notification email
             var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
             if (userResult.Success && userResult.Data != null)
-                await _notificationService.SendSubscriptionPausedNotificationAsync(userResult.Data.Email, userResult.Data.FullName, dto);
+            {
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await _notificationService.SendSubscriptionPausedNotificationAsync(userResult.Data.Email, userResult.Data.FullName, dto);
+                _logger.LogInformation("Email notifications disabled - would have sent pause notification to {Email}", userResult.Data.Email);
+            }
             
             // Audit log
             await _auditService.LogUserActionAsync(entity.UserId.ToString(), "PauseSubscription", "Subscription", subscriptionId, "Subscription paused");
@@ -285,7 +295,11 @@ public class SubscriptionService : ISubscriptionService
             // Send resume notification
             var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
             if (userResult.Success && userResult.Data != null)
-                await _notificationService.SendSubscriptionResumedNotificationAsync(userResult.Data.Email, userResult.Data.FullName, dto);
+            {
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await _notificationService.SendSubscriptionResumedNotificationAsync(userResult.Data.Email, userResult.Data.FullName, dto);
+                _logger.LogInformation("Email notifications disabled - would have sent resume notification to {Email}", userResult.Data.Email);
+            }
             
             // Audit log
             await _auditService.LogUserActionAsync(entity.UserId.ToString(), "ResumeSubscription", "Subscription", subscriptionId, "Subscription resumed");
@@ -1233,7 +1247,11 @@ public class SubscriptionService : ISubscriptionService
                 await _subscriptionRepository.UpdateAsync(sub);
                 var userResult = await _userService.GetUserByIdAsync(sub.UserId.ToString());
                 if (userResult.Success && userResult.Data != null)
-                    await _notificationService.SendSubscriptionCancelledNotificationAsync(userResult.Data.Email, userResult.Data.FullName, _mapper.Map<SubscriptionDto>(sub));
+                {
+                    // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                    // await _notificationService.SendSubscriptionCancelledNotificationAsync(userResult.Data.Email, userResult.Data.FullName, _mapper.Map<SubscriptionDto>(sub));
+                    _logger.LogInformation("Email notifications disabled - would have sent cancellation notification to {Email}", userResult.Data.Email);
+                }
                 await _auditService.LogUserActionAsync(adminUserId, "BulkCancelSubscription", "Subscription", id, "Cancelled by admin");
                 cancelled++;
             }
@@ -1255,7 +1273,11 @@ public class SubscriptionService : ISubscriptionService
                 await _subscriptionRepository.UpdateAsync(sub);
                 var userResult = await _userService.GetUserByIdAsync(sub.UserId.ToString());
                 if (userResult.Success && userResult.Data != null)
-                    await _notificationService.SendSubscriptionConfirmationAsync(userResult.Data.Email, userResult.Data.FullName, _mapper.Map<SubscriptionDto>(sub));
+                {
+                    // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                    // await _notificationService.SendSubscriptionConfirmationAsync(userResult.Data.Email, userResult.Data.FullName, _mapper.Map<SubscriptionDto>(sub));
+                    _logger.LogInformation("Email notifications disabled - would have sent confirmation email to {Email}", userResult.Data.Email);
+                }
                 await _auditService.LogUserActionAsync(adminUserId, "BulkUpgradeSubscription", "Subscription", id, $"Upgraded to plan {newPlanId}");
                 upgraded++;
             }
@@ -1284,7 +1306,9 @@ public class SubscriptionService : ISubscriptionService
                     if (userResult.Success && userResult.Data != null)
                     {
                         var billingRecord = new BillingRecordDto { Amount = sub.CurrentPrice, PaidDate = DateTime.UtcNow, Description = "Webhook Payment Success" };
-                        await _notificationService.SendPaymentSuccessEmailAsync(userResult.Data.Email, userResult.Data.FullName, billingRecord);
+                        // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                        // await _notificationService.SendPaymentSuccessEmailAsync(userResult.Data.Email, userResult.Data.FullName, billingRecord);
+                        _logger.LogInformation("Email notifications disabled - would have sent payment success email to {Email}", userResult.Data.Email);
                     }
                     await _auditService.LogPaymentEventAsync(sub.UserId.ToString(), "PaymentSucceeded", subscriptionId, "Succeeded");
                 }

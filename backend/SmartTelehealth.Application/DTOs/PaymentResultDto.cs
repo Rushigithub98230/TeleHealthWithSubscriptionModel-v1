@@ -2,15 +2,17 @@ namespace SmartTelehealth.Application.DTOs;
 
 public class PaymentResultDto
 {
-    public bool Success { get; set; }
-    public string TransactionId { get; set; } = string.Empty;
-    public string PaymentIntentId { get; set; } = string.Empty;
-    public string CustomerId { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public string Currency { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
+    public string? PaymentIntentId { get; set; }
+    public string? CustomerId { get; set; }
+    public decimal Amount { get; set; }
+    public string Currency { get; set; } = "usd";
     public string? ErrorMessage { get; set; }
-    public string Message { get; set; } = string.Empty;
+    public DateTime ProcessedAt { get; set; } = DateTime.UtcNow;
+    public bool Success => Status == "succeeded";
+    public string? ReceiptUrl { get; set; }
+    public string? InvoiceId { get; set; }
+    public Dictionary<string, string> Metadata { get; set; } = new();
 }
 
 public class CustomerDto

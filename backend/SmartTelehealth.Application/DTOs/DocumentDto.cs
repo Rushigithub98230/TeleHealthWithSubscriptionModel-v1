@@ -61,6 +61,7 @@ public class UploadDocumentRequest
     public bool IsPublic { get; set; } = false;
     public bool IsEncrypted { get; set; } = false;
     public Guid? CreatedById { get; set; }
+    public DateTime? ExpiresAt { get; set; }
     
     // Document Type information
     public Guid DocumentTypeId { get; set; } // Required - user must select document type

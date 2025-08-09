@@ -1,6 +1,7 @@
 using SmartTelehealth.Core.Interfaces;
 using SmartTelehealth.Core.Entities;
 using SmartTelehealth.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,20 +11,127 @@ namespace SmartTelehealth.Infrastructure.Repositories
     public class MedicationShipmentRepository : IMedicationShipmentRepository
     {
         private readonly ApplicationDbContext _context;
+        
         public MedicationShipmentRepository(ApplicationDbContext context)
         {
             _context = context;
         }
-        public Task<MedicationDelivery> GetByIdAsync(Guid id) => Task.FromResult<MedicationDelivery>(null);
-        public Task<IEnumerable<MedicationDelivery>> GetByUserIdAsync(Guid userId) => Task.FromResult<IEnumerable<MedicationDelivery>>(new List<MedicationDelivery>());
-        public Task<IEnumerable<MedicationDelivery>> GetByStatusAsync(string status) => Task.FromResult<IEnumerable<MedicationDelivery>>(new List<MedicationDelivery>());
-        public Task<IEnumerable<MedicationDelivery>> GetByTrackingNumberAsync(string trackingNumber) => Task.FromResult<IEnumerable<MedicationDelivery>>(new List<MedicationDelivery>());
-        public Task<MedicationDelivery> CreateAsync(MedicationDelivery shipment) => Task.FromResult<MedicationDelivery>(null);
-        public Task<MedicationDelivery> UpdateAsync(MedicationDelivery shipment) => Task.FromResult<MedicationDelivery>(null);
-        public Task<bool> DeleteAsync(Guid id) => Task.FromResult(false);
-        public Task<IEnumerable<MedicationDelivery>> GetOverdueShipmentsAsync() => Task.FromResult<IEnumerable<MedicationDelivery>>(new List<MedicationDelivery>());
-        public Task<IEnumerable<MedicationDelivery>> GetShipmentsByDateRangeAsync(DateTime startDate, DateTime endDate) => Task.FromResult<IEnumerable<MedicationDelivery>>(new List<MedicationDelivery>());
-        public Task<int> GetShipmentCountAsync(Guid userId) => Task.FromResult(0);
-        public Task<decimal> GetShipmentTotalAsync(Guid userId) => Task.FromResult(0m);
+        
+        public async Task<MedicationDelivery?> GetByIdAsync(Guid id)
+        {
+            return await _context.MedicationDeliveries
+                .Include(m => m.User)
+                .Include(m => m.Subscription)
+                .Include(m => m.Provider)
+                .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
+        }
+        
+        public async Task<IEnumerable<MedicationDelivery>> GetByUserIdAsync(Guid userId)
+        {
+            return await _context.MedicationDeliveries
+                .Include(m => m.Subscription)
+                .Include(m => m.Provider)
+                .Where(m => m.UserId == userId && !m.IsDeleted)
+                .OrderByDescending(m => m.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<IEnumerable<MedicationDelivery>> GetByStatusAsync(string status)
+        {
+            // Parse the string status to enum
+            if (!Enum.TryParse<MedicationDelivery.DeliveryStatus>(status, true, out var statusEnum))
+            {
+                return new List<MedicationDelivery>();
+            }
+            
+            return await _context.MedicationDeliveries
+                .Include(m => m.User)
+                .Include(m => m.Subscription)
+                .Include(m => m.Provider)
+                .Where(m => m.Status == statusEnum && !m.IsDeleted)
+                .OrderByDescending(m => m.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<IEnumerable<MedicationDelivery>> GetByTrackingNumberAsync(string trackingNumber)
+        {
+            return await _context.MedicationDeliveries
+                .Include(m => m.User)
+                .Include(m => m.Subscription)
+                .Include(m => m.Provider)
+                .Where(m => m.TrackingNumber == trackingNumber && !m.IsDeleted)
+                .OrderByDescending(m => m.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<MedicationDelivery> CreateAsync(MedicationDelivery shipment)
+        {
+            shipment.CreatedAt = DateTime.UtcNow;
+            shipment.UpdatedAt = DateTime.UtcNow;
+            
+            if (shipment.Status == 0) // Default enum value
+                shipment.Status = MedicationDelivery.DeliveryStatus.Pending;
+                
+            _context.MedicationDeliveries.Add(shipment);
+            await _context.SaveChangesAsync();
+            return shipment;
+        }
+        
+        public async Task<MedicationDelivery> UpdateAsync(MedicationDelivery shipment)
+        {
+            shipment.UpdatedAt = DateTime.UtcNow;
+            _context.MedicationDeliveries.Update(shipment);
+            await _context.SaveChangesAsync();
+            return shipment;
+        }
+        
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var shipment = await _context.MedicationDeliveries.FindAsync(id);
+            if (shipment == null) return false;
+
+            shipment.IsDeleted = true;
+            shipment.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        
+        public async Task<IEnumerable<MedicationDelivery>> GetOverdueShipmentsAsync()
+        {
+            var cutoffDate = DateTime.UtcNow.AddDays(-7); // Shipments older than 7 days
+            return await _context.MedicationDeliveries
+                .Include(m => m.User)
+                .Include(m => m.Subscription)
+                .Include(m => m.Provider)
+                .Where(m => m.Status == MedicationDelivery.DeliveryStatus.Pending && m.CreatedAt < cutoffDate && !m.IsDeleted)
+                .OrderBy(m => m.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<IEnumerable<MedicationDelivery>> GetShipmentsByDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            return await _context.MedicationDeliveries
+                .Include(m => m.User)
+                .Include(m => m.Subscription)
+                .Include(m => m.Provider)
+                .Where(m => m.CreatedAt >= startDate && m.CreatedAt <= endDate && !m.IsDeleted)
+                .OrderByDescending(m => m.CreatedAt)
+                .ToListAsync();
+        }
+        
+        public async Task<int> GetShipmentCountAsync(Guid userId)
+        {
+            return await _context.MedicationDeliveries
+                .CountAsync(m => m.UserId == userId && !m.IsDeleted);
+        }
+
+        public async Task<decimal> GetShipmentTotalAsync(Guid userId)
+        {
+            // This would typically calculate the total cost of shipments
+            // For now, return a placeholder value
+            return await _context.MedicationDeliveries
+                .Where(m => m.UserId == userId && !m.IsDeleted)
+                .CountAsync() * 25.0m; // Placeholder calculation
+        }
     }
 } 

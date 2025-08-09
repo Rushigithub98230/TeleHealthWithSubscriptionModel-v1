@@ -1,6 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using FluentValidation.AspNetCore;
-using FluentValidation;
 using SmartTelehealth.Application.Interfaces;
 using SmartTelehealth.Application.Services;
 
@@ -13,17 +11,11 @@ public static class DependencyInjection
         // Register AutoMapper
         services.AddAutoMapper(typeof(DependencyInjection).Assembly);
         
-        // Register MediatR
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
-        
-        // Register FluentValidation
-        services.AddFluentValidationAutoValidation();
-        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
-        
         // Register Application Services
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IProviderService, ProviderService>();
+        services.AddScoped<PrivilegeService>();
         services.AddScoped<ISubscriptionService, SubscriptionService>(provider =>
             new SubscriptionService(
                 provider.GetRequiredService<SmartTelehealth.Core.Interfaces.ISubscriptionRepository>(),
@@ -61,6 +53,13 @@ public static class DependencyInjection
         
         // Register Questionnaire Service
         services.AddScoped<IQuestionnaireService, QuestionnaireService>();
+        
+        // Register Automated Billing and Lifecycle Services
+        services.AddScoped<IAutomatedBillingService, AutomatedBillingService>();
+        services.AddScoped<ISubscriptionLifecycleService, SubscriptionLifecycleService>();
+        services.AddHostedService<Services.BackgroundServices.SubscriptionBackgroundService>();
+        
+
         
         return services;
     }

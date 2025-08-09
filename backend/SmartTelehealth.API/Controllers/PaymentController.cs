@@ -8,7 +8,7 @@ using SmartTelehealth.Core.Entities;
 namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/payments")]
 [Authorize]
 public class PaymentController : ControllerBase
 {
@@ -33,6 +33,22 @@ public class PaymentController : ControllerBase
         _logger = logger;
         _auditService = auditService;
         _paymentSecurityService = paymentSecurityService;
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponse<IEnumerable<PaymentHistoryDto>>>> GetAllPayments()
+    {
+        try
+        {
+            var result = await GetPaymentHistory();
+            return Ok(new { data = result.Value });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all payments");
+            return StatusCode(500, new { data = new List<PaymentHistoryDto>() });
+        }
     }
 
     /// <summary>

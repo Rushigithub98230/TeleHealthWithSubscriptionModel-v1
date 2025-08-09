@@ -202,25 +202,7 @@ public class ConsultationMode : BaseEntity
 #endregion
 
 #region Document Type Master Table
-public class DocumentType : BaseEntity
-{
-    [Required]
-    [MaxLength(50)]
-    public string Name { get; set; } = string.Empty;
-    
-    [MaxLength(200)]
-    public string? Description { get; set; }
-    
-    public bool IsActive { get; set; } = true;
-    
-    public int SortOrder { get; set; } = 0;
-    
-    [MaxLength(50)]
-    public string? Icon { get; set; } // For UI display
-    
-    // Navigation properties
-    public virtual ICollection<AppointmentDocument> Documents { get; set; } = new List<AppointmentDocument>();
-}
+// DocumentType class is defined in DocumentType.cs
 #endregion
 
 #region Reminder Type Master Table
@@ -298,8 +280,31 @@ public class MasterBillingCycle : BaseEntity
     [MaxLength(200)]
     public string? Description { get; set; }
 
+    [Required]
+    public int DurationInDays { get; set; }
+
+    [Required]
+    public int DurationInMonths { get; set; }
+
     public bool IsActive { get; set; } = true;
     public int SortOrder { get; set; } = 0;
+
+    [MaxLength(100)]
+    public string? StripeInterval { get; set; } // monthly, yearly, etc.
+
+    public int? StripeIntervalCount { get; set; }
+
+    // Navigation properties
+    public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
+    public virtual ICollection<SubscriptionPlan> SubscriptionPlans { get; set; } = new List<SubscriptionPlan>();
+
+    // Computed properties (not mapped to database)
+    public string DisplayName => $"{Name} ({DurationInDays} days)";
+    public bool IsMonthly => DurationInMonths == 1;
+    public bool IsYearly => DurationInMonths == 12;
+    public bool IsQuarterly => DurationInMonths == 3;
+    public bool IsWeekly => DurationInDays == 7;
+    public bool IsDaily => DurationInDays == 1;
 }
 #endregion
 

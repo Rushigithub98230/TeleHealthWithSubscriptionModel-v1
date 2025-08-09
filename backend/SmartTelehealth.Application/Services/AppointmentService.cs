@@ -65,16 +65,8 @@ public class AppointmentService : IAppointmentService
             if (appointment == null)
                 return ApiResponse<DocumentDto>.ErrorResponse("Appointment not found", 404);
 
-            // Convert base64 to bytes
-            byte[] fileBytes;
-            try
-            {
-                fileBytes = Convert.FromBase64String(uploadDto.FileContent);
-            }
-            catch
-            {
-                return ApiResponse<DocumentDto>.ErrorResponse("Invalid file content format", 400);
-            }
+            // Use the file content directly since it's already a byte array
+            var fileBytes = uploadDto.FileContent;
 
             // Get document type for appointment documents (you can make this configurable)
             var appointmentDocumentTypes = await _documentTypeService.GetAllDocumentTypesAsync(true);
@@ -107,12 +99,8 @@ public class AppointmentService : IAppointmentService
             // Upload using centralized document service
             var result = await _documentService.UploadDocumentAsync(uploadRequest);
             
-            if (result.Success)
-            {
-                // Update appointment document count
-                appointment.DocumentCount++;
-                await _appointmentRepository.UpdateAsync(appointment);
-            }
+            // Note: Document count is now managed by the centralized document service
+            // No need to update appointment entity
 
             return result;
         }
@@ -157,25 +145,8 @@ public class AppointmentService : IAppointmentService
             // Delete using centralized document service
             var result = await _documentService.DeleteDocumentAsync(documentId, currentUserId);
             
-            if (result.Success)
-            {
-                // Update appointment document count
-                var document = await _documentService.GetDocumentAsync(documentId);
-                if (document.Success && document.Data != null)
-                {
-                    var references = document.Data.References;
-                    var appointmentRef = references.FirstOrDefault(r => r.EntityType == "Appointment");
-                    if (appointmentRef != null && Guid.TryParse(appointmentRef.EntityId.ToString(), out var appointmentId))
-                    {
-                        var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
-                        if (appointment != null)
-                        {
-                            appointment.DocumentCount = Math.Max(0, appointment.DocumentCount - 1);
-                            await _appointmentRepository.UpdateAsync(appointment);
-                        }
-                    }
-                }
-            }
+            // Note: Document count is now managed by the centralized document service
+            // No need to update appointment entity
 
             return result;
         }

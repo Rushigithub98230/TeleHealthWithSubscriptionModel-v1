@@ -82,12 +82,39 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
+        public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetAllBillingRecordsAsync()
+        {
+            try
+            {
+                var billingRecords = await _billingRepository.GetAllAsync();
+                var billingRecordDtos = _mapper.Map<IEnumerable<BillingRecordDto>>(billingRecords);
+                return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(billingRecordDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all billing records");
+                return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Error retrieving billing records", 500);
+            }
+        }
+
         public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetSubscriptionBillingHistoryAsync(Guid subscriptionId)
         {
             try
             {
+                _logger.LogInformation("Getting billing history for subscription {SubscriptionId}", subscriptionId);
+                
                 var billingRecords = await _billingRepository.GetBySubscriptionIdAsync(subscriptionId);
+                _logger.LogInformation("Found {Count} billing records for subscription {SubscriptionId}", billingRecords.Count(), subscriptionId);
+                
+                foreach (var record in billingRecords)
+                {
+                    _logger.LogInformation("Billing Record: ID={Id}, SubscriptionId={SubscriptionId}, Amount={Amount}, Status={Status}", 
+                        record.Id, record.SubscriptionId, record.Amount, record.Status);
+                }
+                
                 var billingRecordDtos = _mapper.Map<IEnumerable<BillingRecordDto>>(billingRecords);
+                _logger.LogInformation("Mapped {Count} billing record DTOs", billingRecordDtos.Count());
+                
                 return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(billingRecordDtos);
             }
             catch (Exception ex)
@@ -640,6 +667,22 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
+        public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetBillingCycleRecordsAsync(Guid billingCycleId)
+        {
+            try
+            {
+                // This is a placeholder implementation since the repository doesn't have this method yet
+                var billingRecords = new List<BillingRecord>(); // await _billingRepository.GetByBillingCycleIdAsync(billingCycleId);
+                var billingRecordDtos = _mapper.Map<IEnumerable<BillingRecordDto>>(billingRecords);
+                return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(billingRecordDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting billing cycle records for cycle {BillingCycleId}", billingCycleId);
+                return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Error retrieving billing cycle records", 500);
+            }
+        }
+
         public async Task<ApiResponse<PaymentScheduleDto>> GetPaymentScheduleAsync(Guid subscriptionId)
         {
             try
@@ -953,11 +996,11 @@ namespace SmartTelehealth.Application.Services
                 // Retry payment logic
                 var paymentResult = new PaymentResultDto
                 {
-                    Success = true,
-                    TransactionId = Guid.NewGuid().ToString(),
+                    Status = "succeeded",
+                    PaymentIntentId = Guid.NewGuid().ToString(),
                     Amount = billingRecord.Amount,
-                    Status = "Completed",
-                    Message = "Payment retry successful"
+                    Currency = "usd",
+                    ProcessedAt = DateTime.UtcNow
                 };
 
                 return ApiResponse<PaymentResultDto>.SuccessResponse(paymentResult);

@@ -12,7 +12,9 @@ namespace SmartTelehealth.Application.DTOs
         public string LastName { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
         public string UserType { get; set; } = string.Empty;
+        public string Role { get; set; } = "User";
         public string UserRoleId { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public bool IsVerified { get; set; }
@@ -85,6 +87,7 @@ namespace SmartTelehealth.Application.DTOs
         public string? EmergencyContactName { get; set; }
         public string? EmergencyContactPhone { get; set; }
         public string UserType { get; set; } = "Patient";
+        public string Role { get; set; } = "User";
         public string UserRoleId { get; set; } = string.Empty;
     }
 

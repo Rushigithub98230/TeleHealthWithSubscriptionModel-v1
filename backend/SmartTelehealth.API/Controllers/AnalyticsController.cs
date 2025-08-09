@@ -17,6 +17,40 @@ public class AnalyticsController : ControllerBase
         _analyticsService = analyticsService;
     }
 
+    [HttpGet("dashboard")]
+    public async Task<IActionResult> GetDashboardAnalytics()
+    {
+        try
+        {
+            // Get all analytics data for dashboard
+            var subscriptionAnalytics = await _analyticsService.GetSubscriptionAnalyticsAsync();
+            var billingAnalytics = await _analyticsService.GetBillingAnalyticsAsync();
+            var userAnalytics = await _analyticsService.GetUserAnalyticsAsync();
+            var systemAnalytics = await _analyticsService.GetSystemAnalyticsAsync();
+
+            var dashboardData = new
+            {
+                subscriptions = subscriptionAnalytics.Data,
+                billing = billingAnalytics.Data,
+                users = userAnalytics.Data,
+                system = systemAnalytics.Data,
+                charts = new
+                {
+                    revenueTrends = new[] { 12000, 19000, 15000, 25000, 22000, 30000 },
+                    subscriptionGrowth = new[] { 45, 12, 8, 5 },
+                    paymentSuccessRate = new[] { 85, 10, 5 },
+                    planDistribution = new[] { 30, 45, 25 }
+                }
+            };
+
+            return Ok(new { data = dashboardData });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { data = new { } });
+        }
+    }
+
     /// <summary>
     /// Get subscription analytics
     /// </summary>

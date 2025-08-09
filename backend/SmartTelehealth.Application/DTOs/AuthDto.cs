@@ -38,6 +38,7 @@ public class RegisterDto
     public string State { get; set; } = string.Empty;
     [Required]
     public string ZipCode { get; set; } = string.Empty;
+    public string? Role { get; set; } = "Client"; // Default to Client, can be Admin, Provider, Support, or Client
 }
 
 public class LoginResponseDto

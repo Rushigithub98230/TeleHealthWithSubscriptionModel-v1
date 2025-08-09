@@ -1,0 +1,22 @@
+2025-08-08 17:55:27.645 +05:30 [INF] Subscription Background Service started
+2025-08-08 17:55:27.667 +05:30 [INF] Stripe service initialized successfully
+2025-08-08 17:55:27.667 +05:30 [INF] Starting automated billing process
+2025-08-08 17:55:27.667 +05:30 [INF] Starting recurring billing process
+2025-08-08 17:55:27.667 +05:30 [INF] Completed recurring billing process
+2025-08-08 17:55:27.668 +05:30 [INF] Automated billing completed
+2025-08-08 17:55:27.668 +05:30 [INF] Starting lifecycle management process
+2025-08-08 17:55:27.668 +05:30 [INF] Lifecycle management completed. Expired: 0, Trial Expired: 0
+2025-08-08 17:55:27.668 +05:30 [INF] Automated billing service started
+2025-08-08 17:55:27.668 +05:30 [INF] Stripe service initialized successfully
+2025-08-08 17:55:27.669 +05:30 [INF] Starting automated billing cycle at "2025-08-08T12:25:27.6696427Z"
+2025-08-08 17:55:27.669 +05:30 [INF] Found 0 subscriptions due for billing
+2025-08-08 17:55:27.669 +05:30 [INF] Found 0 suspended subscriptions
+2025-08-08 17:55:27.670 +05:30 [INF] Found 0 subscriptions with usage counters to reset
+2025-08-08 17:55:27.670 +05:30 [INF] Completed automated billing cycle at "2025-08-08T12:25:27.6701524Z"
+2025-08-08 17:55:27.834 +05:30 [WRN] Failed to determine the https port for redirect.
+2025-08-08 17:55:27.839 +05:30 [INF] Stripe service initialized successfully
+2025-08-08 17:55:27.858 +05:30 [INF] Email notifications disabled - would have sent cancellation email to testuser@test.com
+2025-08-08 17:55:27.861 +05:30 [INF] AUDIT: CancelSubscription by 6d4a3942-4beb-41ef-8423-07a0e2c92e22 on Subscription - User request
+2025-08-08 17:55:30.133 +05:30 [INF] Automated billing service stopped
+2025-08-08 17:55:30.133 +05:30 [INF] Subscription Background Service cancelled
+2025-08-08 17:55:30.133 +05:30 [INF] Subscription Background Service stopped

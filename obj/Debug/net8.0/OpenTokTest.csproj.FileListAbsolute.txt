@@ -1,6 +1,0 @@
-D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.csproj.AssemblyReference.cache
-D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.GeneratedMSBuildEditorConfig.editorconfig
-D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.AssemblyInfoInputs.cache
-D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.AssemblyInfo.cs
-D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.csproj.CoreCompileInputs.cache
-D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel\obj\Debug\net8.0\OpenTokTest.sourcelink.json

@@ -1,67 +1,89 @@
-# Subscription Management Admin Panel
+# Smart TeleHealth Backend API
 
-A comprehensive Angular-based admin panel for managing subscription plans, user subscriptions, billing, and payment processing with Stripe integration.
+A comprehensive .NET 8 backend API for a telehealth platform with subscription management, billing, payment processing, and healthcare services integration.
 
 ## 🚀 Features
 
-### Admin Dashboard
-- **Real-time Statistics**: Total subscriptions, active subscriptions, revenue metrics
-- **Quick Actions**: Create subscriptions, manage plans, trigger billing
-- **Subscription Management**: View, pause, resume, cancel subscriptions
-- **Plan Management**: Create, edit, delete subscription plans
-- **Payment Processing**: Process payments, handle failed payments
+### Subscription Management
+- **Subscription Plans**: Create, manage, and configure subscription plans
+- **User Subscriptions**: Handle user subscription lifecycle (create, pause, resume, cancel)
+- **Billing Automation**: Automated billing cycles and invoice generation
+- **Payment Processing**: Stripe integration for secure payment processing
 - **Analytics**: Revenue analytics, usage statistics, growth metrics
 
-### Authentication & Security
-- **JWT Token Management**: Secure authentication with refresh tokens
-- **Role-based Access**: Admin and SuperAdmin roles
-- **Session Management**: Automatic token refresh and logout
+### Healthcare Services
+- **Provider Management**: Healthcare provider onboarding and management
+- **Appointment System**: Appointment scheduling and management
+- **Chat & Messaging**: Real-time messaging between patients and providers
+- **Video Calling**: Integrated video consultation capabilities
+- **Document Management**: Secure document storage and retrieval
 
-### Stripe Integration
-- **Payment Processing**: Secure payment processing through Stripe
-- **Webhook Handling**: Real-time payment status updates
-- **Subscription Management**: Automated billing and renewal
-- **Payment Methods**: Add, remove, and manage payment methods
+### Authentication & Security
+- **JWT Authentication**: Secure token-based authentication
+- **Role-based Access**: Patient, Provider, Admin, and SuperAdmin roles
+- **Multi-factor Authentication**: Enhanced security features
+- **Audit Logging**: Comprehensive audit trail for all operations
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: Angular 17+ with TypeScript
-- **UI Framework**: Angular Material
-- **HTTP Client**: Angular HttpClient with interceptors
-- **State Management**: RxJS Observables
-- **Payment Processing**: Stripe.js
-- **Styling**: SCSS with responsive design
+- **Framework**: .NET 8 Web API
+- **Database**: Entity Framework Core with SQL Server
+- **Authentication**: JWT with custom identity system
+- **Payment Processing**: Stripe.NET
+- **Real-time Communication**: SignalR for chat and video calls
+- **Documentation**: Swagger/OpenAPI
+- **Testing**: xUnit with comprehensive test coverage
+- **Architecture**: Clean Architecture with CQRS pattern
 
 ## 📋 Prerequisites
 
-- Node.js (v18 or higher)
-- npm or yarn
-- Angular CLI
-- Backend API running on localhost:5000
+- .NET 8 SDK
+- SQL Server or SQL Server Express
+- Visual Studio 2022 or VS Code
+- Stripe Account (for payment processing)
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### 1. Clone and Setup
 ```bash
-npm install
+git clone [repository-url]
+cd TeleHealthWithSubscriptionModel/backend
 ```
 
-### 2. Configure Environment
-Update `src/environments/environment.ts`:
-```typescript
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:5000', // Your backend API URL
-  stripePublishableKey: 'pk_test_your_stripe_key_here'
-};
+### 2. Configure Database
+Update `appsettings.json`:
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=SmartTelehealth;Trusted_Connection=true;MultipleActiveResultSets=true"
+  }
+}
 ```
 
-### 3. Start Development Server
+### 3. Run Database Migrations
 ```bash
-ng serve
+cd SmartTelehealth.API
+dotnet ef database update
 ```
 
-The application will be available at `http://localhost:4200`
+### 4. Configure Stripe
+Update `appsettings.json`:
+```json
+{
+  "Stripe": {
+    "SecretKey": "sk_test_your_stripe_secret_key",
+    "PublishableKey": "pk_test_your_stripe_publishable_key",
+    "WebhookSecret": "whsec_your_webhook_secret"
+  }
+}
+```
+
+### 5. Start the API
+```bash
+dotnet run
+```
+
+The API will be available at `https://localhost:5001` with Swagger documentation at `https://localhost:5001/swagger`
 
 ## 🔐 Default Admin Credentials
 
@@ -69,151 +91,163 @@ For testing purposes, use these credentials:
 - **Email**: admin@test.com
 - **Password**: Admin123!
 
-## 📊 Dashboard Features
-
-### Statistics Overview
-- Total Subscriptions
-- Active Subscriptions
-- Total Revenue
-- Monthly Recurring Revenue (MRR)
-- Total Users
-- Pending Payments
-
-### Quick Actions
-- **Create Subscription**: Add new user subscriptions
-- **Create Plan**: Create new subscription plans
-- **Trigger Billing**: Manually trigger billing cycles
-- **View Analytics**: Access detailed analytics
-
-### Subscription Management
-- View all subscriptions in a data table
-- Filter by status (Active, Paused, Cancelled, Trial)
-- Perform actions: Pause, Resume, Cancel, Upgrade
-- View subscription details and billing history
-
-### Plan Management
-- Create new subscription plans
-- Set pricing, trial periods, billing cycles
-- Edit existing plans
-- Delete inactive plans
-
-## 🔧 API Integration
-
-The frontend is designed to work with the SmartTelehealth backend API. Key endpoints:
+## 📊 API Endpoints
 
 ### Authentication
 - `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
 - `POST /api/auth/refresh` - Token refresh
+- `POST /api/auth/logout` - User logout
 
-### Dashboard
-- `GET /api/admin/dashboard` - Dashboard statistics
-
-### Subscriptions
+### Subscription Management
 - `GET /api/subscription-management/subscriptions` - Get all subscriptions
 - `POST /api/subscriptions` - Create subscription
 - `POST /api/subscriptions/{id}/cancel` - Cancel subscription
 - `POST /api/subscriptions/{id}/pause` - Pause subscription
 - `POST /api/subscriptions/{id}/resume` - Resume subscription
 
-### Plans
+### Plan Management
 - `GET /api/subscription-management/plans` - Get all plans
 - `POST /api/subscription-management/plans` - Create plan
 - `PUT /api/subscription-management/plans/{id}` - Update plan
 - `DELETE /api/subscription-management/plans/{id}` - Delete plan
 
-### Billing
+### Billing & Payments
 - `GET /api/billing/records` - Get billing records
 - `POST /api/billing/{id}/process-payment` - Process payment
 - `POST /api/payments/retry-payment/{id}` - Retry failed payment
+- `POST /api/stripe/webhook` - Stripe webhook handler
+
+### Provider Management
+- `GET /api/providers` - Get all providers
+- `POST /api/providers` - Create provider
+- `PUT /api/providers/{id}` - Update provider
+- `DELETE /api/providers/{id}` - Delete provider
 
 ### Analytics
 - `GET /api/subscription-analytics/revenue` - Revenue analytics
 - `GET /api/subscriptions/{id}/usage` - Usage statistics
 
-## 🎨 UI Components
+### Appointments
+- `GET /api/appointments` - Get appointments
+- `POST /api/appointments` - Create appointment
+- `PUT /api/appointments/{id}` - Update appointment
+- `DELETE /api/appointments/{id}` - Delete appointment
 
-### Material Design Components
-- **Cards**: Statistics cards, plan cards
-- **Tables**: Subscription data table with sorting and filtering
-- **Forms**: Login form, subscription creation forms
-- **Buttons**: Action buttons with icons
-- **Menus**: Dropdown menus for actions
-- **Progress Indicators**: Loading spinners
+### Users & Patients
+- `GET /api/users` - Get all users
+- `POST /api/users` - Create user
+- `PUT /api/users/{id}` - Update user
+- `DELETE /api/users/{id}` - Delete user
 
-### Responsive Design
-- Mobile-first approach
-- Responsive grid layouts
-- Touch-friendly interfaces
-- Adaptive navigation
+## 🏗️ Project Structure
+
+```
+backend/
+├── SmartTelehealth.API/          # Web API Layer
+│   ├── Controllers/              # API Controllers
+│   ├── Middleware/               # Custom Middleware
+│   ├── Hubs/                     # SignalR Hubs
+│   └── Program.cs                # Application Entry Point
+├── SmartTelehealth.Application/  # Application Layer
+│   ├── Services/                 # Business Logic Services
+│   ├── DTOs/                     # Data Transfer Objects
+│   ├── Interfaces/               # Service Interfaces
+│   └── Mapping/                  # AutoMapper Profiles
+├── SmartTelehealth.Core/         # Domain Layer
+│   ├── Entities/                 # Domain Entities
+│   └── Interfaces/               # Repository Interfaces
+├── SmartTelehealth.Infrastructure/ # Infrastructure Layer
+│   ├── Data/                     # Database Context & Migrations
+│   ├── Repositories/             # Repository Implementations
+│   └── Services/                 # External Service Implementations
+└── SmartTelehealth.API.Tests/    # Test Projects
+    ├── Integration Tests/
+    ├── Unit Tests/
+    └── Test Data/
+```
 
 ## 🔒 Security Features
 
-- **JWT Authentication**: Secure token-based authentication
-- **HTTP Interceptors**: Automatic token injection
-- **Route Guards**: Protected routes for admin access
-- **Error Handling**: Comprehensive error handling and user feedback
-
-## 📱 Mobile Support
-
-- Responsive design for all screen sizes
-- Touch-friendly interface elements
-- Mobile-optimized navigation
-- Progressive Web App capabilities
+- **JWT Authentication**: Secure token-based authentication with refresh tokens
+- **Role-based Authorization**: Granular access control based on user roles
+- **Input Validation**: Comprehensive input validation and sanitization
+- **Rate Limiting**: API rate limiting to prevent abuse
+- **Audit Logging**: Complete audit trail for all operations
+- **HTTPS Enforcement**: SSL/TLS encryption for all communications
+- **CORS Configuration**: Cross-Origin Resource Sharing configuration
 
 ## 🚀 Deployment
 
-### Build for Production
+### Docker Deployment
 ```bash
-ng build --configuration production
+# Build Docker image
+docker build -t smarttelehealth-api .
+
+# Run container
+docker run -p 5000:80 smarttelehealth-api
+```
+
+### Azure Deployment
+```bash
+# Publish to Azure
+dotnet publish -c Release
 ```
 
 ### Environment Configuration
-Update `src/environments/environment.prod.ts`:
-```typescript
-export const environment = {
-  production: true,
-  apiUrl: 'https://your-production-api-url.com',
-  stripePublishableKey: 'pk_live_your_stripe_key_here'
-};
+Update `appsettings.Production.json`:
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Your production connection string"
+  },
+  "Stripe": {
+    "SecretKey": "sk_live_your_production_key",
+    "PublishableKey": "pk_live_your_production_key",
+    "WebhookSecret": "whsec_your_production_webhook_secret"
+  }
+}
 ```
 
 ## 🧪 Testing
 
-### Unit Tests
+### Run Unit Tests
 ```bash
-ng test
+cd SmartTelehealth.API.Tests
+dotnet test
 ```
 
-### E2E Tests
+### Run Integration Tests
 ```bash
-ng e2e
+cd SmartTelehealth.API.Tests
+dotnet test --filter Category=Integration
+```
+
+### Test Coverage
+```bash
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
 ## 📝 Development Notes
 
-### Project Structure
-```
-src/
-├── app/
-│   ├── components/
-│   │   ├── dashboard/
-│   │   └── login/
-│   ├── models/
-│   ├── services/
-│   └── app.component.ts
-├── environments/
-└── assets/
-```
+### Clean Architecture Layers
+- **API Layer**: Controllers, middleware, and API-specific logic
+- **Application Layer**: Business logic, services, and DTOs
+- **Domain Layer**: Core entities and business rules
+- **Infrastructure Layer**: Data access, external services, and implementations
 
-### Key Services
-- **AuthService**: Authentication and token management
-- **SubscriptionService**: Subscription and plan management
-- **HTTP Interceptors**: Automatic token handling
+### Key Design Patterns
+- **Repository Pattern**: Data access abstraction
+- **Unit of Work**: Transaction management
+- **Dependency Injection**: Loose coupling and testability
+- **CQRS**: Command Query Responsibility Segregation
+- **Mediator Pattern**: Decoupled request handling
 
-### State Management
-- RxJS Observables for reactive state
-- BehaviorSubject for user authentication state
-- Local storage for token persistence
+### Database Design
+- **Entity Framework Core**: ORM for data access
+- **Code First Migrations**: Database schema management
+- **Seed Data**: Initial data population
+- **Relationship Management**: Complex entity relationships
 
 ## 🤝 Contributing
 

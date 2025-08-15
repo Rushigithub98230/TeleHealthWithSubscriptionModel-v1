@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class MedicationDelivery : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum DeliveryStatus
     {
         Pending,
@@ -15,7 +19,7 @@ public class MedicationDelivery : BaseEntity
     }
     
     // Foreign keys
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public virtual User User { get; set; } = null!;
     
     public Guid? SubscriptionId { get; set; }
@@ -24,7 +28,7 @@ public class MedicationDelivery : BaseEntity
     public Guid? ConsultationId { get; set; }
     public virtual Consultation? Consultation { get; set; }
     
-    public Guid? ProviderId { get; set; }
+    public int? ProviderId { get; set; }
     public virtual Provider? Provider { get; set; }
     
     // Delivery details
@@ -76,8 +80,16 @@ public class MedicationDelivery : BaseEntity
     // Navigation properties
     public virtual ICollection<DeliveryTracking> TrackingEvents { get; set; } = new List<DeliveryTracking>();
     
+    // Computed Properties
+    [NotMapped]
     public bool IsDelivered => Status == DeliveryStatus.Delivered;
+    
+    [NotMapped]
     public bool IsShipped => Status == DeliveryStatus.Shipped;
+    
+    [NotMapped]
     public bool IsFailed => Status == DeliveryStatus.Failed;
+    
+    [NotMapped]
     public bool IsReturned => Status == DeliveryStatus.Returned;
 } 

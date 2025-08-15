@@ -84,8 +84,8 @@ public class DocumentService : IDocumentService
                 Description = request.Description,
                 IsEncrypted = request.IsEncrypted,
                 IsPublic = request.IsPublic,
-                CreatedById = request.CreatedById ?? Guid.Empty, // Ensure CreatedById is set
-                CreatedAt = DateTime.UtcNow,
+                CreatedBy = request.CreatedById ?? 0, // Ensure CreatedBy is set
+                CreatedDate = DateTime.UtcNow,
                 IsActive = true,
                 IsDeleted = false
             };
@@ -96,14 +96,14 @@ public class DocumentService : IDocumentService
             // 5. Create document reference
             var reference = new DocumentReference
             {
-                DocumentId = document.DocumentId,
+                DocumentId = document.Id,
                 EntityType = request.EntityType,
                 EntityId = request.EntityId,
                 ReferenceType = request.ReferenceType,
                 IsPublic = request.IsPublic,
                 ExpiresAt = request.ExpiresAt,
-                CreatedById = request.CreatedById ?? Guid.Empty,
-                CreatedAt = DateTime.UtcNow
+                CreatedBy = request.CreatedById ?? 0,
+                CreatedDate = DateTime.UtcNow
             };
 
             await _referenceRepository.AddAsync(reference);
@@ -115,7 +115,7 @@ public class DocumentService : IDocumentService
             // 7. Return document DTO with document type information
             return ApiResponse<DocumentDto>.SuccessResponse(new DocumentDto
             {
-                DocumentId = document.DocumentId,
+                DocumentId = document.Id,
                 OriginalName = document.OriginalName,
                 UniqueName = document.UniqueName,
                 FilePath = document.FilePath,
@@ -126,7 +126,7 @@ public class DocumentService : IDocumentService
                 DocumentTypeId = document.DocumentTypeId,
                 DocumentType = new DocumentTypeDto // Include DocumentTypeDto
                 {
-                    DocumentTypeId = documentType.DocumentTypeId,
+                    DocumentTypeId = documentType.Id,
                     Name = documentType.Name,
                     Description = documentType.Description,
                     IsSystemDefined = documentType.IsSystemDefined,
@@ -140,19 +140,19 @@ public class DocumentService : IDocumentService
                     DisplayOrder = documentType.DisplayOrder,
                     UsageCount = documentType.UsageCount,
                     LastUsedAt = documentType.LastUsedAt,
-                    CreatedById = documentType.CreatedById,
-                    CreatedAt = documentType.CreatedAt,
-                    UpdatedAt = documentType.UpdatedAt,
-                    DeletedAt = documentType.DeletedAt,
+                                         CreatedById = documentType.CreatedBy,
+                     CreatedAt = documentType.CreatedDate ?? DateTime.UtcNow,
+                    UpdatedAt = documentType.UpdatedDate,
+                    DeletedAt = documentType.DeletedDate,
                     MaxFileSizeDisplay = documentType.GetMaxFileSizeDisplay(),
                     AllowedExtensionsList = documentType.GetAllowedExtensionsList()
                 },
                 DocumentCategory = document.DocumentCategory,
                 IsEncrypted = document.IsEncrypted,
                 IsPublic = document.IsPublic,
-                CreatedById = document.CreatedById,
-                CreatedAt = document.CreatedAt,
-                DeletedAt = document.DeletedAt,
+                CreatedById = document.CreatedBy,
+                CreatedAt = document.CreatedDate ?? DateTime.UtcNow,
+                DeletedAt = document.DeletedDate,
                 IsActive = document.IsActive,
                 IsDeleted = document.IsDeleted,
                 DownloadUrl = (await _fileStorageService.GetFileUrlAsync(document.FilePath)).Data,
@@ -167,7 +167,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<DocumentDto>> GetDocumentAsync(Guid documentId, Guid? userId = null)
+    public async Task<ApiResponse<DocumentDto>> GetDocumentAsync(Guid documentId, int? userId = null)
     {
         try
         {
@@ -192,15 +192,15 @@ public class DocumentService : IDocumentService
             var documentType = await _documentTypeRepository.GetByIdAsync(document.DocumentTypeId);
             var documentTypeDto = documentType != null ? new DocumentTypeDto
             {
-                DocumentTypeId = documentType.DocumentTypeId,
+                DocumentTypeId = documentType.Id,
                 Name = documentType.Name,
                 Description = documentType.Description,
                 IsActive = documentType.IsActive,
                 IsDeleted = documentType.IsDeleted,
-                CreatedById = documentType.CreatedById,
-                CreatedAt = documentType.CreatedAt,
-                UpdatedAt = documentType.UpdatedAt,
-                DeletedAt = documentType.DeletedAt
+                CreatedById = documentType.CreatedBy,
+                CreatedAt = documentType.CreatedDate ?? DateTime.UtcNow,
+                UpdatedAt = documentType.UpdatedDate,
+                DeletedAt = documentType.DeletedDate
             } : null;
 
             // 4. Get references
@@ -209,7 +209,7 @@ public class DocumentService : IDocumentService
             // 5. Return document DTO
             return ApiResponse<DocumentDto>.SuccessResponse(new DocumentDto
             {
-                DocumentId = document.DocumentId,
+                DocumentId = document.Id,
                 OriginalName = document.OriginalName,
                 UniqueName = document.UniqueName,
                 FilePath = document.FilePath,
@@ -222,9 +222,9 @@ public class DocumentService : IDocumentService
                 DocumentCategory = document.DocumentCategory,
                 IsEncrypted = document.IsEncrypted,
                 IsPublic = document.IsPublic,
-                CreatedById = document.CreatedById,
-                CreatedAt = document.CreatedAt,
-                DeletedAt = document.DeletedAt,
+                CreatedById = document.CreatedBy,
+                CreatedAt = document.CreatedDate ?? DateTime.UtcNow,
+                DeletedAt = document.DeletedDate,
                 IsActive = document.IsActive,
                 IsDeleted = document.IsDeleted,
                 References = references.Select(r => new DocumentReferenceDto
@@ -237,8 +237,8 @@ public class DocumentService : IDocumentService
                     Description = r.Description,
                     IsPublic = r.IsPublic,
                     ExpiresAt = r.ExpiresAt,
-                    CreatedById = r.CreatedById,
-                    CreatedAt = r.CreatedAt
+                    CreatedById = r.CreatedBy ?? 0,
+                    CreatedAt = r.CreatedDate ?? DateTime.UtcNow
                 }).ToList()
             });
         }
@@ -249,7 +249,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<DocumentDto>> GetDocumentWithContentAsync(Guid documentId, Guid? userId = null)
+    public async Task<ApiResponse<DocumentDto>> GetDocumentWithContentAsync(Guid documentId, int? userId = null)
     {
         try
         {
@@ -278,7 +278,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteDocumentAsync(Guid documentId, Guid userId)
+    public async Task<ApiResponse<bool>> DeleteDocumentAsync(Guid documentId, int userId)
     {
         try
         {
@@ -308,7 +308,7 @@ public class DocumentService : IDocumentService
             foreach (var reference in references)
             {
                 reference.IsDeleted = true;
-                reference.UpdatedAt = DateTime.UtcNow;
+                reference.UpdatedDate = DateTime.UtcNow;
             }
             await _referenceRepository.SaveChangesAsync();
 
@@ -325,7 +325,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<bool>> SoftDeleteDocumentAsync(Guid documentId, Guid userId)
+    public async Task<ApiResponse<bool>> SoftDeleteDocumentAsync(Guid documentId, int userId)
     {
         try
         {
@@ -345,9 +345,9 @@ public class DocumentService : IDocumentService
 
             // 3. Soft delete document
             document.IsDeleted = true;
-            document.DeletedById = userId;
-            document.DeletedAt = DateTime.UtcNow;
-            document.UpdatedAt = DateTime.UtcNow;
+            document.DeletedBy = userId;
+            document.DeletedDate = DateTime.UtcNow;
+            document.UpdatedDate = DateTime.UtcNow;
 
             await _documentRepository.SaveChangesAsync();
 
@@ -360,7 +360,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<List<DocumentDto>>> GetDocumentsByEntityAsync(string entityType, Guid entityId, Guid? userId = null)
+    public async Task<ApiResponse<List<DocumentDto>>> GetDocumentsByEntityAsync(string entityType, Guid entityId, int? userId = null)
     {
         try
         {
@@ -388,7 +388,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<List<DocumentDto>>> GetDocumentsByReferenceTypeAsync(string entityType, Guid entityId, string referenceType, Guid? userId = null)
+    public async Task<ApiResponse<List<DocumentDto>>> GetDocumentsByReferenceTypeAsync(string entityType, Guid entityId, string referenceType, int? userId = null)
     {
         try
         {
@@ -417,7 +417,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<List<DocumentDto>>> SearchDocumentsAsync(DocumentSearchRequest request, Guid? userId = null)
+    public async Task<ApiResponse<List<DocumentDto>>> SearchDocumentsAsync(DocumentSearchRequest request, int? userId = null)
     {
         try
         {
@@ -440,7 +440,7 @@ public class DocumentService : IDocumentService
                 // For now, we'll filter by document type name in memory
                 var documentTypes = await _documentTypeRepository.FindAsync(dt => 
                     dt.Name.ToLower().Contains(request.DocumentTypeName.ToLower()) && !dt.IsDeleted);
-                var documentTypeIds = documentTypes.Select(dt => dt.DocumentTypeId).ToList();
+                var documentTypeIds = documentTypes.Select(dt => dt.Id).ToList();
                 searchExpression = d => documentTypeIds.Contains(d.DocumentTypeId) && !d.IsDeleted;
             }
 
@@ -451,12 +451,12 @@ public class DocumentService : IDocumentService
 
             if (request.CreatedFrom.HasValue)
             {
-                searchExpression = d => d.CreatedAt >= request.CreatedFrom.Value && !d.IsDeleted;
+                searchExpression = d => d.CreatedDate >= request.CreatedFrom.Value && !d.IsDeleted;
             }
 
             if (request.CreatedTo.HasValue)
             {
-                searchExpression = d => d.CreatedAt <= request.CreatedTo.Value && !d.IsDeleted;
+                searchExpression = d => d.CreatedDate <= request.CreatedTo.Value && !d.IsDeleted;
             }
 
             var documents = await _documentRepository.FindAsync(searchExpression);
@@ -464,7 +464,7 @@ public class DocumentService : IDocumentService
 
             foreach (var document in documents)
             {
-                var documentResult = await GetDocumentAsync(document.DocumentId, userId);
+                var documentResult = await GetDocumentAsync(document.Id, userId);
                 if (documentResult.Success)
                 {
                     documentDtos.Add(documentResult.Data!);
@@ -486,7 +486,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<DocumentReferenceDto>> AddDocumentReferenceAsync(Guid documentId, string entityType, Guid entityId, string? referenceType = null, Guid? createdById = null)
+    public async Task<ApiResponse<DocumentReferenceDto>> AddDocumentReferenceAsync(Guid documentId, string entityType, Guid entityId, string? referenceType = null, int? createdById = null)
     {
         try
         {
@@ -496,8 +496,8 @@ public class DocumentService : IDocumentService
                 EntityType = entityType,
                 EntityId = entityId,
                 ReferenceType = referenceType,
-                CreatedById = createdById ?? Guid.Empty,
-                CreatedAt = DateTime.UtcNow
+                CreatedBy = createdById ?? 0,
+                CreatedDate = DateTime.UtcNow
             };
 
             await _referenceRepository.AddAsync(reference);
@@ -513,8 +513,8 @@ public class DocumentService : IDocumentService
                 Description = reference.Description,
                 IsPublic = reference.IsPublic,
                 ExpiresAt = reference.ExpiresAt,
-                CreatedById = reference.CreatedById,
-                CreatedAt = reference.CreatedAt
+                CreatedById = reference.CreatedBy ?? 0,
+                CreatedAt = reference.CreatedDate ?? DateTime.UtcNow
             });
         }
         catch (Exception ex)
@@ -541,7 +541,7 @@ public class DocumentService : IDocumentService
             }
 
             refToDelete.IsDeleted = true;
-            refToDelete.UpdatedAt = DateTime.UtcNow;
+            refToDelete.UpdatedDate = DateTime.UtcNow;
 
             await _referenceRepository.SaveChangesAsync();
 
@@ -570,8 +570,8 @@ public class DocumentService : IDocumentService
                 Description = r.Description,
                 IsPublic = r.IsPublic,
                 ExpiresAt = r.ExpiresAt,
-                CreatedById = r.CreatedById,
-                CreatedAt = r.CreatedAt
+                CreatedById = r.CreatedBy ?? 0,
+                CreatedAt = r.CreatedDate ?? DateTime.UtcNow
             }).ToList();
 
             return ApiResponse<List<DocumentReferenceDto>>.SuccessResponse(referenceDtos);
@@ -583,7 +583,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<bool>> ValidateDocumentAccessAsync(Guid documentId, Guid userId)
+    public async Task<ApiResponse<bool>> ValidateDocumentAccessAsync(Guid documentId, int userId)
     {
         try
         {
@@ -600,7 +600,7 @@ public class DocumentService : IDocumentService
             }
 
             // Check if user created the document
-            if (document.CreatedById == userId)
+            if (document.CreatedBy.HasValue && document.CreatedBy.Value == userId)
             {
                 return ApiResponse<bool>.SuccessResponse(true);
             }
@@ -627,7 +627,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateDocumentAccessAsync(Guid documentId, bool isPublic, Guid userId)
+    public async Task<ApiResponse<bool>> UpdateDocumentAccessAsync(Guid documentId, bool isPublic, int userId)
     {
         try
         {
@@ -645,7 +645,7 @@ public class DocumentService : IDocumentService
             }
 
             document.IsPublic = isPublic;
-            document.UpdatedAt = DateTime.UtcNow;
+            document.UpdatedDate = DateTime.UtcNow;
 
             await _documentRepository.SaveChangesAsync();
 
@@ -682,7 +682,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteMultipleDocumentsAsync(List<Guid> documentIds, Guid userId)
+    public async Task<ApiResponse<bool>> DeleteMultipleDocumentsAsync(List<Guid> documentIds, int userId)
     {
         try
         {
@@ -700,7 +700,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<DocumentDto>> UpdateDocumentMetadataAsync(Guid documentId, string? description, bool? isPublic, Guid userId)
+    public async Task<ApiResponse<DocumentDto>> UpdateDocumentMetadataAsync(Guid documentId, string? description, bool? isPublic, int userId)
     {
         try
         {
@@ -727,7 +727,7 @@ public class DocumentService : IDocumentService
                 document.IsPublic = isPublic.Value;
             }
 
-            document.UpdatedAt = DateTime.UtcNow;
+            document.UpdatedDate = DateTime.UtcNow;
 
             await _documentRepository.SaveChangesAsync();
 
@@ -740,7 +740,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<ApiResponse<bool>> SetDocumentExpirationAsync(Guid documentId, DateTime? expiresAt, Guid userId)
+    public async Task<ApiResponse<bool>> SetDocumentExpirationAsync(Guid documentId, DateTime? expiresAt, int userId)
     {
         try
         {
@@ -760,7 +760,7 @@ public class DocumentService : IDocumentService
             }
 
             reference.ExpiresAt = expiresAt;
-            reference.UpdatedAt = DateTime.UtcNow;
+            reference.UpdatedDate = DateTime.UtcNow;
 
             await _referenceRepository.SaveChangesAsync();
 
@@ -773,7 +773,91 @@ public class DocumentService : IDocumentService
         }
     }
 
-    private async Task<bool> ValidateEntityAccessAsync(string entityType, Guid entityId, Guid userId)
+    public async Task<ApiResponse<DocumentDto>> UploadUserDocumentAsync(UploadUserDocumentRequest request)
+    {
+        try
+        {
+            // Convert UploadUserDocumentRequest to UploadDocumentRequest
+            var uploadRequest = new UploadDocumentRequest
+            {
+                FileData = request.FileData,
+                FileName = request.FileName,
+                ContentType = request.ContentType,
+                DocumentTypeId = request.DocumentTypeId,
+                EntityType = "User",
+                EntityId = Guid.Empty, // We'll handle this in the reference creation
+                Description = request.Description,
+                IsEncrypted = request.IsEncrypted,
+                IsPublic = request.IsPublic,
+                CreatedById = request.CreatedById
+            };
+
+            return await UploadDocumentAsync(uploadRequest);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading user document");
+            return ApiResponse<DocumentDto>.ErrorResponse("Internal server error", 500);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public async Task<ApiResponse<List<DocumentDto>>> GetUserDocumentsAsync(int userId, string? referenceType = null)
+    {
+        try
+        {
+            var references = await _referenceRepository.FindAsync(r => 
+                r.CreatedBy == userId && 
+                !r.IsDeleted);
+
+            if (!string.IsNullOrEmpty(referenceType))
+            {
+                references = references.Where(r => r.ReferenceType == referenceType);
+            }
+
+            var documentIds = references.Select(r => r.DocumentId).ToList();
+            var documents = new List<DocumentDto>();
+
+            foreach (var documentId in documentIds)
+            {
+                var document = await _documentRepository.GetByIdAsync(documentId);
+                if (document != null && !document.IsDeleted)
+                {
+                    documents.Add(MapToDocumentDto(document));
+                }
+            }
+
+            return ApiResponse<List<DocumentDto>>.SuccessResponse(documents);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user documents for user {UserId}", userId);
+            return ApiResponse<List<DocumentDto>>.ErrorResponse("Internal server error", 500);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+    private async Task<bool> ValidateEntityAccessAsync(string entityType, Guid entityId, int userId)
     {
         // This is a simplified implementation
         // In a real application, you would implement specific access control logic for each entity type
@@ -783,12 +867,53 @@ public class DocumentService : IDocumentService
                 // Implement appointment access validation
                 return true; // Placeholder
             case "User":
-                return entityId == userId; // Users can only access their own documents
+                // For User entity, we need to handle the case where EntityId is a Guid but userId is int
+                // This is a temporary fix - in production, you might want to store user IDs consistently
+                return entityId.ToString() == userId.ToString(); // Users can only access their own documents
             case "ChatRoom":
                 // Implement chat room access validation
                 return true; // Placeholder
             default:
                 return false;
         }
+    }
+
+    private DocumentDto MapToDocumentDto(Document document)
+    {
+        return new DocumentDto
+        {
+            DocumentId = document.Id,
+            OriginalName = document.OriginalName,
+            UniqueName = document.UniqueName,
+            FilePath = document.FilePath,
+            FolderPath = document.FolderPath,
+            ContentType = document.ContentType,
+            FileSize = document.FileSize,
+            DocumentTypeId = document.DocumentTypeId,
+            DocumentCategory = document.DocumentCategory,
+            Description = document.Description,
+            IsEncrypted = document.IsEncrypted,
+            IsPublic = document.IsPublic,
+            CreatedById = document.CreatedBy ?? 0,
+            CreatedAt = document.CreatedDate ?? DateTime.UtcNow,
+            DeletedAt = document.DeletedDate,
+            IsActive = document.IsActive,
+            IsDeleted = document.IsDeleted
+        };
+    }
+
+    private DocumentReferenceDto MapToDocumentReferenceDto(DocumentReference reference)
+    {
+        return new DocumentReferenceDto
+        {
+            Id = reference.Id,
+            DocumentId = reference.DocumentId,
+            EntityType = reference.EntityType,
+            EntityId = reference.EntityId,
+            ReferenceType = reference.ReferenceType,
+            CreatedById = reference.CreatedBy ?? 0,
+            CreatedAt = reference.CreatedDate ?? DateTime.UtcNow,
+            ExpiresAt = reference.ExpiresAt
+        };
     }
 } 

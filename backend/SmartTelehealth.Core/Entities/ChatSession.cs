@@ -5,6 +5,9 @@ namespace SmartTelehealth.Core.Entities;
 
 public class ChatSession : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum ChatStatus
     {
         Active,
@@ -14,10 +17,10 @@ public class ChatSession : BaseEntity
     }
 
     // Foreign keys
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public virtual User User { get; set; } = null!;
 
-    public Guid? ProviderId { get; set; }
+    public int? ProviderId { get; set; }
     public virtual Provider? Provider { get; set; }
 
     public Guid SubscriptionId { get; set; }
@@ -50,7 +53,7 @@ public class ChatSession : BaseEntity
 
     // Computed properties
     [NotMapped]
-    public bool IsActive => Status == ChatStatus.Active;
+    public bool IsChatActive => Status == ChatStatus.Active;
 
     [NotMapped]
     public TimeSpan Duration => EndTime.HasValue ? EndTime.Value - StartTime : DateTime.UtcNow - StartTime;
@@ -61,10 +64,13 @@ public class ChatSession : BaseEntity
 
 public class ChatMessage : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public Guid SessionId { get; set; }
     public virtual ChatSession Session { get; set; } = null!;
 
-    public Guid SenderId { get; set; }
+    public int SenderId { get; set; }
     public string SenderType { get; set; } = string.Empty; // "User", "Provider"
 
     [Required]
@@ -84,6 +90,9 @@ public class ChatMessage : BaseEntity
 
 public class ChatAttachment : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public Guid SessionId { get; set; }
     public virtual ChatSession Session { get; set; } = null!;
 

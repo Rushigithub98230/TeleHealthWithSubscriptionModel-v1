@@ -1,18 +1,20 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
-public class ProviderPayout
+public class ProviderPayout : BaseEntity
 {
+    [Key]
     public Guid Id { get; set; }
     
     [Required]
-    public Guid ProviderId { get; set; }
-    public User Provider { get; set; } = null!;
+    public int ProviderId { get; set; }
+    public virtual User Provider { get; set; } = null!;
     
     [Required]
     public Guid PayoutPeriodId { get; set; }
-    public PayoutPeriod PayoutPeriod { get; set; } = null!;
+    public virtual PayoutPeriod PayoutPeriod { get; set; } = null!;
     
     [Required]
     [Range(0, 1000000)]
@@ -39,8 +41,8 @@ public class ProviderPayout
     
     public DateTime? ProcessedAt { get; set; }
     
-    public Guid? ProcessedByUserId { get; set; }
-    public User? ProcessedByUser { get; set; }
+    public int? ProcessedByUserId { get; set; }
+    public virtual User? ProcessedByUser { get; set; }
     
     [MaxLength(255)]
     public string? TransactionId { get; set; }
@@ -48,18 +50,13 @@ public class ProviderPayout
     [MaxLength(255)]
     public string? PaymentMethodId { get; set; }
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    
-    public bool IsActive { get; set; } = true;
-    
     // Navigation properties for detailed breakdown
-    public ICollection<PayoutDetail> PayoutDetails { get; set; } = new List<PayoutDetail>();
+    public virtual ICollection<PayoutDetail> PayoutDetails { get; set; } = new List<PayoutDetail>();
 }
 
-public class PayoutPeriod
+public class PayoutPeriod : BaseEntity
 {
+    [Key]
     public Guid Id { get; set; }
     
     [Required]
@@ -74,30 +71,29 @@ public class PayoutPeriod
     
     public DateTime? ProcessedAt { get; set; }
     
-    public Guid? ProcessedByUserId { get; set; }
-    public User? ProcessedByUser { get; set; }
+    public int? ProcessedByUserId { get; set; }
+    public virtual User? ProcessedByUser { get; set; }
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    
-    public bool IsActive { get; set; } = true;
+    // Alias properties for backward compatibility
+    public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+    public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
     
     // Navigation properties
-    public ICollection<ProviderPayout> ProviderPayouts { get; set; } = new List<ProviderPayout>();
+    public virtual ICollection<ProviderPayout> ProviderPayouts { get; set; } = new List<ProviderPayout>();
 }
 
-public class PayoutDetail
+public class PayoutDetail : BaseEntity
 {
+    [Key]
     public Guid Id { get; set; }
     
     [Required]
     public Guid PayoutId { get; set; }
-    public ProviderPayout Payout { get; set; } = null!;
+    public virtual ProviderPayout Payout { get; set; } = null!;
     
     [Required]
     public Guid AppointmentId { get; set; }
-    public Appointment Appointment { get; set; } = null!;
+    public virtual Appointment Appointment { get; set; } = null!;
     
     [Required]
     [Range(0, 10000)]
@@ -113,7 +109,12 @@ public class PayoutDetail
     
     public ConsultationType ConsultationType { get; set; }
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    // Alias properties for backward compatibility
+    public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+    public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
+    
+    // Navigation properties
+    public virtual ICollection<PayoutDetail> PayoutDetails { get; set; } = new List<PayoutDetail>();
 }
 
 public enum PayoutStatus

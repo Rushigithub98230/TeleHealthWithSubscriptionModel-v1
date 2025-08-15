@@ -59,7 +59,7 @@ public class AppointmentPaymentLogRepository : IAppointmentPaymentLogRepository
         return await _context.AppointmentPaymentLogs
             .Include(p => p.User)
             .Where(p => p.AppointmentId == appointmentId && !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreatedDate)
             .ToListAsync();
     }
 
@@ -68,7 +68,7 @@ public class AppointmentPaymentLogRepository : IAppointmentPaymentLogRepository
         return await _context.AppointmentPaymentLogs
             .Include(p => p.User)
             .Where(p => p.AppointmentId == appointmentId && !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreatedDate)
             .FirstOrDefaultAsync();
     }
 
@@ -77,7 +77,7 @@ public class AppointmentPaymentLogRepository : IAppointmentPaymentLogRepository
         return await _context.AppointmentPaymentLogs
             .Include(p => p.User)
             .Where(p => p.PaymentStatusId == statusId && !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreatedDate)
             .ToListAsync();
     }
 
@@ -86,7 +86,7 @@ public class AppointmentPaymentLogRepository : IAppointmentPaymentLogRepository
         return await _context.AppointmentPaymentLogs
             .Include(p => p.User)
             .Where(p => p.RefundStatusId == statusId && !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreatedDate)
             .ToListAsync();
     }
 

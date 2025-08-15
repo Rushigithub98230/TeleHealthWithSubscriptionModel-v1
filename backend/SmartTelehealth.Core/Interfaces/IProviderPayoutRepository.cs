@@ -5,7 +5,7 @@ namespace SmartTelehealth.Core.Interfaces;
 public interface IProviderPayoutRepository
 {
     Task<ProviderPayout?> GetByIdAsync(Guid id);
-    Task<IEnumerable<ProviderPayout>> GetByProviderAsync(Guid providerId);
+    Task<IEnumerable<ProviderPayout>> GetByProviderAsync(int providerId);
     Task<IEnumerable<ProviderPayout>> GetByPeriodAsync(Guid periodId);
     Task<IEnumerable<ProviderPayout>> GetAllAsync();
     Task<IEnumerable<ProviderPayout>> GetByStatusAsync(string status);
@@ -16,12 +16,12 @@ public interface IProviderPayoutRepository
     Task<bool> DeleteAsync(Guid id);
     Task<int> GetCountByStatusAsync(string status);
     Task<int> GetTotalCountAsync();
-    Task<decimal> GetTotalEarningsByProviderAsync(Guid providerId);
-    Task<decimal> GetPendingEarningsByProviderAsync(Guid providerId);
+    Task<decimal> GetTotalEarningsByProviderAsync(int providerId);
+    Task<decimal> GetPendingEarningsByProviderAsync(int providerId);
     Task<IEnumerable<ProviderPayout>> GetPendingPayoutsAsync();
-    Task<decimal> GetTotalPayoutAmountByProviderAsync(Guid providerId);
-    Task<decimal> GetPendingPayoutAmountByProviderAsync(Guid providerId);
-    Task<int> GetPayoutCountByProviderAsync(Guid providerId);
+    Task<decimal> GetTotalPayoutAmountByProviderAsync(int providerId);
+    Task<decimal> GetPendingPayoutAmountByProviderAsync(int providerId);
+    Task<int> GetPayoutCountByProviderAsync(int providerId);
     Task<object> GetPayoutStatisticsAsync();
     Task<object> AddPeriodAsync();
     Task<object> GetAllPeriodsAsync();

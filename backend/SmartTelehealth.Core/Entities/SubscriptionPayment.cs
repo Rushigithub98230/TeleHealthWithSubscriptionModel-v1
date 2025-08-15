@@ -6,6 +6,9 @@ namespace SmartTelehealth.Core.Entities;
 #region Improved SubscriptionPayment Entity
 public class SubscriptionPayment : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum PaymentStatus
     {
         Pending,
@@ -89,6 +92,10 @@ public class SubscriptionPayment : BaseEntity
     
     // Navigation properties
     public virtual ICollection<PaymentRefund> Refunds { get; set; } = new List<PaymentRefund>();
+    
+    // Alias properties for backward compatibility
+    public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+    public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
     
     // Computed Properties
     [NotMapped]

@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities
 {
     public class Question : BaseEntity
     {
+        [Key]
+        public Guid Id { get; set; }
+
         [Required]
         public Guid TemplateId { get; set; }
         
@@ -38,10 +42,23 @@ namespace SmartTelehealth.Core.Entities
         public virtual ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
         
         // Helper methods for validation
+        [NotMapped]
         public bool IsMultipleChoice => Type == QuestionType.Radio || Type == QuestionType.Checkbox || Type == QuestionType.Dropdown;
+        
+        [NotMapped]
         public bool IsTextBased => Type == QuestionType.Text || Type == QuestionType.TextArea;
+        
+        [NotMapped]
         public bool IsRange => Type == QuestionType.Range;
+        
+        [NotMapped]
         public bool IsDateTimeBased => Type == QuestionType.Date || Type == QuestionType.DateTime || Type == QuestionType.Time;
+        
+        // Alias properties for backward compatibility
+        public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+        public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
+        
+        [NotMapped]
         public bool HasOptions => Options.Count > 0;
     }
 } 

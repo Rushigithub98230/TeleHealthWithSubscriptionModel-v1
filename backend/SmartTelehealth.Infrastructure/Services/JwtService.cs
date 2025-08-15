@@ -44,7 +44,7 @@ public class JwtService : IJwtService
         }
         
         // If no Identity roles found, check the UserRole via repository (for backward compatibility)
-        if (!userRoles.Any() && user.UserRoleId != Guid.Empty)
+        if (!userRoles.Any() && user.UserRoleId != 0)
         {
             var userRole = await _userRoleRepository.GetByIdAsync(user.UserRoleId);
             if (userRole != null && !string.IsNullOrEmpty(userRole.Name))

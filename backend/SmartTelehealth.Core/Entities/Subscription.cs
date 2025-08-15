@@ -6,6 +6,9 @@ namespace SmartTelehealth.Core.Entities;
 #region Improved Subscription Entity
 public class Subscription : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     #region Constants
     public static class SubscriptionStatuses
     {
@@ -28,12 +31,12 @@ public class Subscription : BaseEntity
 
     #region Foreign Keys
     [Required]
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     [Required]
     public Guid SubscriptionPlanId { get; set; }
     [Required]
     public Guid BillingCycleId { get; set; }
-    public Guid? ProviderId { get; set; }
+    public int? ProviderId { get; set; }
     #endregion
 
     #region Navigation Properties
@@ -83,6 +86,10 @@ public class Subscription : BaseEntity
     #endregion
 
     #region Payment Integration
+    // Alias properties for backward compatibility
+    public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+    public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
+    
     [MaxLength(100)]
     public string? StripeSubscriptionId { get; set; }
     
@@ -125,7 +132,7 @@ public class Subscription : BaseEntity
 
     #region Computed Properties
     [NotMapped]
-    public bool IsActive => Status == SubscriptionStatuses.Active;
+    public bool IsSubscriptionActive => Status == SubscriptionStatuses.Active;
     
     [NotMapped]
     public bool IsPaused => Status == SubscriptionStatuses.Paused;

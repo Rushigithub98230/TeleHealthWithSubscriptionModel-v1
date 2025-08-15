@@ -23,13 +23,13 @@ public class MedicationDeliveryRepository : IMedicationDeliveryRepository
             .FirstOrDefaultAsync(m => m.Id == id);
     }
     
-    public async Task<IEnumerable<MedicationDelivery>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<MedicationDelivery>> GetByUserIdAsync(int userId)
     {
         return await _context.MedicationDeliveries
             .Include(m => m.Subscription)
             .Include(m => m.TrackingEvents)
             .Where(m => m.UserId == userId)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .ToListAsync();
     }
     
@@ -39,7 +39,7 @@ public class MedicationDeliveryRepository : IMedicationDeliveryRepository
             .Include(m => m.User)
             .Include(m => m.TrackingEvents)
             .Where(m => m.SubscriptionId == subscriptionId)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .ToListAsync();
     }
     
@@ -49,7 +49,7 @@ public class MedicationDeliveryRepository : IMedicationDeliveryRepository
             .Include(m => m.User)
             .Include(m => m.Subscription)
             .Where(m => m.Status == MedicationDelivery.DeliveryStatus.Pending)
-            .OrderBy(m => m.CreatedAt)
+            .OrderBy(m => m.CreatedDate)
             .ToListAsync();
     }
     
@@ -96,7 +96,7 @@ public class MedicationDeliveryRepository : IMedicationDeliveryRepository
             .Include(m => m.Subscription)
             .Include(m => m.TrackingEvents)
             .Where(m => m.Status == status)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .ToListAsync();
     }
     
@@ -107,7 +107,7 @@ public class MedicationDeliveryRepository : IMedicationDeliveryRepository
             return false;
         
         delivery.Status = status;
-        delivery.UpdatedAt = DateTime.UtcNow;
+        delivery.UpdatedDate = DateTime.UtcNow;
         
         if (status == MedicationDelivery.DeliveryStatus.Shipped)
         {
@@ -139,8 +139,8 @@ public class MedicationDeliveryRepository : IMedicationDeliveryRepository
         return await _context.MedicationDeliveries
             .Include(m => m.User)
             .Include(m => m.Subscription)
-            .Where(m => m.CreatedAt >= startDate && m.CreatedAt <= endDate)
-            .OrderByDescending(m => m.CreatedAt)
+            .Where(m => m.CreatedDate >= startDate && m.CreatedDate <= endDate)
+            .OrderByDescending(m => m.CreatedDate)
             .ToListAsync();
     }
     
@@ -160,7 +160,7 @@ public class MedicationDeliveryRepository : IMedicationDeliveryRepository
             .Include(m => m.Subscription)
             .Include(m => m.TrackingEvents)
             .Where(m => m.Status == status)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .ToListAsync();
     }
 
@@ -170,7 +170,7 @@ public class MedicationDeliveryRepository : IMedicationDeliveryRepository
             .Include(m => m.User)
             .Include(m => m.Subscription)
             .Include(m => m.TrackingEvents)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .ToListAsync();
     }
 } 

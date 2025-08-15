@@ -41,7 +41,7 @@ public class MedicationDeliveryService : IMedicationDeliveryService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<MedicationDeliveryDto>>> GetByUserIdAsync(Guid userId)
+    public async Task<ApiResponse<IEnumerable<MedicationDeliveryDto>>> GetByUserIdAsync(int userId)
     {
         try
         {

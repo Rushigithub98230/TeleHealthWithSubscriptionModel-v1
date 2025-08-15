@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities
 {
     public class UserResponse : BaseEntity
     {
+        [Key]
+        public Guid Id { get; set; }
+
         [Required]
-        public Guid UserId { get; set; }
+        public int UserId { get; set; }
         
         [Required]
         public Guid CategoryId { get; set; }
@@ -23,8 +27,15 @@ namespace SmartTelehealth.Core.Entities
         public virtual QuestionnaireTemplate Template { get; set; } = null!;
         public virtual ICollection<UserAnswer> Answers { get; set; } = new List<UserAnswer>();
         
+        // Alias properties for backward compatibility
+        public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+        public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
+        
         // Helper methods
+        [NotMapped]
         public bool IsCompleted => Status == ResponseStatus.Completed || Status == ResponseStatus.Submitted;
-        public bool IsDraft => Status == ResponseStatus.Draft;
+        
+        [NotMapped]
+        public bool IsDraft => Status == ResponseStatus.Submitted;
     }
 } 

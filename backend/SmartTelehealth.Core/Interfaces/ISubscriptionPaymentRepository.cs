@@ -6,7 +6,7 @@ public interface ISubscriptionPaymentRepository
 {
     Task<SubscriptionPayment> GetByIdAsync(Guid id);
     Task<IEnumerable<SubscriptionPayment>> GetBySubscriptionIdAsync(Guid subscriptionId);
-    Task<IEnumerable<SubscriptionPayment>> GetByUserIdAsync(Guid userId);
+    Task<IEnumerable<SubscriptionPayment>> GetByUserIdAsync(int userId);
     Task<IEnumerable<SubscriptionPayment>> GetByStatusAsync(SubscriptionPayment.PaymentStatus status);
     Task<SubscriptionPayment> CreateAsync(SubscriptionPayment payment);
     Task<SubscriptionPayment> UpdateAsync(SubscriptionPayment payment);

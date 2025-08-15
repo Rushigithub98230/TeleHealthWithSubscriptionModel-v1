@@ -23,7 +23,7 @@ public class ChatRoomParticipantRepository : IChatRoomParticipantRepository
             .FirstOrDefaultAsync(crp => crp.Id == id && !crp.IsDeleted);
     }
 
-    public async Task<ChatRoomParticipant?> GetByChatRoomAndUserAsync(Guid chatRoomId, Guid userId)
+    public async Task<ChatRoomParticipant?> GetByChatRoomAndUserAsync(Guid chatRoomId, int userId)
     {
         return await _context.ChatRoomParticipants
             .Include(crp => crp.ChatRoom)
@@ -45,7 +45,7 @@ public class ChatRoomParticipantRepository : IChatRoomParticipantRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<ChatRoomParticipant>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<ChatRoomParticipant>> GetByUserIdAsync(int userId)
     {
         return await _context.ChatRoomParticipants
             .Include(crp => crp.ChatRoom)
@@ -71,7 +71,7 @@ public class ChatRoomParticipantRepository : IChatRoomParticipantRepository
 
     public async Task<ChatRoomParticipant> CreateAsync(ChatRoomParticipant participant)
     {
-        participant.CreatedAt = DateTime.UtcNow;
+        participant.CreatedDate = DateTime.UtcNow;
         participant.JoinedAt = DateTime.UtcNow;
         _context.ChatRoomParticipants.Add(participant);
         await _context.SaveChangesAsync();
@@ -80,13 +80,13 @@ public class ChatRoomParticipantRepository : IChatRoomParticipantRepository
 
     public async Task<ChatRoomParticipant> UpdateAsync(ChatRoomParticipant participant)
     {
-        participant.UpdatedAt = DateTime.UtcNow;
+        participant.UpdatedDate = DateTime.UtcNow;
         _context.ChatRoomParticipants.Update(participant);
         await _context.SaveChangesAsync();
         return participant;
     }
 
-    public async Task<bool> RemoveParticipantAsync(Guid chatRoomId, Guid userId)
+    public async Task<bool> RemoveParticipantAsync(Guid chatRoomId, int userId)
     {
         var participant = await _context.ChatRoomParticipants
             .FirstOrDefaultAsync(crp => crp.ChatRoomId == chatRoomId && 
@@ -98,7 +98,7 @@ public class ChatRoomParticipantRepository : IChatRoomParticipantRepository
 
         participant.Status = ChatRoomParticipant.ParticipantStatus.Left;
         participant.LeftAt = DateTime.UtcNow;
-        participant.UpdatedAt = DateTime.UtcNow;
+        participant.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -110,7 +110,7 @@ public class ChatRoomParticipantRepository : IChatRoomParticipantRepository
             return false;
 
         participant.IsDeleted = true;
-        participant.UpdatedAt = DateTime.UtcNow;
+        participant.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -128,7 +128,7 @@ public class ChatRoomParticipantRepository : IChatRoomParticipantRepository
                               !crp.IsDeleted);
     }
 
-    public async Task<bool> IsUserParticipantAsync(Guid chatRoomId, Guid userId)
+    public async Task<bool> IsUserParticipantAsync(Guid chatRoomId, int userId)
     {
         return await _context.ChatRoomParticipants
             .AnyAsync(crp => crp.ChatRoomId == chatRoomId && 

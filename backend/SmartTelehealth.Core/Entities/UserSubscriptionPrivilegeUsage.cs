@@ -6,6 +6,9 @@ namespace SmartTelehealth.Core.Entities;
 #region Improved UserSubscriptionPrivilegeUsage Entity
 public class UserSubscriptionPrivilegeUsage : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     public Guid SubscriptionId { get; set; }
     public virtual Subscription Subscription { get; set; } = null!;

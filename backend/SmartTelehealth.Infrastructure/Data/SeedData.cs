@@ -12,12 +12,13 @@ public static class SeedData
         {
             var userRoles = new List<UserRole>
             {
-                new UserRole { Id = Guid.NewGuid(), Name = "Client", Description = "Patient/Client users", SortOrder = 1 },
-                new UserRole { Id = Guid.NewGuid(), Name = "Provider", Description = "Healthcare providers", SortOrder = 2 },
-                new UserRole { Id = Guid.NewGuid(), Name = "Admin", Description = "System administrators", SortOrder = 3 },
-                new UserRole { Id = Guid.NewGuid(), Name = "Support", Description = "Customer support staff", SortOrder = 4 }
+                new UserRole { Name = "Client", Description = "Patient/Client users", SortOrder = 1 },
+                new UserRole { Name = "Provider", Description = "Healthcare providers", SortOrder = 2 },
+                new UserRole { Name = "Admin", Description = "System administrators", SortOrder = 3 },
+                new UserRole { Name = "Support", Description = "Customer support staff", SortOrder = 4 }
             };
             context.UserRoles.AddRange(userRoles);
+            context.SaveChanges();
         }
 
         if (!context.AppointmentStatuses.Any())
@@ -127,7 +128,7 @@ public static class SeedData
         }
 
         // Create a system user for seeding purposes
-        var systemUserId = Guid.NewGuid();
+        var systemUserId = 1; // System user ID as int
         var adminRole = context.UserRoles.FirstOrDefault(r => r.Name == "Admin");
         if (adminRole == null)
         {
@@ -138,7 +139,6 @@ public static class SeedData
         {
             var systemUser = new User
             {
-                Id = systemUserId,
                 FirstName = "System",
                 LastName = "Admin",
                 Email = "system@smarttelehealth.com",
@@ -186,10 +186,10 @@ public static class SeedData
         {
             var reminderTypes = new List<ReminderType>
             {
-                new ReminderType { Id = Guid.NewGuid(), Name = "Email", Description = "Email reminder", SortOrder = 1, Icon = "mail" },
-                new ReminderType { Id = Guid.NewGuid(), Name = "SMS", Description = "SMS reminder", SortOrder = 2, Icon = "message-circle" },
-                new ReminderType { Id = Guid.NewGuid(), Name = "PushNotification", Description = "Push notification", SortOrder = 3, Icon = "bell" },
-                new ReminderType { Id = Guid.NewGuid(), Name = "InApp", Description = "In-app notification", SortOrder = 4, Icon = "smartphone" }
+                new ReminderType { Id = Guid.NewGuid(), Name = "Email", Description = "Email reminder", SortOrder = 1 },
+                new ReminderType { Id = Guid.NewGuid(), Name = "SMS", Description = "SMS reminder", SortOrder = 2 },
+                new ReminderType { Id = Guid.NewGuid(), Name = "PushNotification", Description = "Push notification", SortOrder = 3 },
+                new ReminderType { Id = Guid.NewGuid(), Name = "InApp", Description = "In-app notification", SortOrder = 4 }
             };
             context.ReminderTypes.AddRange(reminderTypes);
         }
@@ -210,20 +210,20 @@ public static class SeedData
         {
             var eventTypes = new List<EventType>
             {
-                new EventType { Id = Guid.NewGuid(), Name = "AppointmentCreated", Description = "Appointment was created", SortOrder = 1, Icon = "plus" },
-                new EventType { Id = Guid.NewGuid(), Name = "PaymentProcessed", Description = "Payment was processed", SortOrder = 2, Icon = "credit-card" },
-                new EventType { Id = Guid.NewGuid(), Name = "ProviderNotified", Description = "Provider was notified", SortOrder = 3, Icon = "bell" },
-                new EventType { Id = Guid.NewGuid(), Name = "ProviderAccepted", Description = "Provider accepted appointment", SortOrder = 4, Icon = "check" },
-                new EventType { Id = Guid.NewGuid(), Name = "ProviderRejected", Description = "Provider rejected appointment", SortOrder = 5, Icon = "x" },
-                new EventType { Id = Guid.NewGuid(), Name = "MeetingScheduled", Description = "Meeting was scheduled", SortOrder = 6, Icon = "calendar" },
-                new EventType { Id = Guid.NewGuid(), Name = "MeetingStarted", Description = "Meeting started", SortOrder = 7, Icon = "play" },
-                new EventType { Id = Guid.NewGuid(), Name = "MeetingEnded", Description = "Meeting ended", SortOrder = 8, Icon = "stop" },
-                new EventType { Id = Guid.NewGuid(), Name = "AppointmentCompleted", Description = "Appointment completed", SortOrder = 9, Icon = "check-circle" },
-                new EventType { Id = Guid.NewGuid(), Name = "AppointmentCancelled", Description = "Appointment cancelled", SortOrder = 10, Icon = "x-circle" },
-                new EventType { Id = Guid.NewGuid(), Name = "PaymentRefunded", Description = "Payment refunded", SortOrder = 11, Icon = "refresh" },
-                new EventType { Id = Guid.NewGuid(), Name = "ReminderSent", Description = "Reminder sent", SortOrder = 12, Icon = "mail" },
-                new EventType { Id = Guid.NewGuid(), Name = "DocumentUploaded", Description = "Document uploaded", SortOrder = 13, Icon = "upload" },
-                new EventType { Id = Guid.NewGuid(), Name = "StatusChanged", Description = "Status changed", SortOrder = 14, Icon = "refresh-cw" }
+                new EventType { Id = Guid.NewGuid(), Name = "AppointmentCreated", Description = "Appointment was created", SortOrder = 1 },
+                new EventType { Id = Guid.NewGuid(), Name = "PaymentProcessed", Description = "Payment was processed", SortOrder = 2 },
+                new EventType { Id = Guid.NewGuid(), Name = "ProviderNotified", Description = "Provider was notified", SortOrder = 3 },
+                new EventType { Id = Guid.NewGuid(), Name = "ProviderAccepted", Description = "Provider accepted appointment", SortOrder = 4 },
+                new EventType { Id = Guid.NewGuid(), Name = "ProviderRejected", Description = "Provider rejected appointment", SortOrder = 5 },
+                new EventType { Id = Guid.NewGuid(), Name = "MeetingScheduled", Description = "Meeting was scheduled", SortOrder = 6 },
+                new EventType { Id = Guid.NewGuid(), Name = "MeetingStarted", Description = "Meeting started", SortOrder = 7 },
+                new EventType { Id = Guid.NewGuid(), Name = "MeetingEnded", Description = "Meeting ended", SortOrder = 8 },
+                new EventType { Id = Guid.NewGuid(), Name = "AppointmentCompleted", Description = "Appointment completed", SortOrder = 9 },
+                new EventType { Id = Guid.NewGuid(), Name = "AppointmentCancelled", Description = "Appointment cancelled", SortOrder = 10 },
+                new EventType { Id = Guid.NewGuid(), Name = "PaymentRefunded", Description = "Payment refunded", SortOrder = 11 },
+                new EventType { Id = Guid.NewGuid(), Name = "ReminderSent", Description = "Reminder sent", SortOrder = 12 },
+                new EventType { Id = Guid.NewGuid(), Name = "DocumentUploaded", Description = "Document uploaded", SortOrder = 13 },
+                new EventType { Id = Guid.NewGuid(), Name = "StatusChanged", Description = "Status changed", SortOrder = 14 }
             };
             context.EventTypes.AddRange(eventTypes);
         }
@@ -248,57 +248,54 @@ public static class SeedData
         {
             var testUsers = new List<User>
             {
-                new User
-                {
-                    Id = Guid.NewGuid(),
-                    FirstName = "John",
-                    LastName = "Doe",
-                    Email = "john.doe@example.com",
-                    UserName = "john.doe@example.com",
-                    PhoneNumber = "1234567890",
-                    DateOfBirth = DateTime.UtcNow.AddYears(-30),
-                    Gender = "Male",
-                    Address = "123 Main St",
-                    City = "New York",
-                    State = "NY",
-                    ZipCode = "10001",
-                    IsActive = true,
-                    UserRoleId = clientRole.Id
-                },
-                new User
-                {
-                    Id = Guid.NewGuid(),
-                    FirstName = "Dr. Jane",
-                    LastName = "Smith",
-                    Email = "dr.jane.smith@example.com",
-                    UserName = "dr.jane.smith@example.com",
-                    PhoneNumber = "0987654321",
-                    DateOfBirth = DateTime.UtcNow.AddYears(-35),
-                    Gender = "Female",
-                    Address = "456 Oak Ave",
-                    City = "Los Angeles",
-                    State = "CA",
-                    ZipCode = "90210",
-                    IsActive = true,
-                    UserRoleId = providerRole.Id
-                },
-                new User
-                {
-                    Id = Guid.NewGuid(),
-                    FirstName = "Admin",
-                    LastName = "User",
-                    Email = "admin@example.com",
-                    UserName = "admin@example.com",
-                    PhoneNumber = "5555555555",
-                    DateOfBirth = DateTime.UtcNow.AddYears(-25),
-                    Gender = "Other",
-                    Address = "789 Admin Blvd",
-                    City = "Chicago",
-                    State = "IL",
-                    ZipCode = "60601",
-                    IsActive = true,
-                    UserRoleId = adminRole.Id
-                }
+                                 new User
+                 {
+                     FirstName = "John",
+                     LastName = "Doe",
+                     Email = "john.doe@example.com",
+                     UserName = "john.doe@example.com",
+                     PhoneNumber = "1234567890",
+                     DateOfBirth = DateTime.UtcNow.AddYears(-30),
+                     Gender = "Male",
+                     Address = "123 Main St",
+                     City = "New York",
+                     State = "NY",
+                     ZipCode = "10001",
+                     IsActive = true,
+                     UserRoleId = clientRole.Id
+                 },
+                 new User
+                 {
+                     FirstName = "Dr. Jane",
+                     LastName = "Smith",
+                     Email = "dr.jane.smith@example.com",
+                     UserName = "dr.jane.smith@example.com",
+                     PhoneNumber = "0987654321",
+                     DateOfBirth = DateTime.UtcNow.AddYears(-35),
+                     Gender = "Female",
+                     Address = "456 Oak Ave",
+                     City = "Los Angeles",
+                     State = "CA",
+                     ZipCode = "90210",
+                     IsActive = true,
+                     UserRoleId = providerRole.Id
+                 },
+                 new User
+                 {
+                     FirstName = "Admin",
+                     LastName = "User",
+                     Email = "admin@example.com",
+                     UserName = "admin@example.com",
+                     PhoneNumber = "5555555555",
+                     DateOfBirth = DateTime.UtcNow.AddYears(-25),
+                     Gender = "Other",
+                     Address = "789 Admin Blvd",
+                     City = "Chicago",
+                     State = "IL",
+                     ZipCode = "60601",
+                     IsActive = true,
+                     UserRoleId = adminRole.Id
+                 }
             };
 
             context.Users.AddRange(testUsers);
@@ -403,7 +400,7 @@ public static class SeedData
                 State = "Admin State",
                 ZipCode = "12345",
                 IsActive = true,
-                UserRoleId = adminRole?.Id ?? Guid.NewGuid(),
+                UserRoleId = adminRole?.Id ?? 1,
                 UserType = "Admin"
             };
             

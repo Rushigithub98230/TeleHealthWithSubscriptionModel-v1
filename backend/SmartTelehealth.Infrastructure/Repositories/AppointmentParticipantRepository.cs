@@ -54,7 +54,7 @@ public class AppointmentParticipantRepository : IAppointmentParticipantRepositor
         return await _context.AppointmentParticipants.AnyAsync(e => e.Id == id);
     }
 
-    public async Task<AppointmentParticipant?> FindByAppointmentAndUserOrEmailAsync(Guid appointmentId, Guid? userId, string? email)
+    public async Task<AppointmentParticipant?> FindByAppointmentAndUserOrEmailAsync(Guid appointmentId, int? userId, string? email)
     {
         return await _context.AppointmentParticipants
             .Include(p => p.User)
@@ -88,7 +88,7 @@ public class AppointmentParticipantRepository : IAppointmentParticipantRepositor
             .ToListAsync();
     }
 
-    public async Task<AppointmentParticipant?> GetByUserAndAppointmentAsync(Guid userId, Guid appointmentId)
+    public async Task<AppointmentParticipant?> GetByUserAndAppointmentAsync(int userId, Guid appointmentId)
     {
         return await _context.AppointmentParticipants
             .Include(p => p.User)
@@ -98,7 +98,7 @@ public class AppointmentParticipantRepository : IAppointmentParticipantRepositor
                                     !p.IsDeleted);
     }
 
-    public async Task<IEnumerable<AppointmentParticipant>> GetByUserAsync(Guid userId)
+    public async Task<IEnumerable<AppointmentParticipant>> GetByUserAsync(int userId)
     {
         return await _context.AppointmentParticipants
             .Include(p => p.User)
@@ -106,7 +106,7 @@ public class AppointmentParticipantRepository : IAppointmentParticipantRepositor
             .ToListAsync();
     }
 
-    public async Task<AppointmentParticipant?> GetByAppointmentAndUserAsync(Guid appointmentId, Guid userId)
+    public async Task<AppointmentParticipant?> GetByAppointmentAndUserAsync(Guid appointmentId, int? userId)
     {
         return await _context.AppointmentParticipants
             .Include(p => p.User)

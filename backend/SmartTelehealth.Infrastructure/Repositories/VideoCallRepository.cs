@@ -22,7 +22,7 @@ public class VideoCallRepository : IVideoCallRepository
             .FirstOrDefaultAsync(vc => vc.Id == id);
     }
 
-    public async Task<IEnumerable<VideoCall>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<VideoCall>> GetByUserIdAsync(int userId)
     {
         return await _context.VideoCalls
             .Include(vc => vc.Participants)
@@ -47,7 +47,7 @@ public class VideoCallRepository : IVideoCallRepository
 
     public async Task<VideoCall> UpdateAsync(VideoCall videoCall)
     {
-        videoCall.UpdatedAt = DateTime.UtcNow;
+        videoCall.UpdatedDate = DateTime.UtcNow;
         _context.VideoCalls.Update(videoCall);
         await _context.SaveChangesAsync();
         return videoCall;
@@ -60,7 +60,7 @@ public class VideoCallRepository : IVideoCallRepository
             return false;
 
         videoCall.IsDeleted = true;
-        videoCall.UpdatedAt = DateTime.UtcNow;
+        videoCall.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }

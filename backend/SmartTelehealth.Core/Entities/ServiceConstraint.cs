@@ -5,6 +5,9 @@ namespace SmartTelehealth.Core.Entities;
 
 public class ServiceConstraint : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum ConstraintType
     {
         Unlimited,

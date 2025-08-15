@@ -111,7 +111,7 @@ public class AppointmentInvitationRepository : IAppointmentInvitationRepository
         return expiredInvitations;
     }
 
-    public async Task<IEnumerable<AppointmentInvitation>> GetByInviteeAsync(Guid inviteeId)
+    public async Task<IEnumerable<AppointmentInvitation>> GetByInviteeAsync(int inviteeId)
     {
         return await _context.AppointmentInvitations
             .Include(i => i.InvitedByUser)

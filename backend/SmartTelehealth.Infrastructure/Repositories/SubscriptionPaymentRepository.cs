@@ -30,7 +30,7 @@ public class SubscriptionPaymentRepository : ISubscriptionPaymentRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<SubscriptionPayment>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<SubscriptionPayment>> GetByUserIdAsync(int userId)
     {
         return await _context.SubscriptionPayments
             .Include(sp => sp.Subscription)

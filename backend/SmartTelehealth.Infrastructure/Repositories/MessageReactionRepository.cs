@@ -28,21 +28,21 @@ public class MessageReactionRepository : IMessageReactionRepository
             .Include(mr => mr.Message)
             .Include(mr => mr.User)
             .Where(mr => mr.MessageId == messageId && !mr.IsDeleted)
-            .OrderBy(mr => mr.CreatedAt)
+            .OrderBy(mr => mr.CreatedDate)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<MessageReaction>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<MessageReaction>> GetByUserIdAsync(int userId)
     {
         return await _context.MessageReactions
             .Include(mr => mr.Message)
             .Include(mr => mr.User)
             .Where(mr => mr.UserId == userId && !mr.IsDeleted)
-            .OrderByDescending(mr => mr.CreatedAt)
+            .OrderByDescending(mr => mr.CreatedDate)
             .ToListAsync();
     }
 
-    public async Task<MessageReaction?> GetByMessageAndUserAsync(Guid messageId, Guid userId)
+    public async Task<MessageReaction?> GetByMessageAndUserAsync(Guid messageId, int userId)
     {
         return await _context.MessageReactions
             .Include(mr => mr.Message)
@@ -54,7 +54,7 @@ public class MessageReactionRepository : IMessageReactionRepository
 
     public async Task<MessageReaction> CreateAsync(MessageReaction reaction)
     {
-        reaction.CreatedAt = DateTime.UtcNow;
+        reaction.CreatedDate = DateTime.UtcNow;
         _context.MessageReactions.Add(reaction);
         await _context.SaveChangesAsync();
         return reaction;
@@ -62,13 +62,13 @@ public class MessageReactionRepository : IMessageReactionRepository
 
     public async Task<MessageReaction> UpdateAsync(MessageReaction reaction)
     {
-        reaction.UpdatedAt = DateTime.UtcNow;
+        reaction.UpdatedDate = DateTime.UtcNow;
         _context.MessageReactions.Update(reaction);
         await _context.SaveChangesAsync();
         return reaction;
     }
 
-    public async Task<bool> RemoveReactionAsync(Guid messageId, string emoji, Guid userId)
+    public async Task<bool> RemoveReactionAsync(Guid messageId, string emoji, int userId)
     {
         var reaction = await _context.MessageReactions
             .FirstOrDefaultAsync(mr => mr.MessageId == messageId && 
@@ -80,7 +80,7 @@ public class MessageReactionRepository : IMessageReactionRepository
             return false;
 
         reaction.IsDeleted = true;
-        reaction.UpdatedAt = DateTime.UtcNow;
+        reaction.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -92,7 +92,7 @@ public class MessageReactionRepository : IMessageReactionRepository
             return false;
 
         reaction.IsDeleted = true;
-        reaction.UpdatedAt = DateTime.UtcNow;
+        reaction.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -108,7 +108,7 @@ public class MessageReactionRepository : IMessageReactionRepository
             .CountAsync(mr => mr.MessageId == messageId && !mr.IsDeleted);
     }
 
-    public async Task<bool> HasUserReactedAsync(Guid messageId, Guid userId)
+    public async Task<bool> HasUserReactedAsync(Guid messageId, int userId)
     {
         return await _context.MessageReactions
             .AnyAsync(mr => mr.MessageId == messageId && 

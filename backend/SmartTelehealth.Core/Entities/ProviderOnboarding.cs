@@ -1,14 +1,16 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
-public class ProviderOnboarding
+public class ProviderOnboarding : BaseEntity
 {
+    [Key]
     public Guid Id { get; set; }
     
     [Required]
-    public Guid UserId { get; set; }
-    public User User { get; set; } = null!;
+    public int UserId { get; set; }
+    public virtual User User { get; set; } = null!;
     
     [Required]
     [MaxLength(100)]
@@ -84,14 +86,12 @@ public class ProviderOnboarding
     
     public DateTime? ReviewedAt { get; set; }
     
-    public Guid? ReviewedByUserId { get; set; }
-    public User? ReviewedByUser { get; set; }
+    public int? ReviewedByUserId { get; set; }
+    public virtual User? ReviewedByUser { get; set; }
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    
-    public bool IsActive { get; set; } = true;
+    // Alias properties for backward compatibility
+    public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+    public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
 }
 
 public enum OnboardingStatus

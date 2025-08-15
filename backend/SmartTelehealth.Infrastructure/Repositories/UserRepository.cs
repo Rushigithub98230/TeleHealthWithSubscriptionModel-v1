@@ -14,7 +14,7 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<User?> GetByIdAsync(Guid id)
+    public async Task<User?> GetByIdAsync(int id)
     {
         return await _context.Users
             .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
@@ -44,7 +44,7 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users
             .Where(u => !u.IsDeleted)
-            .OrderBy(u => u.CreatedAt)
+            .OrderBy(u => u.CreatedDate)
             .ToListAsync();
     }
 
@@ -52,13 +52,13 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users
             .Where(u => u.IsActive && !u.IsDeleted)
-            .OrderBy(u => u.CreatedAt)
+            .OrderBy(u => u.CreatedDate)
             .ToListAsync();
     }
 
     public async Task<User> CreateAsync(User user)
     {
-        user.CreatedAt = DateTime.UtcNow;
+        user.CreatedDate = DateTime.UtcNow;
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         return user;
@@ -66,24 +66,23 @@ public class UserRepository : IUserRepository
 
     public async Task<User> UpdateAsync(User user)
     {
-        user.UpdatedAt = DateTime.UtcNow;
-        _context.Users.Update(user);
+        user.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return user;
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task<bool> DeleteAsync(int id)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null) return false;
 
         user.IsDeleted = true;
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<bool> ExistsAsync(Guid id)
+    public async Task<bool> ExistsAsync(int id)
     {
         return await _context.Users
             .AnyAsync(u => u.Id == id && !u.IsDeleted);

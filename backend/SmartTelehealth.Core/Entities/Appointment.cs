@@ -1,14 +1,18 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class Appointment : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     // Foreign keys
-    public Guid PatientId { get; set; }
+    public int PatientId { get; set; }
     public virtual User Patient { get; set; } = null!;
 
-    public Guid ProviderId { get; set; }
+    public int ProviderId { get; set; }
     public virtual Provider Provider { get; set; } = null!;
 
     public Guid CategoryId { get; set; }
@@ -101,10 +105,7 @@ public class Appointment : BaseEntity
     public DateTime? ExpiresAt { get; set; }
     public DateTime? AutoCancellationAt { get; set; }
 
-    // Audit
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
+    // Audit properties are inherited from BaseEntity
 
     // Navigation properties
     public virtual ICollection<AppointmentDocument> Documents { get; set; } = new List<AppointmentDocument>();
@@ -114,25 +115,33 @@ public class Appointment : BaseEntity
     public virtual ICollection<AppointmentPaymentLog> PaymentLogs { get; set; } = new List<AppointmentPaymentLog>();
 
     // Computed properties
-    public bool IsActive => AppointmentStatus?.Name == "Pending" || AppointmentStatus?.Name == "Approved" || 
+    [NotMapped]
+    public bool IsAppointmentActive => AppointmentStatus?.Name == "Pending" || AppointmentStatus?.Name == "Approved" || 
                            AppointmentStatus?.Name == "Scheduled" || AppointmentStatus?.Name == "InMeeting";
+    [NotMapped]
     public bool IsCompleted => AppointmentStatus?.Name == "Completed";
+    [NotMapped]
     public bool IsCancelled => AppointmentStatus?.Name == "Cancelled" || AppointmentStatus?.Name == "Rejected" || 
                               AppointmentStatus?.Name == "Expired";
+    [NotMapped]
     public TimeSpan? Duration => StartedAt.HasValue && EndedAt.HasValue ? EndedAt.Value - StartedAt.Value : null;
+    [NotMapped]
     public bool IsExpired => ExpiresAt.HasValue && DateTime.UtcNow > ExpiresAt.Value;
 }
 
 public class AppointmentDocument : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     // Foreign keys
     public Guid AppointmentId { get; set; }
     public virtual Appointment Appointment { get; set; } = null!;
 
-    public Guid? UploadedById { get; set; }
+    public int? UploadedById { get; set; }
     public virtual User? UploadedBy { get; set; }
 
-    public Guid? ProviderId { get; set; }
+    public int? ProviderId { get; set; }
     public virtual Provider? Provider { get; set; }
 
     public Guid DocumentTypeId { get; set; }
@@ -154,15 +163,13 @@ public class AppointmentDocument : BaseEntity
 
     [MaxLength(1000)]
     public string? Description { get; set; }
-
-    // Audit
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
 }
 
 public class AppointmentReminder : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     // Foreign keys
     public Guid AppointmentId { get; set; }
     public virtual Appointment Appointment { get; set; } = null!;
@@ -186,23 +193,21 @@ public class AppointmentReminder : BaseEntity
 
     [MaxLength(20)]
     public string? RecipientPhone { get; set; }
-
-    // Audit
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
 }
 
 public class AppointmentEvent : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     // Foreign keys
     public Guid AppointmentId { get; set; }
     public virtual Appointment Appointment { get; set; } = null!;
 
-    public Guid? UserId { get; set; }
+    public int? UserId { get; set; }
     public virtual User? User { get; set; }
 
-    public Guid? ProviderId { get; set; }
+    public int? ProviderId { get; set; }
     public virtual Provider? Provider { get; set; }
 
     public Guid EventTypeId { get; set; }
@@ -216,9 +221,4 @@ public class AppointmentEvent : BaseEntity
 
     [MaxLength(500)]
     public string? Metadata { get; set; } // JSON data for additional event info
-
-    // Audit
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
 } 

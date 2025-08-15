@@ -11,7 +11,7 @@ public interface IAppointmentInvitationRepository
     Task<bool> DeleteAsync(Guid id);
     Task<bool> ExistsAsync(Guid id);
     Task<IEnumerable<AppointmentInvitation>> GetByAppointmentAsync(Guid appointmentId);
-    Task<IEnumerable<AppointmentInvitation>> GetByInviteeAsync(Guid inviteeId);
+    Task<IEnumerable<AppointmentInvitation>> GetByInviteeAsync(int inviteeId);
     Task<AppointmentInvitation?> GetByTokenAsync(string token);
     Task<Guid> GetStatusIdByNameAsync(string name);
 } 

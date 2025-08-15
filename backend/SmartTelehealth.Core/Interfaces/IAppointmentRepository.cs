@@ -10,8 +10,8 @@ public interface IAppointmentRepository
     Task<Appointment> UpdateAsync(Appointment appointment);
     Task<bool> DeleteAsync(Guid id);
     Task<bool> ExistsAsync(Guid id);
-    Task<IEnumerable<Appointment>> GetByPatientAsync(Guid patientId);
-    Task<IEnumerable<Appointment>> GetByProviderAsync(Guid providerId);
+    Task<IEnumerable<Appointment>> GetByPatientAsync(int patientId);
+    Task<IEnumerable<Appointment>> GetByProviderAsync(int providerId);
     Task<IEnumerable<Appointment>> GetByStatusAsync(Guid appointmentStatusId);
     Task<IEnumerable<Appointment>> GetUpcomingAsync();
     Task<IEnumerable<Appointment>> GetByDateRangeAsync(DateTime startDate, DateTime endDate);

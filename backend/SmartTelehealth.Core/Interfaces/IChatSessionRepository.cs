@@ -6,9 +6,9 @@ public interface IChatSessionRepository
 {
     // Basic CRUD operations
     Task<ChatSession?> GetByIdAsync(Guid id);
-    Task<IEnumerable<ChatSession>> GetByUserIdAsync(Guid userId);
+    Task<IEnumerable<ChatSession>> GetByUserIdAsync(int userId);
     Task<IEnumerable<ChatSession>> GetBySubscriptionIdAsync(Guid subscriptionId);
-    Task<IEnumerable<ChatSession>> GetByProviderIdAsync(Guid providerId);
+    Task<IEnumerable<ChatSession>> GetByProviderIdAsync(int providerId);
     Task<ChatSession> CreateAsync(ChatSession session);
     Task<ChatSession> UpdateAsync(ChatSession session);
     Task<bool> DeleteAsync(Guid id);
@@ -16,18 +16,18 @@ public interface IChatSessionRepository
     // Usage tracking methods
     Task<int> GetMonthlySessionCountAsync(Guid subscriptionId, DateTime startDate, DateTime endDate);
     Task<int> GetMonthlyTotalMinutesAsync(Guid subscriptionId, DateTime startDate, DateTime endDate);
-    Task<int> GetActiveSessionCountAsync(Guid userId);
-    Task<IEnumerable<ChatSession>> GetActiveSessionsAsync(Guid userId);
+    Task<int> GetActiveSessionCountAsync(int userId);
+    Task<IEnumerable<ChatSession>> GetActiveSessionsAsync(int userId);
 
     // Constraint checking methods
-    Task<bool> CanStartSessionAsync(Guid userId, Guid subscriptionId);
+    Task<bool> CanStartSessionAsync(int userId, Guid subscriptionId);
     Task<bool> CanSendMessageAsync(Guid sessionId, string message);
     Task<bool> CanUploadFileAsync(Guid sessionId, long fileSize);
 
     // Message operations
     Task<ChatMessage> AddMessageAsync(ChatMessage message);
     Task<IEnumerable<ChatMessage>> GetSessionMessagesAsync(Guid sessionId);
-    Task<bool> MarkMessageAsReadAsync(Guid messageId, Guid userId);
+    Task<bool> MarkMessageAsReadAsync(Guid messageId, int userId);
 
     // Attachment operations
     Task<ChatAttachment> AddAttachmentAsync(ChatAttachment attachment);

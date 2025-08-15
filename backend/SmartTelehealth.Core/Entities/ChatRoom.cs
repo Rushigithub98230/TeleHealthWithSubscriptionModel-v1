@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class ChatRoom : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum ChatRoomType
     {
         PatientProvider,
@@ -33,10 +37,10 @@ public class ChatRoom : BaseEntity
     public ChatRoomStatus Status { get; set; } = ChatRoomStatus.Active;
 
     // Foreign keys for different chat types
-    public Guid? PatientId { get; set; }
+    public int? PatientId { get; set; }
     public virtual User? Patient { get; set; }
 
-    public Guid? ProviderId { get; set; }
+    public int? ProviderId { get; set; }
     public virtual Provider? Provider { get; set; }
 
     public Guid? SubscriptionId { get; set; }
@@ -53,11 +57,6 @@ public class ChatRoom : BaseEntity
     public bool AllowFileSharing { get; set; } = true;
     public bool AllowVoiceCalls { get; set; } = true;
     public bool AllowVideoCalls { get; set; } = true;
-
-    // Audit
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
 
     // Navigation properties
     public virtual ICollection<Message> Messages { get; set; } = new List<Message>();

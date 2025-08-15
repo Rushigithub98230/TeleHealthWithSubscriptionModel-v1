@@ -25,7 +25,7 @@ public class ConsultationRepository : IConsultationRepository
             .FirstOrDefaultAsync(c => c.Id == id);
     }
     
-    public async Task<IEnumerable<Consultation>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<Consultation>> GetByUserIdAsync(int userId)
     {
         return await _context.Consultations
             .Include(c => c.Provider)
@@ -36,7 +36,7 @@ public class ConsultationRepository : IConsultationRepository
             .ToListAsync();
     }
     
-    public async Task<IEnumerable<Consultation>> GetByProviderIdAsync(Guid providerId)
+    public async Task<IEnumerable<Consultation>> GetByProviderIdAsync(int providerId)
     {
         return await _context.Consultations
             .Include(c => c.User)
@@ -116,7 +116,7 @@ public class ConsultationRepository : IConsultationRepository
             .ToListAsync();
     }
     
-    public async Task<IEnumerable<Consultation>> GetCompletedConsultationsAsync(Guid userId)
+    public async Task<IEnumerable<Consultation>> GetCompletedConsultationsAsync(int userId)
     {
         return await _context.Consultations
             .Include(c => c.User)

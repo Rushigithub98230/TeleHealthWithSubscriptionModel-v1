@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class DeliveryTracking : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum TrackingEventType
     {
         Created,
@@ -42,7 +46,13 @@ public class DeliveryTracking : BaseEntity
     [MaxLength(500)]
     public string? Notes { get; set; }
     
+    // Computed Properties
+    [NotMapped]
     public bool IsDelivered => EventType == TrackingEventType.Delivered;
+    
+    [NotMapped]
     public bool IsFailed => EventType == TrackingEventType.Failed;
+    
+    [NotMapped]
     public bool IsReturned => EventType == TrackingEventType.Returned;
 } 

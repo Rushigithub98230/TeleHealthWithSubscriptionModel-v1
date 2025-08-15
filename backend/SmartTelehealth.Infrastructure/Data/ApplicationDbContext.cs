@@ -4,7 +4,7 @@ using SmartTelehealth.Core.Entities;
 
 namespace SmartTelehealth.Infrastructure.Data;
 
-public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
+public class ApplicationDbContext : IdentityDbContext<User, Role, int>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -14,7 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<MasterBillingCycle> MasterBillingCycles { get; set; }
     public DbSet<MasterCurrency> MasterCurrencies { get; set; }
     public DbSet<MasterPrivilegeType> MasterPrivilegeTypes { get; set; }
-    public DbSet<UserRole> UserRoles { get; set; }
+    public new DbSet<UserRole> UserRoles { get; set; }
     public DbSet<AppointmentStatus> AppointmentStatuses { get; set; }
     public DbSet<PaymentStatus> PaymentStatuses { get; set; }
     public DbSet<RefundStatus> RefundStatuses { get; set; }
@@ -259,7 +259,6 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Description).HasMaxLength(200);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.SortOrder).HasDefaultValue(0);
-            entity.Property(e => e.Icon).HasMaxLength(50);
         });
         
         // ReminderTiming
@@ -281,7 +280,6 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Description).HasMaxLength(200);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.SortOrder).HasDefaultValue(0);
-            entity.Property(e => e.Icon).HasMaxLength(50);
         });
 
         // MasterBillingCycle
@@ -787,7 +785,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Message).IsRequired();
             entity.Property(e => e.IsRead).HasDefaultValue(false);
-            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.CreatedDate).IsRequired();
         });
     }
 
@@ -1270,7 +1268,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.IsActive).IsRequired();
             entity.Property(e => e.Version).IsRequired();
             entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.UpdatedBy).IsRequired(false);
             entity.Property(e => e.IsDeleted).IsRequired();
             
             // Relationships
@@ -1313,7 +1311,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.MaxValue).HasPrecision(18, 2);
             entity.Property(e => e.StepValue).HasPrecision(18, 2);
             entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.UpdatedBy).IsRequired(false);
             entity.Property(e => e.IsDeleted).IsRequired();
             
             // Relationships
@@ -1358,8 +1356,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Order).IsRequired();
             entity.Property(e => e.MediaUrl).HasMaxLength(500);
             entity.Property(e => e.IsCorrect).IsRequired();
-            entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.CreatedDate).IsRequired();
+            entity.Property(e => e.UpdatedBy).IsRequired(false);
             entity.Property(e => e.IsDeleted).IsRequired();
             
             // Relationships
@@ -1396,7 +1394,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.TemplateId).IsRequired();
             entity.Property(e => e.Status).IsRequired().HasConversion<int>();
             entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.UpdatedBy).IsRequired(false);
             entity.Property(e => e.IsDeleted).IsRequired();
             
             // Relationships
@@ -1442,7 +1440,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.NumericValue).HasPrecision(18, 2);
             entity.Property(e => e.DateTimeValue).IsRequired(false);
             entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.UpdatedBy).IsRequired(false);
             entity.Property(e => e.IsDeleted).IsRequired();
             
             // Relationships
@@ -1482,8 +1480,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             // Properties
             entity.Property(e => e.AnswerId).IsRequired();
             entity.Property(e => e.OptionId).IsRequired();
-            entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.CreatedDate).IsRequired();
+            entity.Property(e => e.UpdatedBy).IsRequired(false);
             entity.Property(e => e.IsDeleted).IsRequired();
             
             // Relationships
@@ -1500,7 +1498,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             // Indexes
             entity.HasIndex(e => e.AnswerId);
             entity.HasIndex(e => e.OptionId);
-            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.CreatedDate);
             entity.HasIndex(e => e.IsDeleted);
             entity.HasIndex(e => new { e.AnswerId, e.OptionId });
             
@@ -1519,7 +1517,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.HasKey(e => e.Id);
             
             // Properties
-            entity.Property(e => e.DocumentId).IsRequired();
+            entity.Property(e => e.Id).IsRequired();
             entity.Property(e => e.OriginalName).IsRequired().HasMaxLength(255);
             entity.Property(e => e.UniqueName).IsRequired().HasMaxLength(255);
             entity.Property(e => e.FilePath).IsRequired().HasMaxLength(500);
@@ -1532,13 +1530,13 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.IsEncrypted).IsRequired();
             entity.Property(e => e.EncryptionKey).HasMaxLength(100);
             entity.Property(e => e.IsPublic).IsRequired();
-            entity.Property(e => e.CreatedById).IsRequired();
-            entity.Property(e => e.DeletedById).IsRequired(false);
-            entity.Property(e => e.DeletedAt).IsRequired(false);
+            entity.Property(e => e.CreatedBy).IsRequired();
+            entity.Property(e => e.DeletedBy).IsRequired(false);
+            entity.Property(e => e.DeletedDate).IsRequired(false);
             entity.Property(e => e.IsActive).IsRequired();
             entity.Property(e => e.IsDeleted).IsRequired();
-            entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.CreatedDate).IsRequired();
+            entity.Property(e => e.UpdatedDate).IsRequired(false);
             
             // Relationships - Use NO ACTION to avoid cascade conflicts
             entity.HasOne(e => e.DocumentType)
@@ -1546,31 +1544,21 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .HasForeignKey(e => e.DocumentTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
                 
-            entity.HasOne(e => e.CreatedBy)
-                .WithMany()
-                .HasForeignKey(e => e.CreatedById)
-                .OnDelete(DeleteBehavior.NoAction);
-                
-            entity.HasOne(e => e.DeletedBy)
-                .WithMany()
-                .HasForeignKey(e => e.DeletedById)
-                .OnDelete(DeleteBehavior.NoAction);
-                
             entity.HasMany(e => e.References)
                 .WithOne(r => r.Document)
                 .HasForeignKey(r => r.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
             
             // Indexes
-            entity.HasIndex(e => e.DocumentId).IsUnique();
+            entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.DocumentTypeId);
-            entity.HasIndex(e => e.CreatedById);
-            entity.HasIndex(e => e.DeletedById);
+            entity.HasIndex(e => e.CreatedBy);
+            entity.HasIndex(e => e.DeletedBy);
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.IsDeleted);
-            entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => e.UpdatedAt);
-            entity.HasIndex(e => new { e.CreatedById, e.IsDeleted });
+            entity.HasIndex(e => e.CreatedDate);
+            entity.HasIndex(e => e.UpdatedDate);
+            entity.HasIndex(e => new { e.CreatedBy, e.IsDeleted });
             entity.HasIndex(e => new { e.DocumentTypeId, e.IsDeleted });
         });
         
@@ -1587,9 +1575,9 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.IsPublic).IsRequired();
             entity.Property(e => e.ExpiresAt).IsRequired(false);
-            entity.Property(e => e.CreatedById).IsRequired();
-            entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired(false);
+            entity.Property(e => e.CreatedBy).IsRequired();
+            entity.Property(e => e.CreatedDate).IsRequired();
+            entity.Property(e => e.UpdatedDate).IsRequired(false);
             entity.Property(e => e.IsDeleted).IsRequired();
             
             // Relationships
@@ -1597,19 +1585,14 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .WithMany(d => d.References)
                 .HasForeignKey(e => e.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
-            entity.HasOne(e => e.CreatedBy)
-                .WithMany()
-                .HasForeignKey(e => e.CreatedById)
-                .OnDelete(DeleteBehavior.NoAction);
             
             // Indexes
             entity.HasIndex(e => e.DocumentId);
             entity.HasIndex(e => e.EntityType);
             entity.HasIndex(e => e.EntityId);
-            entity.HasIndex(e => e.CreatedById);
+            entity.HasIndex(e => e.CreatedBy);
             entity.HasIndex(e => e.IsDeleted);
-            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.CreatedDate);
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
             entity.HasIndex(e => new { e.DocumentId, e.EntityType, e.EntityId });
             entity.HasIndex(e => new { e.EntityType, e.EntityId, e.IsDeleted });

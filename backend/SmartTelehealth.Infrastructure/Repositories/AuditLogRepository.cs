@@ -21,7 +21,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
             return auditLog;
         }
 
-        public async Task<IEnumerable<AuditLog>> GetByUserIdAsync(string userId)
+        public async Task<IEnumerable<AuditLog>> GetByUserIdAsync(int userId)
         {
             return await _context.AuditLogs
                 .Where(a => a.UserId == userId)
@@ -61,7 +61,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<int> GetCountByUserIdAsync(string userId)
+        public async Task<int> GetCountByUserIdAsync(int userId)
         {
             return await _context.AuditLogs
                 .CountAsync(a => a.UserId == userId);

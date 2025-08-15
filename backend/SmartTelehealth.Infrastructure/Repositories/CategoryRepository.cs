@@ -52,7 +52,7 @@ public class CategoryRepository : ICategoryRepository
 
     public async Task<Category> CreateAsync(Category category)
     {
-        category.CreatedAt = DateTime.UtcNow;
+        category.CreatedDate = DateTime.UtcNow;
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
         return category;
@@ -60,7 +60,7 @@ public class CategoryRepository : ICategoryRepository
 
     public async Task<Category> UpdateAsync(Category category)
     {
-        category.UpdatedAt = DateTime.UtcNow;
+        category.UpdatedDate = DateTime.UtcNow;
         _context.Categories.Update(category);
         await _context.SaveChangesAsync();
         return category;
@@ -72,7 +72,7 @@ public class CategoryRepository : ICategoryRepository
         if (category == null) return false;
 
         category.IsDeleted = true;
-        category.UpdatedAt = DateTime.UtcNow;
+        category.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }

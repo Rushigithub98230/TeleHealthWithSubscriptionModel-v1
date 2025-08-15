@@ -6,6 +6,9 @@ namespace SmartTelehealth.Core.Entities;
 #region Improved SubscriptionPlanPrivilege Entity
 public class SubscriptionPlanPrivilege : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     public Guid SubscriptionPlanId { get; set; }
     public virtual SubscriptionPlan SubscriptionPlan { get; set; } = null!;
@@ -22,7 +25,7 @@ public class SubscriptionPlanPrivilege : BaseEntity
     
     public int DurationMonths { get; set; } = 1;
     
-    public bool IsActive { get; set; } = true;
+    // IsActive is inherited from BaseEntity
     
     [MaxLength(500)]
     public string? Description { get; set; }

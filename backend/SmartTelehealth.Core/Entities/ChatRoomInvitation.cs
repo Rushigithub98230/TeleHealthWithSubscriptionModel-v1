@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class ChatRoomInvitation : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum InvitationStatus
     {
         Pending,
@@ -16,10 +20,10 @@ public class ChatRoomInvitation : BaseEntity
     public Guid ChatRoomId { get; set; }
     public virtual ChatRoom ChatRoom { get; set; } = null!;
 
-    public Guid InvitedByUserId { get; set; }
+    public int InvitedByUserId { get; set; }
     public virtual User InvitedByUser { get; set; } = null!;
 
-    public Guid InvitedUserId { get; set; }
+    public int InvitedUserId { get; set; }
     public virtual User InvitedUser { get; set; } = null!;
 
     // Invitation information
@@ -31,6 +35,5 @@ public class ChatRoomInvitation : BaseEntity
     public DateTime ExpiresAt { get; set; }
 
     // Timestamps
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? RespondedAt { get; set; }
 } 

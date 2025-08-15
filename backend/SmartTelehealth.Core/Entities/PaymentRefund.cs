@@ -5,6 +5,9 @@ namespace SmartTelehealth.Core.Entities;
 
 public class PaymentRefund : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     public Guid SubscriptionPaymentId { get; set; }
     public virtual SubscriptionPayment SubscriptionPayment { get; set; } = null!;
@@ -21,6 +24,6 @@ public class PaymentRefund : BaseEntity
     
     public DateTime RefundedAt { get; set; }
     
-    public Guid? ProcessedByUserId { get; set; }
+    public int? ProcessedByUserId { get; set; }
     public virtual User? ProcessedByUser { get; set; }
 } 

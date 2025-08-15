@@ -1,15 +1,19 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class AppointmentParticipant : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     // Foreign keys
     public Guid AppointmentId { get; set; }
     public virtual Appointment Appointment { get; set; } = null!;
 
     // Internal user
-    public Guid? UserId { get; set; }
+    public int? UserId { get; set; }
     public virtual User? User { get; set; }
 
     // External participant
@@ -30,11 +34,6 @@ public class AppointmentParticipant : BaseEntity
     public DateTime? LeftAt { get; set; }
     public DateTime? LastSeenAt { get; set; }
 
-    public Guid? InvitedByUserId { get; set; }
+    public int? InvitedByUserId { get; set; }
     public virtual User? InvitedByUser { get; set; }
-
-    // Audit
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
 } 

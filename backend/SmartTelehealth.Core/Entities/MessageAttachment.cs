@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class MessageAttachment : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     // Foreign key
     public Guid MessageId { get; set; }
     public virtual Message Message { get; set; } = null!;

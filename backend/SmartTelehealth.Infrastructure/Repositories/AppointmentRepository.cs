@@ -33,7 +33,7 @@ public class AppointmentRepository : IAppointmentRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Appointment>> GetByPatientIdAsync(Guid patientId)
+    public async Task<IEnumerable<Appointment>> GetByPatientIdAsync(int patientId)
     {
         return await _context.Appointments
             .Include(a => a.Patient)
@@ -43,7 +43,7 @@ public class AppointmentRepository : IAppointmentRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Appointment>> GetByProviderIdAsync(Guid providerId)
+    public async Task<IEnumerable<Appointment>> GetByProviderIdAsync(int providerId)
     {
         return await _context.Appointments
             .Include(a => a.Patient)
@@ -141,14 +141,25 @@ public class AppointmentRepository : IAppointmentRepository
         return await AddAsync(appointment);
     }
 
-    public async Task<IEnumerable<Appointment>> GetByPatientAsync(Guid patientId)
+    public async Task<IEnumerable<Appointment>> GetByPatientAsync(int patientId)
     {
-        return await GetByPatientIdAsync(patientId);
+        return await _context.Appointments
+            .Include(a => a.Category)
+            .Include(a => a.Patient)
+            .Include(a => a.Provider)
+            .Include(a => a.Consultation)
+            .Where(a => a.PatientId == patientId)
+            .ToListAsync();
     }
 
-    public async Task<IEnumerable<Appointment>> GetByProviderAsync(Guid providerId)
+    public async Task<IEnumerable<Appointment>> GetByProviderAsync(int providerId)
     {
-        return await GetByProviderIdAsync(providerId);
+        return await _context.Appointments
+            .Include(a => a.Patient)
+            .Include(a => a.Provider)
+            .Include(a => a.Consultation)
+            .Where(a => a.ProviderId == providerId)
+            .ToListAsync();
     }
 
 

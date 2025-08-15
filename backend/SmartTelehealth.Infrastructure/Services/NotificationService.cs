@@ -237,7 +237,7 @@ public class NotificationService : INotificationService
     }
     
     // In-app notifications
-    public async Task<ApiResponse<NotificationDto>> CreateInAppNotificationAsync(Guid userId, string title, string message)
+    public async Task<ApiResponse<NotificationDto>> CreateInAppNotificationAsync(int userId, string title, string message)
     {
         try
         {
@@ -249,7 +249,7 @@ public class NotificationService : INotificationService
                 Message = message,
                 Type = NotificationType.InApp,
                 Status = NotificationStatus.Unread,
-                CreatedAt = DateTime.UtcNow,
+                CreatedDate = DateTime.UtcNow,
                 ScheduledAt = DateTime.UtcNow
             };
 
@@ -263,7 +263,7 @@ public class NotificationService : INotificationService
                 Type = createdNotification.Type.ToString(),
                 Status = createdNotification.Status.ToString(),
                 IsRead = createdNotification.IsRead,
-                CreatedAt = createdNotification.CreatedAt,
+                CreatedAt = createdNotification.CreatedDate ?? DateTime.UtcNow,
                 ReadAt = createdNotification.ReadAt,
                 ScheduledAt = createdNotification.ScheduledAt
             };
@@ -277,7 +277,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(Guid userId)
+    public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(int userId)
     {
         try
         {
@@ -291,7 +291,7 @@ public class NotificationService : INotificationService
                 Type = n.Type.ToString(),
                 Status = n.Status.ToString(),
                 IsRead = n.IsRead,
-                CreatedAt = n.CreatedAt,
+                CreatedAt = n.CreatedDate ?? DateTime.UtcNow,
                 ReadAt = n.ReadAt,
                 ScheduledAt = n.ScheduledAt
             });
@@ -327,7 +327,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<ApiResponse<int>> GetUnreadNotificationCountAsync(Guid userId)
+    public async Task<ApiResponse<int>> GetUnreadNotificationCountAsync(int userId)
     {
         try
         {
@@ -579,7 +579,7 @@ public class NotificationService : INotificationService
                 Type = n.Type.ToString(),
                 Status = n.Status.ToString(),
                 IsRead = n.IsRead,
-                CreatedAt = n.CreatedAt,
+                CreatedAt = n.CreatedDate ?? DateTime.UtcNow,
                 ReadAt = n.ReadAt,
                 ScheduledAt = n.ScheduledAt
             });
@@ -608,7 +608,7 @@ public class NotificationService : INotificationService
                 Type = notification.Type.ToString(),
                 Status = notification.Status.ToString(),
                 IsRead = notification.IsRead,
-                CreatedAt = notification.CreatedAt,
+                CreatedAt = notification.CreatedDate ?? DateTime.UtcNow,
                 ReadAt = notification.ReadAt,
                 ScheduledAt = notification.ScheduledAt
             };
@@ -633,7 +633,7 @@ public class NotificationService : INotificationService
                 Type = Enum.TryParse<NotificationType>(createNotificationDto.Type, out var type) ? type : NotificationType.InApp,
                 Status = NotificationStatus.Unread,
                 IsRead = false,
-                CreatedAt = DateTime.UtcNow,
+                CreatedDate = DateTime.UtcNow,
                 ScheduledAt = createNotificationDto.ScheduledAt
             };
             var created = await _notificationRepository.CreateAsync(notification);
@@ -646,7 +646,7 @@ public class NotificationService : INotificationService
                 Type = created.Type.ToString(),
                 Status = created.Status.ToString(),
                 IsRead = created.IsRead,
-                CreatedAt = created.CreatedAt,
+                CreatedAt = created.CreatedDate ?? DateTime.UtcNow,
                 ReadAt = created.ReadAt,
                 ScheduledAt = created.ScheduledAt
             };
@@ -684,7 +684,7 @@ public class NotificationService : INotificationService
                 Type = updatedNotification.Type.ToString(),
                 Status = updatedNotification.Status.ToString(),
                 IsRead = updatedNotification.IsRead,
-                CreatedAt = updatedNotification.CreatedAt,
+                CreatedAt = updatedNotification.CreatedDate ?? DateTime.UtcNow,
                 ReadAt = updatedNotification.ReadAt,
                 ScheduledAt = updatedNotification.ScheduledAt
             };
@@ -811,13 +811,13 @@ public class NotificationService : INotificationService
             var notification = new Notification
             {
                 Id = Guid.NewGuid(),
-                UserId = Guid.Parse(userId),
+                UserId = int.Parse(userId),
                 Title = title,
                 Message = message,
                 Type = NotificationType.InApp,
                 Status = NotificationStatus.Unread,
                 IsRead = false,
-                CreatedAt = DateTime.UtcNow,
+                CreatedDate = DateTime.UtcNow,
                 ScheduledAt = DateTime.UtcNow
             };
             await _notificationRepository.CreateAsync(notification);
@@ -835,7 +835,7 @@ public class NotificationService : INotificationService
         try
         {
             // Get user details from the user service
-            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+            var user = await _userRepository.GetByIdAsync(int.Parse(userId));
             if (user == null) return;
 
             var subject = "Subscription Suspended";
@@ -863,7 +863,7 @@ public class NotificationService : INotificationService
         try
         {
             // Get user details from the user service
-            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+            var user = await _userRepository.GetByIdAsync(int.Parse(userId));
             if (user == null) return;
 
             var subject = "Refund Processed";
@@ -891,7 +891,7 @@ public class NotificationService : INotificationService
         try
         {
             // Get user details from the user service
-            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+            var user = await _userRepository.GetByIdAsync(int.Parse(userId));
             if (user == null) return;
 
             var subject = "Subscription Reactivated";

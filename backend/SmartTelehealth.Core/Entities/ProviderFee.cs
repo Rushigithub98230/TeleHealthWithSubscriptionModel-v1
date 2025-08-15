@@ -1,18 +1,20 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
-public class ProviderFee
+public class ProviderFee : BaseEntity
 {
+    [Key]
     public Guid Id { get; set; }
     
     [Required]
-    public Guid ProviderId { get; set; }
-    public User Provider { get; set; } = null!;
+    public int ProviderId { get; set; }
+    public virtual User Provider { get; set; } = null!;
     
     [Required]
     public Guid CategoryId { get; set; }
-    public Category Category { get; set; } = null!;
+    public virtual Category Category { get; set; } = null!;
     
     [Required]
     [Range(0, 10000)]
@@ -34,14 +36,12 @@ public class ProviderFee
     
     public DateTime? ReviewedAt { get; set; }
     
-    public Guid? ReviewedByUserId { get; set; }
-    public User? ReviewedByUser { get; set; }
+    public int? ReviewedByUserId { get; set; }
+    public virtual User? ReviewedByUser { get; set; }
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    
-    public bool IsActive { get; set; } = true;
+    // Alias properties for backward compatibility
+    public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+    public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
 }
 
 public enum FeeStatus

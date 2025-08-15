@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class Consultation : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum ConsultationStatus
     {
         Scheduled,
@@ -22,10 +26,10 @@ public class Consultation : BaseEntity
     }
     
     // Foreign keys
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public virtual User User { get; set; } = null!;
     
-    public Guid ProviderId { get; set; }
+    public int ProviderId { get; set; }
     public virtual Provider Provider { get; set; } = null!;
     
     public Guid CategoryId { get; set; }
@@ -83,10 +87,21 @@ public class Consultation : BaseEntity
     public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
     public virtual ICollection<MedicationDelivery> MedicationDeliveries { get; set; } = new List<MedicationDelivery>();
     
+    // Computed Properties
+    [NotMapped]
     public bool IsCompleted => Status == ConsultationStatus.Completed;
+    
+    [NotMapped]
     public bool IsCancelled => Status == ConsultationStatus.Cancelled;
+    
+    [NotMapped]
     public bool IsNoShow => Status == ConsultationStatus.NoShow;
     
+    // Alias properties for backward compatibility
+    public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+    public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
+    
+    [NotMapped]
     public TimeSpan? ActualDuration => StartedAt.HasValue && EndedAt.HasValue 
         ? EndedAt.Value - StartedAt.Value 
         : null;

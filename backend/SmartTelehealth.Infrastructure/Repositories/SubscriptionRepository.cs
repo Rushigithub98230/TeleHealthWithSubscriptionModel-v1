@@ -22,11 +22,11 @@ public class SubscriptionRepository : ISubscriptionRepository
             .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
     }
 
-    public async Task<IEnumerable<Subscription>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<Subscription>> GetByUserIdAsync(int userId)
     {
         return await _context.Subscriptions
             .Where(s => s.UserId == userId && !s.IsDeleted)
-            .OrderByDescending(s => s.CreatedAt)
+            .OrderByDescending(s => s.CreatedDate)
             .ToListAsync();
     }
 
@@ -57,7 +57,7 @@ public class SubscriptionRepository : ISubscriptionRepository
 
     public async Task<Subscription> CreateAsync(Subscription subscription)
     {
-        subscription.CreatedAt = DateTime.UtcNow;
+        subscription.CreatedDate = DateTime.UtcNow;
         // Set default values for new fields if needed
         if (string.IsNullOrEmpty(subscription.Status))
             subscription.Status = Subscription.SubscriptionStatuses.Pending;
@@ -68,7 +68,7 @@ public class SubscriptionRepository : ISubscriptionRepository
 
     public async Task<Subscription> UpdateAsync(Subscription subscription)
     {
-        subscription.UpdatedAt = DateTime.UtcNow;
+        subscription.UpdatedDate = DateTime.UtcNow;
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync();
         return subscription;
@@ -80,7 +80,7 @@ public class SubscriptionRepository : ISubscriptionRepository
         if (subscription == null) return false;
 
         subscription.IsDeleted = true;
-        subscription.UpdatedAt = DateTime.UtcNow;
+        subscription.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -91,7 +91,7 @@ public class SubscriptionRepository : ISubscriptionRepository
             .AnyAsync(s => s.Id == id && !s.IsDeleted);
     }
 
-    public async Task<int> GetActiveSubscriptionCountAsync(Guid userId)
+    public async Task<int> GetActiveSubscriptionCountAsync(int userId)
     {
         return await _context.Subscriptions
             .CountAsync(s => s.UserId == userId && 
@@ -99,7 +99,7 @@ public class SubscriptionRepository : ISubscriptionRepository
                            !s.IsDeleted);
     }
 
-    public async Task<Subscription?> GetActiveSubscriptionByUserIdAsync(Guid userId)
+    public async Task<Subscription?> GetActiveSubscriptionByUserIdAsync(int userId)
     {
         return await _context.Subscriptions
             .Include(s => s.User)
@@ -108,7 +108,7 @@ public class SubscriptionRepository : ISubscriptionRepository
             .Where(s => s.UserId == userId && 
                        s.Status == "Active" && 
                        !s.IsDeleted)
-            .OrderByDescending(s => s.CreatedAt)
+            .OrderByDescending(s => s.CreatedDate)
             .FirstOrDefaultAsync();
     }
 
@@ -365,7 +365,7 @@ public class SubscriptionRepository : ISubscriptionRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Subscription>> GetSubscriptionsByProviderAsync(Guid providerId)
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsByProviderAsync(int providerId)
     {
         return await _context.Subscriptions
             .Include(s => s.User)

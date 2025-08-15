@@ -5,7 +5,7 @@ namespace SmartTelehealth.Core.Interfaces;
 public interface IBillingRepository
 {
     Task<BillingRecord> GetByIdAsync(Guid id);
-    Task<IEnumerable<BillingRecord>> GetByUserIdAsync(Guid userId);
+    Task<IEnumerable<BillingRecord>> GetByUserIdAsync(int userId);
     Task<IEnumerable<BillingRecord>> GetBySubscriptionIdAsync(Guid subscriptionId);
     Task<BillingRecord> CreateAsync(BillingRecord billingRecord);
     Task<BillingRecord> UpdateAsync(BillingRecord billingRecord);

@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities
 {
     public class AuditLog : BaseEntity
     {
+        [Key]
+        public Guid Id { get; set; }
+
         [Required]
         [MaxLength(100)]
         public string Action { get; set; } = string.Empty;
@@ -16,8 +20,8 @@ namespace SmartTelehealth.Core.Entities
         public string? EntityId { get; set; }
 
         [Required]
-        [MaxLength(100)]
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
+        public virtual User User { get; set; } = null!;
 
         [MaxLength(100)]
         public string? UserEmail { get; set; }
@@ -47,5 +51,9 @@ namespace SmartTelehealth.Core.Entities
         public string? ErrorMessage { get; set; }
 
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        
+        // Alias properties for backward compatibility
+        public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+        public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
     }
 } 

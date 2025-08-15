@@ -15,7 +15,7 @@ public interface ISubscriptionRepository
     
     // User Subscription Management
     Task<Subscription?> GetByIdAsync(Guid id);
-    Task<IEnumerable<Subscription>> GetByUserIdAsync(Guid userId);
+    Task<IEnumerable<Subscription>> GetByUserIdAsync(int userId);
     Task<IEnumerable<Subscription>> GetActiveSubscriptionsAsync();
     Task<IEnumerable<Subscription>> GetPausedSubscriptionsAsync();
     Task<IEnumerable<Subscription>> GetSubscriptionsByStatusAsync(string status);
@@ -25,8 +25,8 @@ public interface ISubscriptionRepository
     Task<Subscription> UpdateAsync(Subscription subscription);
     Task<bool> DeleteAsync(Guid id);
     Task<bool> ExistsAsync(Guid id);
-    Task<int> GetActiveSubscriptionCountAsync(Guid userId);
-    Task<Subscription?> GetActiveSubscriptionByUserIdAsync(Guid userId);
+    Task<int> GetActiveSubscriptionCountAsync(int userId);
+    Task<Subscription?> GetActiveSubscriptionByUserIdAsync(int userId);
     Task<Subscription?> GetByStripeSubscriptionIdAsync(string stripeSubscriptionId);
     Task<IEnumerable<Subscription>> GetSubscriptionsDueForBillingAsync(DateTime billingDate);
     Task<IEnumerable<Subscription>> GetSubscriptionsDueForDeliveryAsync(DateTime deliveryDate);

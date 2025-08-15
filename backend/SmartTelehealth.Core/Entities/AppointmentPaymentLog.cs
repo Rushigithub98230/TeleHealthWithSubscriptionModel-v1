@@ -1,14 +1,18 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class AppointmentPaymentLog : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     // Foreign keys
     public Guid AppointmentId { get; set; }
     public virtual Appointment Appointment { get; set; } = null!;
 
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public virtual User User { get; set; } = null!;
 
     // Status Foreign Keys
@@ -48,9 +52,4 @@ public class AppointmentPaymentLog : BaseEntity
     // Timestamps
     public DateTime? PaymentDate { get; set; }
     public DateTime? RefundDate { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-
-    // Audit
-    public bool IsDeleted { get; set; } = false;
 } 

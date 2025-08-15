@@ -1,12 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class Document : BaseEntity
 {
-    // Primary identification
-    public Guid DocumentId { get; set; } = Guid.NewGuid();
-    
+    [Key]
+    public Guid Id { get; set; }
+
     // File information
     [Required]
     [MaxLength(255)]
@@ -48,18 +49,6 @@ public class Document : BaseEntity
     public string? EncryptionKey { get; set; }
     
     public bool IsPublic { get; set; } = false; // Can be accessed without authentication
-    
-    // Audit fields
-    public Guid CreatedById { get; set; }
-    public virtual User CreatedBy { get; set; } = null!;
-    
-    public Guid? DeletedById { get; set; }
-    public virtual User? DeletedBy { get; set; }
-    
-    public DateTime? DeletedAt { get; set; }
-    
-    public bool IsActive { get; set; } = true;
-    public bool IsDeleted { get; set; } = false;
     
     // Navigation properties
     public virtual ICollection<DocumentReference> References { get; set; } = new List<DocumentReference>();

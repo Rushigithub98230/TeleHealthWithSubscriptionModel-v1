@@ -18,13 +18,13 @@ public interface IMessageRepository
 
     // Message reactions
     Task<MessageReaction> AddReactionAsync(MessageReaction reaction);
-    Task<bool> RemoveReactionAsync(Guid messageId, Guid userId, string emoji);
+    Task<bool> RemoveReactionAsync(Guid messageId, int userId, string emoji);
     Task<IEnumerable<MessageReaction>> GetMessageReactionsAsync(Guid messageId);
 
     // Read receipts
-    Task<MessageReadReceipt> MarkMessageAsReadAsync(Guid messageId, Guid userId);
+    Task<MessageReadReceipt> MarkMessageAsReadAsync(Guid messageId, int userId);
     Task<IEnumerable<MessageReadReceipt>> GetMessageReadReceiptsAsync(Guid messageId);
-    Task<int> GetUnreadMessageCountAsync(Guid chatRoomId, Guid userId);
+    Task<int> GetUnreadMessageCountAsync(Guid chatRoomId, int userId);
 
     // Threaded conversations
     Task<IEnumerable<Message>> GetMessageThreadAsync(Guid messageId);

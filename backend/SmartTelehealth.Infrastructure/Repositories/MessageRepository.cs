@@ -45,18 +45,18 @@ public class MessageRepository : IMessageRepository
             .Include(m => m.Reactions)
             .Include(m => m.ReadReceipts)
             .Where(m => m.ChatRoomId == chatRoomId && !m.IsDeleted)
-            .OrderBy(m => m.CreatedAt)
+            .OrderBy(m => m.CreatedDate)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Message>> GetBySenderIdAsync(Guid senderId)
+    public async Task<IEnumerable<Message>> GetBySenderIdAsync(int senderId)
     {
         return await _context.Messages
             .Include(m => m.Sender)
             .Include(m => m.ChatRoom)
             .Include(m => m.ReplyToMessage)
             .Where(m => m.SenderId == senderId && !m.IsDeleted)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .ToListAsync();
     }
 
@@ -66,8 +66,8 @@ public class MessageRepository : IMessageRepository
             .Include(m => m.Sender)
             .Include(m => m.ChatRoom)
             .Include(m => m.ReplyToMessage)
-            .Where(m => m.CreatedAt >= startDate && m.CreatedAt <= endDate && !m.IsDeleted)
-            .OrderBy(m => m.CreatedAt)
+            .Where(m => m.CreatedDate >= startDate && m.CreatedDate <= endDate && !m.IsDeleted)
+            .OrderBy(m => m.CreatedDate)
             .ToListAsync();
     }
 
@@ -78,7 +78,7 @@ public class MessageRepository : IMessageRepository
             .Include(m => m.ChatRoom)
             .Include(m => m.ReplyToMessage)
             .Where(m => m.Type == type && !m.IsDeleted)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .ToListAsync();
     }
 
@@ -89,7 +89,7 @@ public class MessageRepository : IMessageRepository
             .Include(m => m.ChatRoom)
             .Include(m => m.ReplyToMessage)
             .Where(m => m.Status == status && !m.IsDeleted)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .ToListAsync();
     }
 
@@ -100,7 +100,7 @@ public class MessageRepository : IMessageRepository
             .Include(m => m.ChatRoom)
             .Include(m => m.ReplyToMessage)
             .Where(m => m.ReplyToMessageId == messageId && !m.IsDeleted)
-            .OrderBy(m => m.CreatedAt)
+            .OrderBy(m => m.CreatedDate)
             .ToListAsync();
     }
 
@@ -125,7 +125,7 @@ public class MessageRepository : IMessageRepository
             return false;
 
         message.IsDeleted = true;
-        message.UpdatedAt = DateTime.UtcNow;
+        message.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -149,11 +149,11 @@ public class MessageRepository : IMessageRepository
             .Where(m => m.ChatRoomId == chatRoomId && 
                        !m.IsDeleted && 
                        m.Content.Contains(searchTerm))
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Message>> GetUnreadMessagesAsync(Guid chatRoomId, Guid userId)
+    public async Task<IEnumerable<Message>> GetUnreadMessagesAsync(Guid chatRoomId, int userId)
     {
         return await _context.Messages
             .Include(m => m.Sender)
@@ -163,7 +163,7 @@ public class MessageRepository : IMessageRepository
                        !m.IsDeleted && 
                        m.SenderId != userId &&
                        !m.ReadReceipts.Any(rr => rr.UserId == userId))
-            .OrderBy(m => m.CreatedAt)
+            .OrderBy(m => m.CreatedDate)
             .ToListAsync();
     }
 
@@ -175,9 +175,9 @@ public class MessageRepository : IMessageRepository
             .Include(m => m.ReplyToMessage)
             .Where(m => m.ChatRoomId == chatRoomId && 
                        !m.IsDeleted && 
-                       m.CreatedAt >= startDate && 
-                       m.CreatedAt <= endDate)
-            .OrderBy(m => m.CreatedAt)
+                       m.CreatedDate >= startDate && 
+                       m.CreatedDate <= endDate)
+            .OrderBy(m => m.CreatedDate)
             .ToListAsync();
     }
 
@@ -199,7 +199,7 @@ public class MessageRepository : IMessageRepository
             .Include(m => m.ChatRoom)
             .Include(m => m.ReplyToMessage)
             .Where(m => m.ChatRoomId == chatRoomId && !m.IsDeleted)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .Skip(skip)
             .Take(take)
             .ToListAsync();
@@ -232,7 +232,7 @@ public class MessageRepository : IMessageRepository
         return reaction;
     }
 
-    public async Task<bool> RemoveReactionAsync(Guid messageId, Guid userId, string emoji)
+    public async Task<bool> RemoveReactionAsync(Guid messageId, int userId, string emoji)
     {
         var reaction = await _context.MessageReactions
             .FirstOrDefaultAsync(mr => mr.MessageId == messageId && 
@@ -255,7 +255,7 @@ public class MessageRepository : IMessageRepository
             .ToListAsync();
     }
 
-    public async Task<MessageReadReceipt> MarkMessageAsReadAsync(Guid messageId, Guid userId)
+    public async Task<MessageReadReceipt> MarkMessageAsReadAsync(Guid messageId, int userId)
     {
         var existingReceipt = await _context.MessageReadReceipts
             .FirstOrDefaultAsync(mrr => mrr.MessageId == messageId && mrr.UserId == userId);
@@ -268,7 +268,7 @@ public class MessageRepository : IMessageRepository
             MessageId = messageId,
             UserId = userId,
             ReadAt = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow
+            CreatedDate = DateTime.UtcNow
         };
 
         _context.MessageReadReceipts.Add(receipt);
@@ -284,7 +284,7 @@ public class MessageRepository : IMessageRepository
             .ToListAsync();
     }
 
-    public async Task<int> GetUnreadMessageCountAsync(Guid chatRoomId, Guid userId)
+    public async Task<int> GetUnreadMessageCountAsync(Guid chatRoomId, int userId)
     {
         return await _context.Messages
             .CountAsync(m => m.ChatRoomId == chatRoomId && 
@@ -334,9 +334,9 @@ public class MessageRepository : IMessageRepository
     {
         var lastMessage = await _context.Messages
             .Where(m => m.ChatRoomId == chatRoomId && !m.IsDeleted)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.CreatedDate)
             .FirstOrDefaultAsync();
 
-        return lastMessage?.CreatedAt;
+        return lastMessage?.CreatedDate;
     }
 } 

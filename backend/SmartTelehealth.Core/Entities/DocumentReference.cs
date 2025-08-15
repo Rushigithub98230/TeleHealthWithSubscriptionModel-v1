@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class DocumentReference : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     // Primary identification
     public Guid DocumentId { get; set; }
     public virtual Document Document { get; set; } = null!;
@@ -25,12 +29,4 @@ public class DocumentReference : BaseEntity
     public bool IsPublic { get; set; } = false;
     
     public DateTime? ExpiresAt { get; set; }
-    
-    // Audit
-    public Guid CreatedById { get; set; }
-    public virtual User CreatedBy { get; set; } = null!;
-    
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
 } 

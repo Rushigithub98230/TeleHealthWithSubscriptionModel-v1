@@ -41,16 +41,16 @@ namespace SmartTelehealth.Infrastructure.Repositories
         // The following methods are stubs to resolve build errors. They do not perform any logic.
         public Task<ProviderPayout?> GetByIdAsync(Guid id) => Task.FromResult<ProviderPayout?>(null);
         public Task<IEnumerable<ProviderPayout>> GetAllAsync() => Task.FromResult<IEnumerable<ProviderPayout>>(new List<ProviderPayout>());
-        public Task<IEnumerable<ProviderPayout>> GetByProviderAsync(Guid providerId) => Task.FromResult<IEnumerable<ProviderPayout>>(new List<ProviderPayout>());
+        public Task<IEnumerable<ProviderPayout>> GetByProviderAsync(int providerId) => Task.FromResult<IEnumerable<ProviderPayout>>(new List<ProviderPayout>());
         public Task<IEnumerable<ProviderPayout>> GetByPeriodAsync(Guid periodId) => Task.FromResult<IEnumerable<ProviderPayout>>(new List<ProviderPayout>());
         public Task<IEnumerable<ProviderPayout>> GetPendingAsync() => Task.FromResult<IEnumerable<ProviderPayout>>(new List<ProviderPayout>());
         public Task<IEnumerable<ProviderPayout>> GetByStatusWithPaginationAsync(string status, int page, int pageSize) => Task.FromResult<IEnumerable<ProviderPayout>>(new List<ProviderPayout>());
         public Task<bool> DeleteAsync(Guid id) => Task.FromResult(false);
-        public Task<decimal> GetTotalEarningsByProviderAsync(Guid providerId) => Task.FromResult(0m);
-        public Task<decimal> GetPendingEarningsByProviderAsync(Guid providerId) => Task.FromResult(0m);
-        public Task<decimal> GetTotalPayoutAmountByProviderAsync(Guid providerId) => Task.FromResult(0m);
-        public Task<decimal> GetPendingPayoutAmountByProviderAsync(Guid providerId) => Task.FromResult(0m);
-        public Task<int> GetPayoutCountByProviderAsync(Guid providerId) => Task.FromResult(0);
+        public Task<decimal> GetTotalEarningsByProviderAsync(int providerId) => Task.FromResult(0m);
+        public Task<decimal> GetPendingEarningsByProviderAsync(int providerId) => Task.FromResult(0m);
+        public Task<decimal> GetTotalPayoutAmountByProviderAsync(int providerId) => Task.FromResult(0m);
+        public Task<decimal> GetPendingPayoutAmountByProviderAsync(int providerId) => Task.FromResult(0m);
+        public Task<int> GetPayoutCountByProviderAsync(int providerId) => Task.FromResult(0);
         public Task<object> GetPayoutStatisticsAsync() => Task.FromResult<object>(new { });
         public Task<object> AddPeriodAsync() => Task.FromResult<object>(new { });
         public Task<object> GetAllPeriodsAsync() => Task.FromResult<object>(new { });

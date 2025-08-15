@@ -14,7 +14,7 @@ public class ProviderRepository : IProviderRepository
         _context = context;
     }
 
-    public async Task<Provider?> GetByIdAsync(Guid id)
+    public async Task<Provider?> GetByIdAsync(int id)
     {
         return await _context.Providers
             .Include(p => p.ProviderCategories.Where(pc => pc.IsAvailable))
@@ -81,7 +81,7 @@ public class ProviderRepository : IProviderRepository
 
     public async Task<Provider> CreateAsync(Provider provider)
     {
-        provider.CreatedAt = DateTime.UtcNow;
+        provider.CreatedDate = DateTime.UtcNow;
         _context.Providers.Add(provider);
         await _context.SaveChangesAsync();
         return provider;
@@ -89,24 +89,24 @@ public class ProviderRepository : IProviderRepository
 
     public async Task<Provider> UpdateAsync(Provider provider)
     {
-        provider.UpdatedAt = DateTime.UtcNow;
+        provider.UpdatedDate = DateTime.UtcNow;
         _context.Providers.Update(provider);
         await _context.SaveChangesAsync();
         return provider;
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task<bool> DeleteAsync(int id)
     {
         var provider = await _context.Providers.FindAsync(id);
         if (provider == null) return false;
 
         provider.IsDeleted = true;
-        provider.UpdatedAt = DateTime.UtcNow;
+        provider.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<bool> ExistsAsync(Guid id)
+    public async Task<bool> ExistsAsync(int id)
     {
         return await _context.Providers
             .AnyAsync(p => p.Id == id && !p.IsDeleted);

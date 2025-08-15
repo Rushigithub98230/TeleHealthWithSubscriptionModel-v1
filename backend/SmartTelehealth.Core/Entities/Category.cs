@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class Category : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
@@ -16,8 +20,6 @@ public class Category : BaseEntity
     
     [MaxLength(100)]
     public string? Color { get; set; }
-    
-    public bool IsActive { get; set; } = true;
     
     public int DisplayOrder { get; set; }
     

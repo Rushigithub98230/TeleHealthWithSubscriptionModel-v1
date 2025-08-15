@@ -1,13 +1,16 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities
 {
-    public class VideoCallParticipant
+    public class VideoCallParticipant : BaseEntity
     {
+        [Key]
         public Guid Id { get; set; }
+        
         public Guid VideoCallId { get; set; }
-        public Guid UserId { get; set; }
-        public Guid? ProviderId { get; set; }
+        public int UserId { get; set; }
+        public int? ProviderId { get; set; }
         public bool IsInitiator { get; set; } = false;
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LeftAt { get; set; }
@@ -21,9 +24,6 @@ namespace SmartTelehealth.Core.Entities
         public string? DeviceInfo { get; set; }
         public string? IpAddress { get; set; }
         public string? UserAgent { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
-        public bool IsDeleted { get; set; } = false;
 
         // Navigation properties
         public virtual VideoCall VideoCall { get; set; } = null!;

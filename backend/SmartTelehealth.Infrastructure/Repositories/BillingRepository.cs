@@ -26,13 +26,13 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .FirstOrDefaultAsync(br => br.Id == id);
         }
         
-        public async Task<IEnumerable<BillingRecord>> GetByUserIdAsync(Guid userId)
+        public async Task<IEnumerable<BillingRecord>> GetByUserIdAsync(int userId)
         {
             return await _context.BillingRecords
                 .Include(br => br.Subscription)
                 .Include(br => br.Currency)
                 .Where(br => br.UserId == userId)
-                .OrderByDescending(br => br.CreatedAt)
+                .OrderByDescending(br => br.CreatedDate)
                 .ToListAsync();
         }
         
@@ -42,14 +42,14 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .Include(br => br.User)
                 .Include(br => br.Currency)
                 .Where(br => br.SubscriptionId == subscriptionId)
-                .OrderByDescending(br => br.CreatedAt)
+                .OrderByDescending(br => br.CreatedDate)
                 .ToListAsync();
         }
         
         public async Task<BillingRecord> CreateAsync(BillingRecord billingRecord)
         {
-            billingRecord.CreatedAt = DateTime.UtcNow;
-            billingRecord.UpdatedAt = DateTime.UtcNow;
+            billingRecord.CreatedDate = DateTime.UtcNow;
+            billingRecord.UpdatedDate = DateTime.UtcNow;
             _context.BillingRecords.Add(billingRecord);
             await _context.SaveChangesAsync();
             return billingRecord;
@@ -57,7 +57,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
         
         public async Task<BillingRecord> UpdateAsync(BillingRecord billingRecord)
         {
-            billingRecord.UpdatedAt = DateTime.UtcNow;
+            billingRecord.UpdatedDate = DateTime.UtcNow;
             _context.BillingRecords.Update(billingRecord);
             await _context.SaveChangesAsync();
             return billingRecord;
@@ -100,13 +100,13 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .Include(br => br.User)
                 .Include(br => br.Subscription)
                 .Where(br => br.Status == BillingRecord.BillingStatus.Failed)
-                .OrderByDescending(br => br.CreatedAt)
+                .OrderByDescending(br => br.CreatedDate)
                 .ToListAsync();
         }
         
         public async Task<BillingAdjustment> CreateAdjustmentAsync(BillingAdjustment adjustment)
         {
-            adjustment.CreatedAt = DateTime.UtcNow;
+            adjustment.CreatedDate = DateTime.UtcNow;
             _context.BillingAdjustments.Add(adjustment);
             await _context.SaveChangesAsync();
             return adjustment;
@@ -117,7 +117,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
             return await _context.BillingAdjustments
                 .Include(ba => ba.BillingRecord)
                 .Where(ba => ba.BillingRecordId == billingRecordId)
-                .OrderByDescending(ba => ba.CreatedAt)
+                .OrderByDescending(ba => ba.CreatedDate)
                 .ToListAsync();
         }
         
@@ -127,7 +127,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .Include(br => br.User)
                 .Include(br => br.Subscription)
                 .Include(br => br.Currency)
-                .OrderByDescending(br => br.CreatedAt)
+                .OrderByDescending(br => br.CreatedDate)
                 .ToListAsync();
         }
 
@@ -137,7 +137,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .Include(br => br.User)
                 .Include(br => br.Subscription)
                 .Where(br => br.BillingCycleId == billingCycleId)
-                .OrderByDescending(br => br.CreatedAt)
+                .OrderByDescending(br => br.CreatedDate)
                 .ToListAsync();
         }
 

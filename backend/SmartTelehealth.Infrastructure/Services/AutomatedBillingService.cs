@@ -158,7 +158,7 @@ public class AutomatedBillingService : BackgroundService
                 await subscriptionRepository.UpdateAsync(subscription);
 
                 // Send success notification
-                var userResult = await userService.GetUserByIdAsync(subscription.UserId.ToString());
+                var userResult = await userService.GetUserByIdAsync(subscription.UserId);
                 if (userResult.Success && userResult.Data != null)
                 {
                     await notificationService.SendPaymentSuccessEmailAsync(
@@ -325,7 +325,7 @@ public class AutomatedBillingService : BackgroundService
                         await subscriptionRepository.UpdateAsync(subscription);
 
                         // Send reactivation notification
-                        var userResult = await userService.GetUserByIdAsync(subscription.UserId.ToString());
+                        var userResult = await userService.GetUserByIdAsync(subscription.UserId);
                         if (userResult.Success && userResult.Data != null)
                         {
                             // EMAIL FUNCTIONALITY DISABLED - Commented out for now

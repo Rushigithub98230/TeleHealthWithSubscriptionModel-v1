@@ -4,7 +4,7 @@ namespace SmartTelehealth.Core.Interfaces;
 
 public interface IUserRepository
 {
-    Task<User?> GetByIdAsync(Guid id);
+    Task<User?> GetByIdAsync(int id);
     Task<User?> GetByEmailAsync(string email);
     Task<User?> GetByUserNameAsync(string userName);
     Task<User?> GetByRefreshTokenAsync(string refreshToken);
@@ -12,8 +12,8 @@ public interface IUserRepository
     Task<IEnumerable<User>> GetActiveUsersAsync();
     Task<User> CreateAsync(User user);
     Task<User> UpdateAsync(User user);
-    Task<bool> DeleteAsync(Guid id);
-    Task<bool> ExistsAsync(Guid id);
+    Task<bool> DeleteAsync(int id);
+    Task<bool> ExistsAsync(int id);
     Task<bool> ExistsByEmailAsync(string email);
     Task<int> GetActiveUserCountAsync();
     Task<IEnumerable<User>> SearchUsersAsync(string searchTerm);

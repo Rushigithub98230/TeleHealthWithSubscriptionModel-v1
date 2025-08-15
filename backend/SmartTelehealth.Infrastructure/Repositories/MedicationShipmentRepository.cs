@@ -26,13 +26,13 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
         }
         
-        public async Task<IEnumerable<MedicationDelivery>> GetByUserIdAsync(Guid userId)
+        public async Task<IEnumerable<MedicationDelivery>> GetByUserIdAsync(int userId)
         {
             return await _context.MedicationDeliveries
                 .Include(m => m.Subscription)
                 .Include(m => m.Provider)
                 .Where(m => m.UserId == userId && !m.IsDeleted)
-                .OrderByDescending(m => m.CreatedAt)
+                .OrderByDescending(m => m.CreatedDate)
                 .ToListAsync();
         }
         
@@ -49,7 +49,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .Include(m => m.Subscription)
                 .Include(m => m.Provider)
                 .Where(m => m.Status == statusEnum && !m.IsDeleted)
-                .OrderByDescending(m => m.CreatedAt)
+                .OrderByDescending(m => m.CreatedDate)
                 .ToListAsync();
         }
         
@@ -60,14 +60,14 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .Include(m => m.Subscription)
                 .Include(m => m.Provider)
                 .Where(m => m.TrackingNumber == trackingNumber && !m.IsDeleted)
-                .OrderByDescending(m => m.CreatedAt)
+                .OrderByDescending(m => m.CreatedDate)
                 .ToListAsync();
         }
         
         public async Task<MedicationDelivery> CreateAsync(MedicationDelivery shipment)
         {
-            shipment.CreatedAt = DateTime.UtcNow;
-            shipment.UpdatedAt = DateTime.UtcNow;
+            shipment.CreatedDate = DateTime.UtcNow;
+            shipment.UpdatedDate = DateTime.UtcNow;
             
             if (shipment.Status == 0) // Default enum value
                 shipment.Status = MedicationDelivery.DeliveryStatus.Pending;
@@ -79,7 +79,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
         
         public async Task<MedicationDelivery> UpdateAsync(MedicationDelivery shipment)
         {
-            shipment.UpdatedAt = DateTime.UtcNow;
+            shipment.UpdatedDate = DateTime.UtcNow;
             _context.MedicationDeliveries.Update(shipment);
             await _context.SaveChangesAsync();
             return shipment;
@@ -91,7 +91,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
             if (shipment == null) return false;
 
             shipment.IsDeleted = true;
-            shipment.UpdatedAt = DateTime.UtcNow;
+            shipment.UpdatedDate = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return true;
         }
@@ -103,8 +103,8 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .Include(m => m.User)
                 .Include(m => m.Subscription)
                 .Include(m => m.Provider)
-                .Where(m => m.Status == MedicationDelivery.DeliveryStatus.Pending && m.CreatedAt < cutoffDate && !m.IsDeleted)
-                .OrderBy(m => m.CreatedAt)
+                .Where(m => m.Status == MedicationDelivery.DeliveryStatus.Pending && m.CreatedDate < cutoffDate && !m.IsDeleted)
+                .OrderBy(m => m.CreatedDate)
                 .ToListAsync();
         }
         
@@ -114,18 +114,18 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .Include(m => m.User)
                 .Include(m => m.Subscription)
                 .Include(m => m.Provider)
-                .Where(m => m.CreatedAt >= startDate && m.CreatedAt <= endDate && !m.IsDeleted)
-                .OrderByDescending(m => m.CreatedAt)
+                .Where(m => m.CreatedDate >= startDate && m.CreatedDate <= endDate && !m.IsDeleted)
+                .OrderByDescending(m => m.CreatedDate)
                 .ToListAsync();
         }
         
-        public async Task<int> GetShipmentCountAsync(Guid userId)
+        public async Task<int> GetShipmentCountAsync(int userId)
         {
             return await _context.MedicationDeliveries
                 .CountAsync(m => m.UserId == userId && !m.IsDeleted);
         }
 
-        public async Task<decimal> GetShipmentTotalAsync(Guid userId)
+        public async Task<decimal> GetShipmentTotalAsync(int userId)
         {
             // This would typically calculate the total cost of shipments
             // For now, return a placeholder value

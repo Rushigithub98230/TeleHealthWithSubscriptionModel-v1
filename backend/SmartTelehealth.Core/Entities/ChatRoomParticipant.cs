@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
-public class ChatRoomParticipant
+public class ChatRoomParticipant : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum ParticipantStatus
     {
         Active,
@@ -23,9 +27,8 @@ public class ChatRoomParticipant
         External
     }
 
-    public Guid Id { get; set; }
     public Guid ChatRoomId { get; set; }
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public string Role { get; set; } = string.Empty;
     public ParticipantStatus Status { get; set; } = ParticipantStatus.Active;
     public bool CanSendMessages { get; set; } = true;
@@ -33,11 +36,9 @@ public class ChatRoomParticipant
     public bool CanInviteOthers { get; set; } = false;
     public bool CanModerate { get; set; } = false;
     public DateTime JoinedAt { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
-    public Guid? ProviderId { get; set; }
+    public int? ProviderId { get; set; }
     public DateTime? LeftAt { get; set; }
+    
     // Navigation properties
     public virtual ChatRoom? ChatRoom { get; set; }
     public virtual User? User { get; set; }

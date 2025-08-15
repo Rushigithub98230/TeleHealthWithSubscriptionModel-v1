@@ -48,14 +48,14 @@ public class DocumentTypeService : IDocumentTypeService
                 Icon = request.Icon,
                 Color = request.Color,
                 DisplayOrder = request.DisplayOrder,
-                CreatedById = request.CreatedById,
-                CreatedAt = DateTime.UtcNow
+                CreatedBy = (int?)request.CreatedById.GetHashCode(), // Temporary fix - convert Guid to int
+                CreatedDate = DateTime.UtcNow
             };
 
             await _documentTypeRepository.AddAsync(documentType);
             await _documentTypeRepository.SaveChangesAsync();
 
-            return await GetDocumentTypeAsync(documentType.DocumentTypeId);
+            return await GetDocumentTypeAsync(documentType.Id);
         }
         catch (Exception ex)
         {
@@ -88,6 +88,33 @@ public class DocumentTypeService : IDocumentTypeService
         }
     }
 
+    public async Task<ApiResponse<DocumentTypeDto>> GetByNameAsync(string name)
+    {
+        try
+        {
+            var documentType = await _documentTypeRepository.FindAsync(dt =>
+                dt.Name.ToLower() == name.ToLower() && !dt.IsDeleted);
+            
+            var firstType = documentType.FirstOrDefault();
+            if (firstType == null)
+            {
+                return ApiResponse<DocumentTypeDto>.ErrorResponse("Document type not found", 404);
+            }
+
+            // Get document count for this type
+            var documentCount = await _documentRepository.FindAsync(d =>
+                d.DocumentTypeId == firstType.Id && !d.IsDeleted);
+            var count = documentCount.Count();
+
+            return ApiResponse<DocumentTypeDto>.SuccessResponse(MapToDto(firstType, count));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving document type by name {Name}", name);
+            return ApiResponse<DocumentTypeDto>.ErrorResponse("Internal server error", 500);
+        }
+    }
+
     public async Task<ApiResponse<DocumentTypeDto>> UpdateDocumentTypeAsync(Guid documentTypeId, UpdateDocumentTypeRequest request)
     {
         try
@@ -109,7 +136,7 @@ public class DocumentTypeService : IDocumentTypeService
             {
                 var existingType = await _documentTypeRepository.FindAsync(dt => 
                     dt.Name.ToLower() == request.Name.ToLower() && 
-                    dt.DocumentTypeId != documentTypeId && 
+                    dt.Id != documentTypeId && 
                     !dt.IsDeleted);
                 
                 if (existingType.Any())
@@ -146,8 +173,8 @@ public class DocumentTypeService : IDocumentTypeService
             if (request.DisplayOrder.HasValue)
                 documentType.DisplayOrder = request.DisplayOrder.Value;
             
-            documentType.UpdatedById = request.UpdatedById;
-            documentType.UpdatedAt = DateTime.UtcNow;
+            documentType.UpdatedBy = (int?)request.UpdatedById.GetHashCode(); // Temporary fix - convert Guid to int
+            documentType.UpdatedDate = DateTime.UtcNow;
 
             await _documentTypeRepository.SaveChangesAsync();
 
@@ -214,9 +241,9 @@ public class DocumentTypeService : IDocumentTypeService
             }
 
             documentType.IsDeleted = true;
-            documentType.DeletedById = userId;
-            documentType.DeletedAt = DateTime.UtcNow;
-            documentType.UpdatedAt = DateTime.UtcNow;
+            documentType.DeletedBy = (int?)userId.GetHashCode(); // Temporary fix - convert Guid to int
+            documentType.DeletedDate = DateTime.UtcNow;
+            documentType.UpdatedDate = DateTime.UtcNow;
 
             await _documentTypeRepository.SaveChangesAsync();
 
@@ -246,7 +273,7 @@ public class DocumentTypeService : IDocumentTypeService
             foreach (var docType in documentTypes.OrderBy(dt => dt.DisplayOrder).ThenBy(dt => dt.Name))
             {
                 var documentCount = await _documentRepository.FindAsync(d =>
-                    d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
+                    d.DocumentTypeId == docType.Id && !d.IsDeleted);
                 var count = documentCount.Count();
 
                 documentTypeDtos.Add(MapToDto(docType, count));
@@ -284,12 +311,12 @@ public class DocumentTypeService : IDocumentTypeService
 
             if (request.CreatedFrom.HasValue)
             {
-                filter = dt => !dt.IsDeleted && dt.CreatedAt >= request.CreatedFrom.Value;
+                filter = dt => !dt.IsDeleted && dt.CreatedDate >= request.CreatedFrom.Value;
             }
 
             if (request.CreatedTo.HasValue)
             {
-                filter = dt => !dt.IsDeleted && dt.CreatedAt <= request.CreatedTo.Value;
+                filter = dt => !dt.IsDeleted && dt.CreatedDate <= request.CreatedTo.Value;
             }
 
             var documentTypes = await _documentTypeRepository.FindAsync(filter);
@@ -298,7 +325,7 @@ public class DocumentTypeService : IDocumentTypeService
             foreach (var docType in documentTypes.OrderBy(dt => dt.DisplayOrder).ThenBy(dt => dt.Name))
             {
                 var documentCount = await _documentRepository.FindAsync(d =>
-                    d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
+                    d.DocumentTypeId == docType.Id && !d.IsDeleted);
                 var count = documentCount.Count();
 
                 documentTypeDtos.Add(MapToDto(docType, count));
@@ -335,7 +362,7 @@ public class DocumentTypeService : IDocumentTypeService
             foreach (var docType in systemTypes.OrderBy(dt => dt.DisplayOrder).ThenBy(dt => dt.Name))
             {
                 var documentCount = await _documentRepository.FindAsync(d =>
-                    d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
+                    d.DocumentTypeId == docType.Id && !d.IsDeleted);
                 var count = documentCount.Count();
                 documentTypeDtos.Add(MapToDto(docType, count));
             }
@@ -360,7 +387,7 @@ public class DocumentTypeService : IDocumentTypeService
             foreach (var docType in adminTypes.OrderBy(dt => dt.DisplayOrder).ThenBy(dt => dt.Name))
             {
                 var documentCount = await _documentRepository.FindAsync(d =>
-                    d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
+                    d.DocumentTypeId == docType.Id && !d.IsDeleted);
                 var count = documentCount.Count();
                 documentTypeDtos.Add(MapToDto(docType, count));
             }
@@ -389,7 +416,7 @@ public class DocumentTypeService : IDocumentTypeService
             foreach (var docType in documentTypes)
             {
                 var documentCount = await _documentRepository.FindAsync(d =>
-                    d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
+                    d.DocumentTypeId == docType.Id && !d.IsDeleted);
                 
                 documentTypeStats.Add((docType, documentCount.Count()));
             }
@@ -536,8 +563,8 @@ public class DocumentTypeService : IDocumentTypeService
             }
 
             documentType.IsActive = true;
-            documentType.UpdatedById = userId;
-            documentType.UpdatedAt = DateTime.UtcNow;
+            documentType.UpdatedBy = (int?)userId.GetHashCode(); // Temporary fix - convert Guid to int
+            documentType.UpdatedDate = DateTime.UtcNow;
 
             await _documentTypeRepository.SaveChangesAsync();
 
@@ -561,8 +588,8 @@ public class DocumentTypeService : IDocumentTypeService
             }
 
             documentType.IsActive = false;
-            documentType.UpdatedById = userId;
-            documentType.UpdatedAt = DateTime.UtcNow;
+            documentType.UpdatedBy = (int?)userId.GetHashCode(); // Temporary fix - convert Guid to int
+            documentType.UpdatedDate = DateTime.UtcNow;
 
             await _documentTypeRepository.SaveChangesAsync();
 
@@ -623,7 +650,7 @@ public class DocumentTypeService : IDocumentTypeService
 
             documentType.UsageCount++;
             documentType.LastUsedAt = DateTime.UtcNow;
-            documentType.UpdatedAt = DateTime.UtcNow;
+            documentType.UpdatedDate = DateTime.UtcNow;
 
             await _documentTypeRepository.SaveChangesAsync();
 
@@ -647,7 +674,7 @@ public class DocumentTypeService : IDocumentTypeService
             }
 
             documentType.LastUsedAt = DateTime.UtcNow;
-            documentType.UpdatedAt = DateTime.UtcNow;
+            documentType.UpdatedDate = DateTime.UtcNow;
 
             await _documentTypeRepository.SaveChangesAsync();
 
@@ -692,7 +719,7 @@ public class DocumentTypeService : IDocumentTypeService
             foreach (var docType in documentTypes.OrderBy(dt => dt.DisplayOrder).ThenBy(dt => dt.Name))
             {
                 var documentCount = await _documentRepository.FindAsync(d =>
-                    d.DocumentTypeId == docType.DocumentTypeId && !d.IsDeleted);
+                    d.DocumentTypeId == docType.Id && !d.IsDeleted);
                 var count = documentCount.Count();
 
                 filteredTypes.Add(MapToDto(docType, count));
@@ -711,7 +738,7 @@ public class DocumentTypeService : IDocumentTypeService
     {
         return new DocumentTypeDto
         {
-            DocumentTypeId = documentType.DocumentTypeId,
+            DocumentTypeId = documentType.Id,
             Name = documentType.Name,
             Description = documentType.Description,
             IsSystemDefined = documentType.IsSystemDefined,
@@ -725,10 +752,10 @@ public class DocumentTypeService : IDocumentTypeService
             DisplayOrder = documentType.DisplayOrder,
             UsageCount = documentType.UsageCount,
             LastUsedAt = documentType.LastUsedAt,
-            CreatedById = documentType.CreatedById,
-            CreatedAt = documentType.CreatedAt,
-            UpdatedAt = documentType.UpdatedAt,
-            DeletedAt = documentType.DeletedAt,
+                            CreatedById = documentType.CreatedBy,
+                            CreatedAt = documentType.CreatedDate ?? DateTime.UtcNow,
+                            UpdatedAt = documentType.UpdatedDate,
+                            DeletedAt = documentType.DeletedDate,
             DocumentCount = documentCount,
             MaxFileSizeDisplay = documentType.GetMaxFileSizeDisplay(),
             AllowedExtensionsList = documentType.GetAllowedExtensionsList()

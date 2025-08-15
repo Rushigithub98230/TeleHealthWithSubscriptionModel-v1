@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class BillingAdjustment : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum AdjustmentType
     {
         Discount,
@@ -36,15 +40,21 @@ public class BillingAdjustment : BaseEntity
     
     public DateTime AppliedAt { get; set; }
     
-    [MaxLength(100)]
-    public string? AppliedBy { get; set; }
+    public int? AppliedBy { get; set; }
+    public virtual User? AppliedByUser { get; set; }
     
     public bool IsApproved { get; set; } = true;
     
     [MaxLength(500)]
     public string? ApprovalNotes { get; set; }
     
+    // Computed Properties
+    [NotMapped]
     public bool IsCredit => Type == AdjustmentType.Credit;
+    
+    [NotMapped]
     public bool IsDiscount => Type == AdjustmentType.Discount;
+    
+    [NotMapped]
     public bool IsRefund => Type == AdjustmentType.Refund;
 } 

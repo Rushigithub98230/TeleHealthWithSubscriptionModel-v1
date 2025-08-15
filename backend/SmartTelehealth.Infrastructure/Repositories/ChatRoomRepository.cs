@@ -26,7 +26,7 @@ public class ChatRoomRepository : IChatRoomRepository
             .FirstOrDefaultAsync(cr => cr.Id == id && !cr.IsDeleted);
     }
 
-    public async Task<IEnumerable<ChatRoom>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<ChatRoom>> GetByUserIdAsync(int userId)
     {
         return await _context.ChatRooms
             .Include(cr => cr.Patient)
@@ -38,11 +38,11 @@ public class ChatRoomRepository : IChatRoomRepository
                         (cr.PatientId == userId || 
                          cr.ProviderId == userId || 
                          cr.Participants.Any(p => p.UserId == userId && p.Status == ChatRoomParticipant.ParticipantStatus.Active)))
-            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedAt)
+            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedDate)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<ChatRoom>> GetByProviderIdAsync(Guid providerId)
+    public async Task<IEnumerable<ChatRoom>> GetByProviderIdAsync(int providerId)
     {
         return await _context.ChatRooms
             .Include(cr => cr.Patient)
@@ -50,7 +50,7 @@ public class ChatRoomRepository : IChatRoomRepository
             .Include(cr => cr.Subscription)
             .Include(cr => cr.Consultation)
             .Where(cr => cr.ProviderId == providerId && !cr.IsDeleted)
-            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedAt)
+            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedDate)
             .ToListAsync();
     }
 
@@ -62,7 +62,7 @@ public class ChatRoomRepository : IChatRoomRepository
             .Include(cr => cr.Subscription)
             .Include(cr => cr.Consultation)
             .Where(cr => cr.SubscriptionId == subscriptionId && !cr.IsDeleted)
-            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedAt)
+            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedDate)
             .ToListAsync();
     }
 
@@ -74,7 +74,7 @@ public class ChatRoomRepository : IChatRoomRepository
             .Include(cr => cr.Subscription)
             .Include(cr => cr.Consultation)
             .Where(cr => cr.ConsultationId == consultationId && !cr.IsDeleted)
-            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedAt)
+            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedDate)
             .ToListAsync();
     }
 
@@ -86,13 +86,13 @@ public class ChatRoomRepository : IChatRoomRepository
             .Include(cr => cr.Subscription)
             .Include(cr => cr.Consultation)
             .Where(cr => cr.Status == ChatRoom.ChatRoomStatus.Active && !cr.IsDeleted)
-            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedAt)
+            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedDate)
             .ToListAsync();
     }
 
     public async Task<ChatRoom> CreateAsync(ChatRoom chatRoom)
     {
-        chatRoom.CreatedAt = DateTime.UtcNow;
+        chatRoom.CreatedDate = DateTime.UtcNow;
         _context.ChatRooms.Add(chatRoom);
         await _context.SaveChangesAsync();
         return chatRoom;
@@ -100,7 +100,7 @@ public class ChatRoomRepository : IChatRoomRepository
 
     public async Task<ChatRoom> UpdateAsync(ChatRoom chatRoom)
     {
-        chatRoom.UpdatedAt = DateTime.UtcNow;
+        chatRoom.UpdatedDate = DateTime.UtcNow;
         _context.ChatRooms.Update(chatRoom);
         await _context.SaveChangesAsync();
         return chatRoom;
@@ -113,7 +113,7 @@ public class ChatRoomRepository : IChatRoomRepository
             return false;
 
         chatRoom.IsDeleted = true;
-        chatRoom.UpdatedAt = DateTime.UtcNow;
+        chatRoom.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -138,7 +138,7 @@ public class ChatRoomRepository : IChatRoomRepository
             .Where(cr => !cr.IsDeleted && 
                         (cr.Name.Contains(searchTerm) || 
                          cr.Description != null && cr.Description.Contains(searchTerm)))
-            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedAt)
+            .OrderByDescending(cr => cr.LastActivityAt ?? cr.CreatedDate)
             .ToListAsync();
     }
 } 

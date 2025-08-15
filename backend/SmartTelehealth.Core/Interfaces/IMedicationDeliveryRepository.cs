@@ -5,7 +5,7 @@ namespace SmartTelehealth.Core.Interfaces;
 public interface IMedicationDeliveryRepository
 {
     Task<MedicationDelivery?> GetByIdAsync(Guid id);
-    Task<IEnumerable<MedicationDelivery>> GetByUserIdAsync(Guid userId);
+    Task<IEnumerable<MedicationDelivery>> GetByUserIdAsync(int userId);
     Task<IEnumerable<MedicationDelivery>> GetBySubscriptionIdAsync(Guid subscriptionId);
     Task<IEnumerable<MedicationDelivery>> GetByStatusAsync(MedicationDelivery.DeliveryStatus status);
     Task<IEnumerable<MedicationDelivery>> GetPendingDeliveriesAsync();

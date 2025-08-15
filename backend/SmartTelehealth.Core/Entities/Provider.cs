@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class Provider : BaseEntity
 {
+    [Key]
+    public int Id { get; set; }
+
     [Required]
     [MaxLength(100)]
     public string FirstName { get; set; } = string.Empty;
@@ -40,8 +44,6 @@ public class Provider : BaseEntity
     
     [MaxLength(500)]
     public string? Certifications { get; set; }
-    
-    public bool IsActive { get; set; } = true;
     
     public bool IsAvailable { get; set; } = true;
     

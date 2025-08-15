@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class Message : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum MessageType
     {
         Text,
@@ -23,7 +27,7 @@ public class Message : BaseEntity
     }
 
     // Foreign keys
-    public Guid SenderId { get; set; }
+    public int SenderId { get; set; }
     public virtual User Sender { get; set; } = null!;
 
     public Guid ChatRoomId { get; set; }
@@ -54,11 +58,6 @@ public class Message : BaseEntity
     // Encryption
     public bool IsEncrypted { get; set; } = true;
     public string? EncryptionKey { get; set; }
-
-    // Audit
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
 
     // Navigation properties
     public virtual ICollection<Message> Replies { get; set; } = new List<Message>();

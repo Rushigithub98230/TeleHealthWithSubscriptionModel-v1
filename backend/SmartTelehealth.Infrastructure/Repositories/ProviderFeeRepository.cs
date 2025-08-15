@@ -23,7 +23,7 @@ public class ProviderFeeRepository : IProviderFeeRepository
             .FirstOrDefaultAsync(f => f.Id == id && f.IsActive);
     }
 
-    public async Task<ProviderFee?> GetByProviderAndCategoryAsync(Guid providerId, Guid categoryId)
+    public async Task<ProviderFee?> GetByProviderAndCategoryAsync(int providerId, Guid categoryId)
     {
         return await _context.ProviderFees
             .Include(f => f.Provider)
@@ -32,7 +32,7 @@ public class ProviderFeeRepository : IProviderFeeRepository
             .FirstOrDefaultAsync(f => f.ProviderId == providerId && f.CategoryId == categoryId && f.IsActive);
     }
 
-    public async Task<IEnumerable<ProviderFee>> GetByProviderAsync(Guid providerId)
+    public async Task<IEnumerable<ProviderFee>> GetByProviderAsync(int providerId)
     {
         return await _context.ProviderFees
             .Include(f => f.Provider)
@@ -132,7 +132,7 @@ public class ProviderFeeRepository : IProviderFeeRepository
             return false;
 
         fee.IsActive = false;
-        fee.UpdatedAt = DateTime.UtcNow;
+        fee.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -156,7 +156,7 @@ public class ProviderFeeRepository : IProviderFeeRepository
     public Task<IEnumerable<ProviderFee>> GetPendingFeesAsync() => Task.FromResult<IEnumerable<ProviderFee>>(new List<ProviderFee>());
     public Task<object> GetFeeStatisticsAsync() => Task.FromResult<object>(new { });
     public Task<IEnumerable<ProviderFee>> GetAllAsync(string status, int page, int pageSize) => Task.FromResult<IEnumerable<ProviderFee>>(new List<ProviderFee>());
-    public Task<IEnumerable<ProviderFee>> GetByProviderIdAsync(Guid providerId) => Task.FromResult<IEnumerable<ProviderFee>>(new List<ProviderFee>());
+            public Task<IEnumerable<ProviderFee>> GetByProviderIdAsync(int providerId) => Task.FromResult<IEnumerable<ProviderFee>>(new List<ProviderFee>());
     public Task<IEnumerable<ProviderFee>> GetByCategoryIdAsync(Guid categoryId) => Task.FromResult<IEnumerable<ProviderFee>>(new List<ProviderFee>());
 }
 
@@ -173,7 +173,6 @@ public class CategoryFeeRangeRepository : ICategoryFeeRangeRepository
     {
         return await _context.CategoryFeeRanges
             .Include(f => f.Category)
-            .Include(f => f.CreatedByUser)
             .FirstOrDefaultAsync(f => f.Id == id);
     }
 
@@ -181,7 +180,6 @@ public class CategoryFeeRangeRepository : ICategoryFeeRangeRepository
     {
         return await _context.CategoryFeeRanges
             .Include(f => f.Category)
-            .Include(f => f.CreatedByUser)
             .FirstOrDefaultAsync(f => f.CategoryId == categoryId && f.IsActive);
     }
 
@@ -189,7 +187,6 @@ public class CategoryFeeRangeRepository : ICategoryFeeRangeRepository
     {
         return await _context.CategoryFeeRanges
             .Include(f => f.Category)
-            .Include(f => f.CreatedByUser)
             .Where(f => f.IsActive)
             .OrderBy(f => f.Category.Name)
             .ToListAsync();
@@ -199,7 +196,6 @@ public class CategoryFeeRangeRepository : ICategoryFeeRangeRepository
     {
         return await _context.CategoryFeeRanges
             .Include(f => f.Category)
-            .Include(f => f.CreatedByUser)
             .Where(f => f.IsActive)
             .OrderBy(f => f.Category.Name)
             .ToListAsync();
@@ -226,7 +222,7 @@ public class CategoryFeeRangeRepository : ICategoryFeeRangeRepository
             return false;
 
         feeRange.IsActive = false;
-        feeRange.UpdatedAt = DateTime.UtcNow;
+        feeRange.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }

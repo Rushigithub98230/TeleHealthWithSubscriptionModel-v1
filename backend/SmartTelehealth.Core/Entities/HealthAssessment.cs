@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class HealthAssessment : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum AssessmentStatus
     {
         Pending,
@@ -14,13 +18,13 @@ public class HealthAssessment : BaseEntity
     }
     
     // Foreign keys
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public virtual User User { get; set; } = null!;
     
     public Guid CategoryId { get; set; }
     public virtual Category Category { get; set; } = null!;
     
-    public Guid? ProviderId { get; set; }
+    public int? ProviderId { get; set; }
     public virtual Provider? Provider { get; set; }
     
     // Assessment details

@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class DocumentType : BaseEntity
 {
-    // Primary identification
-    public Guid DocumentTypeId { get; set; } = Guid.NewGuid();
+    [Key]
+    public Guid Id { get; set; }
     
     // Basic information
     [Required]
@@ -17,8 +18,6 @@ public class DocumentType : BaseEntity
     
     // System vs Admin defined
     public bool IsSystemDefined { get; set; } = false; // Distinguishes system types from admin-created types
-    public bool IsActive { get; set; } = true; // Whether the type is available for selection
-    public bool IsDeleted { get; set; } = false;
     
     // File validation rules
     [MaxLength(1000)]
@@ -36,20 +35,6 @@ public class DocumentType : BaseEntity
     // Usage tracking
     public int UsageCount { get; set; } = 0; // Number of documents using this type
     public DateTime? LastUsedAt { get; set; } // When this type was last used
-    
-    // Audit fields
-    public Guid CreatedById { get; set; }
-    public virtual User CreatedBy { get; set; } = null!;
-    
-    public Guid? UpdatedById { get; set; }
-    public virtual User? UpdatedBy { get; set; }
-    
-    public Guid? DeletedById { get; set; }
-    public virtual User? DeletedBy { get; set; }
-    
-    public DateTime? DeletedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     // Navigation properties
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();

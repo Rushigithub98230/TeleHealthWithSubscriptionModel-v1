@@ -44,7 +44,7 @@ public class BillingService : IBillingService
         {
             var billingRecord = new BillingRecord
             {
-                UserId = Guid.Parse(createDto.UserId),
+                UserId = int.Parse(createDto.UserId),
                 SubscriptionId = !string.IsNullOrEmpty(createDto.SubscriptionId) ? Guid.Parse(createDto.SubscriptionId) : (Guid?)null,
                 Amount = createDto.Amount,
                 Description = createDto.Description,
@@ -403,7 +403,7 @@ public class BillingService : IBillingService
     {
         try
         {
-            var billingRecords = await _billingRepository.GetByUserIdAsync(Guid.Parse(userId));
+            var billingRecords = await _billingRepository.GetByUserIdAsync(int.Parse(userId));
             
             var filteredRecords = billingRecords.Where(br => 
                 (!startDate.HasValue || br.BillingDate >= startDate.Value) &&
@@ -428,11 +428,11 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<ApiResponse<PaymentAnalyticsDto>> GetPaymentAnalyticsAsync(string userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<ApiResponse<PaymentAnalyticsDto>> GetPaymentAnalyticsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
-            var billingRecords = await _billingRepository.GetByUserIdAsync(Guid.Parse(userId));
+            var billingRecords = await _billingRepository.GetByUserIdAsync(userId);
             
             var filteredRecords = billingRecords.Where(br => 
                 (!startDate.HasValue || br.BillingDate >= startDate.Value) &&
@@ -479,7 +479,7 @@ public class BillingService : IBillingService
     {
         try
         {
-            var user = await _userRepository.GetByIdAsync(Guid.Parse(billingRecord.UserId));
+            var user = await _userRepository.GetByIdAsync(int.Parse(billingRecord.UserId));
             if (user == null) return;
             
             var userName = $"{user.FirstName} {user.LastName}";
@@ -494,7 +494,7 @@ public class BillingService : IBillingService
                 
                 // Send in-app notification
                 await _notificationService.CreateInAppNotificationAsync(
-                    Guid.Parse(billingRecord.UserId),
+                    int.Parse(billingRecord.UserId),
                     "Payment Successful",
                     $"Your payment of ${billingRecord.Amount} has been processed successfully."
                 );
@@ -509,7 +509,7 @@ public class BillingService : IBillingService
                 
                 // Send in-app notification
                 await _notificationService.CreateInAppNotificationAsync(
-                    Guid.Parse(billingRecord.UserId),
+                    int.Parse(billingRecord.UserId),
                     "Payment Failed",
                     $"We were unable to process your payment of ${billingRecord.Amount}. Please check your payment method."
                 );
@@ -594,8 +594,8 @@ public class BillingService : IBillingService
             PaidAt = billingRecord.PaidAt,
             PaymentIntentId = billingRecord.PaymentIntentId,
             FailureReason = billingRecord.FailureReason,
-            CreatedAt = billingRecord.CreatedAt,
-            UpdatedAt = billingRecord.UpdatedAt
+            CreatedAt = billingRecord.CreatedDate ?? DateTime.UtcNow,
+            UpdatedAt = billingRecord.UpdatedDate ?? DateTime.UtcNow
         };
     }
 
@@ -739,8 +739,8 @@ public class BillingService : IBillingService
             Amount = a.Amount,
             AdjustmentType = a.Type.ToString(),
             Reason = a.Reason,
-            AppliedBy = a.AppliedBy,
-            AppliedAt = a.CreatedAt,
+            AppliedBy = a.AppliedBy?.ToString() ?? "",
+            AppliedAt = a.CreatedDate ?? DateTime.UtcNow,
             IsPercentage = a.IsPercentage
         });
         return ApiResponse<IEnumerable<BillingAdjustmentDto>>.SuccessResponse(dtos, "Billing adjustments retrieved successfully");
@@ -765,7 +765,7 @@ public class BillingService : IBillingService
             return ApiResponse<BillingRecordDto>.ErrorResponse("Invalid partial payment amount", 400);
         // Simulate partial payment logic
         billingRecord.Amount -= amount;
-        billingRecord.UpdatedAt = DateTime.UtcNow;
+        billingRecord.UpdatedDate = DateTime.UtcNow;
         await _billingRepository.UpdateAsync(billingRecord);
         var billingRecordDto = MapToDto(billingRecord);
         await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "PartialPaymentProcessed", billingRecord.Id.ToString(), "Success");
@@ -803,11 +803,11 @@ public class BillingService : IBillingService
         var reportBytes = System.Text.Encoding.UTF8.GetBytes($"Billing report from {startDate} to {endDate} - Total records: {records.Count()}");
         return ApiResponse<byte[]>.SuccessResponse(reportBytes, "Billing report generated");
     }
-    public async Task<ApiResponse<BillingSummaryDto>> GetBillingSummaryAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<ApiResponse<BillingSummaryDto>> GetBillingSummaryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
     {
         // Example: summarize billing for a user
         var records = await _billingRepository.GetByUserIdAsync(userId);
-        var total = records.Where(r => (!startDate.HasValue || r.CreatedAt >= startDate) && (!endDate.HasValue || r.CreatedAt <= endDate)).Sum(r => r.Amount);
+        var total = records.Where(r => (!startDate.HasValue || r.CreatedDate >= startDate) && (!endDate.HasValue || r.CreatedDate <= endDate)).Sum(r => r.Amount);
         var summary = new BillingSummaryDto { UserId = userId, TotalBilled = total };
         return ApiResponse<BillingSummaryDto>.SuccessResponse(summary, "Billing summary generated");
     }
@@ -903,7 +903,7 @@ public class BillingService : IBillingService
     }
 
     // Missing interface methods
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetUserBillingHistoryAsync(Guid userId)
+    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetUserBillingHistoryAsync(int userId)
     {
         try
         {
@@ -1129,14 +1129,14 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<PaymentHistoryDto>>> GetPaymentHistoryAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<ApiResponse<IEnumerable<PaymentHistoryDto>>> GetPaymentHistoryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
             var records = await _billingRepository.GetByUserIdAsync(userId);
             var filteredRecords = records.Where(r => 
-                (!startDate.HasValue || r.CreatedAt >= startDate.Value) &&
-                (!endDate.HasValue || r.CreatedAt <= endDate.Value));
+                (!startDate.HasValue || r.CreatedDate >= startDate.Value) &&
+                (!endDate.HasValue || r.CreatedDate <= endDate.Value));
 
             var paymentHistory = filteredRecords.Select(r => new PaymentHistoryDto
             {
@@ -1149,9 +1149,9 @@ public class BillingService : IBillingService
                 Status = r.Status.ToString(),
                 TransactionId = r.StripePaymentIntentId,
                 ErrorMessage = r.FailureReason,
-                CreatedAt = r.CreatedAt,
+                CreatedAt = r.CreatedDate ?? DateTime.UtcNow,
                 ProcessedAt = r.ProcessedAt,
-                PaymentDate = r.ProcessedAt ?? r.CreatedAt,
+                PaymentDate = r.ProcessedAt ?? r.CreatedDate ?? DateTime.UtcNow,
                 Description = r.Description,
                 PaymentMethodId = r.StripePaymentIntentId
             });

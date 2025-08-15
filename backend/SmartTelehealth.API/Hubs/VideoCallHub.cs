@@ -32,7 +32,7 @@ public class VideoCallHub : Hub
     public override async Task OnConnectedAsync()
     {
         var userId = GetUserId();
-        if (userId != Guid.Empty)
+        if (userId != 0)
         {
             _userConnections[userId.ToString()] = Context.ConnectionId;
             _logger.LogInformation("User {UserId} connected to video call hub", userId);
@@ -43,7 +43,7 @@ public class VideoCallHub : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetUserId();
-        if (userId != Guid.Empty)
+        if (userId != 0)
         {
             _userConnections.Remove(userId.ToString());
             _logger.LogInformation("User {UserId} disconnected from video call hub", userId);
@@ -55,7 +55,7 @@ public class VideoCallHub : Hub
     public async Task InitiateVideoCall(string chatRoomId, string callType = "OneOnOne")
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -97,7 +97,7 @@ public class VideoCallHub : Hub
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(call.Id, new LogVideoCallEventDto
                 {
-                    UserId = userId,
+                    UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.CallInitiated,
                     Description = $"Video call initiated by {GetUserName()}"
                 });
@@ -118,7 +118,7 @@ public class VideoCallHub : Hub
     public async Task JoinVideoCall(string callId)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -139,7 +139,7 @@ public class VideoCallHub : Hub
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(Guid.Parse(callId), new LogVideoCallEventDto
                 {
-                    UserId = userId,
+                    UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.ParticipantJoined,
                     Description = $"{GetUserName()} joined the call"
                 });
@@ -160,7 +160,7 @@ public class VideoCallHub : Hub
     public async Task LeaveVideoCall(string callId)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -178,7 +178,7 @@ public class VideoCallHub : Hub
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(Guid.Parse(callId), new LogVideoCallEventDto
                 {
-                    UserId = userId,
+                    UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.ParticipantLeft,
                     Description = $"{GetUserName()} left the call"
                 });
@@ -194,7 +194,7 @@ public class VideoCallHub : Hub
     public async Task EndVideoCall(string callId, string? reason = null)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -213,7 +213,7 @@ public class VideoCallHub : Hub
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(Guid.Parse(callId), new LogVideoCallEventDto
                 {
-                    UserId = userId,
+                    UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.CallDisconnected,
                     Description = $"Call ended by {GetUserName()}"
                 });
@@ -229,7 +229,7 @@ public class VideoCallHub : Hub
     public async Task RejectVideoCall(string callId, string reason)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -242,7 +242,7 @@ public class VideoCallHub : Hub
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(Guid.Parse(callId), new LogVideoCallEventDto
                 {
-                    UserId = userId,
+                    UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.CallRejected,
                     Description = $"Call rejected by {GetUserName()}: {reason}"
                 });
@@ -258,7 +258,7 @@ public class VideoCallHub : Hub
     public async Task ToggleVideo(string callId, bool enabled)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -271,7 +271,7 @@ public class VideoCallHub : Hub
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(Guid.Parse(callId), new LogVideoCallEventDto
                 {
-                    UserId = userId,
+                    UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = enabled ? SmartTelehealth.Core.Entities.VideoCallEventType.VideoEnabled : SmartTelehealth.Core.Entities.VideoCallEventType.VideoDisabled,
                     Description = $"{GetUserName()} {(enabled ? "enabled" : "disabled")} video"
                 });
@@ -287,7 +287,7 @@ public class VideoCallHub : Hub
     public async Task ToggleAudio(string callId, bool enabled)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -300,7 +300,7 @@ public class VideoCallHub : Hub
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(Guid.Parse(callId), new LogVideoCallEventDto
                 {
-                    UserId = userId,
+                    UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = enabled ? SmartTelehealth.Core.Entities.VideoCallEventType.AudioEnabled : SmartTelehealth.Core.Entities.VideoCallEventType.AudioDisabled,
                     Description = $"{GetUserName()} {(enabled ? "enabled" : "disabled")} audio"
                 });
@@ -316,7 +316,7 @@ public class VideoCallHub : Hub
     public async Task StartScreenSharing(string callId)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -329,7 +329,7 @@ public class VideoCallHub : Hub
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(Guid.Parse(callId), new LogVideoCallEventDto
                 {
-                    UserId = userId,
+                    UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.ScreenSharingStarted,
                     Description = $"{GetUserName()} started screen sharing"
                 });
@@ -345,7 +345,7 @@ public class VideoCallHub : Hub
     public async Task StopScreenSharing(string callId)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -358,7 +358,7 @@ public class VideoCallHub : Hub
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(Guid.Parse(callId), new LogVideoCallEventDto
                 {
-                    UserId = userId,
+                    UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.ScreenSharingStopped,
                     Description = $"{GetUserName()} stopped screen sharing"
                 });
@@ -374,7 +374,7 @@ public class VideoCallHub : Hub
     public async Task UpdateCallQuality(string callId, int audioQuality, int videoQuality, int networkQuality)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -385,7 +385,7 @@ public class VideoCallHub : Hub
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(Guid.Parse(callId), new LogVideoCallEventDto
                 {
-                    UserId = userId,
+                    UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.QualityChanged,
                     Description = $"Call quality updated: Audio={audioQuality}, Video={videoQuality}, Network={networkQuality}"
                 });
@@ -419,7 +419,7 @@ public class VideoCallHub : Hub
     public async Task SendSignaling(string callId, string targetUserId, string signalType, string signalData)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -439,7 +439,7 @@ public class VideoCallHub : Hub
     public async Task<string> GetOpenTokToken(string sessionId, string userName)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return string.Empty;
+        if (userId == 0) return string.Empty;
 
         try
         {
@@ -536,10 +536,10 @@ public class VideoCallHub : Hub
     }
 
     // Private methods
-    private Guid GetUserId()
+    private int GetUserId()
     {
         var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 
     private string GetUserName()

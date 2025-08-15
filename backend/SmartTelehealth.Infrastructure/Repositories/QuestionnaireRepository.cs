@@ -115,7 +115,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
             }
         }
 
-        public async Task<UserResponse?> GetUserResponseAsync(Guid userId, Guid templateId)
+        public async Task<UserResponse?> GetUserResponseAsync(int userId, Guid templateId)
         {
             return await _context.UserResponses
                 .Include(r => r.Answers)
@@ -131,7 +131,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
                 .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
         }
 
-        public async Task<IEnumerable<UserResponse>> GetUserResponsesByCategoryAsync(Guid userId, Guid categoryId)
+        public async Task<IEnumerable<UserResponse>> GetUserResponsesByCategoryAsync(int userId, Guid categoryId)
         {
             return await _context.UserResponses
                 .Where(r => r.UserId == userId && r.CategoryId == categoryId && !r.IsDeleted)
@@ -144,7 +144,7 @@ namespace SmartTelehealth.Infrastructure.Repositories
         public async Task AddUserResponseAsync(UserResponse response)
         {
             // Validate response before saving
-            if (response.UserId == Guid.Empty)
+            if (response.UserId <= 0)
                 throw new ArgumentException("User ID is required");
 
             if (response.TemplateId == Guid.Empty)

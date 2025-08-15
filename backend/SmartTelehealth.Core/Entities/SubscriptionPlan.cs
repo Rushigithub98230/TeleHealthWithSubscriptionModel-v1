@@ -6,6 +6,9 @@ namespace SmartTelehealth.Core.Entities;
 #region Improved SubscriptionPlan Entity
 public class SubscriptionPlan : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
@@ -16,7 +19,7 @@ public class SubscriptionPlan : BaseEntity
     [MaxLength(200)]
     public string? ShortDescription { get; set; }
     
-    public bool IsActive { get; set; } = true;
+    // IsActive is inherited from BaseEntity
     public bool IsFeatured { get; set; } = false;
     public bool IsTrialAllowed { get; set; } = false;
     public int TrialDurationInDays { get; set; } = 0;
@@ -68,6 +71,10 @@ public class SubscriptionPlan : BaseEntity
     
     public DateTime? EffectiveDate { get; set; }
     public DateTime? ExpirationDate { get; set; }
+    
+    // Alias properties for backward compatibility
+    public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+    public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
     
     // Collection Navigation properties
     public virtual ICollection<SubscriptionPlanPrivilege> PlanPrivileges { get; set; } = new List<SubscriptionPlanPrivilege>();

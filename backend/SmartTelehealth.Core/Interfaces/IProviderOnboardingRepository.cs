@@ -5,7 +5,7 @@ namespace SmartTelehealth.Core.Interfaces;
 public interface IProviderOnboardingRepository
 {
     Task<ProviderOnboarding?> GetByIdAsync(Guid id);
-    Task<ProviderOnboarding?> GetByUserIdAsync(Guid userId);
+    Task<ProviderOnboarding?> GetByUserIdAsync(int userId);
     Task<IEnumerable<ProviderOnboarding>> GetAllAsync();
     Task<IEnumerable<ProviderOnboarding>> GetByStatusAsync(string status);
     Task<IEnumerable<ProviderOnboarding>> GetPendingAsync();

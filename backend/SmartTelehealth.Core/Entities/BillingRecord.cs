@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class BillingRecord : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public enum BillingStatus
     {
         Pending,
@@ -29,7 +33,7 @@ public class BillingRecord : BaseEntity
     }
     
     // Foreign keys
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public virtual User User { get; set; } = null!;
     
     public Guid? SubscriptionId { get; set; }
@@ -104,8 +108,20 @@ public class BillingRecord : BaseEntity
     // Navigation properties
     public virtual ICollection<BillingAdjustment> Adjustments { get; set; } = new List<BillingAdjustment>();
     
+    // Alias properties for backward compatibility
+    public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
+    public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
+    
+    // Computed Properties
+    [NotMapped]
     public bool IsPaid => Status == BillingStatus.Paid;
+    
+    [NotMapped]
     public bool IsFailed => Status == BillingStatus.Failed;
+    
+    [NotMapped]
     public bool IsRefunded => Status == BillingStatus.Refunded;
+    
+    [NotMapped]
     public bool IsOverdue => DueDate.HasValue && DateTime.UtcNow > DueDate.Value && !IsPaid;
 } 

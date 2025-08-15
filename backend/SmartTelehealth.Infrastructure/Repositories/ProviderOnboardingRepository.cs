@@ -22,7 +22,7 @@ public class ProviderOnboardingRepository : IProviderOnboardingRepository
             .FirstOrDefaultAsync(o => o.Id == id && o.IsActive);
     }
 
-    public async Task<ProviderOnboarding?> GetByUserIdAsync(Guid userId)
+    public async Task<ProviderOnboarding?> GetByUserIdAsync(int userId)
     {
         return await _context.ProviderOnboardings
             .Include(o => o.User)

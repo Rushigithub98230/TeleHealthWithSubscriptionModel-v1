@@ -20,11 +20,11 @@ public class NotificationRepository : INotificationRepository
         return notification;
     }
 
-    public async Task<IEnumerable<Notification>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<Notification>> GetByUserIdAsync(int userId)
     {
         return await _dbContext.Notifications
             .Where(n => n.UserId == userId)
-            .OrderByDescending(n => n.CreatedAt)
+            .OrderByDescending(n => n.CreatedDate)
             .ToListAsync();
     }
 
@@ -40,7 +40,7 @@ public class NotificationRepository : INotificationRepository
 
     public async Task<IEnumerable<Notification>> GetAllAsync()
     {
-        return await _dbContext.Notifications.OrderByDescending(n => n.CreatedAt).ToListAsync();
+        return await _dbContext.Notifications.OrderByDescending(n => n.CreatedDate).ToListAsync();
     }
 
     public async Task<Notification?> GetByIdAsync(Guid id)

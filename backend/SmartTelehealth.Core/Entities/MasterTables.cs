@@ -1,18 +1,20 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 #region User Roles Master Table
 public class UserRole : BaseEntity
 {
+    [Key]
+    public int Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     
     [MaxLength(200)]
     public string? Description { get; set; }
-    
-    public bool IsActive { get; set; } = true;
     
     public int SortOrder { get; set; } = 0;
     
@@ -24,14 +26,15 @@ public class UserRole : BaseEntity
 #region Appointment Status Master Table
 public class AppointmentStatus : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     
     [MaxLength(200)]
     public string? Description { get; set; }
-    
-    public bool IsActive { get; set; } = true;
     
     public int SortOrder { get; set; } = 0;
     
@@ -49,14 +52,15 @@ public class AppointmentStatus : BaseEntity
 #region Payment Status Master Table
 public class PaymentStatus : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     
     [MaxLength(200)]
     public string? Description { get; set; }
-    
-    public bool IsActive { get; set; } = true;
     
     public int SortOrder { get; set; } = 0;
     
@@ -72,14 +76,15 @@ public class PaymentStatus : BaseEntity
 #region Refund Status Master Table
 public class RefundStatus : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     
     [MaxLength(200)]
     public string? Description { get; set; }
-    
-    public bool IsActive { get; set; } = true;
     
     public int SortOrder { get; set; } = 0;
     
@@ -94,14 +99,15 @@ public class RefundStatus : BaseEntity
 #region Participant Status Master Table
 public class ParticipantStatus : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     
     [MaxLength(200)]
     public string? Description { get; set; }
-    
-    public bool IsActive { get; set; } = true;
     
     public int SortOrder { get; set; } = 0;
     
@@ -116,14 +122,15 @@ public class ParticipantStatus : BaseEntity
 #region Participant Role Master Table
 public class ParticipantRole : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     
     [MaxLength(200)]
     public string? Description { get; set; }
-    
-    public bool IsActive { get; set; } = true;
     
     public int SortOrder { get; set; } = 0;
     
@@ -138,14 +145,15 @@ public class ParticipantRole : BaseEntity
 #region Invitation Status Master Table
 public class InvitationStatus : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     
     [MaxLength(200)]
     public string? Description { get; set; }
-    
-    public bool IsActive { get; set; } = true;
     
     public int SortOrder { get; set; } = 0;
     
@@ -160,6 +168,9 @@ public class InvitationStatus : BaseEntity
 #region Appointment Type Master Table
 public class AppointmentType : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
@@ -167,12 +178,13 @@ public class AppointmentType : BaseEntity
     [MaxLength(200)]
     public string? Description { get; set; }
     
-    public bool IsActive { get; set; } = true;
-    
     public int SortOrder { get; set; } = 0;
     
     [MaxLength(50)]
     public string? Color { get; set; } // For UI display
+    
+    [MaxLength(50)]
+    public string? Icon { get; set; } // For UI display
     
     // Navigation properties
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
@@ -182,14 +194,15 @@ public class AppointmentType : BaseEntity
 #region Consultation Mode Master Table
 public class ConsultationMode : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     
     [MaxLength(200)]
     public string? Description { get; set; }
-    
-    public bool IsActive { get; set; } = true;
     
     public int SortOrder { get; set; } = 0;
     
@@ -208,6 +221,9 @@ public class ConsultationMode : BaseEntity
 #region Reminder Type Master Table
 public class ReminderType : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
@@ -215,12 +231,10 @@ public class ReminderType : BaseEntity
     [MaxLength(200)]
     public string? Description { get; set; }
     
-    public bool IsActive { get; set; } = true;
-    
     public int SortOrder { get; set; } = 0;
     
     [MaxLength(50)]
-    public string? Icon { get; set; } // For UI display
+    public string? Color { get; set; } // For UI display
     
     // Navigation properties
     public virtual ICollection<AppointmentReminder> Reminders { get; set; } = new List<AppointmentReminder>();
@@ -230,6 +244,9 @@ public class ReminderType : BaseEntity
 #region Reminder Timing Master Table
 public class ReminderTiming : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
@@ -237,11 +254,9 @@ public class ReminderTiming : BaseEntity
     [MaxLength(200)]
     public string? Description { get; set; }
     
-    public bool IsActive { get; set; } = true;
-    
     public int SortOrder { get; set; } = 0;
     
-    public int MinutesBeforeAppointment { get; set; } = 0;
+    public int MinutesBeforeAppointment { get; set; } = 15;
     
     // Navigation properties
     public virtual ICollection<AppointmentReminder> Reminders { get; set; } = new List<AppointmentReminder>();
@@ -251,6 +266,9 @@ public class ReminderTiming : BaseEntity
 #region Event Type Master Table
 public class EventType : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
@@ -258,86 +276,81 @@ public class EventType : BaseEntity
     [MaxLength(200)]
     public string? Description { get; set; }
     
-    public bool IsActive { get; set; } = true;
-    
     public int SortOrder { get; set; } = 0;
     
     [MaxLength(50)]
-    public string? Icon { get; set; } // For UI display
+    public string? Color { get; set; } // For UI display
     
     // Navigation properties
     public virtual ICollection<AppointmentEvent> Events { get; set; } = new List<AppointmentEvent>();
 }
-#endregion 
-
-#region Billing Cycle Master Table
-public class MasterBillingCycle : BaseEntity
-{
-    [Required]
-    [MaxLength(50)]
-    public string Name { get; set; } = string.Empty; // e.g., 'monthly', 'quarterly', 'yearly'
-
-    [MaxLength(200)]
-    public string? Description { get; set; }
-
-    [Required]
-    public int DurationInDays { get; set; }
-
-    [Required]
-    public int DurationInMonths { get; set; }
-
-    public bool IsActive { get; set; } = true;
-    public int SortOrder { get; set; } = 0;
-
-    [MaxLength(100)]
-    public string? StripeInterval { get; set; } // monthly, yearly, etc.
-
-    public int? StripeIntervalCount { get; set; }
-
-    // Navigation properties
-    public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
-    public virtual ICollection<SubscriptionPlan> SubscriptionPlans { get; set; } = new List<SubscriptionPlan>();
-
-    // Computed properties (not mapped to database)
-    public string DisplayName => $"{Name} ({DurationInDays} days)";
-    public bool IsMonthly => DurationInMonths == 1;
-    public bool IsYearly => DurationInMonths == 12;
-    public bool IsQuarterly => DurationInMonths == 3;
-    public bool IsWeekly => DurationInDays == 7;
-    public bool IsDaily => DurationInDays == 1;
-}
 #endregion
 
-#region Currency Master Table
-public class MasterCurrency : BaseEntity
+#region Master Billing Cycle
+public class MasterBillingCycle : BaseEntity
 {
-    [Required]
-    [MaxLength(10)]
-    public string Code { get; set; } = string.Empty; // e.g., 'USD', 'INR', 'EUR'
+    [Key]
+    public Guid Id { get; set; }
 
     [Required]
     [MaxLength(50)]
     public string Name { get; set; } = string.Empty;
-
-    [MaxLength(10)]
-    public string? Symbol { get; set; }
-
-    public bool IsActive { get; set; } = true;
+    
+    [MaxLength(200)]
+    public string? Description { get; set; }
+    
+    public int DurationInDays { get; set; }
+    
     public int SortOrder { get; set; } = 0;
+    
+    // Navigation properties
+    public virtual ICollection<SubscriptionPlan> SubscriptionPlans { get; set; } = new List<SubscriptionPlan>();
+    public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
 }
 #endregion
 
-#region Privilege Type Master Table
-public class MasterPrivilegeType : BaseEntity
+#region Master Currency
+public class MasterCurrency : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
+    [Required]
+    [MaxLength(10)]
+    public string Code { get; set; } = string.Empty;
+    
     [Required]
     [MaxLength(50)]
-    public string Name { get; set; } = string.Empty; // e.g., 'count', 'boolean', 'unlimited'
+    public string Name { get; set; } = string.Empty;
+    
+    [MaxLength(10)]
+    public string? Symbol { get; set; }
+    
+    public int SortOrder { get; set; } = 0;
+    
+    // Navigation properties
+    public virtual ICollection<SubscriptionPlan> SubscriptionPlans { get; set; } = new List<SubscriptionPlan>();
+    public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
+    public virtual ICollection<BillingRecord> BillingRecords { get; set; } = new List<BillingRecord>();
+}
+#endregion
 
+#region Master Privilege Type
+public class MasterPrivilegeType : BaseEntity
+{
+    [Key]
+    public Guid Id { get; set; }
+
+    [Required]
+    [MaxLength(50)]
+    public string Name { get; set; } = string.Empty;
+    
     [MaxLength(200)]
     public string? Description { get; set; }
-
-    public bool IsActive { get; set; } = true;
+    
     public int SortOrder { get; set; } = 0;
+    
+    // Navigation properties
+    public virtual ICollection<Privilege> Privileges { get; set; } = new List<Privilege>();
 }
 #endregion 

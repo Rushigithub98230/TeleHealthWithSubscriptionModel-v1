@@ -4,7 +4,7 @@ namespace SmartTelehealth.Core.Interfaces;
 
 public interface IProviderRepository
 {
-    Task<Provider?> GetByIdAsync(Guid id);
+    Task<Provider?> GetByIdAsync(int id);
     Task<IEnumerable<Provider>> GetAllAsync();
     Task<IEnumerable<Provider>> GetActiveProvidersAsync();
     Task<IEnumerable<Provider>> GetAvailableProvidersAsync();
@@ -12,8 +12,8 @@ public interface IProviderRepository
     Task<IEnumerable<Provider>> GetProvidersBySpecialtyAsync(string specialty);
     Task<Provider> CreateAsync(Provider provider);
     Task<Provider> UpdateAsync(Provider provider);
-    Task<bool> DeleteAsync(Guid id);
-    Task<bool> ExistsAsync(Guid id);
+    Task<bool> DeleteAsync(int id);
+    Task<bool> ExistsAsync(int id);
     Task<bool> ExistsByLicenseNumberAsync(string licenseNumber);
     Task<int> GetActiveProviderCountAsync();
     Task<IEnumerable<Provider>> SearchProvidersAsync(string searchTerm);

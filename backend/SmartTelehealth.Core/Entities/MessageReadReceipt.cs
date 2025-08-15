@@ -1,17 +1,21 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTelehealth.Core.Entities;
 
 public class MessageReadReceipt : BaseEntity
 {
+    [Key]
+    public Guid Id { get; set; }
+
     // Foreign keys
     public Guid MessageId { get; set; }
     public virtual Message Message { get; set; } = null!;
 
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public virtual User User { get; set; } = null!;
 
-    public Guid? ProviderId { get; set; }
+    public int? ProviderId { get; set; }
     public virtual Provider? Provider { get; set; }
 
     // Read receipt details
@@ -23,9 +27,4 @@ public class MessageReadReceipt : BaseEntity
 
     [MaxLength(50)]
     public string? IpAddress { get; set; }
-
-    // Audit
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
 } 

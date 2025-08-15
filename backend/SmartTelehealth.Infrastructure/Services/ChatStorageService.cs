@@ -54,13 +54,13 @@ public class ChatStorageService : IChatStorageService
             // Create message entity
             var message = new Message
             {
-                SenderId = Guid.Parse(senderId),
+                SenderId = int.Parse(senderId),
                 ChatRoomId = Guid.Parse(createDto.ChatRoomId),
                 Content = createDto.Content,
                 Type = Enum.TryParse<Message.MessageType>(createDto.MessageType, out var mt) ? mt : Message.MessageType.Text,
                 Status = Message.MessageStatus.Sent,
                 IsEncrypted = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow
             };
             if (!string.IsNullOrEmpty(createDto.ReplyToMessageId))
             {
@@ -138,7 +138,7 @@ public class ChatStorageService : IChatStorageService
         }
     }
 
-    public async Task<ApiResponse<MessageDto>> UpdateMessageAsync(Guid messageId, UpdateMessageDto updateDto, Guid userId)
+    public async Task<ApiResponse<MessageDto>> UpdateMessageAsync(Guid messageId, UpdateMessageDto updateDto, int userId)
     {
         try
         {
@@ -162,7 +162,7 @@ public class ChatStorageService : IChatStorageService
             if (updateDto.AttachmentSize.HasValue)
                 message.FileSize = updateDto.AttachmentSize;
             if (updateDto.IsEdited.HasValue)
-                message.UpdatedAt = updateDto.IsEdited.Value ? (updateDto.EditedAt ?? DateTime.UtcNow) : message.UpdatedAt;
+                message.UpdatedDate = updateDto.IsEdited.Value ? (updateDto.EditedAt ?? DateTime.UtcNow) : message.UpdatedDate;
 
             // Re-encrypt if needed
             if (message.IsEncrypted)
@@ -182,7 +182,7 @@ public class ChatStorageService : IChatStorageService
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteMessageAsync(Guid messageId, Guid userId)
+    public async Task<ApiResponse<bool>> DeleteMessageAsync(Guid messageId, int userId)
     {
         try
         {
@@ -208,7 +208,7 @@ public class ChatStorageService : IChatStorageService
         }
     }
 
-    public async Task<ApiResponse<bool>> SoftDeleteMessageAsync(Guid messageId, Guid userId)
+    public async Task<ApiResponse<bool>> SoftDeleteMessageAsync(Guid messageId, int userId)
     {
         try
         {
@@ -319,7 +319,7 @@ public class ChatStorageService : IChatStorageService
         var lastMessageList = lastMessage.ToList();
         if (lastMessageList.Any())
         {
-            chatRoomDto.LastMessageAt = lastMessageList.Max(m => m.CreatedAt);
+            chatRoomDto.LastMessageAt = lastMessageList.Max(m => m.CreatedDate);
         }
 
         return chatRoomDto;

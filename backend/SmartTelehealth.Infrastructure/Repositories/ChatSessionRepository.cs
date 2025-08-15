@@ -25,7 +25,7 @@ public class ChatSessionRepository : IChatSessionRepository
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
     }
 
-    public async Task<IEnumerable<ChatSession>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<ChatSession>> GetByUserIdAsync(int userId)
     {
         return await _context.ChatSessions
             .Include(c => c.Provider)
@@ -45,7 +45,7 @@ public class ChatSessionRepository : IChatSessionRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<ChatSession>> GetByProviderIdAsync(Guid providerId)
+    public async Task<IEnumerable<ChatSession>> GetByProviderIdAsync(int providerId)
     {
         return await _context.ChatSessions
             .Include(c => c.User)
@@ -57,7 +57,7 @@ public class ChatSessionRepository : IChatSessionRepository
 
     public async Task<ChatSession> CreateAsync(ChatSession session)
     {
-        session.CreatedAt = DateTime.UtcNow;
+        session.CreatedDate = DateTime.UtcNow;
         _context.ChatSessions.Add(session);
         await _context.SaveChangesAsync();
         return session;
@@ -65,7 +65,7 @@ public class ChatSessionRepository : IChatSessionRepository
 
     public async Task<ChatSession> UpdateAsync(ChatSession session)
     {
-        session.UpdatedAt = DateTime.UtcNow;
+        session.UpdatedDate = DateTime.UtcNow;
         _context.ChatSessions.Update(session);
         await _context.SaveChangesAsync();
         return session;
@@ -77,7 +77,7 @@ public class ChatSessionRepository : IChatSessionRepository
         if (session == null) return false;
 
         session.IsDeleted = true;
-        session.UpdatedAt = DateTime.UtcNow;
+        session.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -102,7 +102,7 @@ public class ChatSessionRepository : IChatSessionRepository
             .SumAsync(c => c.DurationMinutes);
     }
 
-    public async Task<int> GetActiveSessionCountAsync(Guid userId)
+    public async Task<int> GetActiveSessionCountAsync(int userId)
     {
         return await _context.ChatSessions
             .Where(c => c.UserId == userId && 
@@ -111,7 +111,7 @@ public class ChatSessionRepository : IChatSessionRepository
             .CountAsync();
     }
 
-    public async Task<IEnumerable<ChatSession>> GetActiveSessionsAsync(Guid userId)
+    public async Task<IEnumerable<ChatSession>> GetActiveSessionsAsync(int userId)
     {
         return await _context.ChatSessions
             .Include(c => c.Provider)
@@ -123,7 +123,7 @@ public class ChatSessionRepository : IChatSessionRepository
             .ToListAsync();
     }
 
-    public async Task<bool> CanStartSessionAsync(Guid userId, Guid subscriptionId)
+    public async Task<bool> CanStartSessionAsync(int userId, Guid subscriptionId)
     {
         // Get subscription and check if active
         var subscription = await _context.Subscriptions
@@ -210,7 +210,7 @@ public class ChatSessionRepository : IChatSessionRepository
 
     public async Task<ChatMessage> AddMessageAsync(ChatMessage message)
     {
-        message.CreatedAt = DateTime.UtcNow;
+        message.CreatedDate = DateTime.UtcNow;
         _context.ChatMessages.Add(message);
         await _context.SaveChangesAsync();
         return message;
@@ -224,21 +224,21 @@ public class ChatSessionRepository : IChatSessionRepository
             .ToListAsync();
     }
 
-    public async Task<bool> MarkMessageAsReadAsync(Guid messageId, Guid userId)
+    public async Task<bool> MarkMessageAsReadAsync(Guid messageId, int userId)
     {
         var message = await _context.ChatMessages.FindAsync(messageId);
         if (message == null) return false;
 
         message.IsRead = true;
         message.ReadAt = DateTime.UtcNow;
-        message.UpdatedAt = DateTime.UtcNow;
+        message.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<ChatAttachment> AddAttachmentAsync(ChatAttachment attachment)
     {
-        attachment.CreatedAt = DateTime.UtcNow;
+        attachment.CreatedDate = DateTime.UtcNow;
         _context.ChatAttachments.Add(attachment);
         await _context.SaveChangesAsync();
         return attachment;

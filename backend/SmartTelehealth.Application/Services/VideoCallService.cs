@@ -42,7 +42,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<VideoCallDto>>> GetByUserIdAsync(Guid userId)
+    public async Task<ApiResponse<IEnumerable<VideoCallDto>>> GetByUserIdAsync(int userId)
     {
         try
         {
@@ -69,7 +69,7 @@ public class VideoCallService : IVideoCallService
                 Token = createDto.Token ?? string.Empty,
                 StartedAt = DateTime.UtcNow,
                 Status = "Initiated",
-                CreatedAt = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow
             };
 
             var createdVideoCall = await _videoCallRepository.CreateAsync(videoCall);
@@ -162,7 +162,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<ApiResponse<bool>> JoinVideoCallAsync(Guid callId, Guid userId)
+    public async Task<ApiResponse<bool>> JoinVideoCallAsync(Guid callId, int userId)
     {
         try
         {
@@ -182,7 +182,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<ApiResponse<bool>> LeaveVideoCallAsync(Guid callId, Guid userId)
+    public async Task<ApiResponse<bool>> LeaveVideoCallAsync(Guid callId, int userId)
     {
         try
         {
@@ -400,8 +400,8 @@ public class VideoCallService : IVideoCallService
             EndedAt = videoCall.EndedAt,
             Status = videoCall.Status,
             RecordingUrl = videoCall.RecordingUrl,
-            CreatedAt = videoCall.CreatedAt,
-            UpdatedAt = videoCall.UpdatedAt,
+            CreatedAt = videoCall.CreatedDate ?? DateTime.UtcNow,
+            UpdatedAt = videoCall.UpdatedDate,
             IsDeleted = videoCall.IsDeleted
         };
     }

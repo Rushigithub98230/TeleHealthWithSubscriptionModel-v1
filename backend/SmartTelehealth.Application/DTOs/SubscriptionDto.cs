@@ -62,7 +62,7 @@ namespace SmartTelehealth.Application.DTOs
 
     public class CreateSubscriptionDto
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public string SubscriptionId { get; set; } = string.Empty;
         public string PlanId { get; set; } = string.Empty;
         public string? Name { get; set; }

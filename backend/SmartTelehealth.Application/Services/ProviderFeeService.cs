@@ -14,7 +14,7 @@ namespace SmartTelehealth.Application.Services
     public class ProviderFeeService : IProviderFeeService
     {
         private readonly IProviderFeeRepository _providerFeeRepository;
-        private readonly IProviderRepository _providerRepository;
+        private readonly IUserRepository _userRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IAuditService _auditService;
         private readonly INotificationService _notificationService;
@@ -23,7 +23,7 @@ namespace SmartTelehealth.Application.Services
 
         public ProviderFeeService(
             IProviderFeeRepository providerFeeRepository,
-            IProviderRepository providerRepository,
+            IUserRepository userRepository,
             ICategoryRepository categoryRepository,
             IAuditService auditService,
             INotificationService notificationService,
@@ -31,7 +31,7 @@ namespace SmartTelehealth.Application.Services
             ILogger<ProviderFeeService> logger)
         {
             _providerFeeRepository = providerFeeRepository;
-            _providerRepository = providerRepository;
+            _userRepository = userRepository;
             _categoryRepository = categoryRepository;
             _auditService = auditService;
             _notificationService = notificationService;
@@ -44,7 +44,7 @@ namespace SmartTelehealth.Application.Services
             try
             {
                 // Validate provider exists
-                var provider = await _providerRepository.GetByIdAsync(createDto.ProviderId);
+                var provider = await _userRepository.GetByIdAsync(createDto.ProviderId);
                 if (provider == null)
                 {
                     return new ApiResponse<ProviderFeeDto>
@@ -157,7 +157,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByProviderAsync(Guid providerId)
+        public async Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByProviderAsync(int providerId)
         {
             try
             {
@@ -211,7 +211,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetAllFeesAsync(string status = null, int page = 1, int pageSize = 50)
+        public async Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetAllFeesAsync(string? status = null, int page = 1, int pageSize = 50)
         {
             try
             {
@@ -510,7 +510,7 @@ namespace SmartTelehealth.Application.Services
         }
 
         public Task<ApiResponse<ProviderFeeDto>> GetFeeAsync(Guid id) => throw new NotImplementedException();
-        public Task<ApiResponse<ProviderFeeDto>> GetFeeByProviderAndCategoryAsync(Guid providerId, Guid categoryId) => throw new NotImplementedException();
+        public Task<ApiResponse<ProviderFeeDto>> GetFeeByProviderAndCategoryAsync(int providerId, Guid categoryId) => throw new NotImplementedException();
         public Task<ApiResponse<ProviderFeeDto>> ProposeFeeAsync(Guid id) => throw new NotImplementedException();
     }
 } 

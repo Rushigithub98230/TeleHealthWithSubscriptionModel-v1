@@ -5,7 +5,7 @@ namespace SmartTelehealth.Application.Interfaces;
 public interface IVideoCallService
 {
     Task<ApiResponse<VideoCallDto>> GetByIdAsync(Guid id);
-    Task<ApiResponse<IEnumerable<VideoCallDto>>> GetByUserIdAsync(Guid userId);
+    Task<ApiResponse<IEnumerable<VideoCallDto>>> GetByUserIdAsync(int userId);
     Task<ApiResponse<VideoCallDto>> CreateAsync(CreateVideoCallDto createDto);
     Task<ApiResponse<VideoCallDto>> UpdateAsync(Guid id, UpdateVideoCallDto updateDto);
     Task<ApiResponse<bool>> DeleteAsync(Guid id);
@@ -13,8 +13,8 @@ public interface IVideoCallService
     
     // Video Call Management
     Task<ApiResponse<VideoCallDto>> InitiateVideoCallAsync(CreateVideoCallDto createDto);
-    Task<ApiResponse<bool>> JoinVideoCallAsync(Guid callId, Guid userId);
-    Task<ApiResponse<bool>> LeaveVideoCallAsync(Guid callId, Guid userId);
+    Task<ApiResponse<bool>> JoinVideoCallAsync(Guid callId, int userId);
+    Task<ApiResponse<bool>> LeaveVideoCallAsync(Guid callId, int userId);
     Task<ApiResponse<bool>> EndVideoCallAsync(Guid callId, string? reason = null);
     Task<ApiResponse<bool>> RejectVideoCallAsync(Guid callId, string reason);
     

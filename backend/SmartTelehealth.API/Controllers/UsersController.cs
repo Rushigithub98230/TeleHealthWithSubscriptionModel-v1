@@ -39,7 +39,16 @@ namespace SmartTelehealth.API.Controllers
                     });
                 }
 
-                var result = await _userService.GetUserByIdAsync(userId);
+                if (!int.TryParse(userId, out int userIdInt))
+                {
+                    return BadRequest(new ApiResponse<UserDto>
+                    {
+                        Success = false,
+                        Message = "Invalid user ID format"
+                    });
+                }
+
+                var result = await _userService.GetUserByIdAsync(userIdInt);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -72,8 +81,17 @@ namespace SmartTelehealth.API.Controllers
                     });
                 }
 
+                if (!int.TryParse(userId, out int userIdInt))
+                {
+                    return BadRequest(new ApiResponse<UserDto>
+                    {
+                        Success = false,
+                        Message = "Invalid user ID format"
+                    });
+                }
+
                 updateDto.Id = userId;
-                var result = await _userService.UpdateUserAsync(userId, updateDto);
+                var result = await _userService.UpdateUserAsync(userIdInt, updateDto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -96,7 +114,16 @@ namespace SmartTelehealth.API.Controllers
         {
             try
             {
-                var result = await _userService.GetUserByIdAsync(id);
+                if (!int.TryParse(id, out int userId))
+                {
+                    return BadRequest(new ApiResponse<UserDto>
+                    {
+                        Success = false,
+                        Message = "Invalid user ID format"
+                    });
+                }
+
+                var result = await _userService.GetUserByIdAsync(userId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -169,8 +196,17 @@ namespace SmartTelehealth.API.Controllers
         {
             try
             {
+                if (!int.TryParse(id, out int userId))
+                {
+                    return BadRequest(new ApiResponse<UserDto>
+                    {
+                        Success = false,
+                        Message = "Invalid user ID format"
+                    });
+                }
+
                 updateDto.Id = id;
-                var result = await _userService.UpdateUserAsync(id, updateDto);
+                var result = await _userService.UpdateUserAsync(userId, updateDto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -193,7 +229,16 @@ namespace SmartTelehealth.API.Controllers
         {
             try
             {
-                var result = await _userService.DeleteUserAsync(id);
+                if (!int.TryParse(id, out int userId))
+                {
+                    return BadRequest(new ApiResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Invalid user ID format"
+                    });
+                }
+
+                var result = await _userService.DeleteUserAsync(userId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -237,7 +282,15 @@ namespace SmartTelehealth.API.Controllers
         {
             try
             {
-                var result = await _userService.GetProviderByIdAsync(id);
+                if (!int.TryParse(id, out int providerId))
+                {
+                    return BadRequest(new ApiResponse<ProviderDto>
+                    {
+                        Success = false,
+                        Message = "Invalid provider ID format"
+                    });
+                }
+                var result = await _userService.GetProviderByIdAsync(providerId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -260,14 +313,31 @@ namespace SmartTelehealth.API.Controllers
         {
             try
             {
+                if (!int.TryParse(id, out int providerId))
+                {
+                    return BadRequest(new ApiResponse<ProviderDto>
+                    {
+                        Success = false,
+                        Message = "Invalid provider ID format"
+                    });
+                }
+
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (userId != id)
                 {
                     return Forbid();
                 }
 
-                updateDto.Id = id;
-                var result = await _userService.UpdateProviderAsync(id, updateDto);
+                if (!int.TryParse(id, out int idInt))
+                {
+                    return BadRequest(new ApiResponse<ProviderDto>
+                    {
+                        Success = false,
+                        Message = "Invalid ID format"
+                    });
+                }
+                updateDto.Id = idInt;
+                var result = await _userService.UpdateProviderAsync(providerId, updateDto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -300,7 +370,15 @@ namespace SmartTelehealth.API.Controllers
                     });
                 }
 
-                var result = await _userService.GetMedicalHistoryAsync(userId);
+                if (!int.TryParse(userId, out int userIdInt))
+                {
+                    return BadRequest(new ApiResponse<MedicalHistoryDto>
+                    {
+                        Success = false,
+                        Message = "Invalid user ID format"
+                    });
+                }
+                var result = await _userService.GetMedicalHistoryAsync(userIdInt);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -333,8 +411,16 @@ namespace SmartTelehealth.API.Controllers
                     });
                 }
 
-                updateDto.UserId = userId;
-                var result = await _userService.UpdateMedicalHistoryAsync(userId, updateDto);
+                if (!int.TryParse(userId, out int userIdInt))
+                {
+                    return BadRequest(new ApiResponse<MedicalHistoryDto>
+                    {
+                        Success = false,
+                        Message = "Invalid user ID format"
+                    });
+                }
+                updateDto.UserId = userIdInt;
+                var result = await _userService.UpdateMedicalHistoryAsync(userIdInt, updateDto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -367,7 +453,15 @@ namespace SmartTelehealth.API.Controllers
                     });
                 }
 
-                var result = await _userService.GetPaymentMethodsAsync(userId);
+                if (!int.TryParse(userId, out int userIdInt))
+        {
+            return BadRequest(new ApiResponse<IEnumerable<PaymentMethodDto>>
+            {
+                Success = false,
+                Message = "Invalid user ID format"
+            });
+        }
+        var result = await _userService.GetPaymentMethodsAsync(userIdInt);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -400,11 +494,19 @@ namespace SmartTelehealth.API.Controllers
                     });
                 }
 
+                if (!int.TryParse(userId, out int userIdInt))
+                {
+                    return BadRequest(new ApiResponse<PaymentMethodDto>
+                    {
+                        Success = false,
+                        Message = "Invalid user ID format"
+                    });
+                }
                 var addPaymentMethodDto = new SmartTelehealth.Application.DTOs.AddPaymentMethodDto
                 {
                     PaymentMethodId = createDto.Token
                 };
-                var result = await _userService.AddPaymentMethodAsync(userId, addPaymentMethodDto);
+                var result = await _userService.AddPaymentMethodAsync(userIdInt, addPaymentMethodDto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -437,7 +539,15 @@ namespace SmartTelehealth.API.Controllers
                     });
                 }
 
-                var result = await _userService.DeletePaymentMethodAsync(userId, id);
+                if (!int.TryParse(userId, out int userIdInt))
+                {
+                    return BadRequest(new ApiResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Invalid user ID format"
+                    });
+                }
+                var result = await _userService.DeletePaymentMethodAsync(userIdInt, id);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -470,7 +580,15 @@ namespace SmartTelehealth.API.Controllers
                     });
                 }
 
-                var result = await _userService.SetDefaultPaymentMethodAsync(userId, id);
+                if (!int.TryParse(userId, out int userIdInt))
+                {
+                    return BadRequest(new ApiResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Invalid user ID format"
+                    });
+                }
+                var result = await _userService.SetDefaultPaymentMethodAsync(userIdInt, id);
                 return Ok(result);
             }
             catch (Exception ex)

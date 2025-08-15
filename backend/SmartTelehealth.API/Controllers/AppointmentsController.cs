@@ -35,18 +35,18 @@ public class AppointmentsController : ControllerBase
         {
             // Get categories with subscription plans
             var categoriesResponse = await _appointmentService.GetCategoriesWithSubscriptionsAsync();
-            if (!categoriesResponse.Success)
-                return StatusCode(500, categoriesResponse);
+            if (categoriesResponse.StatusCode != 200)
+                return StatusCode(categoriesResponse.StatusCode, categoriesResponse);
 
             // Get featured providers
             var providersResponse = await _appointmentService.GetFeaturedProvidersAsync();
-            if (!providersResponse.Success)
-                return StatusCode(500, providersResponse);
+            if (providersResponse.StatusCode != 200)
+                return StatusCode(providersResponse.StatusCode, providersResponse);
 
             var homepageData = new HomepageDto
             {
-                Categories = categoriesResponse.Data?.ToList() ?? new(),
-                FeaturedProviders = providersResponse.Data?.ToList() ?? new(),
+                Categories = categoriesResponse.data as IEnumerable<CategoryWithSubscriptionsDto> ?? new List<CategoryWithSubscriptionsDto>(),
+                FeaturedProviders = providersResponse.data as IEnumerable<FeaturedProviderDto> ?? new List<FeaturedProviderDto>(),
                 TotalAppointments = 0, // Will be populated from analytics
                 TotalPatients = 0, // Will be populated from analytics
                 TotalProviders = 0 // Will be populated from analytics
@@ -62,7 +62,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("categories")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<CategoryWithSubscriptionsDto>>>> GetCategories()
+    public async Task<ActionResult<JsonModel>> GetCategories()
     {
         try
         {
@@ -72,12 +72,17 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting categories");
-            return BadRequest(ApiResponse<IEnumerable<CategoryWithSubscriptionsDto>>.ErrorResponse(ex.Message));
+            return BadRequest(new JsonModel
+            {
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 400
+            });
         }
     }
 
     [HttpGet("providers/featured")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<FeaturedProviderDto>>>> GetFeaturedProviders()
+    public async Task<ActionResult<JsonModel>> GetFeaturedProviders()
     {
         try
         {
@@ -87,28 +92,43 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting featured providers");
-            return BadRequest(ApiResponse<IEnumerable<FeaturedProviderDto>>.ErrorResponse(ex.Message));
+            return BadRequest(new JsonModel
+            {
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 400
+            });
         }
     }
 
     [HttpGet("home-data")]
-    public async Task<ActionResult<ApiResponse<object>>> GetHomeData()
+    public async Task<ActionResult<JsonModel>> GetHomeData()
     {
         try
         {
             var categories = await _appointmentService.GetCategoriesWithSubscriptionsAsync();
             var providers = await _appointmentService.GetFeaturedProvidersAsync();
             
-            return Ok(ApiResponse<object>.SuccessResponse(new
+            return Ok(new JsonModel
             {
-                Categories = categories.Data,
-                Providers = providers.Data
-            }));
+                data = new
+                {
+                    Categories = categories.data,
+                    Providers = providers.data
+                },
+                Message = "Home data retrieved successfully",
+                StatusCode = 200
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting home data");
-            return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
+            return BadRequest(new JsonModel
+            {
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 400
+            });
         }
     }
 
@@ -125,20 +145,26 @@ public class AppointmentsController : ControllerBase
                 Guid categoryGuid = Guid.TryParse(bookingDto.CategoryId, out var cg) ? cg : Guid.Empty;
                 var subscriptionValidation = await _appointmentService.ValidateSubscriptionAccessAsync(
                     patientGuid, categoryGuid);
-                if (!subscriptionValidation.Success)
+                if (subscriptionValidation.StatusCode != 200)
                 {
                     return BadRequest(new { error = "Invalid subscription access" });
                 }
             }
 
             // Calculate appointment fee
-            Guid patientGuid2 = Guid.TryParse(bookingDto.PatientId, out var pg2) ? pg2 : Guid.Empty;
-            Guid providerGuid = Guid.TryParse(bookingDto.ProviderId, out var prg) ? prg : Guid.Empty;
+            if (!int.TryParse(bookingDto.PatientId, out int patientId))
+            {
+                return BadRequest(new { error = "Invalid patient ID format" });
+            }
+            if (!int.TryParse(bookingDto.ProviderId, out int providerId))
+            {
+                return BadRequest(new { error = "Invalid provider ID format" });
+            }
             Guid categoryGuid2 = Guid.TryParse(bookingDto.CategoryId, out var cg2) ? cg2 : Guid.Empty;
             var feeCalculation = await _appointmentService.CalculateAppointmentFeeAsync(
-                patientGuid2, providerGuid, categoryGuid2);
+                patientId, providerId, categoryGuid2);
             
-            if (!feeCalculation.Success)
+            if (feeCalculation.StatusCode != 200)
             {
                 return BadRequest(new { error = "Failed to calculate appointment fee" });
             }
@@ -146,8 +172,8 @@ public class AppointmentsController : ControllerBase
             // Create appointment booking DTO
             var bookDto = new BookAppointmentDto
             {
-                PatientId = patientGuid2.ToString(),
-                ProviderId = providerGuid.ToString(),
+                PatientId = patientId.ToString(),
+                ProviderId = providerId.ToString(),
                 CategoryId = categoryGuid2.ToString(),
                 SubscriptionId = bookingDto.SubscriptionId,
                 AppointmentTypeId = bookingDto.Type != null ? Guid.Parse(bookingDto.Type) : Guid.Empty,
@@ -163,12 +189,12 @@ public class AppointmentsController : ControllerBase
             // Book the appointment
             var appointmentResponse = await _appointmentService.BookAppointmentAsync(bookDto);
             
-            if (!appointmentResponse.Success)
+            if (appointmentResponse.StatusCode != 200)
             {
                 return BadRequest(new { error = appointmentResponse.Message });
             }
 
-            var appointment = appointmentResponse.Data;
+            var appointment = appointmentResponse.data;
             if (appointment == null)
             {
                 return BadRequest(new { error = "Failed to create appointment" });
@@ -200,7 +226,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPost("{appointmentId}/payment")]
-    public async Task<ActionResult<AppointmentDto>> ProcessPayment(Guid appointmentId, [FromBody] ProcessPaymentDto request)
+    public async Task<ActionResult<JsonModel>> ProcessPayment(Guid appointmentId, [FromBody] ProcessPaymentDto request)
     {
         try
         {
@@ -210,14 +236,19 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing payment for appointment {AppointmentId}", appointmentId);
-            return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message });
+            return BadRequest(new JsonModel
+            {
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 400
+            });
         }
     }
 
     // Provider actions
     [HttpPost("{appointmentId}/accept")]
     [Authorize(Roles = "Provider")]
-    public async Task<ActionResult<AppointmentDto>> AcceptAppointment(Guid appointmentId, [FromBody] ProviderAcceptDto acceptDto)
+    public async Task<ActionResult<JsonModel>> AcceptAppointment(Guid appointmentId, [FromBody] ProviderAcceptDto acceptDto)
     {
         try
         {
@@ -233,7 +264,7 @@ public class AppointmentsController : ControllerBase
 
     [HttpPost("{appointmentId}/reject")]
     [Authorize(Roles = "Provider")]
-    public async Task<ActionResult<AppointmentDto>> RejectAppointment(Guid appointmentId, [FromBody] ProviderRejectDto rejectDto)
+    public async Task<ActionResult<JsonModel>> RejectAppointment(Guid appointmentId, [FromBody] ProviderRejectDto rejectDto)
     {
         try
         {
@@ -249,7 +280,7 @@ public class AppointmentsController : ControllerBase
 
     // Meeting management
     [HttpPost("{appointmentId}/start-meeting")]
-    public async Task<ActionResult<AppointmentDto>> StartMeeting(Guid appointmentId)
+    public async Task<ActionResult<JsonModel>> StartMeeting(Guid appointmentId)
     {
         try
         {
@@ -264,7 +295,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPost("{appointmentId}/end-meeting")]
-    public async Task<ActionResult<AppointmentDto>> EndMeeting(Guid appointmentId)
+    public async Task<ActionResult<JsonModel>> EndMeeting(Guid appointmentId)
     {
         try
         {
@@ -280,7 +311,7 @@ public class AppointmentsController : ControllerBase
 
     [HttpPost("{appointmentId}/complete")]
     [Authorize(Roles = "Provider")]
-    public async Task<ActionResult<AppointmentDto>> CompleteAppointment(Guid appointmentId, [FromBody] CompleteAppointmentDto completeDto)
+    public async Task<ActionResult<JsonModel>> CompleteAppointment(Guid appointmentId, [FromBody] CompleteAppointmentDto completeDto)
     {
         try
         {
@@ -296,14 +327,14 @@ public class AppointmentsController : ControllerBase
 
     // Video call integration
     [HttpGet("{appointmentId}/meeting-link")]
-    public async Task<ActionResult<string>> GetMeetingLink(Guid appointmentId)
+    public async Task<ActionResult<JsonModel>> GetMeetingLink(Guid appointmentId)
     {
         try
         {
             var response = await _appointmentService.GenerateMeetingLinkAsync(appointmentId);
-            if (response.Success)
+            if (response.StatusCode == 200)
             {
-                return Ok(new { meetingUrl = response.Data });
+                return Ok(new { meetingUrl = response.data });
             }
             return BadRequest(new { error = response.Message });
         }
@@ -315,15 +346,15 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("{appointmentId}/opentok-token")]
-    public async Task<ActionResult<string>> GetOpenTokToken(Guid appointmentId)
+    public async Task<ActionResult<JsonModel>> GetOpenTokToken(Guid appointmentId)
     {
         try
         {
             var userId = GetCurrentUserId();
             var response = await _appointmentService.GetOpenTokTokenAsync(appointmentId, userId);
-            if (response.Success)
+            if (response.StatusCode == 200)
             {
-                return Ok(new { token = response.Data });
+                return Ok(new { token = response.data });
             }
             return BadRequest(new { error = response.Message });
         }
@@ -336,7 +367,7 @@ public class AppointmentsController : ControllerBase
 
     // CRUD operations
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AppointmentDto>>> GetUserAppointments()
+    public async Task<ActionResult<JsonModel>> GetUserAppointments()
     {
         try
         {
@@ -352,7 +383,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<AppointmentDto>> GetAppointment(Guid id)
+    public async Task<ActionResult<JsonModel>> GetAppointment(Guid id)
     {
         try
         {
@@ -367,7 +398,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<AppointmentDto>> UpdateAppointment(Guid id, [FromBody] UpdateAppointmentDto updateDto)
+    public async Task<ActionResult<JsonModel>> UpdateAppointment(Guid id, [FromBody] UpdateAppointmentDto updateDto)
     {
         try
         {
@@ -382,7 +413,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> CancelAppointment(Guid id, [FromBody] string reason)
+    public async Task<ActionResult<JsonModel>> CancelAppointment(Guid id, [FromBody] string reason)
     {
         try
         {
@@ -399,7 +430,7 @@ public class AppointmentsController : ControllerBase
     // Provider availability
     [HttpGet("providers/{providerId}/availability")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<ProviderAvailabilityDto>>> GetProviderAvailability(Guid providerId, [FromQuery] DateTime date)
+    public async Task<ActionResult<JsonModel>> GetProviderAvailability(Guid providerId, [FromQuery] DateTime date)
     {
         try
         {
@@ -416,7 +447,7 @@ public class AppointmentsController : ControllerBase
     // Analytics
     [HttpGet("analytics")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<AppointmentAnalyticsDto>> GetAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+    public async Task<ActionResult<JsonModel>> GetAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {
         try
         {
@@ -432,19 +463,31 @@ public class AppointmentsController : ControllerBase
 
     // --- PARTICIPANT MANAGEMENT ---
     [HttpPost("{appointmentId}/participants")]
-    public async Task<ActionResult<AppointmentParticipantDto>> AddParticipant(Guid appointmentId, [FromBody] AddParticipantDto request)
+    public async Task<ActionResult<JsonModel>> AddParticipant(Guid appointmentId, [FromBody] AddParticipantDto request)
     {
         try
         {
-            Guid? userId = null;
+            int? userId = null;
             if (!string.IsNullOrEmpty(request.UserId))
-                userId = Guid.TryParse(request.UserId, out var parsedUserId) ? parsedUserId : (Guid?)null;
+            {
+                if (!int.TryParse(request.UserId, out int parsedUserId))
+                {
+                    return BadRequest(new { error = "Invalid user ID format" });
+                }
+                userId = parsedUserId;
+            }
             Guid participantRoleId = Guid.Empty; // Placeholder, will be replaced with actual role ID
             if (!string.IsNullOrEmpty(request.Role))
                 participantRoleId = Guid.TryParse(request.Role, out var parsedRoleId) ? parsedRoleId : Guid.Empty;
-            Guid invitedByUserId = Guid.Empty;
+            int invitedByUserId = 0;
             if (!string.IsNullOrEmpty(request.InvitedByUserId))
-                invitedByUserId = Guid.TryParse(request.InvitedByUserId, out var parsedInvitedBy) ? parsedInvitedBy : Guid.Empty;
+            {
+                if (!int.TryParse(request.InvitedByUserId, out int parsedInvitedBy))
+                {
+                    return BadRequest(new { error = "Invalid invited by user ID format" });
+                }
+                invitedByUserId = parsedInvitedBy;
+            }
             var result = await _appointmentService.AddParticipantAsync(
                 appointmentId,
                 userId,
@@ -458,16 +501,29 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding participant to appointment {AppointmentId}", appointmentId);
-            return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message });
+            return BadRequest(new JsonModel
+            {
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 400
+            });
         }
     }
 
     [HttpPost("{appointmentId}/invite-external")]
-    public async Task<ActionResult<AppointmentInvitationDto>> InviteExternal(Guid appointmentId, [FromBody] InviteExternalDto request)
+    public async Task<ActionResult<JsonModel>> InviteExternal(Guid appointmentId, [FromBody] InviteExternalDto request)
     {
         try
         {
-            Guid invitedByUserId = Guid.TryParse(request.InvitedByUserId, out var parsedInvitedBy) ? parsedInvitedBy : Guid.Empty;
+            int invitedByUserId = 0;
+            if (!string.IsNullOrEmpty(request.InvitedByUserId))
+            {
+                if (!int.TryParse(request.InvitedByUserId, out int parsedInvitedBy))
+                {
+                    return BadRequest(new { error = "Invalid invited by user ID format" });
+                }
+                invitedByUserId = parsedInvitedBy;
+            }
             var response = await _appointmentService.InviteExternalAsync(appointmentId, request.Email, request.Phone, request.Message, invitedByUserId);
             return StatusCode(response.StatusCode, response);
         }
@@ -479,13 +535,19 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPost("{appointmentId}/join")]
-    public async Task<ActionResult> JoinAppointment(Guid appointmentId, [FromBody] JoinAppointmentDto request)
+    public async Task<ActionResult<JsonModel>> JoinAppointment(Guid appointmentId, [FromBody] JoinAppointmentDto request)
     {
         try
         {
-            Guid? userId = null;
+            int? userId = null;
             if (!string.IsNullOrEmpty(request.UserId))
-                userId = Guid.TryParse(request.UserId, out var parsedUserId) ? parsedUserId : (Guid?)null;
+            {
+                if (!int.TryParse(request.UserId, out int parsedUserId))
+                {
+                    return BadRequest(new { error = "Invalid user ID format" });
+                }
+                userId = parsedUserId;
+            }
             var response = await _appointmentService.MarkParticipantJoinedAsync(appointmentId, userId, request.Email);
             return StatusCode(response.StatusCode, response);
         }
@@ -497,13 +559,19 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPost("{appointmentId}/leave")]
-    public async Task<ActionResult> LeaveAppointment(Guid appointmentId, [FromBody] LeaveAppointmentDto request)
+    public async Task<ActionResult<JsonModel>> LeaveAppointment(Guid appointmentId, [FromBody] LeaveAppointmentDto request)
     {
         try
         {
-            Guid? userId = null;
+            int? userId = null;
             if (!string.IsNullOrEmpty(request.UserId))
-                userId = Guid.TryParse(request.UserId, out var parsedUserId) ? parsedUserId : (Guid?)null;
+            {
+                if (!int.TryParse(request.UserId, out int parsedUserId))
+                {
+                    return BadRequest(new { error = "Invalid user ID format" });
+                }
+                userId = parsedUserId;
+            }
             var response = await _appointmentService.MarkParticipantLeftAsync(appointmentId, userId, request.Email);
             return StatusCode(response.StatusCode, response);
         }
@@ -515,7 +583,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("{appointmentId}/participants")]
-    public async Task<ActionResult<IEnumerable<AppointmentParticipantDto>>> GetParticipants(Guid appointmentId)
+    public async Task<ActionResult<JsonModel>> GetParticipants(Guid appointmentId)
     {
         try
         {
@@ -525,17 +593,31 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting participants for appointment {AppointmentId}", appointmentId);
-            return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message });
+            return BadRequest(new JsonModel
+            {
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 400
+            });
         }
     }
 
-    [HttpGet("{appointmentId}/video-token")]
-    public async Task<ActionResult<string>> GetVideoToken(Guid appointmentId, [FromQuery] Guid? userId, [FromQuery] string? email, [FromQuery] Guid? role = null)
-    {
-        try
+            [HttpGet("{appointmentId}/video-token")]
+        public async Task<ActionResult<JsonModel>> GetVideoToken(Guid appointmentId, [FromQuery] string? userId, [FromQuery] string? email, [FromQuery] Guid? role = null)
         {
-            var response = await _appointmentService.GenerateVideoTokenAsync(appointmentId, userId, email, role ?? Guid.Empty);
-            return Ok(response);
+            try
+            {
+                int? userIdInt = null;
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    if (!int.TryParse(userId, out int parsedUserId))
+                    {
+                        return BadRequest(new { error = "Invalid user ID format" });
+                    }
+                    userIdInt = parsedUserId;
+                }
+                var response = await _appointmentService.GenerateVideoTokenAsync(appointmentId, userIdInt, email, role ?? Guid.Empty);
+                return Ok(response);
         }
         catch (Exception ex)
         {
@@ -546,7 +628,7 @@ public class AppointmentsController : ControllerBase
 
     // --- PAYMENT MANAGEMENT ---
     [HttpPost("{appointmentId}/confirm-payment")]
-    public async Task<ActionResult<AppointmentDto>> ConfirmPayment(Guid appointmentId, [FromBody] ConfirmPaymentDto request)
+    public async Task<ActionResult<JsonModel>> ConfirmPayment(Guid appointmentId, [FromBody] ConfirmPaymentDto request)
     {
         try
         {
@@ -556,12 +638,17 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error confirming payment for appointment {AppointmentId}", appointmentId);
-            return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message });
+            return BadRequest(new JsonModel
+            {
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 400
+            });
         }
     }
 
     [HttpPost("{appointmentId}/refund")]
-    public async Task<ActionResult<AppointmentPaymentLogDto>> ProcessRefund(Guid appointmentId, [FromBody] ProcessRefundDto request)
+    public async Task<ActionResult<JsonModel>> ProcessRefund(Guid appointmentId, [FromBody] ProcessRefundDto request)
     {
         try
         {
@@ -576,7 +663,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("{appointmentId}/payment-logs")]
-    public async Task<ActionResult<IEnumerable<AppointmentPaymentLogDto>>> GetPaymentLogs(Guid appointmentId)
+    public async Task<ActionResult<JsonModel>> GetPaymentLogs(Guid appointmentId)
     {
         try
         {
@@ -586,13 +673,18 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting payment logs for appointment {AppointmentId}", appointmentId);
-            return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message });
+            return BadRequest(new JsonModel
+            {
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 400
+            });
         }
     }
 
     // --- PROVIDER ACTIONS ---
     [HttpPost("{appointmentId}/provider-action")]
-    public async Task<ActionResult<AppointmentDto>> ProviderAction(Guid appointmentId, [FromBody] ProviderActionDto request)
+    public async Task<ActionResult<JsonModel>> ProviderAction(Guid appointmentId, [FromBody] ProviderActionDto request)
     {
         try
         {
@@ -602,7 +694,12 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing provider action for appointment {AppointmentId}", appointmentId);
-            return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message });
+            return BadRequest(new JsonModel
+            {
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 400
+            });
         }
     }
 
@@ -613,7 +710,7 @@ public class AppointmentsController : ControllerBase
         try
         {
             var response = await _appointmentService.IsAppointmentServiceHealthyAsync();
-            if (response.Success)
+            if (response.StatusCode == 200)
             {
                 return Ok(new { status = "healthy", message = "Appointment service is operational" });
             }
@@ -626,10 +723,10 @@ public class AppointmentsController : ControllerBase
         }
     }
 
-    private Guid GetCurrentUserId()
+    private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 } 
 

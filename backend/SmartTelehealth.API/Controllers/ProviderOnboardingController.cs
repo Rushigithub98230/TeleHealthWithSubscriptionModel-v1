@@ -48,7 +48,7 @@ public class ProviderOnboardingController : ControllerBase
     /// Get onboarding by user ID
     /// </summary>
     [HttpGet("user/{userId}")]
-    public async Task<ActionResult<ApiResponse<ProviderOnboardingDto>>> GetOnboardingByUser(Guid userId)
+    public async Task<ActionResult<ApiResponse<ProviderOnboardingDto>>> GetOnboardingByUser(int userId)
     {
         var result = await _onboardingService.GetOnboardingByUserIdAsync(userId);
         return StatusCode(result.StatusCode, result);

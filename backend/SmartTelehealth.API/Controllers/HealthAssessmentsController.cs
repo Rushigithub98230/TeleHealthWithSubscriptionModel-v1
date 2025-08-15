@@ -28,22 +28,34 @@ public class HealthAssessmentsController : ControllerBase
     }
 
     /// <summary>
-    /// Get health assessment by ID
+    /// Get user's health assessments
     /// </summary>
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetAssessment(Guid id)
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetUserAssessments(int userId)
     {
-        var response = await _healthAssessmentService.GetAssessmentByIdAsync(id);
+        var response = await _healthAssessmentService.GetUserAssessmentsAsync(userId);
         return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
-    /// Get user's health assessments
+    /// Get provider's pending assessments
     /// </summary>
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetUserAssessments(Guid userId)
+    [HttpGet("provider-assessment/{providerId}/pending")]
+    [Authorize(Roles = "Provider,Admin")]
+    public async Task<IActionResult> GetProviderPendingAssessments(int providerId)
     {
-        var response = await _healthAssessmentService.GetUserAssessmentsAsync(userId);
+        var response = await _healthAssessmentService.GetProviderPendingAssessmentsAsync(providerId);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Get provider's reviewed assessments
+    /// </summary>
+    [HttpGet("provider-assessment/{providerId}/reviewed")]
+    [Authorize(Roles = "Provider,Admin")]
+    public async Task<IActionResult> GetProviderReviewedAssessments(int providerId)
+    {
+        var response = await _healthAssessmentService.GetProviderReviewedAssessmentsAsync(providerId);
         return StatusCode(response.StatusCode, response);
     }
 
@@ -59,53 +71,63 @@ public class HealthAssessmentsController : ControllerBase
     }
 
     /// <summary>
+    /// Get health assessment by ID
+    /// </summary>
+    [HttpGet("assessment/{assessmentId}")]
+    public async Task<IActionResult> GetAssessment(Guid assessmentId)
+    {
+        var response = await _healthAssessmentService.GetAssessmentByIdAsync(assessmentId);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    /// <summary>
     /// Update health assessment
     /// </summary>
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateAssessment(Guid id, [FromBody] UpdateHealthAssessmentDto updateDto)
+    [HttpPut("assessment/{assessmentId}")]
+    public async Task<IActionResult> UpdateAssessment(Guid assessmentId, [FromBody] UpdateHealthAssessmentDto updateDto)
     {
-        var response = await _healthAssessmentService.UpdateAssessmentAsync(id, updateDto);
+        var response = await _healthAssessmentService.UpdateAssessmentAsync(assessmentId, updateDto);
         return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Delete health assessment
     /// </summary>
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteAssessment(Guid id)
+    [HttpDelete("assessment/{assessmentId}")]
+    public async Task<IActionResult> DeleteAssessment(Guid assessmentId)
     {
-        var response = await _healthAssessmentService.DeleteAssessmentAsync(id);
+        var response = await _healthAssessmentService.DeleteAssessmentAsync(assessmentId);
         return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Review health assessment (Provider only)
     /// </summary>
-    [HttpPost("{id}/review")]
+    [HttpPost("assessment/{assessmentId}/review")]
     [Authorize(Roles = "Provider,Admin")]
-    public async Task<IActionResult> ReviewAssessment(Guid id, [FromBody] ReviewAssessmentDto reviewDto)
+    public async Task<IActionResult> ReviewAssessment(Guid assessmentId, [FromBody] ReviewAssessmentDto reviewDto)
     {
-        var response = await _healthAssessmentService.ReviewAssessmentAsync(id, reviewDto.ProviderId, reviewDto.IsEligible, reviewDto.Notes);
+        var response = await _healthAssessmentService.ReviewAssessmentAsync(assessmentId, reviewDto.ProviderId, reviewDto.IsEligible, reviewDto.Notes);
         return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Complete health assessment
     /// </summary>
-    [HttpPost("{id}/complete")]
-    public async Task<IActionResult> CompleteAssessment(Guid id)
+    [HttpPost("assessment/{assessmentId}/complete")]
+    public async Task<IActionResult> CompleteAssessment(Guid assessmentId)
     {
-        var response = await _healthAssessmentService.CompleteAssessmentAsync(id);
+        var response = await _healthAssessmentService.CompleteAssessmentAsync(assessmentId);
         return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Cancel health assessment
     /// </summary>
-    [HttpPost("{id}/cancel")]
-    public async Task<IActionResult> CancelAssessment(Guid id, [FromBody] CancelAssessmentDto cancelDto)
+    [HttpPost("assessment/{assessmentId}/cancel")]
+    public async Task<IActionResult> CancelAssessment(Guid assessmentId, [FromBody] CancelAssessmentDto cancelDto)
     {
-        var response = await _healthAssessmentService.CancelAssessmentAsync(id, cancelDto.Reason);
+        var response = await _healthAssessmentService.CancelAssessmentAsync(assessmentId, cancelDto.Reason);
         return StatusCode(response.StatusCode, response);
     }
 
@@ -165,23 +187,23 @@ public class HealthAssessmentsController : ControllerBase
     /// <summary>
     /// Generate assessment report
     /// </summary>
-    [HttpGet("{id}/report")]
-    public async Task<IActionResult> GenerateAssessmentReport(Guid id)
+    [HttpGet("assessment/{assessmentId}/report")]
+    public async Task<IActionResult> GenerateAssessmentReport(Guid assessmentId)
     {
-        var response = await _healthAssessmentService.GenerateAssessmentReportAsync(id);
+        var response = await _healthAssessmentService.GenerateAssessmentReportAsync(assessmentId);
         return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Export assessment report
     /// </summary>
-    [HttpGet("{id}/export")]
-    public async Task<IActionResult> ExportAssessmentReport(Guid id, [FromQuery] string format = "pdf")
+    [HttpGet("assessment/{assessmentId}/export")]
+    public async Task<IActionResult> ExportAssessmentReport(Guid assessmentId, [FromQuery] string format = "pdf")
     {
-        var response = await _healthAssessmentService.ExportAssessmentReportAsync(id, format);
+        var response = await _healthAssessmentService.ExportAssessmentReportAsync(assessmentId, format);
         if (response.Success)
         {
-            var fileName = $"assessment-report-{id}.{format}";
+            var fileName = $"assessment-report-{assessmentId}.{format}";
             return File(response.Data ?? Array.Empty<byte>(), GetContentType(format), fileName);
         }
         return StatusCode(response.StatusCode, response);
@@ -191,42 +213,20 @@ public class HealthAssessmentsController : ControllerBase
     /// Get assessment reports for user
     /// </summary>
     [HttpGet("reports/user/{userId}")]
-    public async Task<IActionResult> GetAssessmentReports(Guid userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<IActionResult> GetAssessmentReports(int userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         var response = await _healthAssessmentService.GetAssessmentReportsAsync(userId, startDate, endDate);
         return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
-    /// Get provider's pending assessments
-    /// </summary>
-    [HttpGet("provider/{providerId}/pending")]
-    [Authorize(Roles = "Provider,Admin")]
-    public async Task<IActionResult> GetProviderPendingAssessments(Guid providerId)
-    {
-        var response = await _healthAssessmentService.GetProviderPendingAssessmentsAsync(providerId);
-        return StatusCode(response.StatusCode, response);
-    }
-
-    /// <summary>
-    /// Get provider's reviewed assessments
-    /// </summary>
-    [HttpGet("provider/{providerId}/reviewed")]
-    [Authorize(Roles = "Provider,Admin")]
-    public async Task<IActionResult> GetProviderReviewedAssessments(Guid providerId)
-    {
-        var response = await _healthAssessmentService.GetProviderReviewedAssessmentsAsync(providerId);
-        return StatusCode(response.StatusCode, response);
-    }
-
-    /// <summary>
     /// Assign assessment to provider (Admin only)
     /// </summary>
-    [HttpPost("{id}/assign")]
+    [HttpPost("assessment/{assessmentId}/assign")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> AssignAssessmentToProvider(Guid id, [FromBody] AssignAssessmentDto assignDto)
+    public async Task<IActionResult> AssignAssessmentToProvider(Guid assessmentId, [FromBody] AssignAssessmentDto assignDto)
     {
-        var response = await _healthAssessmentService.AssignAssessmentToProviderAsync(id, assignDto.ProviderId);
+        var response = await _healthAssessmentService.AssignAssessmentToProviderAsync(assessmentId, assignDto.ProviderId);
         return StatusCode(response.StatusCode, response);
     }
 
@@ -245,7 +245,7 @@ public class HealthAssessmentsController : ControllerBase
 // Supporting DTOs
 public class ReviewAssessmentDto
 {
-    public Guid ProviderId { get; set; }
+    public int ProviderId { get; set; }
     public bool IsEligible { get; set; }
     public string Notes { get; set; } = string.Empty;
 }
@@ -257,5 +257,5 @@ public class CancelAssessmentDto
 
 public class AssignAssessmentDto
 {
-    public Guid ProviderId { get; set; }
+    public int ProviderId { get; set; }
 } 

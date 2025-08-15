@@ -224,7 +224,7 @@ namespace SmartTelehealth.API.Controllers
         }
 
         [HttpGet("responses/user/{userId}")]
-        public async Task<ActionResult<ApiResponse<List<UserResponseDto>>>> GetUserResponsesByUserId(Guid userId)
+        public async Task<ActionResult<ApiResponse<List<UserResponseDto>>>> GetUserResponsesByUserId(int userId)
         {
             try
             {
@@ -240,7 +240,7 @@ namespace SmartTelehealth.API.Controllers
         }
 
         [HttpGet("responses/{userId}/{templateId}")]
-        public async Task<ActionResult<ApiResponse<UserResponseDto>>> GetUserResponse(Guid userId, Guid templateId)
+        public async Task<ActionResult<ApiResponse<UserResponseDto>>> GetUserResponse(int userId, Guid templateId)
         {
             try
             {
@@ -256,7 +256,7 @@ namespace SmartTelehealth.API.Controllers
         }
 
         [HttpGet("responses/{userId}/by-category/{categoryId}")]
-        public async Task<ActionResult<ApiResponse<List<UserResponseDto>>>> GetUserResponsesByCategory(Guid userId, Guid categoryId)
+        public async Task<ActionResult<ApiResponse<List<UserResponseDto>>>> GetUserResponsesByCategory(int userId, Guid categoryId)
         {
             try
             {

@@ -29,7 +29,7 @@ namespace SmartTelehealth.Application.Services
             return ApiResponse<List<ProviderDto>>.SuccessResponse(dtos);
         }
 
-        public async Task<ApiResponse<ProviderDto>> GetProviderByIdAsync(Guid id)
+        public async Task<ApiResponse<ProviderDto>> GetProviderByIdAsync(int id)
         {
             var provider = await _providerRepository.GetByIdAsync(id);
             if (provider == null)
@@ -47,7 +47,7 @@ namespace SmartTelehealth.Application.Services
             return ApiResponse<ProviderDto>.SuccessResponse(dto, "Provider created", 201);
         }
 
-        public async Task<ApiResponse<ProviderDto>> UpdateProviderAsync(Guid id, UpdateProviderDto updateProviderDto)
+        public async Task<ApiResponse<ProviderDto>> UpdateProviderAsync(int id, UpdateProviderDto updateProviderDto)
         {
             var existing = await _providerRepository.GetByIdAsync(id);
             if (existing == null)
@@ -59,7 +59,7 @@ namespace SmartTelehealth.Application.Services
             return ApiResponse<ProviderDto>.SuccessResponse(dto, "Provider updated");
         }
 
-        public async Task<ApiResponse<bool>> DeleteProviderAsync(Guid id)
+        public async Task<ApiResponse<bool>> DeleteProviderAsync(int id)
         {
             var result = await _providerRepository.DeleteAsync(id);
             if (!result)

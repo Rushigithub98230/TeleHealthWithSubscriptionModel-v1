@@ -581,6 +581,60 @@ namespace SmartTelehealth.Application.Services
 
         public Task SendNotificationAsync(string userId, string title, string message) => throw new NotImplementedException();
 
+        public async Task<ApiResponse<NotificationDto>> CreateInAppNotificationAsync(int userId, string title, string message)
+        {
+            try
+            {
+                // In a real implementation, this would save to a notification repository
+                var notification = new NotificationDto
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    UserId = userId.ToString(),
+                    Title = title,
+                    Message = message,
+                    Type = "InApp",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                return ApiResponse<NotificationDto>.SuccessResponse(notification);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating in-app notification for user {UserId}", userId);
+                return ApiResponse<NotificationDto>.ErrorResponse($"Failed to create in-app notification: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(int userId)
+        {
+            try
+            {
+                // In a real implementation, this would fetch from a notification repository
+                var notifications = new List<NotificationDto>();
+                return ApiResponse<IEnumerable<NotificationDto>>.SuccessResponse(notifications);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting notifications for user {UserId}", userId);
+                return ApiResponse<IEnumerable<NotificationDto>>.ErrorResponse($"Failed to get user notifications: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<int>> GetUnreadNotificationCountAsync(int userId)
+        {
+            try
+            {
+                // In a real implementation, this would fetch from a notification repository
+                var unreadCount = 0;
+                return ApiResponse<int>.SuccessResponse(unreadCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting unread notification count for user {UserId}", userId);
+                return ApiResponse<int>.ErrorResponse($"Failed to get unread notification count: {ex.Message}");
+            }
+        }
+
         public async Task SendSubscriptionSuspensionEmailAsync(string email, string userName, SubscriptionDto subscription)
         {
             // If using dependency injection, call the infrastructure service or implement logic here
@@ -595,7 +649,7 @@ namespace SmartTelehealth.Application.Services
             {
                 var notification = new CreateNotificationDto
                 {
-                    UserId = Guid.Parse(userId),
+                    UserId = int.Parse(userId),
                     Title = "Subscription Suspended",
                     Message = $"Your subscription {subscriptionId} has been suspended due to payment issues. Please update your payment method to reactivate your subscription.",
                     Type = "Warning"
@@ -616,7 +670,7 @@ namespace SmartTelehealth.Application.Services
             {
                 var notification = new CreateNotificationDto
                 {
-                    UserId = Guid.Parse(userId),
+                    UserId = int.Parse(userId),
                     Title = "Refund Processed",
                     Message = $"A refund of ${amount:F2} has been processed for billing record {billingRecordId}. The refund will appear in your account within 3-5 business days.",
                     Type = "Success"
@@ -637,7 +691,7 @@ namespace SmartTelehealth.Application.Services
             {
                 var notification = new CreateNotificationDto
                 {
-                    UserId = Guid.Parse(userId),
+                    UserId = int.Parse(userId),
                     Title = "Subscription Reactivated",
                     Message = $"Your subscription {subscriptionId} has been reactivated successfully. You now have full access to all features.",
                     Type = "Success"

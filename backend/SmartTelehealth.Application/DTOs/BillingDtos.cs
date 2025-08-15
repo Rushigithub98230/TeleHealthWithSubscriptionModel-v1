@@ -2,7 +2,7 @@ namespace SmartTelehealth.Application.DTOs;
 
 public class CreateRecurringBillingDto
 {
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public Guid SubscriptionId { get; set; }
     public decimal Amount { get; set; }
     public Guid BillingCycleId { get; set; } // Use FK instead of string
@@ -18,7 +18,7 @@ public class CreateRecurringBillingDto
 
 public class CreateUpfrontPaymentDto
 {
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public decimal Amount { get; set; }
     public string PaymentMethodId { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
@@ -29,7 +29,7 @@ public class CreateUpfrontPaymentDto
 
 public class CreateBundlePaymentDto
 {
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public List<BundleItemDto> Items { get; set; } = new List<BundleItemDto>();
     public string PaymentMethodId { get; set; } = string.Empty;
     public bool IncludeShipping { get; set; } = true;
@@ -64,7 +64,7 @@ public class BillingAdjustmentDto
 
 public class CreateInvoiceDto
 {
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public List<InvoiceItemDto> Items { get; set; } = new List<InvoiceItemDto>();
     public decimal Subtotal { get; set; }
     public decimal TaxAmount { get; set; }
@@ -90,7 +90,7 @@ public class InvoiceItemDto
 
 public class BillingSummaryDto
 {
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
     public decimal TotalBilled { get; set; }
     public decimal TotalPaid { get; set; }
@@ -136,9 +136,9 @@ public class PaymentScheduleItemDto
 public class CreateBillingCycleDto
 {
     /// <summary>
-    /// UserId must always be a Guid. The client must send a valid Guid string in JSON (e.g., "userId": "123e4567-e89b-12d3-a456-426614174000").
+    /// UserId must always be an int. The client must send a valid integer in JSON (e.g., "userId": 123).
     /// </summary>
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public CreateBillingCycleDto() { }
     public decimal Amount { get; set; }
     public DateTime DueDate { get; set; }

@@ -2,7 +2,7 @@ namespace SmartTelehealth.Application.DTOs;
 
 public class CreateProviderFeeDto
 {
-    public Guid ProviderId { get; set; }
+    public int ProviderId { get; set; }
     public Guid CategoryId { get; set; }
     public decimal ProposedFee { get; set; }
     public string? ProviderNotes { get; set; }
@@ -17,7 +17,7 @@ public class UpdateProviderFeeDto
 public class ProviderFeeDto
 {
     public Guid Id { get; set; }
-    public Guid ProviderId { get; set; }
+    public int ProviderId { get; set; }
     public string ProviderName { get; set; } = string.Empty;
     public Guid CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
@@ -28,7 +28,7 @@ public class ProviderFeeDto
     public string? ProviderNotes { get; set; }
     public DateTime? ProposedAt { get; set; }
     public DateTime? ReviewedAt { get; set; }
-    public Guid? ReviewedByUserId { get; set; }
+    public int? ReviewedByUserId { get; set; }
     public string? ReviewedByUserName { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -39,7 +39,7 @@ public class ReviewProviderFeeDto
     public string Status { get; set; } = string.Empty;
     public decimal? ApprovedFee { get; set; }
     public string? AdminRemarks { get; set; }
-    public Guid? ReviewedByUserId { get; set; }
+    public int? ReviewedByUserId { get; set; }
 }
 
 public class CategoryFeeRangeDto

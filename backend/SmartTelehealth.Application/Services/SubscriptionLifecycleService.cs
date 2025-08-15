@@ -550,7 +550,7 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
 
             // Update subscription status
             subscription.Status = newStatus;
-            subscription.UpdatedAt = DateTime.UtcNow;
+            subscription.UpdatedDate = DateTime.UtcNow;
 
             // Update status-specific properties
             await UpdateStatusSpecificPropertiesAsync(subscription, newStatus, reason);
@@ -562,7 +562,7 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
                 FromStatus = oldStatus,
                 ToStatus = newStatus,
                 Reason = reason,
-                ChangedByUserId = changedByUserId,
+                ChangedByUserId = !string.IsNullOrEmpty(changedByUserId) ? int.Parse(changedByUserId) : null,
                 ChangedAt = DateTime.UtcNow
             });
 

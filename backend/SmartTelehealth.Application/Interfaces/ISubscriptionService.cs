@@ -5,14 +5,14 @@ namespace SmartTelehealth.Application.Interfaces
     public interface ISubscriptionService
     {
         Task<ApiResponse<SubscriptionDto>> GetSubscriptionAsync(string subscriptionId);
-        Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetUserSubscriptionsAsync(string userId);
+        Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetUserSubscriptionsAsync(int userId);
         Task<ApiResponse<SubscriptionDto>> CreateSubscriptionAsync(CreateSubscriptionDto createDto);
         Task<ApiResponse<SubscriptionDto>> CancelSubscriptionAsync(string subscriptionId, string? reason = null);
         Task<ApiResponse<SubscriptionDto>> PauseSubscriptionAsync(string subscriptionId);
         Task<ApiResponse<SubscriptionDto>> ResumeSubscriptionAsync(string subscriptionId);
         Task<ApiResponse<SubscriptionDto>> GetSubscriptionByPlanIdAsync(string planId);
-        Task<ApiResponse<IEnumerable<PaymentMethodDto>>> GetPaymentMethodsAsync(string userId);
-        Task<ApiResponse<PaymentMethodDto>> AddPaymentMethodAsync(string userId, string paymentMethodId);
+        Task<ApiResponse<IEnumerable<PaymentMethodDto>>> GetPaymentMethodsAsync(int userId);
+        Task<ApiResponse<PaymentMethodDto>> AddPaymentMethodAsync(int userId, string paymentMethodId);
         
         // Missing methods from controllers
         Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetActiveSubscriptionsAsync();

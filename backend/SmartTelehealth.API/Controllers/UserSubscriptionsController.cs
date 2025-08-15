@@ -31,7 +31,7 @@ public class UserSubscriptionsController : ControllerBase
         _subscriptionService = subscriptionService;
     }
 
-    private Guid GetCurrentUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private int GetCurrentUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpGet("subscriptions")]
     public async Task<ActionResult<IEnumerable<Subscription>>> GetUserSubscriptions()
@@ -47,7 +47,7 @@ public class UserSubscriptionsController : ControllerBase
         var userId = GetCurrentUserId();
         var createDto = new CreateSubscriptionDto
         {
-            UserId = userId.ToString(),
+            UserId = userId,
             PlanId = dto.PlanId.ToString()
         };
         var result = await _subscriptionService.CreateSubscriptionAsync(createDto);

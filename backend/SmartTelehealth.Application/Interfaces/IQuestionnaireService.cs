@@ -17,9 +17,9 @@ namespace SmartTelehealth.Application.Interfaces
         Task<ApiResponse<object>> DeleteTemplateAsync(Guid id);
 
         // User responses
-        Task<ApiResponse<UserResponseDto>> GetUserResponseAsync(Guid userId, Guid templateId);
+        Task<ApiResponse<UserResponseDto>> GetUserResponseAsync(int userId, Guid templateId);
         Task<ApiResponse<UserResponseDto>> GetUserResponseByIdAsync(Guid id);
-        Task<ApiResponse<List<UserResponseDto>>> GetUserResponsesByCategoryAsync(Guid userId, Guid categoryId);
+        Task<ApiResponse<List<UserResponseDto>>> GetUserResponsesByCategoryAsync(int userId, Guid categoryId);
         Task<ApiResponse<Guid>> SubmitUserResponseAsync(CreateUserResponseDto dto);
     }
 } 

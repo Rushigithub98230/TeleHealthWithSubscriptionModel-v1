@@ -48,7 +48,7 @@ public class UpdateProviderOnboardingDto
 public class ProviderOnboardingDto
 {
     public Guid Id { get; set; }
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -72,7 +72,7 @@ public class ProviderOnboardingDto
     public string? AdminRemarks { get; set; }
     public DateTime? SubmittedAt { get; set; }
     public DateTime? ReviewedAt { get; set; }
-    public Guid? ReviewedByUserId { get; set; }
+    public int? ReviewedByUserId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

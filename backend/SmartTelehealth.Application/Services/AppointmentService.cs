@@ -56,14 +56,19 @@ public class AppointmentService : IAppointmentService
 
     // --- DOCUMENT MANAGEMENT (Updated to use centralized DocumentService) ---
     
-    public async Task<ApiResponse<DocumentDto>> UploadDocumentAsync(Guid appointmentId, UploadDocumentDto uploadDto)
+    public async Task<JsonModel> UploadDocumentAsync(Guid appointmentId, UploadDocumentDto uploadDto)
     {
         try
         {
             // Validate appointment exists
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<DocumentDto>.ErrorResponse("Appointment not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             // Use the file content directly since it's already a byte array
             var fileBytes = uploadDto.FileContent;
@@ -77,7 +82,12 @@ public class AppointmentService : IAppointmentService
 
             if (appointmentDocType == null)
             {
-                return ApiResponse<DocumentDto>.ErrorResponse("No suitable document type found for appointment documents", 400);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "No suitable document type found for appointment documents",
+                    StatusCode = 400
+                };
             }
 
             // Create upload request for centralized document service
@@ -93,7 +103,7 @@ public class AppointmentService : IAppointmentService
                 IsPublic = false,
                 IsEncrypted = false,
                 DocumentTypeId = appointmentDocType.DocumentTypeId,
-                CreatedById = appointment.PatientId // or get from current user context
+                CreatedById = null // Will be set by the document service from current user context
             };
 
             // Upload using centralized document service
@@ -106,41 +116,66 @@ public class AppointmentService : IAppointmentService
         }
         catch (Exception ex)
         {
-            return ApiResponse<DocumentDto>.ErrorResponse($"Failed to upload document: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to upload document: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<DocumentDto>>> GetAppointmentDocumentsAsync(Guid appointmentId)
+    public async Task<JsonModel> GetAppointmentDocumentsAsync(Guid appointmentId)
     {
         try
         {
             // Validate appointment exists
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse("Appointment not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             // Get documents using centralized document service
             var documentsResult = await _documentService.GetDocumentsByEntityAsync("Appointment", appointmentId);
             
             if (documentsResult.Success)
             {
-                return ApiResponse<IEnumerable<DocumentDto>>.SuccessResponse(documentsResult.Data);
+                return new JsonModel
+                {
+                    data = documentsResult.Data,
+                    Message = "Documents retrieved successfully",
+                    StatusCode = 200
+                };
             }
 
-            return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse("Failed to retrieve appointment documents");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to retrieve appointment documents",
+                StatusCode = 500
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse($"Failed to get appointment documents: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get appointment documents: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteDocumentAsync(Guid documentId)
+    public async Task<JsonModel> DeleteDocumentAsync(Guid documentId)
     {
         try
         {
             // Get current user ID from context (you'll need to implement this based on your authentication)
-            var currentUserId = Guid.Empty; // Replace with actual user ID from context
+            var currentUserId = 0; // Replace with actual user ID from context
 
             // Delete using centralized document service
             var result = await _documentService.DeleteDocumentAsync(documentId, currentUserId);
@@ -152,19 +187,29 @@ public class AppointmentService : IAppointmentService
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.ErrorResponse($"Failed to delete document: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to delete document: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
     // --- PARTICIPANT MANAGEMENT ---
-    public async Task<ApiResponse<AppointmentParticipantDto>> AddParticipantAsync(Guid appointmentId, Guid? userId, string? email, string? phone, Guid participantRoleId, Guid invitedByUserId)
+    public async Task<JsonModel> AddParticipantAsync(Guid appointmentId, int? userId, string? email, string? phone, Guid participantRoleId, int invitedByUserId)
     {
         try
         {
             // Enforce max participants
             var participants = await _participantRepository.GetByAppointmentAsync(appointmentId);
             if (participants.Count() >= DefaultMaxParticipants)
-                return ApiResponse<AppointmentParticipantDto>.ErrorResponse($"Max participants ({DefaultMaxParticipants}) reached.");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = $"Max participants ({DefaultMaxParticipants}) reached.",
+                    StatusCode = 400
+                };
 
             var participant = new AppointmentParticipant
             {
@@ -176,20 +221,30 @@ public class AppointmentService : IAppointmentService
                 ParticipantStatusId = await _participantRepository.GetStatusIdByNameAsync("Invited"), // Invited status Guid
                 InvitedAt = DateTime.UtcNow,
                 InvitedByUserId = invitedByUserId,
-                CreatedAt = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow
             };
             await _participantRepository.CreateAsync(participant);
             // Optionally send notification
-            return ApiResponse<AppointmentParticipantDto>.SuccessResponse(MapToDto(participant));
+            return new JsonModel
+            {
+                data = MapToDto(participant),
+                Message = "Participant added successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentParticipantDto>.ErrorResponse($"Failed to add participant: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to add participant: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
     // --- INVITATION MANAGEMENT ---
-    public async Task<ApiResponse<AppointmentInvitationDto>> InviteExternalAsync(Guid appointmentId, string email, string? phone, string? message, Guid invitedByUserId)
+    public async Task<JsonModel> InviteExternalAsync(Guid appointmentId, string email, string? phone, string? message, int invitedByUserId)
     {
         try
         {
@@ -202,54 +257,94 @@ public class AppointmentService : IAppointmentService
                 Message = message,
                 InvitationStatusId = await _invitationRepository.GetStatusIdByNameAsync("Pending"), // Pending status Guid
                 ExpiresAt = DateTime.UtcNow.AddHours(24),
-                CreatedAt = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow
             };
             await _invitationRepository.CreateAsync(invitation);
             // Send email/SMS with meeting link (stub)
-            return ApiResponse<AppointmentInvitationDto>.SuccessResponse(MapToDto(invitation));
+            return new JsonModel
+            {
+                data = MapToDto(invitation),
+                Message = "Invitation sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentInvitationDto>.ErrorResponse($"Failed to invite external: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to invite external: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
     // --- JOIN TRACKING ---
-    public async Task<ApiResponse<bool>> MarkParticipantJoinedAsync(Guid appointmentId, Guid? userId, string? email)
+    public async Task<JsonModel> MarkParticipantJoinedAsync(Guid appointmentId, int? userId, string? email)
     {
         try
         {
-            var participant = await _participantRepository.GetByAppointmentAndUserAsync(appointmentId, userId ?? Guid.Empty);
+            var participant = await _participantRepository.GetByAppointmentAndUserAsync(appointmentId, userId);
             if (participant == null) 
-                return ApiResponse<bool>.ErrorResponse("Participant not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Participant not found",
+                    StatusCode = 404
+                };
             
             participant.ParticipantStatusId = await _participantRepository.GetStatusIdByNameAsync("Joined"); // Joined status Guid
             participant.JoinedAt = DateTime.UtcNow;
             await _participantRepository.UpdateAsync(participant);
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel
+            {
+                data = true,
+                Message = "Participant marked as joined",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.ErrorResponse($"Failed to mark participant joined: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to mark participant joined: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> MarkParticipantLeftAsync(Guid appointmentId, Guid? userId, string? email)
+    public async Task<JsonModel> MarkParticipantLeftAsync(Guid appointmentId, int? userId, string? email)
     {
         try
         {
-            var participant = await _participantRepository.GetByAppointmentAndUserAsync(appointmentId, userId ?? Guid.Empty);
+            var participant = await _participantRepository.GetByAppointmentAndUserAsync(appointmentId, userId);
             if (participant == null) 
-                return ApiResponse<bool>.ErrorResponse("Participant not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Participant not found",
+                    StatusCode = 404
+                };
             
             participant.ParticipantStatusId = await _participantRepository.GetStatusIdByNameAsync("Left"); // Left status Guid
             participant.LeftAt = DateTime.UtcNow;
             await _participantRepository.UpdateAsync(participant);
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel
+            {
+                data = true,
+                Message = "Participant marked as left",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.ErrorResponse($"Failed to mark participant left: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to mark participant left: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
@@ -266,7 +361,7 @@ public class AppointmentService : IAppointmentService
         return appointment.OpenTokSessionId;
     }
 
-    public async Task<string> GenerateVideoTokenAsync(Guid appointmentId, Guid? userId, string? email, Guid participantRoleId)
+    public async Task<string> GenerateVideoTokenAsync(Guid appointmentId, int? userId, string? email, Guid participantRoleId)
     {
         var sessionId = await GetOrCreateVideoSessionAsync(appointmentId);
         var participantRole = await _participantRoleRepository.GetByIdAsync(participantRoleId);
@@ -276,7 +371,7 @@ public class AppointmentService : IAppointmentService
     }
 
     // --- PAYMENT MANAGEMENT ---
-    public async Task<ApiResponse<AppointmentPaymentLogDto>> CreatePaymentLogAsync(Guid appointmentId, Guid userId, decimal amount, string paymentMethod, string? paymentIntentId = null, string? sessionId = null)
+    public async Task<JsonModel> CreatePaymentLogAsync(Guid appointmentId, int userId, decimal amount, string paymentMethod, string? paymentIntentId = null, string? sessionId = null)
     {
         try
         {
@@ -292,46 +387,76 @@ public class AppointmentService : IAppointmentService
                 RefundStatusId = await _paymentLogRepository.GetStatusIdByNameAsync("None"), // None status Guid
                 Currency = "USD",
                 Description = $"Payment for appointment {appointmentId}",
-                CreatedAt = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow
             };
             await _paymentLogRepository.CreateAsync(paymentLog);
-            return ApiResponse<AppointmentPaymentLogDto>.SuccessResponse(MapToDto(paymentLog));
+            return new JsonModel
+            {
+                data = MapToDto(paymentLog),
+                Message = "Payment log created successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentPaymentLogDto>.ErrorResponse($"Failed to create payment log: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to create payment log: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentPaymentLogDto>> UpdatePaymentStatusAsync(Guid paymentLogId, Guid paymentStatusId, string? failureReason = null)
+    public async Task<JsonModel> UpdatePaymentStatusAsync(Guid paymentLogId, Guid paymentStatusId, string? failureReason = null)
     {
         try
         {
             var paymentLog = await _paymentLogRepository.GetByIdAsync(paymentLogId);
             if (paymentLog == null) 
-                return ApiResponse<AppointmentPaymentLogDto>.ErrorResponse("Payment log not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Payment log not found",
+                    StatusCode = 404
+                };
             
             paymentLog.PaymentStatusId = paymentStatusId;
             paymentLog.FailureReason = failureReason;
             paymentLog.PaymentDate = paymentStatusId == await _paymentLogRepository.GetStatusIdByNameAsync("Completed") ? DateTime.UtcNow : null; // Completed status Guid
-            paymentLog.UpdatedAt = DateTime.UtcNow;
+            paymentLog.UpdatedDate = DateTime.UtcNow;
             
             await _paymentLogRepository.UpdateAsync(paymentLog);
-            return ApiResponse<AppointmentPaymentLogDto>.SuccessResponse(MapToDto(paymentLog));
+            return new JsonModel
+            {
+                data = MapToDto(paymentLog),
+                Message = "Payment status updated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentPaymentLogDto>.ErrorResponse($"Failed to update payment status: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to update payment status: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentPaymentLogDto>> ProcessRefundAsync(Guid appointmentId, decimal refundAmount, string reason)
+    public async Task<JsonModel> ProcessRefundAsync(Guid appointmentId, decimal refundAmount, string reason)
     {
         try
         {
             var latestPayment = await _paymentLogRepository.GetLatestByAppointmentAsync(appointmentId);
             if (latestPayment == null) 
-                return ApiResponse<AppointmentPaymentLogDto>.ErrorResponse("No payment found for appointment");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "No payment found for appointment",
+                    StatusCode = 404
+                };
             
             // Process refund through Stripe
             var refundSuccess = await _stripeService.ProcessRefundAsync(latestPayment.PaymentIntentId, refundAmount);
@@ -342,7 +467,7 @@ public class AppointmentService : IAppointmentService
             latestPayment.RefundId = refundId;
             latestPayment.RefundReason = reason;
             latestPayment.RefundDate = DateTime.UtcNow;
-            latestPayment.UpdatedAt = DateTime.UtcNow;
+                            latestPayment.UpdatedDate = DateTime.UtcNow;
             
             if (refundAmount >= latestPayment.Amount)
             {
@@ -354,11 +479,21 @@ public class AppointmentService : IAppointmentService
             }
             
             await _paymentLogRepository.UpdateAsync(latestPayment);
-            return ApiResponse<AppointmentPaymentLogDto>.SuccessResponse(MapToDto(latestPayment));
+            return new JsonModel
+            {
+                data = MapToDto(latestPayment),
+                Message = "Refund processed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentPaymentLogDto>.ErrorResponse($"Failed to process refund: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to process refund: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
@@ -390,8 +525,8 @@ public class AppointmentService : IAppointmentService
             LastSeenAt = p.LastSeenAt,
             InvitedByUserId = p.InvitedByUserId?.ToString(),
             InvitedByUserName = p.InvitedByUser?.FirstName + " " + p.InvitedByUser?.LastName,
-            CreatedAt = p.CreatedAt,
-            UpdatedAt = p.UpdatedAt
+            CreatedAt = p.CreatedDate ?? DateTime.UtcNow,
+            UpdatedAt = p.UpdatedDate ?? DateTime.UtcNow
         };
     }
 
@@ -411,7 +546,7 @@ public class AppointmentService : IAppointmentService
             InvitationStatusName = i.InvitationStatus?.Name ?? "",
             Message = i.Message,
             ExpiresAt = i.ExpiresAt,
-            CreatedAt = i.CreatedAt,
+            CreatedAt = i.CreatedDate ?? DateTime.UtcNow,
             RespondedAt = i.RespondedAt
         };
     }
@@ -440,20 +575,20 @@ public class AppointmentService : IAppointmentService
             RefundReason = p.RefundReason,
             PaymentDate = p.PaymentDate,
             RefundDate = p.RefundDate,
-            CreatedAt = p.CreatedAt,
-            UpdatedAt = p.UpdatedAt
+            CreatedAt = p.CreatedDate ?? DateTime.UtcNow,
+            UpdatedAt = p.UpdatedDate ?? DateTime.UtcNow
         };
     }
 
     // --- APPOINTMENT CRUD OPERATIONS ---
-    public async Task<ApiResponse<AppointmentDto>> CreateAppointmentAsync(CreateAppointmentDto createDto)
+    public async Task<JsonModel> CreateAppointmentAsync(CreateAppointmentDto createDto)
     {
         try
         {
             var appointment = new Appointment
             {
-                PatientId = Guid.Parse(createDto.PatientId),
-                ProviderId = Guid.Parse(createDto.ProviderId),
+                PatientId = int.Parse(createDto.PatientId),
+                ProviderId = int.Parse(createDto.ProviderId),
                 CategoryId = Guid.Parse(createDto.CategoryId),
                 SubscriptionId = Guid.TryParse(createDto.SubscriptionId, out var subId) ? subId : (Guid?)null,
                 ConsultationId = Guid.TryParse(createDto.ConsultationId, out var consId) ? consId : (Guid?)null,
@@ -468,77 +603,132 @@ public class AppointmentService : IAppointmentService
                 IsRecordingEnabled = createDto.IsRecordingEnabled,
                 ExpiresAt = !string.IsNullOrEmpty(createDto.ExpiresAt) ? DateTime.Parse(createDto.ExpiresAt) : DateTime.UtcNow.AddDays(1),
                 AppointmentStatusId = await _appointmentRepository.GetStatusIdByNameAsync("Pending"), // Pending status Guid
-                CreatedAt = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow
             };
 
             await _appointmentRepository.CreateAsync(appointment);
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Appointment created successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to create appointment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to create appointment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentDto>> GetAppointmentByIdAsync(Guid id)
+    public async Task<JsonModel> GetAppointmentByIdAsync(Guid id)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(id);
             if (appointment == null)
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Appointment retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to get appointment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get appointment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<AppointmentDto>>> GetPatientAppointmentsAsync(Guid patientId)
+    public async Task<JsonModel> GetPatientAppointmentsAsync(int patientId)
     {
         try
         {
             var appointments = await _appointmentRepository.GetByPatientAsync(patientId);
             var appointmentDtos = appointments.Select(MapToDto);
-            return ApiResponse<IEnumerable<AppointmentDto>>.SuccessResponse(appointmentDtos);
+            return new JsonModel
+            {
+                data = appointmentDtos,
+                Message = "Patient appointments retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<AppointmentDto>>.ErrorResponse($"Failed to get patient appointments: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get patient appointments: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<AppointmentDto>>> GetProviderAppointmentsAsync(Guid providerId)
+    public async Task<JsonModel> GetProviderAppointmentsAsync(int providerId)
     {
         try
         {
             var appointments = await _appointmentRepository.GetByProviderAsync(providerId);
             var appointmentDtos = appointments.Select(MapToDto);
-            return ApiResponse<IEnumerable<AppointmentDto>>.SuccessResponse(appointmentDtos);
+            return new JsonModel
+            {
+                data = appointmentDtos,
+                Message = "Provider appointments retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<AppointmentDto>>.ErrorResponse($"Failed to get provider appointments: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get provider appointments: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<AppointmentDto>>> GetPendingAppointmentsAsync()
+    public async Task<JsonModel> GetPendingAppointmentsAsync()
     {
         try
         {
             var appointments = await _appointmentRepository.GetByStatusAsync(await _appointmentRepository.GetStatusIdByNameAsync("Pending")); // Pending status Guid
             var appointmentDtos = appointments.Select(MapToDto);
-            return ApiResponse<IEnumerable<AppointmentDto>>.SuccessResponse(appointmentDtos);
+            return new JsonModel
+            {
+                data = appointmentDtos,
+                Message = "Pending appointments retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<AppointmentDto>>.ErrorResponse($"Failed to get pending appointments: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get pending appointments: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentDto>> UpdateAppointmentAsync(Guid id, UpdateAppointmentDto updateDto)
+    public async Task<JsonModel> UpdateAppointmentAsync(Guid id, UpdateAppointmentDto updateDto)
     {
         try
         {
@@ -581,36 +771,61 @@ public class AppointmentService : IAppointmentService
             if (updateDto.LastReminderSent.HasValue)
                 appointment.LastReminderSent = updateDto.LastReminderSent.Value;
 
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedDate = DateTime.UtcNow;
             await _appointmentRepository.UpdateAsync(appointment);
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Appointment updated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to update appointment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to update appointment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteAppointmentAsync(Guid id)
+    public async Task<JsonModel> DeleteAppointmentAsync(Guid id)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(id);
             if (appointment == null)
-                return ApiResponse<bool>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             await _appointmentRepository.DeleteAsync(id);
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel
+            {
+                data = true,
+                Message = "Appointment deleted successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.ErrorResponse($"Failed to delete appointment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to delete appointment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
     // --- APPOINTMENT FLOW MANAGEMENT ---
-    public async Task<ApiResponse<AppointmentDto>> BookAppointmentAsync(BookAppointmentDto bookDto)
+    public async Task<JsonModel> BookAppointmentAsync(BookAppointmentDto bookDto)
     {
         try
         {
@@ -636,7 +851,7 @@ public class AppointmentService : IAppointmentService
                 return result;
 
             // Calculate fee
-            var fee = await CalculateAppointmentFeeAsync(Guid.Parse(bookDto.PatientId), Guid.Parse(bookDto.ProviderId), Guid.Parse(bookDto.CategoryId));
+            var fee = await CalculateAppointmentFeeAsync(int.Parse(bookDto.PatientId), int.Parse(bookDto.ProviderId), Guid.Parse(bookDto.CategoryId));
             if (fee.Success)
             {
                 var appointment = result.Data;
@@ -650,17 +865,27 @@ public class AppointmentService : IAppointmentService
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to book appointment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to book appointment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentDto>> ProcessPaymentAsync(Guid appointmentId, ProcessPaymentDto paymentDto)
+    public async Task<JsonModel> ProcessPaymentAsync(Guid appointmentId, ProcessPaymentDto paymentDto)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             // Create payment log
             var paymentLog = await CreatePaymentLogAsync(appointmentId, appointment.PatientId, paymentDto.Amount, paymentDto.PaymentMethod, paymentDto.PaymentIntentId, paymentDto.SessionId);
@@ -668,24 +893,39 @@ public class AppointmentService : IAppointmentService
             // Update appointment payment info
             appointment.StripePaymentIntentId = paymentDto.PaymentIntentId;
             appointment.StripeSessionId = paymentDto.SessionId;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedDate = DateTime.UtcNow;
             await _appointmentRepository.UpdateAsync(appointment);
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Payment processed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to process payment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to process payment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentDto>> ConfirmPaymentAsync(Guid appointmentId, string paymentIntentId)
+    public async Task<JsonModel> ConfirmPaymentAsync(Guid appointmentId, string paymentIntentId)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null) 
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             // Update payment status
             var paymentLog = await _paymentLogRepository.FindByPaymentIntentIdAsync(paymentIntentId);
@@ -695,26 +935,41 @@ public class AppointmentService : IAppointmentService
             }
 
             // Update appointment status
-            appointment.AppointmentStatusId = await _appointmentRepository.GetStatusIdByNameAsync("Approved"); // Approved status Guid
+            appointment.AppointmentStatusId = await _appointmentRepository.GetByIdAsync("Approved"); // Approved status Guid
             appointment.IsPaymentCaptured = true;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedDate = DateTime.UtcNow;
             await _appointmentRepository.UpdateAsync(appointment);
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Payment confirmed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to confirm payment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to confirm payment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentDto>> ProviderActionAsync(Guid appointmentId, string action, string? notes = null)
+    public async Task<JsonModel> ProviderActionAsync(Guid appointmentId, string action, string? notes = null)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null) 
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             switch (action.ToLower())
             {
@@ -736,20 +991,35 @@ public class AppointmentService : IAppointmentService
                     appointment.AppointmentStatusId = await _appointmentRepository.GetStatusIdByNameAsync("Cancelled"); // Cancelled status Guid
                     break;
                 default:
-                    return ApiResponse<AppointmentDto>.ErrorResponse($"Unknown action: {action}");
+                    return new JsonModel
+                    {
+                        data = new object(),
+                        Message = $"Unknown action: {action}",
+                        StatusCode = 400
+                    };
             }
 
             if (!string.IsNullOrEmpty(notes))
                 appointment.ProviderNotes = notes;
 
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedDate = DateTime.UtcNow;
             await _appointmentRepository.UpdateAsync(appointment);
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Provider action completed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to perform provider action: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to perform provider action: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
@@ -806,8 +1076,8 @@ public class AppointmentService : IAppointmentService
             LastReminderSent = a.LastReminderSent,
             ExpiresAt = a.ExpiresAt,
             AutoCancellationAt = a.AutoCancellationAt,
-            CreatedAt = a.CreatedAt,
-            UpdatedAt = a.UpdatedAt,
+            CreatedAt = a.CreatedDate ?? DateTime.UtcNow,
+            UpdatedAt = a.UpdatedDate ?? DateTime.UtcNow,
             IsActive = a.IsActive,
             IsCompleted = a.IsCompleted,
             IsCancelled = a.IsCancelled,
@@ -819,48 +1089,78 @@ public class AppointmentService : IAppointmentService
         };
     }
 
-    public async Task<ApiResponse<IEnumerable<AppointmentParticipantDto>>> GetParticipantsAsync(Guid appointmentId)
+    public async Task<JsonModel> GetParticipantsAsync(Guid appointmentId)
     {
         try
         {
             var participants = await _participantRepository.GetByAppointmentAsync(appointmentId);
-            return ApiResponse<IEnumerable<AppointmentParticipantDto>>.SuccessResponse(participants.Select(MapToDto));
+            return new JsonModel
+            {
+                data = participants.Select(MapToDto),
+                Message = "Participants retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<AppointmentParticipantDto>>.ErrorResponse($"Failed to get participants: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get participants: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<AppointmentPaymentLogDto>>> GetPaymentLogsAsync(Guid appointmentId)
+    public async Task<JsonModel> GetPaymentLogsAsync(Guid appointmentId)
     {
         try
         {
             var paymentLogs = await _paymentLogRepository.GetByAppointmentAsync(appointmentId);
-            return ApiResponse<IEnumerable<AppointmentPaymentLogDto>>.SuccessResponse(paymentLogs.Select(MapToDto));
+            return new JsonModel
+            {
+                data = paymentLogs.Select(MapToDto),
+                Message = "Payment logs retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<AppointmentPaymentLogDto>>.ErrorResponse($"Failed to get payment logs: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get payment logs: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
     // --- STUB IMPLEMENTATIONS FOR INTERFACE METHODS ---
-    public async Task<ApiResponse<AppointmentDto>> ProviderAcceptAppointmentAsync(Guid appointmentId, SmartTelehealth.Application.DTOs.ProviderAcceptDto acceptDto)
+    public async Task<JsonModel> ProviderAcceptAppointmentAsync(Guid appointmentId, SmartTelehealth.Application.DTOs.ProviderAcceptDto acceptDto)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             if (appointment.AppointmentStatusId != await _appointmentRepository.GetStatusIdByNameAsync("Pending")) // Pending status Guid
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment is not in pending status");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment is not in pending status",
+                    StatusCode = 400
+                };
 
             // Update appointment status to accepted
             appointment.AppointmentStatusId = await _appointmentRepository.GetStatusIdByNameAsync("Accepted"); // Accepted status Guid
             appointment.ProviderNotes = acceptDto.ProviderNotes;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedDate = DateTime.UtcNow;
             appointment.AcceptedAt = DateTime.UtcNow;
 
             await _appointmentRepository.UpdateAsync(appointment);
@@ -868,29 +1168,49 @@ public class AppointmentService : IAppointmentService
             // Send notification to patient
             // await _notificationService.SendAppointmentAcceptedNotificationAsync(appointment.PatientId, appointmentId);
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Appointment accepted successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to accept appointment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to accept appointment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentDto>> ProviderRejectAppointmentAsync(Guid appointmentId, SmartTelehealth.Application.DTOs.ProviderRejectDto rejectDto)
+    public async Task<JsonModel> ProviderRejectAppointmentAsync(Guid appointmentId, SmartTelehealth.Application.DTOs.ProviderRejectDto rejectDto)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             if (appointment.AppointmentStatusId != await _appointmentRepository.GetStatusIdByNameAsync("Pending")) // Pending status Guid
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment is not in pending status");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment is not in pending status",
+                    StatusCode = 400
+                };
 
             // Update appointment status to rejected
             appointment.AppointmentStatusId = await _appointmentRepository.GetStatusIdByNameAsync("Rejected"); // Rejected status Guid
             appointment.ProviderNotes = rejectDto.Reason;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedDate = DateTime.UtcNow;
             appointment.RejectedAt = DateTime.UtcNow;
 
             await _appointmentRepository.UpdateAsync(appointment);
@@ -898,29 +1218,49 @@ public class AppointmentService : IAppointmentService
             // Send notification to patient
             // await _notificationService.SendAppointmentRejectedNotificationAsync(appointment.PatientId, appointmentId, rejectDto.Reason);
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Appointment rejected successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to reject appointment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to reject appointment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentDto>> StartMeetingAsync(Guid appointmentId)
+    public async Task<JsonModel> StartMeetingAsync(Guid appointmentId)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             if (appointment.AppointmentStatusId != await _appointmentRepository.GetStatusIdByNameAsync("Accepted")) // Accepted status Guid
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment must be accepted before starting");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment must be accepted before starting",
+                    StatusCode = 400
+                };
 
             // Update appointment status to in progress
             appointment.AppointmentStatusId = await _appointmentRepository.GetStatusIdByNameAsync("InMeeting"); // In Progress status Guid
             appointment.StartedAt = DateTime.UtcNow;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedDate = DateTime.UtcNow;
 
             // Create or get video session
             var sessionId = await GetOrCreateVideoSessionAsync(appointmentId);
@@ -931,58 +1271,98 @@ public class AppointmentService : IAppointmentService
             // Send notification to participants
             // await _notificationService.SendMeetingStartedNotificationAsync(appointmentId);
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Meeting started successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to start meeting: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to start meeting: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentDto>> EndMeetingAsync(Guid appointmentId)
+    public async Task<JsonModel> EndMeetingAsync(Guid appointmentId)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             if (appointment.AppointmentStatusId != await _appointmentRepository.GetStatusIdByNameAsync("InMeeting")) // In Progress status Guid
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment is not in progress");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment is not in progress",
+                    StatusCode = 400
+                };
 
             // Update appointment status to ended
             appointment.AppointmentStatusId = await _appointmentRepository.GetStatusIdByNameAsync("Ended"); // Ended status Guid
             appointment.EndedAt = DateTime.UtcNow;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedDate = DateTime.UtcNow;
 
             await _appointmentRepository.UpdateAsync(appointment);
 
             // Send notification to participants
             // await _notificationService.SendMeetingEndedNotificationAsync(appointmentId);
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Meeting ended successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to end meeting: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to end meeting: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentDto>> CompleteAppointmentAsync(Guid appointmentId, SmartTelehealth.Application.DTOs.CompleteAppointmentDto completeDto)
+    public async Task<JsonModel> CompleteAppointmentAsync(Guid appointmentId, SmartTelehealth.Application.DTOs.CompleteAppointmentDto completeDto)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             if (appointment.AppointmentStatusId != await _appointmentRepository.GetStatusIdByNameAsync("InMeeting") && appointment.AppointmentStatusId != await _appointmentRepository.GetStatusIdByNameAsync("Ended")) // In Progress or Ended status Guid
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment must be in progress or ended to complete");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment must be in progress or ended to complete",
+                    StatusCode = 400
+                };
 
             // Update appointment status to completed
             appointment.AppointmentStatusId = await _appointmentRepository.GetStatusIdByNameAsync("Completed"); // Completed status Guid
             appointment.CompletedAt = DateTime.UtcNow;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedDate = DateTime.UtcNow;
             appointment.ProviderNotes = completeDto.ProviderNotes;
             appointment.Diagnosis = completeDto.Diagnosis;
             appointment.Prescription = completeDto.Prescription;
@@ -993,29 +1373,49 @@ public class AppointmentService : IAppointmentService
             // Send notification to patient
             // await _notificationService.SendAppointmentCompletedNotificationAsync(appointment.PatientId, appointmentId);
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Appointment completed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to complete appointment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to complete appointment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<AppointmentDto>> CancelAppointmentAsync(Guid appointmentId, string reason)
+    public async Task<JsonModel> CancelAppointmentAsync(Guid appointmentId, string reason)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             if (appointment.AppointmentStatusId == await _appointmentRepository.GetStatusIdByNameAsync("Completed")) // Completed status Guid
-                return ApiResponse<AppointmentDto>.ErrorResponse("Cannot cancel completed appointment");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Cannot cancel completed appointment",
+                    StatusCode = 400
+                };
 
             // Update appointment status to cancelled
             appointment.AppointmentStatusId = await _appointmentRepository.GetStatusIdByNameAsync("Cancelled"); // Cancelled status Guid
             appointment.CancelledAt = DateTime.UtcNow;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedDate = DateTime.UtcNow;
             appointment.CancellationReason = reason;
 
             await _appointmentRepository.UpdateAsync(appointment);
@@ -1023,21 +1423,36 @@ public class AppointmentService : IAppointmentService
             // Send notification to participants
             // await _notificationService.SendAppointmentCancelledNotificationAsync(appointmentId, reason);
 
-            return ApiResponse<AppointmentDto>.SuccessResponse(MapToDto(appointment));
+            return new JsonModel
+            {
+                data = MapToDto(appointment),
+                Message = "Appointment cancelled successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<AppointmentDto>.ErrorResponse($"Failed to cancel appointment: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to cancel appointment: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<string>> GenerateMeetingLinkAsync(Guid appointmentId)
+    public async Task<JsonModel> GenerateMeetingLinkAsync(Guid appointmentId)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<string>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             // Create or get video session
             var sessionId = await GetOrCreateVideoSessionAsync(appointmentId);
@@ -1045,107 +1460,137 @@ public class AppointmentService : IAppointmentService
             // Generate meeting URL
             var meetingUrl = $"/meeting/{appointmentId}?session={sessionId}";
             
-            return ApiResponse<string>.SuccessResponse(meetingUrl);
+            return new JsonModel
+            {
+                data = meetingUrl,
+                Message = "Meeting link generated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<string>.ErrorResponse($"Failed to generate meeting link: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to generate meeting link: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<string>> GetOpenTokTokenAsync(Guid appointmentId, Guid userId)
+    public async Task<JsonModel> GetOpenTokTokenAsync(Guid appointmentId, int userId)
     {
         try
         {
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
             if (appointment == null)
-                return ApiResponse<string>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
             // Get user details
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<string>.ErrorResponse("User not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "User not found",
+                    StatusCode = 404
+                };
 
             // Generate token for the user
             var participantRole = await _participantRoleRepository.GetByIdAsync(Guid.Parse("00000000-0000-0000-0000-000000000001")); // Default role
             var openTokRole = MapParticipantRoleNameToOpenTokRole(participantRole.Name);
             var token = await GenerateVideoTokenAsync(appointmentId, userId, user.Email, participantRole.Id);
             
-            return ApiResponse<string>.SuccessResponse(token);
+            return new JsonModel
+            {
+                data = token,
+                Message = "OpenTok token generated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<string>.ErrorResponse($"Failed to get OpenTok token: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get OpenTok token: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public Task<ApiResponse<bool>> StartRecordingAsync(Guid appointmentId)
+    public Task<JsonModel> StartRecordingAsync(Guid appointmentId)
     {
         // TODO: Implement start recording
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<bool>> StopRecordingAsync(Guid appointmentId)
+    public Task<JsonModel> StopRecordingAsync(Guid appointmentId)
     {
         // TODO: Implement stop recording
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<string>> GetRecordingUrlAsync(Guid appointmentId)
+    public Task<JsonModel> GetRecordingUrlAsync(Guid appointmentId)
     {
         // TODO: Implement get recording URL
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<bool>> CapturePaymentAsync(Guid appointmentId)
+    public Task<JsonModel> CapturePaymentAsync(Guid appointmentId)
     {
         // TODO: Implement capture payment
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<bool>> RefundPaymentAsync(Guid appointmentId, decimal? amount = null)
+    public Task<JsonModel> RefundPaymentAsync(Guid appointmentId, decimal? amount = null)
     {
         // TODO: Implement refund payment
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<PaymentStatusDto>> GetPaymentStatusAsync(Guid appointmentId)
+    public Task<JsonModel> GetPaymentStatusAsync(Guid appointmentId)
     {
         // TODO: Implement get payment status
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<AppointmentReminderDto>> ScheduleReminderAsync(Guid appointmentId, ScheduleReminderDto reminderDto)
+    public Task<JsonModel> ScheduleReminderAsync(Guid appointmentId, ScheduleReminderDto reminderDto)
     {
         // TODO: Implement schedule reminder
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<IEnumerable<AppointmentReminderDto>>> GetAppointmentRemindersAsync(Guid appointmentId)
+    public Task<JsonModel> GetAppointmentRemindersAsync(Guid appointmentId)
     {
         // TODO: Implement get appointment reminders
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<bool>> SendReminderAsync(Guid reminderId)
+    public Task<JsonModel> SendReminderAsync(Guid reminderId)
     {
         // TODO: Implement send reminder
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<bool>> LogAppointmentEventAsync(Guid appointmentId, LogAppointmentEventDto eventDto)
+    public Task<JsonModel> LogAppointmentEventAsync(Guid appointmentId, LogAppointmentEventDto eventDto)
     {
         // TODO: Implement log appointment event
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<IEnumerable<AppointmentEventDto>>> GetAppointmentEventsAsync(Guid appointmentId)
+    public Task<JsonModel> GetAppointmentEventsAsync(Guid appointmentId)
     {
         // TODO: Implement get appointment events
         throw new NotImplementedException();
     }
 
-    public async Task<ApiResponse<IEnumerable<ProviderAvailabilityDto>>> GetProviderAvailabilityAsync(Guid providerId, DateTime date)
+    public async Task<JsonModel> GetProviderAvailabilityAsync(Guid providerId, DateTime date)
     {
         try
         {
@@ -1162,111 +1607,161 @@ public class AppointmentService : IAppointmentService
                 }
             };
             
-            return ApiResponse<IEnumerable<ProviderAvailabilityDto>>.SuccessResponse(availability);
+            return new JsonModel
+            {
+                data = availability,
+                Message = "Provider availability retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<ProviderAvailabilityDto>>.ErrorResponse($"Failed to get provider availability: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get provider availability: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public Task<ApiResponse<bool>> CheckProviderAvailabilityAsync(Guid providerId, DateTime startTime, DateTime endTime)
+    public Task<JsonModel> CheckProviderAvailabilityAsync(Guid providerId, DateTime startTime, DateTime endTime)
     {
         // TODO: Implement check provider availability
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<bool>> ValidateSubscriptionAccessAsync(Guid patientId, Guid categoryId)
+    public Task<JsonModel> ValidateSubscriptionAccessAsync(Guid patientId, Guid categoryId)
     {
         // TODO: Implement validate subscription access
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<decimal>> CalculateAppointmentFeeAsync(Guid patientId, Guid providerId, Guid categoryId)
+    public Task<JsonModel> CalculateAppointmentFeeAsync(int patientId, int providerId, Guid categoryId)
     {
         // TODO: Implement calculate appointment fee
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<bool>> ApplySubscriptionDiscountAsync(Guid appointmentId)
+    public Task<JsonModel> ApplySubscriptionDiscountAsync(Guid appointmentId)
     {
         // TODO: Implement apply subscription discount
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<bool>> ProcessExpiredAppointmentsAsync()
+    public Task<JsonModel> ProcessExpiredAppointmentsAsync()
     {
         // TODO: Implement process expired appointments
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<bool>> AutoCancelAppointmentAsync(Guid appointmentId)
+    public Task<JsonModel> AutoCancelAppointmentAsync(Guid appointmentId)
     {
         // TODO: Implement auto cancel appointment
         throw new NotImplementedException();
     }
 
-    public Task<ApiResponse<AppointmentAnalyticsDto>> GetAppointmentAnalyticsAsync(DateTime startDate, DateTime endDate)
+    public Task<JsonModel> GetAppointmentAnalyticsAsync(DateTime startDate, DateTime endDate)
     {
         // TODO: Implement get appointment analytics
         throw new NotImplementedException();
     }
 
-    public async Task<ApiResponse<IEnumerable<AppointmentDto>>> GetAppointmentsByStatusAsync(Guid appointmentStatusId)
+    public async Task<JsonModel> GetAppointmentsByStatusAsync(Guid appointmentStatusId)
     {
         try
         {
             var appointments = await _appointmentRepository.GetByStatusAsync(appointmentStatusId);
             var appointmentDtos = appointments.Select(MapToDto);
-            return ApiResponse<IEnumerable<AppointmentDto>>.SuccessResponse(appointmentDtos);
+            return new JsonModel
+            {
+                data = appointmentDtos,
+                Message = "Appointments by status retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<AppointmentDto>>.ErrorResponse($"Failed to get appointments by status: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get appointments by status: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<AppointmentDto>>> GetUpcomingAppointmentsAsync()
+    public async Task<JsonModel> GetUpcomingAppointmentsAsync()
     {
         try
         {
             var appointments = await _appointmentRepository.GetUpcomingAsync();
             var appointmentDtos = appointments.Select(MapToDto);
-            return ApiResponse<IEnumerable<AppointmentDto>>.SuccessResponse(appointmentDtos);
+            return new JsonModel
+            {
+                data = appointmentDtos,
+                Message = "Upcoming appointments retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<AppointmentDto>>.ErrorResponse($"Failed to get upcoming appointments: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get upcoming appointments: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<CategoryWithSubscriptionsDto>>> GetCategoriesWithSubscriptionsAsync()
+    public async Task<JsonModel> GetCategoriesWithSubscriptionsAsync()
     {
         try
         {
             // TODO: Implement actual logic
-            return ApiResponse<IEnumerable<CategoryWithSubscriptionsDto>>.SuccessResponse(new List<CategoryWithSubscriptionsDto>());
+            return new JsonModel
+            {
+                data = new List<CategoryWithSubscriptionsDto>(),
+                Message = "Categories with subscriptions retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<CategoryWithSubscriptionsDto>>.ErrorResponse($"Failed to get categories with subscriptions: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get categories with subscriptions: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<FeaturedProviderDto>>> GetFeaturedProvidersAsync()
+    public async Task<JsonModel> GetFeaturedProvidersAsync()
     {
         try
         {
             // TODO: Implement actual logic
-            return ApiResponse<IEnumerable<FeaturedProviderDto>>.SuccessResponse(new List<FeaturedProviderDto>());
+            return new JsonModel
+            {
+                data = new List<FeaturedProviderDto>(),
+                Message = "Featured providers retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
-            return ApiResponse<IEnumerable<FeaturedProviderDto>>.ErrorResponse($"Failed to get featured providers: {ex.Message}");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = $"Failed to get featured providers: {ex.Message}",
+                StatusCode = 500
+            };
         }
     }
 
-    public Task<ApiResponse<bool>> IsAppointmentServiceHealthyAsync()
+    public Task<JsonModel> IsAppointmentServiceHealthyAsync()
     {
         // TODO: Implement health check
         throw new NotImplementedException();

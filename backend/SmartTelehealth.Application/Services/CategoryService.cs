@@ -26,132 +26,132 @@ public class CategoryService : ICategoryService
         _logger = logger;
     }
     
-    public async Task<ApiResponse<CategoryDto>> GetCategoryAsync(Guid id)
+    public async Task<JsonModel> GetCategoryAsync(Guid id)
     {
         try
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null)
-                return ApiResponse<CategoryDto>.ErrorResponse("Category not found", 404);
+                return new JsonModel { data = new object(), Message = "Category not found", StatusCode = 404 };
             
             var categoryDto = _mapper.Map<CategoryDto>(category);
-            return ApiResponse<CategoryDto>.SuccessResponse(categoryDto, "Category retrieved successfully");
+            return new JsonModel { data = categoryDto, Message = "Category retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting category {Id}", id);
-            return ApiResponse<CategoryDto>.ErrorResponse("An error occurred while retrieving the category", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving the category", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<IEnumerable<CategoryDto>>> GetAllCategoriesAsync()
+    public async Task<JsonModel> GetAllCategoriesAsync()
     {
         try
         {
             var categories = await _categoryRepository.GetAllActiveAsync();
             var categoryDtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
-            return ApiResponse<IEnumerable<CategoryDto>>.SuccessResponse(categoryDtos, "Categories retrieved successfully");
+            return new JsonModel { data = categoryDtos, Message = "Categories retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all categories");
-            return ApiResponse<IEnumerable<CategoryDto>>.ErrorResponse("An error occurred while retrieving categories", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving categories", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<IEnumerable<CategoryDto>>> GetActiveCategoriesAsync()
+    public async Task<JsonModel> GetActiveCategoriesAsync()
     {
         try
         {
             var categories = await _categoryRepository.GetAllActiveAsync();
             var categoryDtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
-            return ApiResponse<IEnumerable<CategoryDto>>.SuccessResponse(categoryDtos, "Active categories retrieved successfully");
+            return new JsonModel { data = categoryDtos, Message = "Active categories retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting active categories");
-            return ApiResponse<IEnumerable<CategoryDto>>.ErrorResponse("An error occurred while retrieving active categories", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving active categories", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<CategoryDto>> CreateCategoryAsync(CreateCategoryDto createDto)
+    public async Task<JsonModel> CreateCategoryAsync(CreateCategoryDto createDto)
     {
         try
         {
             var category = _mapper.Map<Category>(createDto);
-            category.CreatedAt = DateTime.UtcNow;
-            category.UpdatedAt = DateTime.UtcNow;
+            category.CreatedDate = DateTime.UtcNow;
+            category.UpdatedDate = DateTime.UtcNow;
             
             var createdCategory = await _categoryRepository.CreateAsync(category);
             var categoryDto = _mapper.Map<CategoryDto>(createdCategory);
-            return ApiResponse<CategoryDto>.SuccessResponse(categoryDto, "Category created successfully", 201);
+            return new JsonModel { data = categoryDto, Message = "Category created successfully", StatusCode = 201 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating category");
-            return ApiResponse<CategoryDto>.ErrorResponse("An error occurred while creating the category", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while creating the category", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<CategoryDto>> UpdateCategoryAsync(Guid id, UpdateCategoryDto updateDto)
+    public async Task<JsonModel> UpdateCategoryAsync(Guid id, UpdateCategoryDto updateDto)
     {
         try
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null)
-                return ApiResponse<CategoryDto>.ErrorResponse("Category not found", 404);
+                return new JsonModel { data = new object(), Message = "Category not found", StatusCode = 404 };
             
             _mapper.Map(updateDto, category);
-            category.UpdatedAt = DateTime.UtcNow;
+            category.UpdatedDate = DateTime.UtcNow;
             
             var updatedCategory = await _categoryRepository.UpdateAsync(category);
             var categoryDto = _mapper.Map<CategoryDto>(updatedCategory);
-            return ApiResponse<CategoryDto>.SuccessResponse(categoryDto, "Category updated successfully");
+            return new JsonModel { data = categoryDto, Message = "Category updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating category {Id}", id);
-            return ApiResponse<CategoryDto>.ErrorResponse("An error occurred while updating the category", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while updating the category", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<object>> DeleteCategoryAsync(Guid id)
+    public async Task<JsonModel> DeleteCategoryAsync(Guid id)
     {
         try
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null)
-                return ApiResponse<object>.ErrorResponse("Category not found", 404);
+                return new JsonModel { data = new object(), Message = "Category not found", StatusCode = 404 };
             
             var result = await _categoryRepository.DeleteAsync(id);
             if (!result)
-                return ApiResponse<object>.ErrorResponse("Failed to delete category", 500);
+                return new JsonModel { data = new object(), Message = "Failed to delete category", StatusCode = 500 };
             
-            return ApiResponse<object>.SuccessResponse(null, "Category deleted successfully");
+            return new JsonModel { data = null, Message = "Category deleted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting category {Id}", id);
-            return ApiResponse<object>.ErrorResponse("An error occurred while deleting the category", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while deleting the category", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<bool>> ExistsAsync(Guid id)
+    public async Task<JsonModel> ExistsAsync(Guid id)
     {
         try
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             var exists = category != null;
-            return ApiResponse<bool>.SuccessResponse(exists, "Category existence checked successfully");
+            return new JsonModel { data = exists, Message = "Category existence checked successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if category exists {Id}", id);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while checking category existence", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while checking category existence", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<IEnumerable<CategoryDto>>> SearchCategoriesAsync(string searchTerm)
+    public async Task<JsonModel> SearchCategoriesAsync(string searchTerm)
     {
         try
         {
@@ -160,47 +160,47 @@ public class CategoryService : ICategoryService
                 .Where(c => c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                            c.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
             
-            return ApiResponse<IEnumerable<CategoryDto>>.SuccessResponse(filteredCategories, "Categories searched successfully");
+            return new JsonModel { data = filteredCategories, Message = "Categories searched successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error searching categories with term {SearchTerm}", searchTerm);
-            return ApiResponse<IEnumerable<CategoryDto>>.ErrorResponse("An error occurred while searching categories", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while searching categories", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<IEnumerable<SubscriptionPlanDto>>> GetCategoryPlansAsync(Guid categoryId)
+    public async Task<JsonModel> GetCategoryPlansAsync(Guid categoryId)
     {
         try
         {
             var category = await _categoryRepository.GetByIdAsync(categoryId);
             if (category == null)
-                return ApiResponse<IEnumerable<SubscriptionPlanDto>>.ErrorResponse("Category not found", 404);
+                return new JsonModel { data = new object(), Message = "Category not found", StatusCode = 404 };
             
             // Get subscription plans for this category
             var plans = await _subscriptionRepository.GetSubscriptionPlansByCategoryAsync(categoryId);
             var planDtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(plans);
-            return ApiResponse<IEnumerable<SubscriptionPlanDto>>.SuccessResponse(planDtos, "Category plans retrieved successfully");
+            return new JsonModel { data = planDtos, Message = "Category plans retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting plans for category {CategoryId}", categoryId);
-            return ApiResponse<IEnumerable<SubscriptionPlanDto>>.ErrorResponse("An error occurred while retrieving category plans", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving category plans", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<int>> GetActiveCategoryCountAsync()
+    public async Task<JsonModel> GetActiveCategoryCountAsync()
     {
         try
         {
             var categories = await _categoryRepository.GetAllActiveAsync();
             var count = categories.Count();
-            return ApiResponse<int>.SuccessResponse(count, "Active category count retrieved successfully");
+            return new JsonModel { data = count, Message = "Active category count retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting active category count");
-            return ApiResponse<int>.ErrorResponse("An error occurred while retrieving active category count", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving active category count", StatusCode = 500 };
         }
     }
 } 

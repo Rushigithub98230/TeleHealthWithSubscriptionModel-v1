@@ -6,36 +6,36 @@ namespace SmartTelehealth.Application.Interfaces;
 public interface IFileStorageService
 {
     // Core file operations
-    Task<ApiResponse<string>> UploadFileAsync(byte[] fileData, string fileName, string contentType);
-    Task<ApiResponse<byte[]>> DownloadFileAsync(string filePath);
-    Task<ApiResponse<bool>> DeleteFileAsync(string filePath);
-    Task<ApiResponse<bool>> FileExistsAsync(string filePath);
-    Task<ApiResponse<long>> GetFileSizeAsync(string filePath);
-    Task<ApiResponse<string>> GetFileUrlAsync(string filePath);
+    Task<JsonModel> UploadFileAsync(byte[] fileData, string fileName, string contentType);
+    Task<JsonModel> DownloadFileAsync(string filePath);
+    Task<JsonModel> DeleteFileAsync(string filePath);
+    Task<JsonModel> FileExistsAsync(string filePath);
+    Task<JsonModel> GetFileSizeAsync(string filePath);
+    Task<JsonModel> GetFileUrlAsync(string filePath);
     
     // File metadata
-    Task<ApiResponse<FileInfoDto>> GetFileInfoAsync(string filePath);
-    Task<ApiResponse<string>> GetSecureUrlAsync(string filePath, TimeSpan? expiration = null);
+    Task<JsonModel> GetFileInfoAsync(string filePath);
+    Task<JsonModel> GetSecureUrlAsync(string filePath, TimeSpan? expiration = null);
     
     // Directory operations
-    Task<ApiResponse<bool>> CreateDirectoryAsync(string directoryPath);
-    Task<ApiResponse<bool>> DeleteDirectoryAsync(string directoryPath);
-    Task<ApiResponse<IEnumerable<string>>> ListFilesAsync(string directoryPath, string? searchPattern = null);
+    Task<JsonModel> CreateDirectoryAsync(string directoryPath);
+    Task<JsonModel> DeleteDirectoryAsync(string directoryPath);
+    Task<JsonModel> ListFilesAsync(string directoryPath, string? searchPattern = null);
     
     // Security and access control
-    Task<ApiResponse<bool>> ValidateFileAccessAsync(string filePath, Guid userId);
-    Task<ApiResponse<bool>> SetFilePermissionsAsync(string filePath, FilePermissions permissions);
+    Task<JsonModel> ValidateFileAccessAsync(string filePath, Guid userId);
+    Task<JsonModel> SetFilePermissionsAsync(string filePath, FilePermissions permissions);
     
     // Encryption
-    Task<ApiResponse<string>> EncryptFileAsync(byte[] fileData, string encryptionKey);
-    Task<ApiResponse<byte[]>> DecryptFileAsync(string encryptedFilePath, string encryptionKey);
+    Task<JsonModel> EncryptFileAsync(byte[] fileData, string encryptionKey);
+    Task<JsonModel> DecryptFileAsync(string encryptedFilePath, string encryptionKey);
     
     // Batch operations
-    Task<ApiResponse<IEnumerable<string>>> UploadMultipleFilesAsync(IEnumerable<FileUploadDto> files);
-    Task<ApiResponse<bool>> DeleteMultipleFilesAsync(IEnumerable<string> filePaths);
+    Task<JsonModel> UploadMultipleFilesAsync(IEnumerable<FileUploadDto> files);
+    Task<JsonModel> DeleteMultipleFilesAsync(IEnumerable<string> filePaths);
     
     // Storage management
-    Task<ApiResponse<StorageInfoDto>> GetStorageInfoAsync();
-    Task<ApiResponse<bool>> CleanupExpiredFilesAsync();
-    Task<ApiResponse<bool>> ArchiveOldFilesAsync(string sourcePath, string archivePath, TimeSpan ageThreshold);
+    Task<JsonModel> GetStorageInfoAsync();
+    Task<JsonModel> CleanupExpiredFilesAsync();
+    Task<JsonModel> ArchiveOldFilesAsync(string sourcePath, string archivePath, TimeSpan ageThreshold);
 } 

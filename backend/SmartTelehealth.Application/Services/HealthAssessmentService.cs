@@ -29,8 +29,8 @@ public class HealthAssessmentService : IHealthAssessmentService
         {
             var assessment = _mapper.Map<HealthAssessment>(createDto);
             assessment.Status = HealthAssessment.AssessmentStatus.InProgress;
-            assessment.CreatedAt = DateTime.UtcNow;
-            assessment.UpdatedAt = DateTime.UtcNow;
+            assessment.CreatedDate = DateTime.UtcNow;
+            assessment.UpdatedDate = DateTime.UtcNow;
             
             var createdAssessment = await _healthAssessmentRepository.CreateAsync(assessment);
             var assessmentDto = _mapper.Map<HealthAssessmentDto>(createdAssessment);
@@ -61,7 +61,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<ApiResponse<IEnumerable<HealthAssessmentDto>>> GetUserAssessmentsAsync(Guid userId)
+    public async Task<ApiResponse<IEnumerable<HealthAssessmentDto>>> GetUserAssessmentsAsync(int userId)
     {
         try
         {
@@ -100,7 +100,7 @@ public class HealthAssessmentService : IHealthAssessmentService
                 return ApiResponse<HealthAssessmentDto>.ErrorResponse("Health assessment not found", 404);
             
             _mapper.Map(updateDto, assessment);
-            assessment.UpdatedAt = DateTime.UtcNow;
+            assessment.UpdatedDate = DateTime.UtcNow;
             
             var updatedAssessment = await _healthAssessmentRepository.UpdateAsync(assessment);
             var assessmentDto = _mapper.Map<HealthAssessmentDto>(updatedAssessment);
@@ -130,7 +130,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<ApiResponse<bool>> ReviewAssessmentAsync(Guid id, Guid providerId, bool isEligible, string notes)
+    public async Task<ApiResponse<bool>> ReviewAssessmentAsync(Guid id, int providerId, bool isEligible, string notes)
     {
         try
         {
@@ -143,7 +143,7 @@ public class HealthAssessmentService : IHealthAssessmentService
             assessment.IsEligibleForTreatment = isEligible;
             assessment.ProviderNotes = notes;
             assessment.ReviewedAt = DateTime.UtcNow;
-            assessment.UpdatedAt = DateTime.UtcNow;
+            assessment.UpdatedDate = DateTime.UtcNow;
             
             await _healthAssessmentRepository.UpdateAsync(assessment);
             return ApiResponse<bool>.SuccessResponse(true, "Health assessment reviewed successfully");
@@ -165,7 +165,7 @@ public class HealthAssessmentService : IHealthAssessmentService
             
             assessment.Status = HealthAssessment.AssessmentStatus.Completed;
             assessment.CompletedAt = DateTime.UtcNow;
-            assessment.UpdatedAt = DateTime.UtcNow;
+            assessment.UpdatedDate = DateTime.UtcNow;
             
             await _healthAssessmentRepository.UpdateAsync(assessment);
             return ApiResponse<bool>.SuccessResponse(true, "Health assessment completed successfully");
@@ -187,7 +187,7 @@ public class HealthAssessmentService : IHealthAssessmentService
             
             assessment.Status = HealthAssessment.AssessmentStatus.Cancelled;
             assessment.RejectionReason = reason;
-            assessment.UpdatedAt = DateTime.UtcNow;
+            assessment.UpdatedDate = DateTime.UtcNow;
             
             await _healthAssessmentRepository.UpdateAsync(assessment);
             return ApiResponse<bool>.SuccessResponse(true, "Health assessment cancelled successfully");
@@ -320,7 +320,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<ApiResponse<IEnumerable<AssessmentReportDto>>> GetAssessmentReportsAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<ApiResponse<IEnumerable<AssessmentReportDto>>> GetAssessmentReportsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -336,37 +336,37 @@ public class HealthAssessmentService : IHealthAssessmentService
     }
     
     // Provider Workflow - Placeholder implementations
-    public async Task<ApiResponse<IEnumerable<HealthAssessmentDto>>> GetProviderPendingAssessmentsAsync(Guid providerId)
+    public async Task<ApiResponse<IEnumerable<HealthAssessmentDto>>> GetProviderPendingAssessmentsAsync(int providerId)
     {
         try
         {
-            // TODO: Implement provider pending assessments
-            var assessments = new List<HealthAssessmentDto>();
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.SuccessResponse(assessments, "Provider pending assessments retrieved successfully");
+            var assessments = await _healthAssessmentRepository.GetProviderPendingAssessmentsAsync(providerId);
+            var assessmentDtos = _mapper.Map<IEnumerable<HealthAssessmentDto>>(assessments);
+            return ApiResponse<IEnumerable<HealthAssessmentDto>>.SuccessResponse(assessmentDtos, "Provider pending assessments retrieved successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting provider pending assessments for {ProviderId}", providerId);
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.ErrorResponse("An error occurred while retrieving provider pending assessments", 500);
+            _logger.LogError(ex, "Error getting provider pending assessments for provider {ProviderId}", providerId);
+            return ApiResponse<IEnumerable<HealthAssessmentDto>>.ErrorResponse($"Failed to get provider pending assessments: {ex.Message}");
         }
     }
-    
-    public async Task<ApiResponse<IEnumerable<HealthAssessmentDto>>> GetProviderReviewedAssessmentsAsync(Guid providerId)
+
+    public async Task<ApiResponse<IEnumerable<HealthAssessmentDto>>> GetProviderReviewedAssessmentsAsync(int providerId)
     {
         try
         {
-            // TODO: Implement provider reviewed assessments
-            var assessments = new List<HealthAssessmentDto>();
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.SuccessResponse(assessments, "Provider reviewed assessments retrieved successfully");
+            var assessments = await _healthAssessmentRepository.GetProviderReviewedAssessmentsAsync(providerId);
+            var assessmentDtos = _mapper.Map<IEnumerable<HealthAssessmentDto>>(assessments);
+            return ApiResponse<IEnumerable<HealthAssessmentDto>>.SuccessResponse(assessmentDtos, "Provider reviewed assessments retrieved successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting provider reviewed assessments for {ProviderId}", providerId);
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.ErrorResponse("An error occurred while retrieving provider reviewed assessments", 500);
+            _logger.LogError(ex, "Error getting provider reviewed assessments for provider {ProviderId}", providerId);
+            return ApiResponse<IEnumerable<HealthAssessmentDto>>.ErrorResponse($"Failed to get provider reviewed assessments: {ex.Message}");
         }
     }
     
-    public async Task<ApiResponse<bool>> AssignAssessmentToProviderAsync(Guid assessmentId, Guid providerId)
+    public async Task<ApiResponse<bool>> AssignAssessmentToProviderAsync(Guid assessmentId, int providerId)
     {
         try
         {
@@ -375,7 +375,7 @@ public class HealthAssessmentService : IHealthAssessmentService
                 return ApiResponse<bool>.ErrorResponse("Health assessment not found", 404);
             
             assessment.ProviderId = providerId;
-            assessment.UpdatedAt = DateTime.UtcNow;
+            assessment.UpdatedDate = DateTime.UtcNow;
             
             await _healthAssessmentRepository.UpdateAsync(assessment);
             return ApiResponse<bool>.SuccessResponse(true, "Assessment assigned to provider successfully");

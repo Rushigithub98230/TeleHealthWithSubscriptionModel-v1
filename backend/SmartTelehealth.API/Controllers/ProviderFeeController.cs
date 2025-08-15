@@ -49,7 +49,7 @@ public class ProviderFeeController : ControllerBase
     /// Get fee by provider and category
     /// </summary>
     [HttpGet("provider/{providerId}/category/{categoryId}")]
-    public async Task<ActionResult<ApiResponse<ProviderFeeDto>>> GetFeeByProviderAndCategory(Guid providerId, Guid categoryId)
+    public async Task<ActionResult<ApiResponse<ProviderFeeDto>>> GetFeeByProviderAndCategory(int providerId, Guid categoryId)
     {
         var result = await _feeService.GetFeeByProviderAndCategoryAsync(providerId, categoryId);
         return StatusCode(result.StatusCode, result);
@@ -90,7 +90,7 @@ public class ProviderFeeController : ControllerBase
     /// Get fees by provider
     /// </summary>
     [HttpGet("provider/{providerId}")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ProviderFeeDto>>>> GetFeesByProvider(Guid providerId)
+    public async Task<ActionResult<ApiResponse<IEnumerable<ProviderFeeDto>>>> GetFeesByProvider(int providerId)
     {
         var result = await _feeService.GetFeesByProviderAsync(providerId);
         return StatusCode(result.StatusCode, result);

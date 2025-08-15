@@ -23,7 +23,7 @@ public class ConsultationService : IConsultationService
         _logger = logger;
     }
 
-    public async Task<ApiResponse<IEnumerable<ConsultationDto>>> GetUserOneTimeConsultationsAsync(Guid userId)
+    public async Task<ApiResponse<IEnumerable<ConsultationDto>>> GetUserOneTimeConsultationsAsync(int userId)
     {
         try
         {

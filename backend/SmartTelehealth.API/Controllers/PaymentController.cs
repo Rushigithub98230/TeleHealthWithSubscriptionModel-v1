@@ -346,7 +346,7 @@ public class PaymentController : ControllerBase
         try
         {
             var userId = GetCurrentUserId();
-            var analytics = await _billingService.GetPaymentAnalyticsAsync(userId.ToString(), startDate, endDate);
+            var analytics = await _billingService.GetPaymentAnalyticsAsync(userId, startDate, endDate);
             return Ok(analytics);
         }
         catch (Exception ex)
@@ -356,10 +356,10 @@ public class PaymentController : ControllerBase
         }
     }
 
-    private Guid GetCurrentUserId()
+    private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
         {
             throw new UnauthorizedAccessException("Invalid user ID");
         }

@@ -25,7 +25,7 @@ public class OneTimeConsultationController : ControllerBase
     public async Task<ActionResult<IEnumerable<ConsultationDto>>> GetMyOneTimeConsultations()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
+        if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var parsedUserId))
         {
             _logger.LogError("Invalid or missing UserId for current user");
             return Unauthorized();

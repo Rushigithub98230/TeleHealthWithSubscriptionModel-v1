@@ -71,7 +71,7 @@ public class BillingController : ControllerBase
             {
                 return Forbid();
             }
-            var userResponse = await _userService.GetUserAsync(userId.ToString());
+            var userResponse = await _userService.GetUserAsync(userId);
             if (!userResponse.Success || userResponse.Data == null)
             {
                 return NotFound("User not found");
@@ -111,7 +111,7 @@ public class BillingController : ControllerBase
         var userId = GetCurrentUserId();
         var billingHistoryResponse = await _billingService.GetUserBillingHistoryAsync(userId);
         var billingHistory = billingHistoryResponse.Data ?? new List<BillingRecordDto>();
-        var userResponse = await _userService.GetUserAsync(userId.ToString());
+        var userResponse = await _userService.GetUserAsync(userId);
         if (!userResponse.Success || userResponse.Data == null)
         {
             return NotFound("User not found");
@@ -137,7 +137,7 @@ public class BillingController : ControllerBase
             {
                 return Forbid();
             }
-            var userResponse = await _userService.GetUserAsync(userId.ToString());
+            var userResponse = await _userService.GetUserAsync(userId);
             if (!userResponse.Success || userResponse.Data == null)
             {
                 return NotFound("User not found");
@@ -316,10 +316,10 @@ public class BillingController : ControllerBase
         return File(result.Data, "text/csv", fileName);
     }
 
-    private Guid GetCurrentUserId()
+    private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
         {
             throw new InvalidOperationException("User ID not found in claims");
         }

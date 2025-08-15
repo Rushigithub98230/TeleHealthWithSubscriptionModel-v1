@@ -31,7 +31,15 @@ public class SubscriptionsController : ControllerBase
     [HttpGet("user/{userId}")]
     public async Task<ActionResult<ApiResponse<IEnumerable<SubscriptionDto>>>> GetUserSubscriptions(string userId)
     {
-        var result = await _subscriptionService.GetUserSubscriptionsAsync(userId);
+        if (!int.TryParse(userId, out int userIdInt))
+        {
+            return BadRequest(new ApiResponse<IEnumerable<SubscriptionDto>>
+            {
+                Success = false,
+                Message = "Invalid user ID format"
+            });
+        }
+        var result = await _subscriptionService.GetUserSubscriptionsAsync(userIdInt);
         return Ok(result);
     }
 
@@ -102,7 +110,15 @@ public class SubscriptionsController : ControllerBase
     public async Task<ActionResult<ApiResponse<IEnumerable<PaymentMethodDto>>>> GetPaymentMethods()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await _subscriptionService.GetPaymentMethodsAsync(userId);
+        if (!int.TryParse(userId, out int userIdInt))
+        {
+            return BadRequest(new ApiResponse<IEnumerable<PaymentMethodDto>>
+            {
+                Success = false,
+                Message = "Invalid user ID format"
+            });
+        }
+        var result = await _subscriptionService.GetPaymentMethodsAsync(userIdInt);
         return Ok(result);
     }
 
@@ -110,7 +126,15 @@ public class SubscriptionsController : ControllerBase
     public async Task<ActionResult<ApiResponse<PaymentMethodDto>>> AddPaymentMethod([FromBody] string paymentMethodId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await _subscriptionService.AddPaymentMethodAsync(userId, paymentMethodId);
+        if (!int.TryParse(userId, out int userIdInt))
+        {
+            return BadRequest(new ApiResponse<PaymentMethodDto>
+            {
+                Success = false,
+                Message = "Invalid user ID format"
+            });
+        }
+        var result = await _subscriptionService.AddPaymentMethodAsync(userIdInt, paymentMethodId);
         return Ok(result);
     }
 

@@ -5,7 +5,7 @@ namespace SmartTelehealth.Application.DTOs
     public class CreateNotificationDto
     {
         [Required]
-        public Guid UserId { get; set; }
+        public int UserId { get; set; }
         
         [Required]
         [StringLength(100)]

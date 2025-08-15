@@ -70,7 +70,7 @@ namespace SmartTelehealth.Application.Services
         }
         public async Task<ApiResponse<ProviderPayoutDto>> GetPayoutAsync(Guid id) => throw new NotImplementedException();
         public async Task<ApiResponse<ProviderPayoutDto>> ProcessPayoutAsync(Guid id, ProcessPayoutDto processDto) => throw new NotImplementedException();
-        public async Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPayoutsByProviderAsync(Guid providerId) => throw new NotImplementedException();
+        public async Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPayoutsByProviderAsync(int providerId) => throw new NotImplementedException();
         public async Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPayoutsByPeriodAsync(Guid periodId) => throw new NotImplementedException();
         public async Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetAllPayoutsAsync(string status = null, int page = 1, int pageSize = 50)
         {
@@ -157,7 +157,7 @@ namespace SmartTelehealth.Application.Services
                 };
             }
         }
-        public async Task<ApiResponse<ProviderEarningsDto>> GetProviderEarningsAsync(Guid providerId)
+        public async Task<ApiResponse<ProviderEarningsDto>> GetProviderEarningsAsync(int providerId)
         {
             try
             {

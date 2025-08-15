@@ -264,7 +264,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    public bool IsPasswordStrong(string password)
+    private bool IsPasswordStrong(string password)
     {
         if (string.IsNullOrEmpty(password) || password.Length < 8)
             return false;
@@ -289,7 +289,12 @@ public class AuthController : ControllerBase
                 return Unauthorized(new { success = false, message = "Invalid token" });
             }
 
-            var user = await _userService.GetUserAsync(userId);
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new { success = false, message = "Invalid user ID format" });
+            }
+
+            var user = await _userService.GetUserAsync(userIdInt);
             if (user == null || !user.Success)
             {
                 return Unauthorized(new { success = false, message = "User not found" });

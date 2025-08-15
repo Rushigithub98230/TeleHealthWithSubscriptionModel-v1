@@ -30,10 +30,10 @@ public class AnalyticsController : ControllerBase
 
             var dashboardData = new
             {
-                subscriptions = subscriptionAnalytics.Data,
-                billing = billingAnalytics.Data,
-                users = userAnalytics.Data,
-                system = systemAnalytics.Data,
+                subscriptions = subscriptionAnalytics.data,
+                billing = billingAnalytics.data,
+                users = userAnalytics.data,
+                system = systemAnalytics.data,
                 charts = new
                 {
                     revenueTrends = new[] { 12000, 19000, 15000, 25000, 22000, 30000 },
@@ -121,7 +121,7 @@ public class AnalyticsController : ControllerBase
         {
             var response = await _analyticsService.GenerateSubscriptionReportAsync(startDate, endDate);
             var fileName = $"subscription-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            return File(response.Data, GetContentType(format), fileName);
+            return File(response.data, GetContentType(format), fileName);
         }
         catch (Exception ex)
         {
@@ -139,7 +139,7 @@ public class AnalyticsController : ControllerBase
         {
             var response = await _analyticsService.GenerateBillingReportAsync(startDate, endDate);
             var fileName = $"billing-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            return File(response.Data, GetContentType(format), fileName);
+            return File(response.data, GetContentType(format), fileName);
         }
         catch (Exception ex)
         {
@@ -157,7 +157,7 @@ public class AnalyticsController : ControllerBase
         {
             var response = await _analyticsService.GenerateUserReportAsync(startDate, endDate);
             var fileName = $"user-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            return File(response.Data, GetContentType(format), fileName);
+            return File(response.data, GetContentType(format), fileName);
         }
         catch (Exception ex)
         {
@@ -175,7 +175,7 @@ public class AnalyticsController : ControllerBase
         {
             var response = await _analyticsService.GenerateProviderReportAsync(startDate, endDate);
             var fileName = $"provider-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            return File(response.Data, GetContentType(format), fileName);
+            return File(response.data, GetContentType(format), fileName);
         }
         catch (Exception ex)
         {

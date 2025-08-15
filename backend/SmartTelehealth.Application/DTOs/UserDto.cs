@@ -189,7 +189,7 @@ namespace SmartTelehealth.Application.DTOs
 
     public class UpdateMedicalHistoryDto
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public List<string>? Allergies { get; set; }
         public List<string>? Medications { get; set; }
         public List<string>? CurrentMedications { get; set; }

@@ -6,11 +6,11 @@ public interface IProviderFeeService
 {
     Task<ApiResponse<ProviderFeeDto>> CreateFeeAsync(CreateProviderFeeDto createDto);
     Task<ApiResponse<ProviderFeeDto>> GetFeeAsync(Guid id);
-    Task<ApiResponse<ProviderFeeDto>> GetFeeByProviderAndCategoryAsync(Guid providerId, Guid categoryId);
+    Task<ApiResponse<ProviderFeeDto>> GetFeeByProviderAndCategoryAsync(int providerId, Guid categoryId);
     Task<ApiResponse<ProviderFeeDto>> UpdateFeeAsync(Guid id, UpdateProviderFeeDto updateDto);
     Task<ApiResponse<ProviderFeeDto>> ProposeFeeAsync(Guid id);
     Task<ApiResponse<ProviderFeeDto>> ReviewFeeAsync(Guid id, ReviewProviderFeeDto reviewDto);
-    Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByProviderAsync(Guid providerId);
+    Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByProviderAsync(int providerId);
     Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByCategoryAsync(Guid categoryId);
     Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetAllFeesAsync(string? status = null, int page = 1, int pageSize = 50);
     Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetPendingFeesAsync();

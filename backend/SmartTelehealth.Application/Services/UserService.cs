@@ -90,18 +90,15 @@ public class UserService : IUserService
     }
 
     // User profile operations
-    public async Task<ApiResponse<UserDto>> GetUserByIdAsync(string userId)
+    public async Task<ApiResponse<UserDto>> GetUserByIdAsync(int userId)
     {
         try
         {
-            if (!Guid.TryParse(userId, out var userGuid))
-                return ApiResponse<UserDto>.ErrorResponse("Invalid user ID");
-
-            var user = await _userRepository.GetByIdAsync(userGuid);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 return ApiResponse<UserDto>.ErrorResponse("User not found");
 
-            var userDto = _mapper.Map<UserDto>(user);
+            var userDto = MapToUserDto(user);
             return ApiResponse<UserDto>.SuccessResponse(userDto, "User retrieved successfully");
         }
         catch (Exception ex)
@@ -111,14 +108,11 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<UserDto>> UpdateUserAsync(string userId, UpdateUserDto updateDto)
+    public async Task<ApiResponse<UserDto>> UpdateUserAsync(int userId, UpdateUserDto updateDto)
     {
         try
         {
-            if (!Guid.TryParse(userId, out var userGuid))
-                return ApiResponse<UserDto>.ErrorResponse("Invalid user ID");
-
-            var user = await _userRepository.GetByIdAsync(userGuid);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 return ApiResponse<UserDto>.ErrorResponse("User not found");
 
@@ -144,7 +138,7 @@ public class UserService : IUserService
             if (!string.IsNullOrEmpty(updateDto.Country))
                 user.Country = updateDto.Country;
 
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
             var userDto = _mapper.Map<UserDto>(user);
@@ -159,7 +153,7 @@ public class UserService : IUserService
 
     // --- DOCUMENT MANAGEMENT (Updated to use centralized DocumentService) ---
     
-    public async Task<ApiResponse<DocumentDto>> UploadProfilePictureAsync(Guid userId, IFormFile file)
+    public async Task<ApiResponse<DocumentDto>> UploadProfilePictureAsync(int userId, IFormFile file)
     {
         try
         {
@@ -168,58 +162,32 @@ public class UserService : IUserService
             if (user == null)
                 return ApiResponse<DocumentDto>.ErrorResponse("User not found", 404);
 
-            // Validate file
-            if (file == null || file.Length == 0)
-                return ApiResponse<DocumentDto>.ErrorResponse("No file provided", 400);
-
-            // Validate file type
-            var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif" };
-            if (!allowedTypes.Contains(file.ContentType.ToLower()))
-                return ApiResponse<DocumentDto>.ErrorResponse("Invalid file type. Only JPEG, PNG, and GIF are allowed.", 400);
-
-            // Validate file size (max 5MB)
-            if (file.Length > 5 * 1024 * 1024)
-                return ApiResponse<DocumentDto>.ErrorResponse("File size too large. Maximum size is 5MB.", 400);
-
-            // Convert file to bytes
-            byte[] fileBytes;
-            using (var memoryStream = new MemoryStream())
-            {
-                await file.CopyToAsync(memoryStream);
-                fileBytes = memoryStream.ToArray();
-            }
-
-            // Get document type for profile pictures
-            var profilePictureTypes = await _documentTypeService.GetAllDocumentTypesAsync(true);
-            var profilePictureType = profilePictureTypes.Data?.FirstOrDefault(dt => 
-                dt.Name.ToLower().Contains("profile") || 
-                dt.Name.ToLower().Contains("picture") ||
-                dt.Name.ToLower().Contains("avatar") ||
-                dt.Name.ToLower().Contains("photo"));
-
+            // Get profile picture document type
+            var profilePictureType = await _documentTypeService.GetByNameAsync("Profile Picture");
             if (profilePictureType == null)
-            {
-                return ApiResponse<DocumentDto>.ErrorResponse("No suitable document type found for profile pictures", 400);
-            }
+                return ApiResponse<DocumentDto>.ErrorResponse("Profile picture document type not found", 404);
 
-            // Create upload request for centralized document service
-            var uploadRequest = new UploadDocumentRequest
+            // Read file content
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();
+
+            var uploadRequest = new UploadUserDocumentRequest
             {
                 FileData = fileBytes,
                 FileName = file.FileName,
                 ContentType = file.ContentType,
-                EntityType = "User",
-                EntityId = userId,
+                UserId = userId,
                 ReferenceType = "profile_picture",
                 Description = $"Profile picture for user {user.FirstName} {user.LastName}",
                 IsPublic = true, // Profile pictures are typically public
                 IsEncrypted = false,
-                DocumentTypeId = profilePictureType.DocumentTypeId,
+                DocumentTypeId = profilePictureType.Data?.DocumentTypeId ?? Guid.Empty,
                 CreatedById = userId
             };
 
             // Upload using centralized document service
-            var result = await _documentService.UploadDocumentAsync(uploadRequest);
+            var result = await _documentService.UploadUserDocumentAsync(uploadRequest);
             
             if (result.Success)
             {
@@ -237,7 +205,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<DocumentDto>>> GetUserDocumentsAsync(Guid userId, string? referenceType = null)
+    public async Task<ApiResponse<IEnumerable<DocumentDto>>> GetUserDocumentsAsync(int userId, string? referenceType = null)
     {
         try
         {
@@ -247,16 +215,8 @@ public class UserService : IUserService
                 return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse("User not found", 404);
 
             // Get documents using centralized document service
-            if (!string.IsNullOrEmpty(referenceType))
-            {
-                var documentsResult = await _documentService.GetDocumentsByReferenceTypeAsync("User", userId, referenceType);
-                return ApiResponse<IEnumerable<DocumentDto>>.SuccessResponse(documentsResult.Data);
-            }
-            else
-            {
-                var documentsResult = await _documentService.GetDocumentsByEntityAsync("User", userId);
-                return ApiResponse<IEnumerable<DocumentDto>>.SuccessResponse(documentsResult.Data);
-            }
+            var documentsResult = await _documentService.GetUserDocumentsAsync(userId, referenceType);
+            return ApiResponse<IEnumerable<DocumentDto>>.SuccessResponse(documentsResult.Data);
         }
         catch (Exception ex)
         {
@@ -265,7 +225,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<DocumentDto>> UploadUserDocumentAsync(Guid userId, UploadDocumentRequest request)
+    public async Task<ApiResponse<DocumentDto>> UploadUserDocumentAsync(int userId, UploadUserDocumentRequest request)
     {
         try
         {
@@ -274,13 +234,12 @@ public class UserService : IUserService
             if (user == null)
                 return ApiResponse<DocumentDto>.ErrorResponse("User not found", 404);
 
-            // Override entity information to ensure it's linked to the user
-            request.EntityType = "User";
-            request.EntityId = userId;
+            // Override user ID to ensure it's linked to the correct user
+            request.UserId = userId;
             request.CreatedById = userId;
 
             // Upload using centralized document service
-            var result = await _documentService.UploadDocumentAsync(request);
+            var result = await _documentService.UploadUserDocumentAsync(request);
             return result;
         }
         catch (Exception ex)
@@ -290,7 +249,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteUserDocumentAsync(Guid documentId, Guid userId)
+    public async Task<ApiResponse<bool>> DeleteUserDocumentAsync(Guid documentId, int userId)
     {
         try
         {
@@ -310,18 +269,15 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteUserAsync(string userId)
+    public async Task<ApiResponse<bool>> DeleteUserAsync(int userId)
     {
         try
         {
-            if (!Guid.TryParse(userId, out var userGuid))
-                return ApiResponse<bool>.ErrorResponse("Invalid user ID");
-
-            var user = await _userRepository.GetByIdAsync(userGuid);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 return ApiResponse<bool>.ErrorResponse("User not found");
 
-            await _userRepository.DeleteAsync(userGuid);
+            await _userRepository.DeleteAsync(userId);
             return ApiResponse<bool>.SuccessResponse(true, "User deleted successfully");
         }
         catch (Exception ex)
@@ -348,14 +304,11 @@ public class UserService : IUserService
 
 
 
-    public async Task<ApiResponse<bool>> ChangePasswordAsync(string userId, ChangePasswordDto changePasswordDto)
+    public async Task<ApiResponse<bool>> ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
     {
         try
         {
-            if (!Guid.TryParse(userId, out var userGuid))
-                return ApiResponse<bool>.ErrorResponse("Invalid user ID");
-
-            var user = await _userRepository.GetByIdAsync(userGuid);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 return ApiResponse<bool>.ErrorResponse("User not found");
 
@@ -365,7 +318,7 @@ public class UserService : IUserService
 
             // Hash new password
             user.PasswordHash = HashPassword(changePasswordDto.NewPassword);
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
             return ApiResponse<bool>.SuccessResponse(true, "Password changed successfully");
@@ -388,8 +341,8 @@ public class UserService : IUserService
             // Generate reset token
             var resetToken = Guid.NewGuid().ToString();
             user.PasswordResetToken = resetToken;
-            user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(24);
-            user.UpdatedAt = DateTime.UtcNow;
+            user.ResetTokenExpires = DateTime.UtcNow.AddHours(24);
+            user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
             // Send reset email
@@ -415,14 +368,14 @@ public class UserService : IUserService
             if (user.PasswordResetToken != resetToken)
                 return ApiResponse<bool>.ErrorResponse("Invalid reset token");
 
-            if (user.PasswordResetTokenExpires < DateTime.UtcNow)
+            if (user.ResetTokenExpires < DateTime.UtcNow)
                 return ApiResponse<bool>.ErrorResponse("Reset token has expired");
 
             // Update password
             user.PasswordHash = HashPassword(newPassword);
             user.PasswordResetToken = null;
-            user.PasswordResetTokenExpires = null;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.ResetTokenExpires = null;
+            user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
             return ApiResponse<bool>.SuccessResponse(true, "Password reset successfully");
@@ -434,14 +387,11 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateUserProfileAsync(string userId, UpdateUserProfileDto profileDto)
+    public async Task<ApiResponse<bool>> UpdateUserProfileAsync(int userId, UpdateUserProfileDto profileDto)
     {
         try
         {
-            if (!Guid.TryParse(userId, out var userGuid))
-                return ApiResponse<bool>.ErrorResponse("Invalid user ID");
-
-            var user = await _userRepository.GetByIdAsync(userGuid);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 return ApiResponse<bool>.ErrorResponse("User not found");
 
@@ -465,7 +415,7 @@ public class UserService : IUserService
             if (!string.IsNullOrEmpty(profileDto.Country))
                 user.Country = profileDto.Country;
 
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
             return ApiResponse<bool>.SuccessResponse(true, "Profile updated successfully");
@@ -477,14 +427,11 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateUserPreferencesAsync(string userId, UpdateUserPreferencesDto preferencesDto)
+    public async Task<ApiResponse<bool>> UpdateUserPreferencesAsync(int userId, UpdateUserPreferencesDto preferencesDto)
     {
         try
         {
-            if (!Guid.TryParse(userId, out var userGuid))
-                return ApiResponse<bool>.ErrorResponse("Invalid user ID");
-
-            var user = await _userRepository.GetByIdAsync(userGuid);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 return ApiResponse<bool>.ErrorResponse("User not found");
 
@@ -495,7 +442,7 @@ public class UserService : IUserService
                 user.LanguagePreference = preferencesDto.LanguagePreference;
             if (!string.IsNullOrEmpty(preferencesDto.TimeZonePreference))
                 user.TimeZonePreference = preferencesDto.TimeZonePreference;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
             return ApiResponse<bool>.SuccessResponse(true, "Preferences updated successfully");
@@ -508,7 +455,7 @@ public class UserService : IUserService
     }
 
     // Patient operations
-    public async Task<ApiResponse<PatientDto>> GetPatientByIdAsync(Guid patientId)
+    public async Task<ApiResponse<PatientDto>> GetPatientByIdAsync(int patientId)
     {
         try
         {
@@ -554,7 +501,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<object>> GetPatientMedicalHistoryAsync(Guid patientId)
+    public async Task<ApiResponse<object>> GetPatientMedicalHistoryAsync(int patientId)
     {
         try
         {
@@ -577,7 +524,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<object>> UpdatePatientMedicalHistoryAsync(Guid patientId, UpdateMedicalHistoryDto medicalHistoryDto)
+    public async Task<ApiResponse<object>> UpdatePatientMedicalHistoryAsync(int patientId, UpdateMedicalHistoryDto medicalHistoryDto)
     {
         try
         {
@@ -604,9 +551,9 @@ public class UserService : IUserService
     // Provider operations
     public async Task<ApiResponse<ProviderDto>> GetProviderAsync(string id)
     {
-        if (!Guid.TryParse(id, out var providerGuid))
+        if (!int.TryParse(id, out var providerId))
             return ApiResponse<ProviderDto>.ErrorResponse("Invalid provider ID");
-        var provider = await _userRepository.GetByIdAsync(providerGuid);
+        var provider = await _userRepository.GetByIdAsync(providerId);
         if (provider == null)
             return ApiResponse<ProviderDto>.ErrorResponse("Provider not found");
         var providerDto = _mapper.Map<ProviderDto>(provider);
@@ -653,7 +600,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<ProviderDto>> GetProviderByIdAsync(Guid providerId)
+    public async Task<ApiResponse<ProviderDto>> GetProviderByIdAsync(int providerId)
     {
         try
         {
@@ -701,7 +648,7 @@ public class UserService : IUserService
         {
             var provider = new User
             {
-                Id = Guid.NewGuid(),
+                Id = 0, // Will be set by the database
                 FirstName = createDto.FirstName,
                 LastName = createDto.LastName,
                 Email = createDto.Email,
@@ -709,7 +656,7 @@ public class UserService : IUserService
                 UserType = "Provider",
                 IsActive = true,
                 IsEmailVerified = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow
             };
 
             await _userRepository.CreateAsync(provider);
@@ -723,7 +670,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<ProviderDto>> UpdateProviderAsync(Guid providerId, UpdateProviderDto updateDto)
+    public async Task<ApiResponse<ProviderDto>> UpdateProviderAsync(int providerId, UpdateProviderDto updateDto)
     {
         try
         {
@@ -741,7 +688,7 @@ public class UserService : IUserService
             if (!string.IsNullOrEmpty(updateDto.PhoneNumber))
                 provider.Phone = updateDto.PhoneNumber;
 
-            provider.UpdatedAt = DateTime.UtcNow;
+            provider.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(provider);
 
             return ApiResponse<ProviderDto>.SuccessResponse(MapToProviderDto(provider));
@@ -753,7 +700,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteProviderAsync(Guid providerId)
+    public async Task<ApiResponse<bool>> DeleteProviderAsync(int providerId)
     {
         try
         {
@@ -762,7 +709,7 @@ public class UserService : IUserService
                 return ApiResponse<bool>.ErrorResponse("Provider not found");
 
             provider.IsActive = false;
-            provider.UpdatedAt = DateTime.UtcNow;
+            provider.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(provider);
 
             return ApiResponse<bool>.SuccessResponse(true);
@@ -774,7 +721,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<ProviderDto>> VerifyProviderAsync(Guid providerId)
+    public async Task<ApiResponse<ProviderDto>> VerifyProviderAsync(int providerId)
     {
         try
         {
@@ -784,7 +731,7 @@ public class UserService : IUserService
 
             // In a real implementation, this would involve verification logic
             provider.IsEmailVerified = true;
-            provider.UpdatedAt = DateTime.UtcNow;
+            provider.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(provider);
 
             return ApiResponse<ProviderDto>.SuccessResponse(MapToProviderDto(provider));
@@ -797,7 +744,7 @@ public class UserService : IUserService
     }
 
     // Provider schedule operations
-    public async Task<ApiResponse<ProviderScheduleDto>> GetProviderScheduleAsync(Guid providerId)
+    public async Task<ApiResponse<ProviderScheduleDto>> GetProviderScheduleAsync(int providerId)
     {
         try
         {
@@ -828,7 +775,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<ProviderScheduleDto>> UpdateProviderScheduleAsync(Guid providerId, UpdateProviderScheduleDto scheduleDto)
+    public async Task<ApiResponse<ProviderScheduleDto>> UpdateProviderScheduleAsync(int providerId, UpdateProviderScheduleDto scheduleDto)
     {
         try
         {
@@ -853,7 +800,7 @@ public class UserService : IUserService
     }
 
     // User statistics
-    public async Task<ApiResponse<object>> GetUserStatsAsync(Guid userId)
+    public async Task<ApiResponse<object>> GetUserStatsAsync(int userId)
     {
         try
         {
@@ -875,7 +822,7 @@ public class UserService : IUserService
     }
 
     // Provider reviews
-    public async Task<ApiResponse<IEnumerable<ReviewDto>>> GetProviderReviewsAsync(Guid providerId)
+    public async Task<ApiResponse<IEnumerable<ReviewDto>>> GetProviderReviewsAsync(int providerId)
     {
         try
         {
@@ -913,7 +860,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<ReviewDto>> AddProviderReviewAsync(Guid providerId, Guid userId, AddReviewDto reviewDto)
+    public async Task<ApiResponse<ReviewDto>> AddProviderReviewAsync(int providerId, int userId, AddReviewDto reviewDto)
     {
         try
         {
@@ -938,7 +885,7 @@ public class UserService : IUserService
     }
 
     // Notifications
-    public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(Guid userId)
+    public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(int userId)
     {
         try
         {
@@ -1148,7 +1095,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ApiResponse<bool>> ResendEmailVerificationAsync(Guid userId)
+    public async Task<ApiResponse<bool>> ResendEmailVerificationAsync(int userId)
     {
         try
         {
@@ -1173,7 +1120,7 @@ public class UserService : IUserService
     }
 
     // Account management
-    public async Task<ApiResponse<bool>> DeleteAccountAsync(Guid userId, string reason)
+    public async Task<ApiResponse<bool>> DeleteAccountAsync(int userId, string reason)
     {
         try
         {
@@ -1182,7 +1129,7 @@ public class UserService : IUserService
                 return ApiResponse<bool>.ErrorResponse("User not found");
 
             user.IsActive = false;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
             return ApiResponse<bool>.SuccessResponse(true);
@@ -1213,8 +1160,8 @@ public class UserService : IUserService
             IsVerified = user.IsEmailVerified,
             IsEmailVerified = user.IsEmailVerified,
             IsPhoneVerified = user.IsPhoneVerified,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt ?? DateTime.UtcNow,
+            CreatedAt = user.CreatedDate ?? DateTime.UtcNow,
+            UpdatedAt = user.UpdatedDate ?? DateTime.UtcNow,
             LastLoginAt = user.LastLoginAt,
             ProfilePicture = user.ProfilePicture,
             DateOfBirth = user.DateOfBirth,
@@ -1247,8 +1194,8 @@ public class UserService : IUserService
             IsActive = user.IsActive,
             IsEmailVerified = user.IsEmailVerified,
             IsPhoneVerified = user.IsPhoneVerified,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt != null ? user.UpdatedAt.Value : DateTime.UtcNow,
+            CreatedAt = user.CreatedDate ?? DateTime.UtcNow,
+            UpdatedAt = user.UpdatedDate ?? DateTime.UtcNow,
             LastLoginAt = user.LastLoginAt,
             StripeCustomerId = user.StripeCustomerId
         };
@@ -1271,14 +1218,14 @@ public class UserService : IUserService
             IsActive = user.IsActive,
             IsEmailVerified = user.IsEmailVerified,
             IsPhoneVerified = user.IsPhoneVerified,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt != null ? user.UpdatedAt.Value : DateTime.UtcNow,
+            CreatedAt = user.CreatedDate ?? DateTime.UtcNow,
+            UpdatedAt = user.UpdatedDate ?? DateTime.UtcNow,
             LastLoginAt = user.LastLoginAt,
             StripeCustomerId = user.StripeCustomerId
         };
     }
 
-    private async Task<object> GetPatientStatsAsync(Guid patientId)
+    private async Task<object> GetPatientStatsAsync(int patientId)
     {
         // This would typically fetch from appointment and payment repositories
         return new
@@ -1290,7 +1237,7 @@ public class UserService : IUserService
         };
     }
 
-    private async Task<object> GetProviderStatsAsync(Guid providerId)
+    private async Task<object> GetProviderStatsAsync(int providerId)
     {
         // This would typically fetch from appointment and payment repositories
         return new
@@ -1302,16 +1249,11 @@ public class UserService : IUserService
     }
 
     // === BEGIN INTERFACE STUBS ===
-    public async Task<ApiResponse<UserDto>> GetUserAsync(string userId)
+    public async Task<ApiResponse<UserDto>> GetUserAsync(int userId)
     {
         try
         {
-            if (!Guid.TryParse(userId, out var guid))
-            {
-                return ApiResponse<UserDto>.ErrorResponse("Invalid user ID");
-            }
-
-            var user = await _userRepository.GetByIdAsync(guid);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
                 return ApiResponse<UserDto>.ErrorResponse("User not found");
@@ -1361,14 +1303,14 @@ public class UserService : IUserService
             // Create new user
             var user = new User
             {
-                Id = Guid.NewGuid(),
+                Id = 0, // Will be set by the database
                 FirstName = createUserDto.FirstName,
                 LastName = createUserDto.LastName,
                 Email = createUserDto.Email,
                 Phone = createUserDto.PhoneNumber,
                 PhoneNumber = createUserDto.PhoneNumber,
                 UserType = createUserDto.UserType,
-                UserRoleId = userRole.Id, // Set the UserRoleId from database
+                UserRoleId = userRole.Id, // UserRole.Id is already int
                 Gender = createUserDto.Gender,
                 Address = createUserDto.Address,
                 City = createUserDto.City,
@@ -1381,8 +1323,8 @@ public class UserService : IUserService
                 IsActive = true,
                 IsEmailVerified = false,
                 IsPhoneVerified = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow,
+                UpdatedDate = DateTime.UtcNow
             };
 
             // Hash the password
@@ -1401,74 +1343,34 @@ public class UserService : IUserService
             return ApiResponse<UserDto>.ErrorResponse($"Failed to create user: {ex.Message}");
         }
     }
-    public async Task<ApiResponse<MedicalHistoryDto>> GetMedicalHistoryAsync(string userId)
+    public async Task<ApiResponse<MedicalHistoryDto>> GetMedicalHistoryAsync(int userId)
     {
         throw new NotImplementedException();
     }
-    public async Task<ApiResponse<MedicalHistoryDto>> UpdateMedicalHistoryAsync(string userId, UpdateMedicalHistoryDto medicalHistoryDto)
+    public async Task<ApiResponse<MedicalHistoryDto>> UpdateMedicalHistoryAsync(int userId, UpdateMedicalHistoryDto medicalHistoryDto)
     {
         throw new NotImplementedException();
     }
-    public async Task<ApiResponse<IEnumerable<PaymentMethodDto>>> GetPaymentMethodsAsync(string userId)
+            public async Task<ApiResponse<IEnumerable<PaymentMethodDto>>> GetPaymentMethodsAsync(int userId)
     {
         throw new NotImplementedException();
     }
-    public async Task<ApiResponse<PaymentMethodDto>> AddPaymentMethodAsync(string userId, AddPaymentMethodDto addPaymentMethodDto)
+    public async Task<ApiResponse<PaymentMethodDto>> AddPaymentMethodAsync(int userId, AddPaymentMethodDto addPaymentMethodDto)
     {
         throw new NotImplementedException();
     }
-    public async Task<ApiResponse<bool>> DeletePaymentMethodAsync(string userId, string paymentMethodId)
+    public async Task<ApiResponse<bool>> DeletePaymentMethodAsync(int userId, string paymentMethodId)
     {
         throw new NotImplementedException();
     }
-    public async Task<ApiResponse<bool>> SetDefaultPaymentMethodAsync(string userId, string paymentMethodId)
+    public async Task<ApiResponse<bool>> SetDefaultPaymentMethodAsync(int userId, string paymentMethodId)
     {
         throw new NotImplementedException();
     }
     // === END INTERFACE STUBS ===
 
     // === BEGIN INTERFACE OVERLOADS ===
-    public async Task<ApiResponse<UserDto>> GetProviderByIdAsync(string providerId)
-    {
-        if (!Guid.TryParse(providerId, out var guid))
-            return ApiResponse<UserDto>.ErrorResponse("Invalid provider ID");
-        var result = await GetProviderByIdAsync(guid);
-        // Map ProviderDto to UserDto if needed
-        if (result is ApiResponse<ProviderDto> providerResponse && providerResponse.Data != null)
-        {
-            var userDto = new UserDto
-            {
-                Id = providerResponse.Data.Id,
-                Email = providerResponse.Data.Email,
-                FirstName = providerResponse.Data.FirstName,
-                LastName = providerResponse.Data.LastName,
-                // ... map other properties as needed ...
-            };
-            return ApiResponse<UserDto>.SuccessResponse(userDto);
-        }
-        return ApiResponse<UserDto>.ErrorResponse(result.Message);
-    }
-    public async Task<ApiResponse<UserDto>> UpdateProviderAsync(string providerId, UpdateProviderDto updateProviderDto)
-    {
-        if (!Guid.TryParse(providerId, out var guid))
-            return ApiResponse<UserDto>.ErrorResponse("Invalid provider ID");
-        var result = await UpdateProviderAsync(guid, updateProviderDto);
-        // Map ProviderDto to UserDto if needed
-        if (result is ApiResponse<ProviderDto> providerResponse && providerResponse.Data != null)
-        {
-            var userDto = new UserDto
-            {
-                Id = providerResponse.Data.Id,
-                Email = providerResponse.Data.Email,
-                FirstName = providerResponse.Data.FirstName,
-                LastName = providerResponse.Data.LastName,
-                // ... map other properties as needed ...
-            };
-            return ApiResponse<UserDto>.SuccessResponse(userDto);
-        }
-        return ApiResponse<UserDto>.ErrorResponse(result.Message);
-    }
-    // === END INTERFACE OVERLOADS ===
+    // Removed conflicting method overloads - interface methods now use int parameters
 
     private async Task<UserRole> GetUserRoleByNameAsync(string userTypeName)
     {

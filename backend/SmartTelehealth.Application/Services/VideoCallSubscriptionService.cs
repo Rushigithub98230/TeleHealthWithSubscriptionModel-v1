@@ -31,7 +31,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         _privilegeService = privilegeService;
     }
 
-    public async Task<ApiResponse<VideoCallAccessDto>> CheckVideoCallAccessAsync(Guid userId, Guid? consultationId = null)
+    public async Task<ApiResponse<VideoCallAccessDto>> CheckVideoCallAccessAsync(int userId, Guid? consultationId = null)
     {
         try
         {
@@ -81,7 +81,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         }
     }
 
-    public async Task<ApiResponse<OpenTokSessionDto>> CreateVideoCallSessionAsync(Guid userId, Guid consultationId, string sessionName)
+    public async Task<ApiResponse<OpenTokSessionDto>> CreateVideoCallSessionAsync(int userId, Guid consultationId, string sessionName)
     {
         try
         {
@@ -119,7 +119,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         }
     }
 
-    public async Task<ApiResponse<string>> GenerateVideoCallTokenAsync(Guid userId, string sessionId, OpenTokRole role)
+    public async Task<ApiResponse<string>> GenerateVideoCallTokenAsync(int userId, string sessionId, OpenTokRole role)
     {
         try
         {
@@ -148,7 +148,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         }
     }
 
-    public async Task<ApiResponse<VideoCallBillingDto>> ProcessVideoCallBillingAsync(Guid userId, Guid consultationId, int durationMinutes)
+    public async Task<ApiResponse<VideoCallBillingDto>> ProcessVideoCallBillingAsync(int userId, Guid consultationId, int durationMinutes)
     {
         try
         {
@@ -221,7 +221,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         }
     }
 
-    public async Task<ApiResponse<VideoCallUsageDto>> GetVideoCallUsageAsync(Guid userId)
+    public async Task<ApiResponse<VideoCallUsageDto>> GetVideoCallUsageAsync(int userId)
     {
         try
         {
@@ -235,7 +235,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
             var billingStartDate = subscription.NextBillingDate.AddMonths(-1);
             var consultations = await _consultationRepository.GetByUserIdAsync(userId);
             var currentPeriodConsultations = consultations
-                .Where(c => c.CreatedAt >= billingStartDate && c.Status == Consultation.ConsultationStatus.Completed)
+                .Where(c => c.CreatedDate >= billingStartDate && c.Status == Consultation.ConsultationStatus.Completed)
                 .ToList();
 
             var usageDto = new VideoCallUsageDto
@@ -246,7 +246,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                 // Use privilege system for reporting if needed
                 CurrentBillingPeriodStart = billingStartDate,
                 CurrentBillingPeriodEnd = subscription.NextBillingDate,
-                TotalVideoCallsThisPeriod = currentPeriodConsultations.Count,
+                TotalVideoCallsThisPeriod = currentPeriodConsultations.Count(),
                 TotalDurationThisPeriod = currentPeriodConsultations.Sum(c => c.DurationMinutes),
                 AverageDurationMinutes = currentPeriodConsultations.Any() ? 
                     currentPeriodConsultations.Average(c => c.DurationMinutes) : 0

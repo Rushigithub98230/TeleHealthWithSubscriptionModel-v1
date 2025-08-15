@@ -73,7 +73,7 @@ namespace SmartTelehealth.Application.DTOs
     public class UserResponseDto
     {
         public Guid Id { get; set; }
-        public Guid UserId { get; set; }
+        public int UserId { get; set; }
         public Guid CategoryId { get; set; }
         public Guid TemplateId { get; set; }
         public ResponseStatus Status { get; set; } = ResponseStatus.Completed;
@@ -84,7 +84,7 @@ namespace SmartTelehealth.Application.DTOs
 
     public class CreateUserResponseDto
     {
-        public Guid UserId { get; set; }
+        public int UserId { get; set; }
         public Guid CategoryId { get; set; }
         public Guid TemplateId { get; set; }
         public ResponseStatus Status { get; set; } = ResponseStatus.Completed;

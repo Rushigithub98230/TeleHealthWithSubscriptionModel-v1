@@ -38,22 +38,13 @@ public class ProviderOnboardingService : IProviderOnboardingService
     {
         try
         {
-            // Check if user already has an onboarding application
-            var existingOnboarding = await _onboardingRepository.GetByUserIdAsync(Guid.Parse(createDto.Email)); // Using email as userId for now
-            if (existingOnboarding != null)
-            {
-                return new ApiResponse<ProviderOnboardingDto>
-                {
-                    Success = false,
-                    Message = "User already has an onboarding application",
-                    StatusCode = 400
-                };
-            }
+            // TODO: Check if user already has an onboarding application by email
+            // This will be implemented when we have proper user management
 
             var onboarding = new ProviderOnboarding
             {
                 Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(), // Generate new user ID
+                UserId = 0, // TODO: This should be set to the actual user ID after user creation
                 FirstName = createDto.FirstName,
                 LastName = createDto.LastName,
                 Email = createDto.Email,
@@ -139,7 +130,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<ProviderOnboardingDto>> GetOnboardingByUserIdAsync(Guid userId)
+    public async Task<ApiResponse<ProviderOnboardingDto>> GetOnboardingByUserIdAsync(int userId)
     {
         try
         {

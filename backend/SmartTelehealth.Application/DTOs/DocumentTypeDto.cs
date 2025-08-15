@@ -26,7 +26,7 @@ public class DocumentTypeDto
     public DateTime? LastUsedAt { get; set; }
     
     // Audit fields
-    public Guid CreatedById { get; set; }
+    public int? CreatedById { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }

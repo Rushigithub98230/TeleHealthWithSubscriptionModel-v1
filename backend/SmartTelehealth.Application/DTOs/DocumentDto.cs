@@ -18,7 +18,7 @@ public class DocumentDto
     
     public bool IsEncrypted { get; set; }
     public bool IsPublic { get; set; }
-    public Guid CreatedById { get; set; }
+    public int? CreatedById { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
     public bool IsActive { get; set; }
@@ -45,7 +45,7 @@ public class DocumentReferenceDto
     public string? Description { get; set; }
     public bool IsPublic { get; set; }
     public DateTime? ExpiresAt { get; set; }
-    public Guid CreatedById { get; set; }
+    public int CreatedById { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
@@ -60,7 +60,7 @@ public class UploadDocumentRequest
     public string? Description { get; set; }
     public bool IsPublic { get; set; } = false;
     public bool IsEncrypted { get; set; } = false;
-    public Guid? CreatedById { get; set; }
+    public int? CreatedById { get; set; }
     public DateTime? ExpiresAt { get; set; }
     
     // Document Type information
@@ -83,4 +83,21 @@ public class DocumentSearchRequest
     public DateTime? CreatedTo { get; set; }
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;
+} 
+
+public class UploadUserDocumentRequest
+{
+    public byte[] FileData { get; set; } = Array.Empty<byte>();
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
+    public int UserId { get; set; } // User ID (int)
+    public string? ReferenceType { get; set; }
+    public string? Description { get; set; }
+    public bool IsPublic { get; set; } = false;
+    public bool IsEncrypted { get; set; } = false;
+    public int? CreatedById { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+    
+    // Document Type information
+    public Guid DocumentTypeId { get; set; } // Required - user must select document type
 } 

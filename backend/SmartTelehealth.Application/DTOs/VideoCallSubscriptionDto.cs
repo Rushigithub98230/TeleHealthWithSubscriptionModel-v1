@@ -31,8 +31,6 @@ public class VideoCallUsageDto
 {
     public Guid SubscriptionId { get; set; }
     public string PlanName { get; set; } = string.Empty;
-    public int ConsultationLimit { get; set; }
-    public int RemainingConsultations { get; set; }
     public DateTime CurrentBillingPeriodStart { get; set; }
     public DateTime CurrentBillingPeriodEnd { get; set; }
     public int TotalVideoCallsThisPeriod { get; set; }

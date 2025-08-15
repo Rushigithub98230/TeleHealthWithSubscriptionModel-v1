@@ -38,7 +38,7 @@ public class AnalyticsService : IAnalyticsService
         _mapper = mapper;
     }
 
-    public async Task<ApiResponse<RevenueAnalyticsDto>> GetRevenueAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetRevenueAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -55,16 +55,16 @@ public class AnalyticsService : IAnalyticsService
                 TotalRefunds = await GetRefundsIssuedAsync(startDate, endDate)
             };
 
-            return ApiResponse<RevenueAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "Revenue analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting revenue analytics");
-            return ApiResponse<RevenueAnalyticsDto>.ErrorResponse("Error retrieving revenue analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving revenue analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<UserActivityAnalyticsDto>> GetUserActivityAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetUserActivityAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -79,16 +79,16 @@ public class AnalyticsService : IAnalyticsService
                 TotalLogins = 0 // TODO: Implement
             };
 
-            return ApiResponse<UserActivityAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "User activity analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user activity analytics");
-            return ApiResponse<UserActivityAnalyticsDto>.ErrorResponse("Error retrieving user activity analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving user activity analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<AppointmentAnalyticsDto>> GetAppointmentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetAppointmentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -102,16 +102,16 @@ public class AnalyticsService : IAnalyticsService
                 AverageAppointmentDuration = 0 // TODO: Implement
             };
 
-            return ApiResponse<AppointmentAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "Appointment analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting appointment analytics");
-            return ApiResponse<AppointmentAnalyticsDto>.ErrorResponse("Error retrieving appointment analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving appointment analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionAnalyticsDto>> GetSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -128,12 +128,12 @@ public class AnalyticsService : IAnalyticsService
                 MonthlyGrowth = await GetMonthlyGrowthAsync()
             };
 
-            return ApiResponse<SubscriptionAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "Subscription analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription analytics");
-            return ApiResponse<SubscriptionAnalyticsDto>.ErrorResponse("Error retrieving subscription analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving subscription analytics", StatusCode = 500 };
         }
     }
 
@@ -314,7 +314,7 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<ApiResponse<BillingAnalyticsDto>> GetBillingAnalyticsAsync()
+    public async Task<JsonModel> GetBillingAnalyticsAsync()
     {
         try
         {
@@ -330,12 +330,12 @@ public class AnalyticsService : IAnalyticsService
                 RevenueTrend = await GetRevenueTrendAsync()
             };
 
-            return ApiResponse<BillingAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "Billing analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting billing analytics");
-            return ApiResponse<BillingAnalyticsDto>.ErrorResponse("Error retrieving billing analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving billing analytics", StatusCode = 500 };
         }
     }
 
@@ -441,7 +441,7 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<ApiResponse<UserAnalyticsDto>> GetUserAnalyticsAsync()
+    public async Task<JsonModel> GetUserAnalyticsAsync()
     {
         try
         {
@@ -455,12 +455,12 @@ public class AnalyticsService : IAnalyticsService
                 TopUserCategories = await GetTopUserCategoriesAsync()
             };
 
-            return ApiResponse<UserAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "User analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user analytics");
-            return ApiResponse<UserAnalyticsDto>.ErrorResponse("Error retrieving user analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving user analytics", StatusCode = 500 };
         }
     }
 
@@ -548,7 +548,7 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<ApiResponse<ProviderAnalyticsDto>> GetProviderAnalyticsAsync()
+    public async Task<JsonModel> GetProviderAnalyticsAsync()
     {
         try
         {
@@ -564,12 +564,12 @@ public class AnalyticsService : IAnalyticsService
                 ProviderWorkload = await GetProviderWorkloadAsync()
             };
 
-            return ApiResponse<ProviderAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "Provider analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting provider analytics");
-            return ApiResponse<ProviderAnalyticsDto>.ErrorResponse("Error retrieving provider analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving provider analytics", StatusCode = 500 };
         }
     }
 
@@ -643,14 +643,14 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<ApiResponse<SystemAnalyticsDto>> GetSystemAnalyticsAsync()
+    public async Task<JsonModel> GetSystemAnalyticsAsync()
     {
         try
         {
             var systemHealth = await GetSystemHealthAsync();
             var analytics = new SystemAnalyticsDto
             {
-                SystemHealth = systemHealth.Data ?? new SystemHealthDto(),
+                SystemHealth = systemHealth.data ?? new SystemHealthDto(),
                 TotalApiCalls = 0, // TODO: Implement
                 SuccessfulApiCalls = 0, // TODO: Implement
                 FailedApiCalls = 0, // TODO: Implement
@@ -662,16 +662,16 @@ public class AnalyticsService : IAnalyticsService
                 ErrorLogs = await GetErrorLogsAsync()
             };
 
-            return ApiResponse<SystemAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "System analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting system analytics");
-            return ApiResponse<SystemAnalyticsDto>.ErrorResponse("Error retrieving system analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving system analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SystemHealthDto>> GetSystemHealthAsync()
+    public async Task<JsonModel> GetSystemHealthAsync()
     {
         try
         {
@@ -688,12 +688,12 @@ public class AnalyticsService : IAnalyticsService
                 CpuUsage = 45.2
             };
 
-            return ApiResponse<SystemHealthDto>.SuccessResponse(health);
+            return new JsonModel { data = health, Message = "System health retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting system health");
-            return ApiResponse<SystemHealthDto>.ErrorResponse("Error retrieving system health", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving system health", StatusCode = 500 };
         }
     }
 
@@ -796,7 +796,7 @@ public class AnalyticsService : IAnalyticsService
     }
 
     // Additional interface methods with correct signatures
-    public async Task<ApiResponse<BillingAnalyticsDto>> GetBillingAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetBillingAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -809,16 +809,16 @@ public class AnalyticsService : IAnalyticsService
                 RefundsIssued = await GetRefundsIssuedAsync(startDate, endDate)
             };
 
-            return ApiResponse<BillingAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "Billing analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting billing analytics");
-            return ApiResponse<BillingAnalyticsDto>.ErrorResponse("Error retrieving billing analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving billing analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<UserAnalyticsDto>> GetUserAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetUserAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -831,16 +831,16 @@ public class AnalyticsService : IAnalyticsService
                 AverageUserLifetime = await CalculateAverageUserLifetimeAsync()
             };
 
-            return ApiResponse<UserAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "User analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user analytics");
-            return ApiResponse<UserAnalyticsDto>.ErrorResponse("Error retrieving user analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving user analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<ProviderAnalyticsDto>> GetProviderAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetProviderAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -851,84 +851,84 @@ public class AnalyticsService : IAnalyticsService
                 AverageProviderRating = await CalculateAverageProviderRatingAsync()
             };
 
-            return ApiResponse<ProviderAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "Provider analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting provider analytics");
-            return ApiResponse<ProviderAnalyticsDto>.ErrorResponse("Error retrieving provider analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving provider analytics", StatusCode = 500 };
         }
     }
 
 
 
-    public async Task<ApiResponse<byte[]>> GenerateSubscriptionReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GenerateSubscriptionReportAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
             var reportData = await GenerateSubscriptionReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
-            return ApiResponse<byte[]>.SuccessResponse(reportData);
+            return new JsonModel { data = reportData, Message = "Subscription report generated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating subscription report");
-            return ApiResponse<byte[]>.ErrorResponse("Error generating subscription report", 500);
+            return new JsonModel { data = new object(), Message = "Error generating subscription report", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<byte[]>> GenerateBillingReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GenerateBillingReportAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
             var reportData = await GenerateBillingReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
-            return ApiResponse<byte[]>.SuccessResponse(reportData);
+            return new JsonModel { data = reportData, Message = "Billing report generated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating billing report");
-            return ApiResponse<byte[]>.ErrorResponse("Error generating billing report", 500);
+            return new JsonModel { data = new object(), Message = "Error generating billing report", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<byte[]>> GenerateUserReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GenerateUserReportAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
             var reportData = await GenerateUserReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
-            return ApiResponse<byte[]>.SuccessResponse(reportData);
+            return new JsonModel { data = reportData, Message = "User report generated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating user report");
-            return ApiResponse<byte[]>.ErrorResponse("Error generating user report", 500);
+            return new JsonModel { data = new object(), Message = "Error generating user report", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<byte[]>> GenerateProviderReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GenerateProviderReportAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
             var reportData = await GenerateProviderReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
-            return ApiResponse<byte[]>.SuccessResponse(reportData);
+            return new JsonModel { data = reportData, Message = "Provider report generated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating provider report");
-            return ApiResponse<byte[]>.ErrorResponse("Error generating provider report", 500);
+            return new JsonModel { data = new object(), Message = "Error generating provider report", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<byte[]>> ExportSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> ExportSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
             var reportData = await GenerateSubscriptionReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "csv");
-            return ApiResponse<byte[]>.SuccessResponse(reportData);
+            return new JsonModel { data = reportData, Message = "Subscription analytics exported successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error exporting subscription analytics");
-            return ApiResponse<byte[]>.ErrorResponse("Error exporting subscription analytics", 500);
+            return new JsonModel { data = new object(), Message = "Error exporting subscription analytics", StatusCode = 500 };
         }
     }
 } 

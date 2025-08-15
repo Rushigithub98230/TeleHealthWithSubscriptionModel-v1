@@ -6,7 +6,7 @@ public interface IProviderOnboardingService
 {
     Task<ApiResponse<ProviderOnboardingDto>> CreateOnboardingAsync(CreateProviderOnboardingDto createDto);
     Task<ApiResponse<ProviderOnboardingDto>> GetOnboardingAsync(Guid id);
-    Task<ApiResponse<ProviderOnboardingDto>> GetOnboardingByUserIdAsync(Guid userId);
+    Task<ApiResponse<ProviderOnboardingDto>> GetOnboardingByUserIdAsync(int userId);
     Task<ApiResponse<ProviderOnboardingDto>> UpdateOnboardingAsync(Guid id, UpdateProviderOnboardingDto updateDto);
     Task<ApiResponse<ProviderOnboardingDto>> SubmitOnboardingAsync(Guid id);
     Task<ApiResponse<ProviderOnboardingDto>> ReviewOnboardingAsync(Guid id, ReviewProviderOnboardingDto reviewDto);

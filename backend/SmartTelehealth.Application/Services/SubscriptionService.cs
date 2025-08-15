@@ -64,11 +64,11 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetUserSubscriptionsAsync(string userId)
+    public async Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetUserSubscriptionsAsync(int userId)
     {
         try
         {
-            var entities = await _subscriptionRepository.GetByUserIdAsync(Guid.Parse(userId));
+            var entities = await _subscriptionRepository.GetByUserIdAsync(userId);
             var dtos = _mapper.Map<IEnumerable<SubscriptionDto>>(entities);
             return ApiResponse<IEnumerable<SubscriptionDto>>.SuccessResponse(dtos);
         }
@@ -91,7 +91,7 @@ public class SubscriptionService : ISubscriptionService
                 return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription plan is not active");
 
             // 2. Prevent duplicate subscriptions for the same user and plan (active or paused)
-            var userSubscriptions = await _subscriptionRepository.GetByUserIdAsync(Guid.Parse(createDto.UserId));
+            var userSubscriptions = await _subscriptionRepository.GetByUserIdAsync(createDto.UserId);
             if (userSubscriptions.Any(s => s.SubscriptionPlanId == plan.Id && (s.Status == Subscription.SubscriptionStatuses.Active || s.Status == Subscription.SubscriptionStatuses.Paused)))
                 return ApiResponse<SubscriptionDto>.ErrorResponse("User already has an active or paused subscription for this plan");
 
@@ -137,7 +137,7 @@ public class SubscriptionService : ISubscriptionService
             }
             
             // Audit log
-            await _auditService.LogUserActionAsync(createDto.UserId, "CreateSubscription", "Subscription", created.Id.ToString(), "Subscription created successfully");
+            await _auditService.LogUserActionAsync(createDto.UserId.ToString(), "CreateSubscription", "Subscription", created.Id.ToString(), "Subscription created successfully");
             
             return ApiResponse<SubscriptionDto>.SuccessResponse(dto, "Subscription created");
         }
@@ -184,7 +184,7 @@ public class SubscriptionService : ISubscriptionService
             var dto = _mapper.Map<SubscriptionDto>(updated);
             
             // Send cancellation email
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
             if (userResult.Success && userResult.Data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
@@ -240,7 +240,7 @@ public class SubscriptionService : ISubscriptionService
             var dto = _mapper.Map<SubscriptionDto>(updated);
             
             // Send pause notification email
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
             if (userResult.Success && userResult.Data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
@@ -292,13 +292,13 @@ public class SubscriptionService : ISubscriptionService
             
             var dto = _mapper.Map<SubscriptionDto>(updated);
             
-            // Send resume notification
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
+            // Send resume email
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
             if (userResult.Success && userResult.Data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
-                // await _notificationService.SendSubscriptionResumedNotificationAsync(userResult.Data.Email, userResult.Data.FullName, dto);
-                _logger.LogInformation("Email notifications disabled - would have sent resume notification to {Email}", userResult.Data.Email);
+                // await _notificationService.SendSubscriptionResumeEmailAsync(userResult.Data.Email, userResult.Data.FullName, dto);
+                _logger.LogInformation("Email notifications disabled - would have sent resume email to {Email}", userResult.Data.Email);
             }
             
             // Audit log
@@ -440,15 +440,15 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<PaymentMethodDto>>> GetPaymentMethodsAsync(string userId)
+            public async Task<ApiResponse<IEnumerable<PaymentMethodDto>>> GetPaymentMethodsAsync(int userId)
     {
-        var methods = await _stripeService.GetCustomerPaymentMethodsAsync(userId);
+        var methods = await _stripeService.GetCustomerPaymentMethodsAsync(userId.ToString());
         return ApiResponse<IEnumerable<PaymentMethodDto>>.SuccessResponse(methods);
     }
 
-    public async Task<ApiResponse<PaymentMethodDto>> AddPaymentMethodAsync(string userId, string paymentMethodId)
+    public async Task<ApiResponse<PaymentMethodDto>> AddPaymentMethodAsync(int userId, string paymentMethodId)
     {
-        var methodId = await _stripeService.AddPaymentMethodAsync(userId, paymentMethodId);
+        var methodId = await _stripeService.AddPaymentMethodAsync(userId.ToString(), paymentMethodId);
         var method = new PaymentMethodDto { Id = methodId };
         return ApiResponse<PaymentMethodDto>.SuccessResponse(method, "Payment method added");
     }
@@ -1011,7 +1011,7 @@ public class SubscriptionService : ISubscriptionService
             });
 
             // Send payment failed notification
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
             if (userResult.Success && userResult.Data != null)
             {
                 var billingRecord = new BillingRecordDto { Amount = entity.CurrentPrice, DueDate = DateTime.UtcNow, Description = reason };
@@ -1041,7 +1041,7 @@ public class SubscriptionService : ISubscriptionService
         if (paymentResult.Status == "succeeded")
         {
             // Send payment success email
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
             if (userResult.Success && userResult.Data != null)
             {
                 var billingRecord = new BillingRecordDto { Amount = paymentRequest.Amount, PaidDate = DateTime.UtcNow, Description = "Retry Payment" };
@@ -1072,7 +1072,7 @@ public class SubscriptionService : ISubscriptionService
         if (paymentResult.Status == "succeeded")
         {
             // Send renewal confirmation email
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId.ToString());
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
             if (userResult.Success && userResult.Data != null)
             {
                 var billingRecord = new BillingRecordDto { Amount = entity.CurrentPrice, PaidDate = DateTime.UtcNow, Description = "Auto-Renewal" };
@@ -1245,7 +1245,7 @@ public class SubscriptionService : ISubscriptionService
                 sub.CancellationReason = reason ?? "Bulk admin cancel";
                 sub.CancelledDate = DateTime.UtcNow;
                 await _subscriptionRepository.UpdateAsync(sub);
-                var userResult = await _userService.GetUserByIdAsync(sub.UserId.ToString());
+                var userResult = await _userService.GetUserByIdAsync(sub.UserId);
                 if (userResult.Success && userResult.Data != null)
                 {
                     // EMAIL FUNCTIONALITY DISABLED - Commented out for now
@@ -1271,7 +1271,7 @@ public class SubscriptionService : ISubscriptionService
                 sub.SubscriptionPlanId = Guid.Parse(newPlanId);
                 sub.UpdatedAt = DateTime.UtcNow;
                 await _subscriptionRepository.UpdateAsync(sub);
-                var userResult = await _userService.GetUserByIdAsync(sub.UserId.ToString());
+                var userResult = await _userService.GetUserByIdAsync(sub.UserId);
                 if (userResult.Success && userResult.Data != null)
                 {
                     // EMAIL FUNCTIONALITY DISABLED - Commented out for now
@@ -1302,7 +1302,7 @@ public class SubscriptionService : ISubscriptionService
                     sub.Status = Subscription.SubscriptionStatuses.Active;
                     await _subscriptionRepository.UpdateAsync(sub);
                     
-                    var userResult = await _userService.GetUserByIdAsync(sub.UserId.ToString());
+                    var userResult = await _userService.GetUserByIdAsync(sub.UserId);
                     if (userResult.Success && userResult.Data != null)
                     {
                         var billingRecord = new BillingRecordDto { Amount = sub.CurrentPrice, PaidDate = DateTime.UtcNow, Description = "Webhook Payment Success" };

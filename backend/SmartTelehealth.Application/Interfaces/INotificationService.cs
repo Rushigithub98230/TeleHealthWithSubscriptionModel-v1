@@ -5,11 +5,11 @@ namespace SmartTelehealth.Application.Interfaces;
 public interface INotificationService
 {
     // CRUD operations
-    Task<ApiResponse<IEnumerable<NotificationDto>>> GetNotificationsAsync();
-    Task<ApiResponse<NotificationDto>> GetNotificationAsync(Guid id);
-    Task<ApiResponse<NotificationDto>> CreateNotificationAsync(CreateNotificationDto createNotificationDto);
-    Task<ApiResponse<NotificationDto>> UpdateNotificationAsync(Guid id, object updateNotificationDto);
-    Task<ApiResponse<bool>> DeleteNotificationAsync(Guid id);
+    Task<JsonModel> GetNotificationsAsync();
+    Task<JsonModel> GetNotificationAsync(Guid id);
+    Task<JsonModel> CreateNotificationAsync(CreateNotificationDto createNotificationDto);
+    Task<JsonModel> UpdateNotificationAsync(Guid id, object updateNotificationDto);
+    Task<JsonModel> DeleteNotificationAsync(Guid id);
     
     // Email notifications (void methods - no response needed)
     Task SendWelcomeEmailAsync(string email, string userName);
@@ -34,14 +34,14 @@ public interface INotificationService
     Task SendOverduePaymentEmailAsync(string email, string userName, BillingRecordDto billingRecord);
     
     // In-app notifications
-    Task<ApiResponse<NotificationDto>> CreateInAppNotificationAsync(Guid userId, string title, string message);
-    Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(Guid userId);
-    Task<ApiResponse<bool>> MarkNotificationAsReadAsync(Guid notificationId);
-    Task<ApiResponse<int>> GetUnreadNotificationCountAsync(Guid userId);
+    Task<JsonModel> CreateInAppNotificationAsync(int userId, string title, string message);
+    Task<JsonModel> GetUserNotificationsAsync(int userId);
+    Task<JsonModel> MarkNotificationAsReadAsync(Guid notificationId);
+    Task<JsonModel> GetUnreadNotificationCountAsync(int userId);
     
     // Utility methods
-    Task<ApiResponse<bool>> IsEmailValidAsync(string email);
-    Task<ApiResponse<bool>> SendSmsAsync(string phoneNumber, string message);
+    Task<JsonModel> IsEmailValidAsync(string email);
+    Task<JsonModel> SendSmsAsync(string phoneNumber, string message);
     Task SendNotificationAsync(string userId, string title, string message);
     
     // Added missing methods for BillingService and AutomatedBillingService

@@ -6,12 +6,12 @@ public interface IProviderPayoutService
 {
     Task<ApiResponse<ProviderPayoutDto>> GetPayoutAsync(Guid id);
     Task<ApiResponse<ProviderPayoutDto>> ProcessPayoutAsync(Guid id, ProcessPayoutDto processDto);
-    Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPayoutsByProviderAsync(Guid providerId);
+    Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPayoutsByProviderAsync(int providerId);
     Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPayoutsByPeriodAsync(Guid periodId);
     Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetAllPayoutsAsync(string? status = null, int page = 1, int pageSize = 50);
     Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPendingPayoutsAsync();
     Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPayoutsByStatusAsync(string status);
-    Task<ApiResponse<ProviderEarningsDto>> GetProviderEarningsAsync(Guid providerId);
+    Task<ApiResponse<ProviderEarningsDto>> GetProviderEarningsAsync(int providerId);
     Task<ApiResponse<PayoutStatisticsDto>> GetPayoutStatisticsAsync();
     Task<ApiResponse<bool>> GeneratePayoutsForPeriodAsync(Guid periodId);
     Task<ApiResponse<bool>> ProcessAllPendingPayoutsAsync();

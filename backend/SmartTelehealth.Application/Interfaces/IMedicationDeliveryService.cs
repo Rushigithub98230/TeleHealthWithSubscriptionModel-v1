@@ -4,10 +4,10 @@ namespace SmartTelehealth.Application.Interfaces;
 
 public interface IMedicationDeliveryService
 {
-    Task<ApiResponse<MedicationDeliveryDto>> GetByIdAsync(Guid id);
-    Task<ApiResponse<IEnumerable<MedicationDeliveryDto>>> GetByUserIdAsync(Guid userId);
-    Task<ApiResponse<MedicationDeliveryDto>> CreateAsync(CreateMedicationDeliveryDto createDto);
-    Task<ApiResponse<MedicationDeliveryDto>> UpdateAsync(Guid id, UpdateMedicationDeliveryDto updateDto);
-    Task<ApiResponse<bool>> DeleteAsync(Guid id);
-    Task<ApiResponse<IEnumerable<MedicationDeliveryDto>>> GetAllAsync();
+    Task<JsonModel> GetByIdAsync(Guid id);
+    Task<JsonModel> GetByUserIdAsync(int userId);
+    Task<JsonModel> CreateAsync(CreateMedicationDeliveryDto createDto);
+    Task<JsonModel> UpdateAsync(Guid id, UpdateMedicationDeliveryDto updateDto);
+    Task<JsonModel> DeleteAsync(Guid id);
+    Task<JsonModel> GetAllAsync();
 } 

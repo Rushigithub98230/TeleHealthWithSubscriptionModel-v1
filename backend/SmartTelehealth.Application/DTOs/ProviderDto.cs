@@ -43,7 +43,7 @@ namespace SmartTelehealth.Application.DTOs
 
     public class UpdateProviderDto
     {
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; }
         public string UserId { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;

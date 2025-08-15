@@ -38,7 +38,7 @@ namespace SmartTelehealth.Application.Services
             _auditService = auditService;
         }
 
-        public async Task<ApiResponse<LoginResponseDto>> LoginAsync(LoginDto loginDto)
+        public async Task<JsonModel> LoginAsync(LoginDto loginDto)
         {
             try
             {
@@ -46,14 +46,14 @@ namespace SmartTelehealth.Application.Services
                 if (user == null)
                 {
                     await _auditService.LogSecurityEventAsync("Unknown", "LoginFailed", $"Login failed for email {loginDto.Email}");
-                    return ApiResponse<LoginResponseDto>.ErrorResponse("Invalid email or password");
+                    return new JsonModel { data = new object(), Message = "Invalid email or password", StatusCode = 400 };
                 }
 
                 var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
                 if (!result.Succeeded)
                 {
                     await _auditService.LogSecurityEventAsync(user.Id.ToString(), "LoginFailed", $"Login failed for user {user.Email}");
-                    return ApiResponse<LoginResponseDto>.ErrorResponse("Invalid email or password");
+                    return new JsonModel { data = new object(), Message = "Invalid email or password", StatusCode = 400 };
                 }
 
                 var token = _jwtService.GenerateToken(user);
@@ -69,16 +69,16 @@ namespace SmartTelehealth.Application.Services
                     Message = "Login successful"
                 };
 
-                return ApiResponse<LoginResponseDto>.SuccessResponse(loginResponse);
+                return new JsonModel { data = loginResponse, Message = "Login successful", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 await _auditService.LogSecurityEventAsync("System", "LoginError", $"Login error: {ex.Message}");
-                return ApiResponse<LoginResponseDto>.ErrorResponse("An error occurred during login");
+                return new JsonModel { data = new object(), Message = "An error occurred during login", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<LoginResponseDto>> RegisterAsync(RegisterDto registerDto)
+        public async Task<JsonModel> RegisterAsync(RegisterDto registerDto)
         {
             try
             {
@@ -86,7 +86,7 @@ namespace SmartTelehealth.Application.Services
                 if (existingUser != null)
                 {
                     await _auditService.LogSecurityEventAsync("Unknown", "RegisterFailed", $"Registration failed for email {registerDto.Email}: already exists");
-                    return ApiResponse<LoginResponseDto>.ErrorResponse("User with this email already exists");
+                    return new JsonModel { data = new object(), Message = "User with this email already exists", StatusCode = 400 };
                 }
 
                 var user = new User
@@ -111,7 +111,7 @@ namespace SmartTelehealth.Application.Services
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
                     await _auditService.LogSecurityEventAsync("Unknown", "RegisterFailed", $"Registration failed for email {registerDto.Email}: {string.Join(", ", errors)}");
-                    return ApiResponse<LoginResponseDto>.ErrorResponse("Registration failed", errors);
+                    return new JsonModel { data = new object(), Message = "Registration failed", StatusCode = 400 };
                 }
 
                 // Assign default role (Patient)
@@ -129,23 +129,23 @@ namespace SmartTelehealth.Application.Services
                     Message = "Registration successful"
                 };
 
-                return ApiResponse<LoginResponseDto>.SuccessResponse(loginResponse);
+                return new JsonModel { data = loginResponse, Message = "Registration successful", StatusCode = 201 };
             }
             catch (Exception ex)
             {
                 await _auditService.LogSecurityEventAsync("System", "RegisterError", $"Registration error: {ex.Message}");
-                return ApiResponse<LoginResponseDto>.ErrorResponse("An error occurred during registration");
+                return new JsonModel { data = new object(), Message = "An error occurred during registration", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<LoginResponseDto>> RefreshTokenAsync(RefreshTokenDto refreshTokenDto)
+        public async Task<JsonModel> RefreshTokenAsync(RefreshTokenDto refreshTokenDto)
         {
             try
             {
                 var user = await _userRepository.GetByRefreshTokenAsync(refreshTokenDto.RefreshToken);
                 if (user == null)
                 {
-                    return ApiResponse<LoginResponseDto>.ErrorResponse("Invalid refresh token");
+                    return new JsonModel { data = new object(), Message = "Invalid refresh token", StatusCode = 400 };
                 }
 
                 var token = _jwtService.GenerateToken(user);
@@ -160,16 +160,16 @@ namespace SmartTelehealth.Application.Services
                     Message = "Token refreshed successfully"
                 };
 
-                return ApiResponse<LoginResponseDto>.SuccessResponse(loginResponse);
+                return new JsonModel { data = loginResponse, Message = "Token refreshed successfully", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 await _auditService.LogSecurityEventAsync("System", "RefreshTokenError", $"Refresh token error: {ex.Message}");
-                return ApiResponse<LoginResponseDto>.ErrorResponse("An error occurred while refreshing token");
+                return new JsonModel { data = new object(), Message = "An error occurred while refreshing token", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<bool>> ChangePasswordAsync(ChangePasswordDto changePasswordDto)
+        public async Task<JsonModel> ChangePasswordAsync(ChangePasswordDto changePasswordDto)
         {
             try
             {
@@ -179,27 +179,27 @@ namespace SmartTelehealth.Application.Services
                 var user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
                 {
-                    return ApiResponse<bool>.ErrorResponse("User not found");
+                    return new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 };
                 }
 
                 var result = await _userManager.ChangePasswordAsync(user, changePasswordDto.CurrentPassword, changePasswordDto.NewPassword);
                 if (!result.Succeeded)
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
-                    return ApiResponse<bool>.ErrorResponse("Failed to change password", errors);
+                    return new JsonModel { data = new object(), Message = "Failed to change password", StatusCode = 400 };
                 }
 
                 await _auditService.LogSecurityEventAsync(userId, "PasswordChanged", "Password changed successfully");
-                return ApiResponse<bool>.SuccessResponse(true);
+                return new JsonModel { data = true, Message = "Password changed successfully", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 await _auditService.LogSecurityEventAsync("System", "ChangePasswordError", $"Change password error: {ex.Message}");
-                return ApiResponse<bool>.ErrorResponse("An error occurred while changing password");
+                return new JsonModel { data = new object(), Message = "An error occurred while changing password", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<bool>> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto)
+        public async Task<JsonModel> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto)
         {
             try
             {
@@ -207,23 +207,23 @@ namespace SmartTelehealth.Application.Services
                 if (user == null)
                 {
                     // Don't reveal if email exists or not for security
-                    return ApiResponse<bool>.SuccessResponse(true);
+                    return new JsonModel { data = true, Message = "Password reset email sent", StatusCode = 200 };
                 }
 
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
                 // TODO: Send email with reset token
                 await _auditService.LogSecurityEventAsync(user.Id.ToString(), "ForgotPassword", "Password reset requested");
                 
-                return ApiResponse<bool>.SuccessResponse(true);
+                return new JsonModel { data = true, Message = "Password reset email sent", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 await _auditService.LogSecurityEventAsync("System", "ForgotPasswordError", $"Forgot password error: {ex.Message}");
-                return ApiResponse<bool>.ErrorResponse("An error occurred while processing the request");
+                return new JsonModel { data = new object(), Message = "An error occurred while processing the request", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<bool>> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
+        public async Task<JsonModel> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
         {
             try
             {
@@ -231,52 +231,52 @@ namespace SmartTelehealth.Application.Services
                 // you would validate the token and find the user by token, not by email
                 var user = await _userRepository.GetByEmailAsync(resetPasswordDto.Token); // This should be token validation
                 if (user == null)
-                    return ApiResponse<bool>.ErrorResponse("Invalid reset token");
+                    return new JsonModel { data = new object(), Message = "Invalid reset token", StatusCode = 400 };
 
                 var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
                 if (!result.Succeeded)
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
-                    return ApiResponse<bool>.ErrorResponse("Failed to reset password", errors);
+                    return new JsonModel { data = new object(), Message = "Failed to reset password", StatusCode = 400 };
                 }
 
                 await _auditService.LogSecurityEventAsync(user.Id.ToString(), "PasswordReset", "Password reset successfully");
-                return ApiResponse<bool>.SuccessResponse(true);
+                return new JsonModel { data = true, Message = "Password reset successfully", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 await _auditService.LogSecurityEventAsync("System", "ResetPasswordError", $"Reset password error: {ex.Message}");
-                return ApiResponse<bool>.ErrorResponse("An error occurred while resetting password");
+                return new JsonModel { data = new object(), Message = "An error occurred while resetting password", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<bool>> LogoutAsync()
+        public async Task<JsonModel> LogoutAsync()
         {
             try
             {
                 // This would typically invalidate the refresh token
                 // For now, we'll just return success
-                return ApiResponse<bool>.SuccessResponse(true);
+                return new JsonModel { data = true, Message = "Logout successful", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 await _auditService.LogSecurityEventAsync("System", "LogoutError", $"Logout error: {ex.Message}");
-                return ApiResponse<bool>.ErrorResponse("An error occurred during logout");
+                return new JsonModel { data = new object(), Message = "An error occurred during logout", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<bool>> ValidateTokenAsync(string token)
+        public async Task<JsonModel> ValidateTokenAsync(string token)
         {
             try
             {
                 // This would validate the JWT token
                 // For now, we'll just return true
-                return ApiResponse<bool>.SuccessResponse(true);
+                return new JsonModel { data = true, Message = "Token is valid", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 await _auditService.LogSecurityEventAsync("System", "ValidateTokenError", $"Token validation error: {ex.Message}");
-                return ApiResponse<bool>.ErrorResponse("Invalid token");
+                return new JsonModel { data = new object(), Message = "Invalid token", StatusCode = 400 };
             }
         }
 

@@ -7,6 +7,7 @@ public interface IDocumentTypeService
     // Core document type operations
     Task<ApiResponse<DocumentTypeDto>> CreateDocumentTypeAsync(CreateDocumentTypeRequest request);
     Task<ApiResponse<DocumentTypeDto>> GetDocumentTypeAsync(Guid documentTypeId);
+    Task<ApiResponse<DocumentTypeDto>> GetByNameAsync(string name);
     Task<ApiResponse<DocumentTypeDto>> UpdateDocumentTypeAsync(Guid documentTypeId, UpdateDocumentTypeRequest request);
     Task<ApiResponse<bool>> DeleteDocumentTypeAsync(Guid documentTypeId, Guid userId);
     Task<ApiResponse<bool>> SoftDeleteDocumentTypeAsync(Guid documentTypeId, Guid userId);

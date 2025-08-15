@@ -29,7 +29,7 @@ public class ProvidersController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetProvider(Guid id)
+    public async Task<IActionResult> GetProvider(int id)
     {
         var response = await _providerService.GetProviderByIdAsync(id);
         return StatusCode(response.StatusCode, response);
@@ -43,16 +43,16 @@ public class ProvidersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateProvider(Guid id, [FromBody] UpdateProviderDto updateProviderDto)
+    public async Task<IActionResult> UpdateProvider(int id, [FromBody] UpdateProviderDto updateProviderDto)
     {
-        if (!Guid.TryParse(updateProviderDto.Id, out var dtoId) || id != dtoId)
+        if (id != updateProviderDto.Id)
             return BadRequest("ID mismatch");
         var response = await _providerService.UpdateProviderAsync(id, updateProviderDto);
         return StatusCode(response.StatusCode, response);
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteProvider(Guid id)
+    public async Task<IActionResult> DeleteProvider(int id)
     {
         var response = await _providerService.DeleteProviderAsync(id);
         return StatusCode(response.StatusCode, response);

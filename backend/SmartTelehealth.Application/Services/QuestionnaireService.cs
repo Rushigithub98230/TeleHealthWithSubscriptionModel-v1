@@ -159,9 +159,9 @@ namespace SmartTelehealth.Application.Services
             return ApiResponse<List<QuestionnaireTemplateDto>>.SuccessResponse(templates.Select(MapToDto).ToList());
         }
 
-        public async Task<ApiResponse<UserResponseDto>> GetUserResponseAsync(Guid userId, Guid templateId)
+        public async Task<ApiResponse<UserResponseDto>> GetUserResponseAsync(int userId, Guid templateId)
         {
-            if (userId == Guid.Empty)
+            if (userId <= 0)
                 return ApiResponse<UserResponseDto>.ErrorResponse("Invalid user ID", 400);
             if (templateId == Guid.Empty)
                 return ApiResponse<UserResponseDto>.ErrorResponse("Invalid template ID", 400);
@@ -177,9 +177,9 @@ namespace SmartTelehealth.Application.Services
             return response != null ? ApiResponse<UserResponseDto>.SuccessResponse(MapToDto(response)) : ApiResponse<UserResponseDto>.ErrorResponse("User response not found", 404);
         }
 
-        public async Task<ApiResponse<List<UserResponseDto>>> GetUserResponsesByCategoryAsync(Guid userId, Guid categoryId)
+        public async Task<ApiResponse<List<UserResponseDto>>> GetUserResponsesByCategoryAsync(int userId, Guid categoryId)
         {
-            if (userId == Guid.Empty)
+            if (userId <= 0)
                 return ApiResponse<List<UserResponseDto>>.ErrorResponse("Invalid user ID", 400);
             if (categoryId != Guid.Empty && categoryId == Guid.Empty)
                 return ApiResponse<List<UserResponseDto>>.ErrorResponse("Invalid category ID", 400);
@@ -191,7 +191,7 @@ namespace SmartTelehealth.Application.Services
         {
             if (dto == null)
                 return ApiResponse<Guid>.ErrorResponse("Invalid request data", 400);
-            if (dto.UserId == Guid.Empty)
+            if (dto.UserId <= 0)
                 return ApiResponse<Guid>.ErrorResponse("User ID is required", 400);
             if (dto.TemplateId == Guid.Empty)
                 return ApiResponse<Guid>.ErrorResponse("Template ID is required", 400);
@@ -449,8 +449,8 @@ namespace SmartTelehealth.Application.Services
                 CategoryId = r.CategoryId,
                 TemplateId = r.TemplateId,
                 Status = r.Status,
-                CreatedAt = r.CreatedAt,
-                UpdatedAt = r.UpdatedAt,
+                CreatedAt = r.CreatedDate ?? DateTime.UtcNow,
+                UpdatedAt = r.UpdatedDate ?? DateTime.UtcNow,
                 Answers = r.Answers?.Select(MapToDto).ToList() ?? new()
             };
         }
@@ -464,7 +464,7 @@ namespace SmartTelehealth.Application.Services
                 AnswerText = a.AnswerText,
                 NumericValue = a.NumericValue,
                 DateTimeValue = a.DateTimeValue,
-                CreatedAt = a.CreatedAt,
+                CreatedAt = a.CreatedAt ?? DateTime.UtcNow,
                 SelectedOptionIds = a.SelectedOptions?.Select(o => o.OptionId).ToList() ?? new()
             };
         }

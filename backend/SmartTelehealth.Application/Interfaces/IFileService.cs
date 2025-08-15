@@ -4,10 +4,10 @@ namespace SmartTelehealth.Application.Interfaces;
 
 public interface IFileService
 {
-    Task<ApiResponse<FileDto>> GetByIdAsync(Guid id);
-    Task<ApiResponse<IEnumerable<FileDto>>> GetByUserIdAsync(Guid userId);
-    Task<ApiResponse<FileDto>> CreateAsync(CreateFileDto createDto);
-    Task<ApiResponse<FileDto>> UpdateAsync(Guid id, UpdateFileDto updateDto);
-    Task<ApiResponse<bool>> DeleteAsync(Guid id);
-    Task<ApiResponse<IEnumerable<FileDto>>> GetAllAsync();
+    Task<JsonModel> GetByIdAsync(Guid id);
+    Task<JsonModel> GetByUserIdAsync(Guid userId);
+    Task<JsonModel> CreateAsync(CreateFileDto createDto);
+    Task<JsonModel> UpdateAsync(Guid id, UpdateFileDto updateDto);
+    Task<JsonModel> DeleteAsync(Guid id);
+    Task<JsonModel> GetAllAsync();
 } 

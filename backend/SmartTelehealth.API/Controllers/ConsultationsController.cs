@@ -71,10 +71,15 @@ public class ConsultationsController : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
     
-    private Guid GetCurrentUserId()
+    private int GetCurrentUserId()
     {
         // This should be implemented based on your JWT token claims
         // For now, returning a default value
-        return Guid.Parse(User.FindFirst("sub")?.Value ?? Guid.Empty.ToString());
+        var userIdClaim = User.FindFirst("sub")?.Value;
+        if (int.TryParse(userIdClaim, out int userId))
+        {
+            return userId;
+        }
+        return 0; // Default value if parsing fails
     }
 } 

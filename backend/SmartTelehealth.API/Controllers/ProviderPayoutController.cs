@@ -50,7 +50,7 @@ public class ProviderPayoutController : ControllerBase
     /// Get payouts by provider
     /// </summary>
     [HttpGet("provider/{providerId}")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ProviderPayoutDto>>>> GetPayoutsByProvider(Guid providerId)
+    public async Task<ActionResult<ApiResponse<IEnumerable<ProviderPayoutDto>>>> GetPayoutsByProvider(int providerId)
     {
         var result = await _payoutService.GetPayoutsByProviderAsync(providerId);
         return StatusCode(result.StatusCode, result);
@@ -106,7 +106,7 @@ public class ProviderPayoutController : ControllerBase
     /// Get provider earnings
     /// </summary>
     [HttpGet("earnings/{providerId}")]
-    public async Task<ActionResult<ApiResponse<ProviderEarningsDto>>> GetProviderEarnings(Guid providerId)
+    public async Task<ActionResult<ApiResponse<ProviderEarningsDto>>> GetProviderEarnings(int providerId)
     {
         var result = await _payoutService.GetProviderEarningsAsync(providerId);
         return StatusCode(result.StatusCode, result);

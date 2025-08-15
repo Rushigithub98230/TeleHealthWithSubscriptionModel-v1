@@ -4,13 +4,13 @@ namespace SmartTelehealth.Application.Interfaces
 {
     public interface IAuditService
     {
-        Task<ApiResponse<AuditLogDto>> GetAuditLogByIdAsync(Guid id);
-        Task<ApiResponse<AuditLogDto>> CreateAuditLogAsync(CreateAuditLogDto createDto);
-        Task<ApiResponse<IEnumerable<AuditLogDto>>> GetUserAuditLogsAsync(string userId);
-        Task<ApiResponse<IEnumerable<AuditLogDto>>> SearchAuditLogsAsync(AuditLogSearchDto searchDto);
-        Task<ApiResponse<IEnumerable<AuditLogDto>>> GetRecentAuditLogsAsync(int count = 100);
-        Task<ApiResponse<IEnumerable<AuditLogDto>>> GetAuditLogsAsync(string? action = null, string? userId = null, DateTime? startDate = null, DateTime? endDate = null, int page = 1, int pageSize = 50);
-        Task<ApiResponse<int>> GetUserAuditLogCountAsync(string userId);
+        Task<JsonModel> GetAuditLogByIdAsync(Guid id);
+        Task<JsonModel> CreateAuditLogAsync(CreateAuditLogDto createDto);
+        Task<JsonModel> GetUserAuditLogsAsync(string userId);
+        Task<JsonModel> SearchAuditLogsAsync(AuditLogSearchDto searchDto);
+        Task<JsonModel> GetRecentAuditLogsAsync(int count = 100);
+        Task<JsonModel> GetAuditLogsAsync(string? action = null, string? userId = null, DateTime? startDate = null, DateTime? endDate = null, int page = 1, int pageSize = 50);
+        Task<JsonModel> GetUserAuditLogCountAsync(string userId);
         
         // Business-specific audit methods
         Task LogUserActionAsync(string userId, string action, string entityType, string? entityId = null, string? description = null);

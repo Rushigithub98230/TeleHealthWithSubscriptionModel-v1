@@ -6,48 +6,48 @@ namespace SmartTelehealth.Application.Interfaces;
 public interface IBillingService
 {
     // Existing Methods
-    Task<ApiResponse<BillingRecordDto>> CreateBillingRecordAsync(CreateBillingRecordDto createDto);
-    Task<ApiResponse<BillingRecordDto>> GetBillingRecordAsync(Guid id);
-    Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetUserBillingHistoryAsync(Guid userId);
-    Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetSubscriptionBillingHistoryAsync(Guid subscriptionId);
-    Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetAllBillingRecordsAsync();
-    Task<ApiResponse<BillingRecordDto>> ProcessPaymentAsync(Guid billingRecordId);
-    Task<ApiResponse<BillingRecordDto>> ProcessRefundAsync(Guid billingRecordId, decimal amount);
-    Task<ApiResponse<RefundResultDto>> ProcessRefundAsync(Guid billingRecordId, decimal amount, string reason);
-    Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetOverdueBillingRecordsAsync();
-    Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetPendingPaymentsAsync();
-    Task<ApiResponse<decimal>> CalculateTotalAmountAsync(decimal baseAmount, decimal taxAmount, decimal shippingAmount);
-    Task<ApiResponse<decimal>> CalculateTaxAmountAsync(decimal baseAmount, string state);
-    Task<ApiResponse<decimal>> CalculateShippingAmountAsync(string deliveryAddress, bool isExpress);
-    Task<ApiResponse<bool>> IsPaymentOverdueAsync(Guid billingRecordId);
-    Task<ApiResponse<DateTime>> CalculateDueDateAsync(DateTime billingDate, int gracePeriodDays);
-    Task<ApiResponse<BillingAnalyticsDto>> GetBillingAnalyticsAsync();
+    Task<JsonModel> CreateBillingRecordAsync(CreateBillingRecordDto createDto);
+    Task<JsonModel> GetBillingRecordAsync(Guid id);
+    Task<JsonModel> GetUserBillingHistoryAsync(int userId);
+    Task<JsonModel> GetSubscriptionBillingHistoryAsync(Guid subscriptionId);
+    Task<JsonModel> GetAllBillingRecordsAsync();
+    Task<JsonModel> ProcessPaymentAsync(Guid billingRecordId);
+    Task<JsonModel> ProcessRefundAsync(Guid billingRecordId, decimal amount);
+    Task<JsonModel> ProcessRefundAsync(Guid billingRecordId, decimal amount, string reason);
+    Task<JsonModel> GetOverdueBillingRecordsAsync();
+    Task<JsonModel> GetPendingPaymentsAsync();
+    Task<JsonModel> CalculateTotalAmountAsync(decimal baseAmount, decimal taxAmount, decimal shippingAmount);
+    Task<JsonModel> CalculateTaxAmountAsync(decimal baseAmount, string state);
+    Task<JsonModel> CalculateShippingAmountAsync(string deliveryAddress, bool isExpress);
+    Task<JsonModel> IsPaymentOverdueAsync(Guid billingRecordId);
+    Task<JsonModel> CalculateDueDateAsync(DateTime billingDate, int gracePeriodDays);
+    Task<JsonModel> GetBillingAnalyticsAsync();
     
     // Payment History Methods
-    Task<ApiResponse<IEnumerable<PaymentHistoryDto>>> GetPaymentHistoryAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null);
-    Task<ApiResponse<PaymentAnalyticsDto>> GetPaymentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null);
-    Task<ApiResponse<PaymentAnalyticsDto>> GetPaymentAnalyticsAsync(string userId, DateTime? startDate = null, DateTime? endDate = null);
+    Task<JsonModel> GetPaymentHistoryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null);
+    Task<JsonModel> GetPaymentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null);
+    Task<JsonModel> GetPaymentAnalyticsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null);
     
     // Phase 2: Enhanced Billing Features
-    Task<ApiResponse<BillingRecordDto>> CreateRecurringBillingAsync(CreateRecurringBillingDto createDto);
-    Task<ApiResponse<BillingRecordDto>> ProcessRecurringPaymentAsync(Guid subscriptionId);
-    Task<ApiResponse<bool>> CancelRecurringBillingAsync(Guid subscriptionId);
-    Task<ApiResponse<BillingRecordDto>> CreateUpfrontPaymentAsync(CreateUpfrontPaymentDto createDto);
-    Task<ApiResponse<BillingRecordDto>> ProcessBundlePaymentAsync(CreateBundlePaymentDto createDto);
-    Task<ApiResponse<BillingRecordDto>> ApplyBillingAdjustmentAsync(Guid billingRecordId, CreateBillingAdjustmentDto adjustmentDto);
-    Task<ApiResponse<IEnumerable<BillingAdjustmentDto>>> GetBillingAdjustmentsAsync(Guid billingRecordId);
-    Task<ApiResponse<BillingRecordDto>> RetryFailedPaymentAsync(Guid billingRecordId);
-    Task<ApiResponse<PaymentResultDto>> RetryPaymentAsync(Guid billingRecordId);
-    Task<ApiResponse<BillingRecordDto>> ProcessPartialPaymentAsync(Guid billingRecordId, decimal amount);
-    Task<ApiResponse<BillingRecordDto>> CreateInvoiceAsync(CreateInvoiceDto createDto);
-    Task<ApiResponse<byte[]>> GenerateInvoicePdfAsync(Guid billingRecordId);
-    Task<ApiResponse<byte[]>> GenerateBillingReportAsync(DateTime startDate, DateTime endDate, string format = "pdf");
-    Task<ApiResponse<BillingSummaryDto>> GetBillingSummaryAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null);
-    Task<ApiResponse<PaymentScheduleDto>> GetPaymentScheduleAsync(Guid subscriptionId);
-    Task<ApiResponse<bool>> UpdatePaymentMethodAsync(Guid billingRecordId, string paymentMethodId);
-    Task<ApiResponse<BillingRecordDto>> CreateBillingCycleAsync(CreateBillingCycleDto createDto);
-    Task<ApiResponse<BillingRecordDto>> ProcessBillingCycleAsync(Guid billingCycleId);
-    Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetBillingCycleRecordsAsync(Guid billingCycleId);
-    Task<ApiResponse<RevenueSummaryDto>> GetRevenueSummaryAsync(DateTime? from = null, DateTime? to = null, string? planId = null);
-    Task<ApiResponse<byte[]>> ExportRevenueAsync(DateTime? from = null, DateTime? to = null, string? planId = null, string format = "csv");
+    Task<JsonModel> CreateRecurringBillingAsync(CreateRecurringBillingDto createDto);
+    Task<JsonModel> ProcessRecurringPaymentAsync(Guid subscriptionId);
+    Task<JsonModel> CancelRecurringBillingAsync(Guid subscriptionId);
+    Task<JsonModel> CreateUpfrontPaymentAsync(CreateUpfrontPaymentDto createDto);
+    Task<JsonModel> ProcessBundlePaymentAsync(CreateBundlePaymentDto createDto);
+    Task<JsonModel> ApplyBillingAdjustmentAsync(Guid billingRecordId, CreateBillingAdjustmentDto adjustmentDto);
+    Task<JsonModel> GetBillingAdjustmentsAsync(Guid billingRecordId);
+    Task<JsonModel> RetryFailedPaymentAsync(Guid billingRecordId);
+    Task<JsonModel> RetryPaymentAsync(Guid billingRecordId);
+    Task<JsonModel> ProcessPartialPaymentAsync(Guid billingRecordId, decimal amount);
+    Task<JsonModel> CreateInvoiceAsync(CreateInvoiceDto createDto);
+    Task<JsonModel> GenerateInvoicePdfAsync(Guid billingRecordId);
+    Task<JsonModel> GenerateBillingReportAsync(DateTime startDate, DateTime endDate, string format = "pdf");
+    Task<JsonModel> GetBillingSummaryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null);
+    Task<JsonModel> GetPaymentScheduleAsync(Guid subscriptionId);
+    Task<JsonModel> UpdatePaymentMethodAsync(Guid billingRecordId, string paymentMethodId);
+    Task<JsonModel> CreateBillingCycleAsync(CreateBillingCycleDto createDto);
+    Task<JsonModel> ProcessBillingCycleAsync(Guid billingCycleId);
+    Task<JsonModel> GetBillingCycleRecordsAsync(Guid billingCycleId);
+    Task<JsonModel> GetRevenueSummaryAsync(DateTime? from = null, DateTime? to = null, string? planId = null);
+    Task<JsonModel> ExportRevenueAsync(DateTime? from = null, DateTime? to = null, string? planId = null, string format = "csv");
 } 

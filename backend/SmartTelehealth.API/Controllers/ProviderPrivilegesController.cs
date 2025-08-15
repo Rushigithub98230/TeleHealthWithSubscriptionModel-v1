@@ -25,7 +25,7 @@ public class ProviderPrivilegesController : ControllerBase
     }
 
     [HttpGet("{userId}/privileges")]
-    public async Task<ActionResult<IEnumerable<UserPrivilegeUsageDto>>> GetUserPrivileges(Guid userId)
+    public async Task<ActionResult<IEnumerable<UserPrivilegeUsageDto>>> GetUserPrivileges(int userId)
     {
         var subs = await _subscriptionRepo.GetByUserIdAsync(userId);
         var usageList = new List<UserPrivilegeUsageDto>();
@@ -47,7 +47,7 @@ public class ProviderPrivilegesController : ControllerBase
     }
 
     [HttpGet("{userId}/privileges/{privilegeName}")]
-    public async Task<ActionResult<UserPrivilegeUsageDto>> CheckUserPrivilege(Guid userId, string privilegeName)
+    public async Task<ActionResult<UserPrivilegeUsageDto>> CheckUserPrivilege(int userId, string privilegeName)
     {
         var subs = await _subscriptionRepo.GetByUserIdAsync(userId);
         foreach (var sub in subs)

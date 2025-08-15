@@ -32,25 +32,25 @@ namespace SmartTelehealth.Application.Services
             _encryptionKey = Environment.GetEnvironmentVariable("AUDIT_ENCRYPTION_KEY") ?? "default-encryption-key-change-in-production";
         }
 
-        public async Task<ApiResponse<AuditLogDto>> GetAuditLogByIdAsync(Guid id)
+        public async Task<JsonModel> GetAuditLogByIdAsync(Guid id)
         {
             try
             {
                 var auditLog = await _auditLogRepository.GetByIdAsync(id);
                 if (auditLog == null)
-                    return ApiResponse<AuditLogDto>.ErrorResponse("Audit log not found", 404);
+                    return new JsonModel { data = new object(), Message = "Audit log not found", StatusCode = 404 };
                 
                 var dto = _mapper.Map<AuditLogDto>(auditLog);
-                return ApiResponse<AuditLogDto>.SuccessResponse(dto);
+                return new JsonModel { data = dto, Message = "Audit log retrieved successfully", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting audit log {Id}", id);
-                return ApiResponse<AuditLogDto>.ErrorResponse("An error occurred while retrieving the audit log", 500);
+                return new JsonModel { data = new object(), Message = "An error occurred while retrieving the audit log", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<AuditLogDto>> CreateAuditLogAsync(CreateAuditLogDto createDto)
+        public async Task<JsonModel> CreateAuditLogAsync(CreateAuditLogDto createDto)
         {
             try
             {
@@ -82,68 +82,77 @@ namespace SmartTelehealth.Application.Services
                     auditLog.Action, auditLog.UserId, auditLog.EntityType, SanitizeDescription(auditLog.Description));
 
                 var dto = _mapper.Map<AuditLogDto>(createdLog);
-                return ApiResponse<AuditLogDto>.SuccessResponse(dto, "Audit log created successfully", 201);
+                return new JsonModel { data = dto, Message = "Audit log created successfully", StatusCode = 201 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to create audit log: {Action} by {UserId}", createDto.Action, createDto.UserId);
-                return ApiResponse<AuditLogDto>.ErrorResponse("An error occurred while creating the audit log", 500);
+                return new JsonModel { data = new object(), Message = "An error occurred while creating the audit log", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<AuditLogDto>>> GetUserAuditLogsAsync(string userId)
+        public async Task<JsonModel> GetUserAuditLogsAsync(string userId)
         {
             try
             {
-                var logs = await _auditLogRepository.GetByUserIdAsync(userId);
+                if (!int.TryParse(userId, out int userIdInt))
+                {
+                    return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+                }
+                
+                var logs = await _auditLogRepository.GetByUserIdAsync(userIdInt);
                 var dtos = _mapper.Map<IEnumerable<AuditLogDto>>(logs);
-                return ApiResponse<IEnumerable<AuditLogDto>>.SuccessResponse(dtos);
+                return new JsonModel { data = dtos, Message = "User audit logs retrieved successfully", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting audit logs for user {UserId}", userId);
-                return ApiResponse<IEnumerable<AuditLogDto>>.ErrorResponse("An error occurred while retrieving audit logs", 500);
+                return new JsonModel { data = new object(), Message = "An error occurred while retrieving audit logs", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<AuditLogDto>>> SearchAuditLogsAsync(AuditLogSearchDto searchDto)
+        public async Task<JsonModel> SearchAuditLogsAsync(AuditLogSearchDto searchDto)
         {
             try
             {
                 var logs = await _auditLogRepository.SearchAsync(searchDto.SearchTerm ?? "");
                 var dtos = _mapper.Map<IEnumerable<AuditLogDto>>(logs);
-                return ApiResponse<IEnumerable<AuditLogDto>>.SuccessResponse(dtos);
+                return new JsonModel { data = dtos, Message = "Audit logs searched successfully", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error searching audit logs");
-                return ApiResponse<IEnumerable<AuditLogDto>>.ErrorResponse("An error occurred while searching audit logs", 500);
+                return new JsonModel { data = new object(), Message = "An error occurred while searching audit logs", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<AuditLogDto>>> GetRecentAuditLogsAsync(int count = 100)
+        public async Task<JsonModel> GetRecentAuditLogsAsync(int count = 100)
         {
             try
             {
                 var logs = await _auditLogRepository.GetRecentAsync(count);
                 var dtos = _mapper.Map<IEnumerable<AuditLogDto>>(logs);
-                return ApiResponse<IEnumerable<AuditLogDto>>.SuccessResponse(dtos);
+                return new JsonModel { data = dtos, Message = "Recent audit logs retrieved successfully", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting recent audit logs");
-                return ApiResponse<IEnumerable<AuditLogDto>>.ErrorResponse("An error occurred while retrieving recent audit logs", 500);
+                return new JsonModel { data = new object(), Message = "An error occurred while retrieving recent audit logs", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<AuditLogDto>>> GetAuditLogsAsync(string? action = null, string? userId = null, DateTime? startDate = null, DateTime? endDate = null, int page = 1, int pageSize = 50)
+        public async Task<JsonModel> GetAuditLogsAsync(string? action = null, string? userId = null, DateTime? startDate = null, DateTime? endDate = null, int page = 1, int pageSize = 50)
         {
             try
             {
                 IEnumerable<AuditLog> logs;
                 if (!string.IsNullOrEmpty(userId))
                 {
-                    logs = await _auditLogRepository.GetByUserIdAsync(userId);
+                    if (!int.TryParse(userId, out int userIdInt))
+                    {
+                        return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+                    }
+                    logs = await _auditLogRepository.GetByUserIdAsync(userIdInt);
                 }
                 else if (!string.IsNullOrEmpty(action))
                 {
@@ -178,26 +187,31 @@ namespace SmartTelehealth.Application.Services
                              .Take(pageSize);
 
                 var dtos = _mapper.Map<IEnumerable<AuditLogDto>>(logs);
-                return ApiResponse<IEnumerable<AuditLogDto>>.SuccessResponse(dtos);
+                return new JsonModel { data = dtos, Message = "Audit logs retrieved successfully", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving audit logs");
-                return ApiResponse<IEnumerable<AuditLogDto>>.ErrorResponse("An error occurred while retrieving audit logs", 500);
+                return new JsonModel { data = new object(), Message = "An error occurred while retrieving audit logs", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<int>> GetUserAuditLogCountAsync(string userId)
+        public async Task<JsonModel> GetUserAuditLogCountAsync(string userId)
         {
             try
             {
-                var count = await _auditLogRepository.GetCountByUserIdAsync(userId);
-                return ApiResponse<int>.SuccessResponse(count);
+                if (!int.TryParse(userId, out int userIdInt))
+                {
+                    return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+                }
+                
+                var count = await _auditLogRepository.GetCountByUserIdAsync(userIdInt);
+                return new JsonModel { data = count, Message = "User audit log count retrieved successfully", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting audit log count for user {UserId}", userId);
-                return ApiResponse<int>.ErrorResponse("An error occurred while retrieving audit log count", 500);
+                return new JsonModel { data = new object(), Message = "An error occurred while retrieving audit log count", StatusCode = 500 };
             }
         }
 

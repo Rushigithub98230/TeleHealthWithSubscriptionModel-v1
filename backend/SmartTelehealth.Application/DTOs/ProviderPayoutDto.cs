@@ -3,7 +3,7 @@ namespace SmartTelehealth.Application.DTOs;
 public class ProviderPayoutDto
 {
     public Guid Id { get; set; }
-    public Guid ProviderId { get; set; }
+    public int ProviderId { get; set; }
     public string ProviderName { get; set; } = string.Empty;
     public Guid PayoutPeriodId { get; set; }
     public string PayoutPeriodName { get; set; } = string.Empty;
@@ -76,7 +76,7 @@ public class ProcessPayoutDto
 
 public class ProviderEarningsDto
 {
-    public Guid ProviderId { get; set; }
+    public int ProviderId { get; set; }
     public string ProviderName { get; set; } = string.Empty;
     public decimal TotalEarnings { get; set; }
     public decimal PendingEarnings { get; set; }

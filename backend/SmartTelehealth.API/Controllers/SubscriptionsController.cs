@@ -22,21 +22,22 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDto>>> GetSubscription(string id)
+    public async Task<ActionResult<JsonModel>> GetSubscription(string id)
     {
         var result = await _subscriptionService.GetSubscriptionAsync(id);
         return Ok(result);
     }
 
     [HttpGet("user/{userId}")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<SubscriptionDto>>>> GetUserSubscriptions(string userId)
+    public async Task<ActionResult<JsonModel>> GetUserSubscriptions(string userId)
     {
         if (!int.TryParse(userId, out int userIdInt))
         {
-            return BadRequest(new ApiResponse<IEnumerable<SubscriptionDto>>
+            return BadRequest(new JsonModel
             {
-                Success = false,
-                Message = "Invalid user ID format"
+                data = new object(),
+                Message = "Invalid user ID format",
+                StatusCode = 400
             });
         }
         var result = await _subscriptionService.GetUserSubscriptionsAsync(userIdInt);
@@ -44,35 +45,35 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<SubscriptionDto>>> CreateSubscription([FromBody] CreateSubscriptionDto createDto)
+    public async Task<ActionResult<JsonModel>> CreateSubscription([FromBody] CreateSubscriptionDto createDto)
     {
         var result = await _subscriptionService.CreateSubscriptionAsync(createDto);
         return Ok(result);
     }
 
     [HttpPost("{id}/cancel")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDto>>> CancelSubscription(string id, [FromBody] string reason)
+    public async Task<ActionResult<JsonModel>> CancelSubscription(string id, [FromBody] string reason)
     {
         var result = await _subscriptionService.CancelSubscriptionAsync(id, reason);
         return Ok(result);
     }
 
     [HttpPost("{id}/pause")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDto>>> PauseSubscription(string id)
+    public async Task<ActionResult<JsonModel>> PauseSubscription(string id)
     {
         var result = await _subscriptionService.PauseSubscriptionAsync(id);
         return Ok(result);
     }
 
     [HttpPost("{id}/resume")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDto>>> ResumeSubscription(string id)
+    public async Task<ActionResult<JsonModel>> ResumeSubscription(string id)
     {
         var result = await _subscriptionService.ResumeSubscriptionAsync(id);
         return Ok(result);
     }
 
     [HttpPost("{id}/upgrade")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDto>>> UpgradeSubscription(string id, [FromBody] string newPlanId)
+    public async Task<ActionResult<JsonModel>> UpgradeSubscription(string id, [FromBody] string newPlanId)
     {
         var result = await _subscriptionService.UpgradeSubscriptionAsync(id, newPlanId);
         return Ok(result);

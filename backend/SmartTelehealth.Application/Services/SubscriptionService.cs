@@ -48,47 +48,82 @@ public class SubscriptionService : ISubscriptionService
         _billingService = billingService;
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> GetSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> GetSubscriptionAsync(string subscriptionId)
     {
         try
         {
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
-            return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(entity));
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Subscription not found",
+                    StatusCode = 404
+                };
+            return new JsonModel
+            {
+                data = _mapper.Map<SubscriptionDto>(entity),
+                Message = "Subscription retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to retrieve subscription");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to retrieve subscription",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetUserSubscriptionsAsync(int userId)
+    public async Task<JsonModel> GetUserSubscriptionsAsync(int userId)
     {
         try
         {
             var entities = await _subscriptionRepository.GetByUserIdAsync(userId);
             var dtos = _mapper.Map<IEnumerable<SubscriptionDto>>(entities);
-            return ApiResponse<IEnumerable<SubscriptionDto>>.SuccessResponse(dtos);
+            return new JsonModel
+            {
+                data = dtos,
+                Message = "User subscriptions retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscriptions for user {UserId}", userId);
-            return ApiResponse<IEnumerable<SubscriptionDto>>.ErrorResponse("Failed to retrieve user subscriptions");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to retrieve user subscriptions",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> CreateSubscriptionAsync(CreateSubscriptionDto createDto)
+    public async Task<JsonModel> CreateSubscriptionAsync(CreateSubscriptionDto createDto)
     {
         try
         {
             // 1. Check if plan exists and is active
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(createDto.PlanId));
             if (plan == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription plan does not exist");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Subscription plan does not exist",
+                    StatusCode = 400
+                };
             if (!plan.IsActive)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription plan is not active");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Subscription plan is not active",
+                    StatusCode = 400
+                };
 
             // 2. Prevent duplicate subscriptions for the same user and plan (active or paused)
             var userSubscriptions = await _subscriptionRepository.GetByUserIdAsync(createDto.UserId);

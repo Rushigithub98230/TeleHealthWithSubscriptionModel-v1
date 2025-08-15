@@ -39,7 +39,7 @@ namespace SmartTelehealth.Application.Services
             _logger = logger;
         }
 
-        public async Task<ApiResponse<ProviderFeeDto>> CreateFeeAsync(CreateProviderFeeDto createDto)
+        public async Task<JsonModel> CreateFeeAsync(CreateProviderFeeDto createDto)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace SmartTelehealth.Application.Services
                 var provider = await _userRepository.GetByIdAsync(createDto.ProviderId);
                 if (provider == null)
                 {
-                    return new ApiResponse<ProviderFeeDto>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Provider not found",
@@ -59,7 +59,7 @@ namespace SmartTelehealth.Application.Services
                 var category = await _categoryRepository.GetByIdAsync(createDto.CategoryId);
                 if (category == null)
                 {
-                    return new ApiResponse<ProviderFeeDto>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Category not found",
@@ -71,7 +71,7 @@ namespace SmartTelehealth.Application.Services
                 var existingFee = await _providerFeeRepository.GetByProviderAndCategoryAsync(createDto.ProviderId, createDto.CategoryId);
                 if (existingFee != null)
                 {
-                    return new ApiResponse<ProviderFeeDto>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Fee proposal already exists for this provider and category",
@@ -101,7 +101,7 @@ namespace SmartTelehealth.Application.Services
                 //     $"Provider {fee.ProviderId} has submitted a new fee proposal for {fee.CategoryName} with rate {fee.Rate:C}");
                 _logger.LogInformation("Email notifications disabled - would have sent admin notification for new fee proposal");
 
-                return new ApiResponse<ProviderFeeDto>
+                return new JsonModel
                 {
                     Success = true,
                     Message = "Fee proposal created successfully",
@@ -112,7 +112,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating provider fee");
-                return new ApiResponse<ProviderFeeDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Failed to create fee proposal",
@@ -121,14 +121,14 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<ProviderFeeDto>> GetFeeByIdAsync(Guid id)
+        public async Task<JsonModel> GetFeeByIdAsync(Guid id)
         {
             try
             {
                 var fee = await _providerFeeRepository.GetByIdAsync(id);
                 if (fee == null)
                 {
-                    return new ApiResponse<ProviderFeeDto>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Fee proposal not found",
@@ -137,7 +137,7 @@ namespace SmartTelehealth.Application.Services
                 }
 
                 var feeDto = _mapper.Map<ProviderFeeDto>(fee);
-                return new ApiResponse<ProviderFeeDto>
+                return new JsonModel
                 {
                     Success = true,
                     Message = "Fee proposal retrieved successfully",
@@ -148,7 +148,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving provider fee");
-                return new ApiResponse<ProviderFeeDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Failed to retrieve fee proposal",
@@ -157,14 +157,14 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByProviderAsync(int providerId)
+        public async Task<JsonModel> GetFeesByProviderAsync(int providerId)
         {
             try
             {
                 var fees = await _providerFeeRepository.GetByProviderIdAsync(providerId);
                 var feeDtos = _mapper.Map<IEnumerable<ProviderFeeDto>>(fees);
 
-                return new ApiResponse<IEnumerable<ProviderFeeDto>>
+                return new JsonModel>
                 {
                     Success = true,
                     Message = "Provider fees retrieved successfully",
@@ -175,7 +175,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving provider fees");
-                return new ApiResponse<IEnumerable<ProviderFeeDto>>
+                return new JsonModel>
                 {
                     Success = false,
                     Message = "Failed to retrieve provider fees",
@@ -184,14 +184,14 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByCategoryAsync(Guid categoryId)
+        public async Task<JsonModel> GetFeesByCategoryAsync(Guid categoryId)
         {
             try
             {
                 var fees = await _providerFeeRepository.GetByCategoryIdAsync(categoryId);
                 var feeDtos = _mapper.Map<IEnumerable<ProviderFeeDto>>(fees);
 
-                return new ApiResponse<IEnumerable<ProviderFeeDto>>
+                return new JsonModel>
                 {
                     Success = true,
                     Message = "Category fees retrieved successfully",
@@ -202,7 +202,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving category fees");
-                return new ApiResponse<IEnumerable<ProviderFeeDto>>
+                return new JsonModel>
                 {
                     Success = false,
                     Message = "Failed to retrieve category fees",
@@ -211,7 +211,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetAllFeesAsync(string? status = null, int page = 1, int pageSize = 50)
+        public async Task<JsonModel> GetAllFeesAsync(string? status = null, int page = 1, int pageSize = 50)
         {
             try
             {
@@ -227,7 +227,7 @@ namespace SmartTelehealth.Application.Services
                 }
                 var feeDtos = _mapper.Map<IEnumerable<ProviderFeeDto>>(fees);
 
-                return new ApiResponse<IEnumerable<ProviderFeeDto>>
+                return new JsonModel>
                 {
                     Success = true,
                     Message = "Fees retrieved successfully",
@@ -238,7 +238,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving fees");
-                return new ApiResponse<IEnumerable<ProviderFeeDto>>
+                return new JsonModel>
                 {
                     Success = false,
                     Message = "Failed to retrieve fees",
@@ -247,14 +247,14 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<ProviderFeeDto>> UpdateFeeAsync(Guid id, UpdateProviderFeeDto updateDto)
+        public async Task<JsonModel> UpdateFeeAsync(Guid id, UpdateProviderFeeDto updateDto)
         {
             try
             {
                 var fee = await _providerFeeRepository.GetByIdAsync(id);
                 if (fee == null)
                 {
-                    return new ApiResponse<ProviderFeeDto>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Fee proposal not found",
@@ -265,7 +265,7 @@ namespace SmartTelehealth.Application.Services
                 // Only allow updates if status is Pending
                 if (fee.Status != FeeStatus.Pending)
                 {
-                    return new ApiResponse<ProviderFeeDto>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Cannot update fee proposal that is not pending",
@@ -283,7 +283,7 @@ namespace SmartTelehealth.Application.Services
                 // Log audit
                 await _auditService.LogActionAsync("ProviderFee", "Update", fee.ProviderId.ToString(), $"Updated fee proposal {id}");
 
-                return new ApiResponse<ProviderFeeDto>
+                return new JsonModel
                 {
                     Success = true,
                     Message = "Fee proposal updated successfully",
@@ -294,7 +294,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating provider fee");
-                return new ApiResponse<ProviderFeeDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Failed to update fee proposal",
@@ -303,14 +303,14 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<ProviderFeeDto>> ReviewFeeAsync(Guid id, ReviewProviderFeeDto reviewDto)
+        public async Task<JsonModel> ReviewFeeAsync(Guid id, ReviewProviderFeeDto reviewDto)
         {
             try
             {
                 var fee = await _providerFeeRepository.GetByIdAsync(id);
                 if (fee == null)
                 {
-                    return new ApiResponse<ProviderFeeDto>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Fee proposal not found",
@@ -321,7 +321,7 @@ namespace SmartTelehealth.Application.Services
                 // Only allow review if status is Pending
                 if (fee.Status != FeeStatus.Pending)
                 {
-                    return new ApiResponse<ProviderFeeDto>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Cannot review fee proposal that is not pending",
@@ -348,7 +348,7 @@ namespace SmartTelehealth.Application.Services
                 //     $"Your fee proposal for {fee.CategoryName} has been reviewed and {reviewDto.Status.ToLower()}.");
                 _logger.LogInformation("Email notifications disabled - would have sent provider notification for fee proposal review");
 
-                return new ApiResponse<ProviderFeeDto>
+                return new JsonModel
                 {
                     Success = true,
                     Message = "Fee proposal reviewed successfully",
@@ -359,7 +359,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error reviewing provider fee");
-                return new ApiResponse<ProviderFeeDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Failed to review fee proposal",
@@ -368,14 +368,14 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<bool>> DeleteFeeAsync(Guid id)
+        public async Task<JsonModel> DeleteFeeAsync(Guid id)
         {
             try
             {
                 var fee = await _providerFeeRepository.GetByIdAsync(id);
                 if (fee == null)
                 {
-                    return new ApiResponse<bool>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Fee proposal not found",
@@ -386,7 +386,7 @@ namespace SmartTelehealth.Application.Services
                 // Only allow deletion if status is Pending
                 if (fee.Status != FeeStatus.Pending)
                 {
-                    return new ApiResponse<bool>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Cannot delete fee proposal that is not pending",
@@ -397,7 +397,7 @@ namespace SmartTelehealth.Application.Services
                 var result = await _providerFeeRepository.DeleteAsync(id);
                 if (!result)
                 {
-                    return new ApiResponse<bool>
+                    return new JsonModel
                     {
                         Success = false,
                         Message = "Failed to delete fee proposal",
@@ -408,7 +408,7 @@ namespace SmartTelehealth.Application.Services
                 // Log audit
                 await _auditService.LogActionAsync("ProviderFee", "Delete", fee.ProviderId.ToString(), $"Deleted fee proposal {id}");
 
-                return new ApiResponse<bool>
+                return new JsonModel
                 {
                     Success = true,
                     Message = "Fee proposal deleted successfully",
@@ -419,7 +419,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting provider fee");
-                return new ApiResponse<bool>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Failed to delete fee proposal",
@@ -428,14 +428,14 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<FeeStatisticsDto>> GetFeeStatisticsAsync()
+        public async Task<JsonModel> GetFeeStatisticsAsync()
         {
             try
             {
                 var statistics = await _providerFeeRepository.GetFeeStatisticsAsync();
                 var statisticsDto = _mapper.Map<FeeStatisticsDto>(statistics);
 
-                return new ApiResponse<FeeStatisticsDto>
+                return new JsonModel
                 {
                     Success = true,
                     Message = "Fee statistics retrieved successfully",
@@ -446,7 +446,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving fee statistics");
-                return new ApiResponse<FeeStatisticsDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Failed to retrieve fee statistics",
@@ -455,14 +455,14 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetPendingFeesAsync()
+        public async Task<JsonModel> GetPendingFeesAsync()
         {
             try
             {
                 var fees = await _providerFeeRepository.GetPendingFeesAsync();
                 var feeDtos = _mapper.Map<IEnumerable<ProviderFeeDto>>(fees);
 
-                return new ApiResponse<IEnumerable<ProviderFeeDto>>
+                return new JsonModel>
                 {
                     Success = true,
                     Message = "Pending fees retrieved successfully",
@@ -473,7 +473,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving pending fees");
-                return new ApiResponse<IEnumerable<ProviderFeeDto>>
+                return new JsonModel>
                 {
                     Success = false,
                     Message = "Failed to retrieve pending fees",
@@ -482,14 +482,14 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByStatusAsync(string status)
+        public async Task<JsonModel> GetFeesByStatusAsync(string status)
         {
             try
             {
                 var fees = await _providerFeeRepository.GetByStatusAsync(status);
                 var feeDtos = _mapper.Map<IEnumerable<ProviderFeeDto>>(fees);
 
-                return new ApiResponse<IEnumerable<ProviderFeeDto>>
+                return new JsonModel>
                 {
                     Success = true,
                     Message = $"Fees with status {status} retrieved successfully",
@@ -500,7 +500,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving fees by status");
-                return new ApiResponse<IEnumerable<ProviderFeeDto>>
+                return new JsonModel>
                 {
                     Success = false,
                     Message = "Failed to retrieve fees by status",
@@ -509,8 +509,8 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public Task<ApiResponse<ProviderFeeDto>> GetFeeAsync(Guid id) => throw new NotImplementedException();
-        public Task<ApiResponse<ProviderFeeDto>> GetFeeByProviderAndCategoryAsync(int providerId, Guid categoryId) => throw new NotImplementedException();
-        public Task<ApiResponse<ProviderFeeDto>> ProposeFeeAsync(Guid id) => throw new NotImplementedException();
+        public Task<JsonModel> GetFeeAsync(Guid id) => throw new NotImplementedException();
+        public Task<JsonModel> GetFeeByProviderAndCategoryAsync(int providerId, Guid categoryId) => throw new NotImplementedException();
+        public Task<JsonModel> ProposeFeeAsync(Guid id) => throw new NotImplementedException();
     }
 } 

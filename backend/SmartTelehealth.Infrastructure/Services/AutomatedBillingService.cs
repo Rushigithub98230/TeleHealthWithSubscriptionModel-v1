@@ -190,7 +190,7 @@ public class AutomatedBillingService : BackgroundService
         }
     }
 
-    private async Task<ApiResponse<BillingRecordDto>> ProcessPaymentWithRetryAsync(
+    private async Task<JsonModel> ProcessPaymentWithRetryAsync(
         Guid billingRecordId,
         IBillingService billingService,
         IAuditService auditService)
@@ -220,14 +220,14 @@ public class AutomatedBillingService : BackgroundService
                 
                 if (attempt == _maxRetryAttempts)
                 {
-                    return ApiResponse<BillingRecordDto>.ErrorResponse($"Payment failed after {_maxRetryAttempts} attempts: {ex.Message}");
+                    return new JsonModel { data = new object(), Message = $"Payment failed after {_maxRetryAttempts} attempts: {ex.Message}", StatusCode = 500 };
                 }
                 
                 await Task.Delay(_retryDelay);
             }
         }
 
-        return ApiResponse<BillingRecordDto>.ErrorResponse($"Payment failed after {_maxRetryAttempts} attempts");
+        return new JsonModel { data = new object(), Message = $"Payment failed after {_maxRetryAttempts} attempts", StatusCode = 500 };
     }
 
     private async Task HandleFailedPaymentAsync(
@@ -414,22 +414,22 @@ public class AutomatedBillingService : BackgroundService
         }
     }
 
-    public async Task<ApiResponse<bool>> TriggerManualBillingCycleAsync()
+    public async Task<JsonModel> TriggerManualBillingCycleAsync()
     {
         try
         {
             _logger.LogInformation("Manual billing cycle triggered");
             await ProcessBillingCycleAsync();
-            return ApiResponse<bool>.SuccessResponse(true, "Manual billing cycle completed successfully");
+            return new JsonModel { data = true, Message = "Manual billing cycle completed successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in manual billing cycle");
-            return ApiResponse<bool>.ErrorResponse("Failed to complete manual billing cycle");
+            return new JsonModel { data = new object(), Message = "Failed to complete manual billing cycle", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<BillingCycleReportDto>> GetBillingCycleReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetBillingCycleReportAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -470,12 +470,12 @@ public class AutomatedBillingService : BackgroundService
             var failedPayments = await subscriptionRepository.GetSubscriptionsWithFailedPaymentsAsync();
             report.PaymentRetries = failedPayments.Count(s => s.FailedPaymentAttempts > 0);
 
-            return ApiResponse<BillingCycleReportDto>.SuccessResponse(report);
+            return new JsonModel { data = report, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating billing cycle report");
-            return ApiResponse<BillingCycleReportDto>.ErrorResponse("Failed to generate billing cycle report");
+            return new JsonModel { data = new object(), Message = "Failed to generate billing cycle report", StatusCode = 500 };
         }
     }
 }

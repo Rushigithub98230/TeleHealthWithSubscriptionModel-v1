@@ -37,7 +37,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Get all subscription plans for admin management
     /// </summary>
     [HttpGet("plans")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<SubscriptionPlanDto>>>> GetAllPlans(
+    public async Task<ActionResult<JsonModel>> GetAllPlans(
         [FromQuery] string? searchTerm = null,
         [FromQuery] string? status = null,
         [FromQuery] int page = 1,
@@ -73,7 +73,7 @@ public class SubscriptionManagementController : ControllerBase
                 .Take(pageSize)
                 .ToList();
 
-                               var result = ApiResponse<IEnumerable<SubscriptionPlanDto>>.PaginatedResponse(
+                               var result = JsonModel>.PaginatedResponse(
                        paginatedPlans, 
                        totalCount, 
                        page, 
@@ -86,7 +86,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription plans for admin");
-            return StatusCode(500, ApiResponse<IEnumerable<SubscriptionPlanDto>>.ErrorResponse("Failed to retrieve subscription plans"));
+            return StatusCode(500, JsonModel>.ErrorResponse("Failed to retrieve subscription plans"));
         }
     }
 
@@ -94,7 +94,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Create a new subscription plan
     /// </summary>
     [HttpPost("plans")]
-    public async Task<ActionResult<ApiResponse<SubscriptionPlanDto>>> CreatePlan([FromBody] CreateSubscriptionPlanDto createDto)
+    public async Task<ActionResult<JsonModel> CreatePlan([FromBody] CreateSubscriptionPlanDto createDto)
     {
         try
         {
@@ -113,7 +113,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating subscription plan");
-            return StatusCode(500, ApiResponse<SubscriptionPlanDto>.ErrorResponse("Failed to create subscription plan"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to create subscription plan"));
         }
     }
 
@@ -121,12 +121,12 @@ public class SubscriptionManagementController : ControllerBase
     /// Update an existing subscription plan
     /// </summary>
     [HttpPut("plans/{id}")]
-    public async Task<ActionResult<ApiResponse<SubscriptionPlanDto>>> UpdatePlan(string id, [FromBody] UpdateSubscriptionPlanDto updateDto)
+    public async Task<ActionResult<JsonModel> UpdatePlan(string id, [FromBody] UpdateSubscriptionPlanDto updateDto)
     {
         try
         {
             if (id != updateDto.Id)
-                return BadRequest(ApiResponse<SubscriptionPlanDto>.ErrorResponse("ID mismatch"));
+                return BadRequest(JsonModel.ErrorResponse("ID mismatch"));
 
             var response = await _subscriptionService.UpdateSubscriptionPlanAsync(id, updateDto);
             if (response.Success)
@@ -143,7 +143,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating subscription plan {PlanId}", id);
-            return StatusCode(500, ApiResponse<SubscriptionPlanDto>.ErrorResponse("Failed to update subscription plan"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to update subscription plan"));
         }
     }
 
@@ -151,7 +151,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Delete a subscription plan
     /// </summary>
     [HttpDelete("plans/{id}")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeletePlan(string id)
+    public async Task<ActionResult<JsonModel> DeletePlan(string id)
     {
         try
         {
@@ -170,7 +170,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting subscription plan {PlanId}", id);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Failed to delete subscription plan"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to delete subscription plan"));
         }
     }
 
@@ -178,7 +178,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Activate a subscription plan
     /// </summary>
     [HttpPost("plans/{id}/activate")]
-    public async Task<ActionResult<ApiResponse<bool>>> ActivatePlan(string id)
+    public async Task<ActionResult<JsonModel> ActivatePlan(string id)
     {
         try
         {
@@ -197,7 +197,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error activating subscription plan {PlanId}", id);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Failed to activate subscription plan"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to activate subscription plan"));
         }
     }
 
@@ -205,7 +205,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Deactivate a subscription plan
     /// </summary>
     [HttpPost("plans/{id}/deactivate")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeactivatePlan(string id)
+    public async Task<ActionResult<JsonModel> DeactivatePlan(string id)
     {
         try
         {
@@ -224,7 +224,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deactivating subscription plan {PlanId}", id);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Failed to deactivate subscription plan"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to deactivate subscription plan"));
         }
     }
 
@@ -236,7 +236,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Get all user subscriptions for admin management
     /// </summary>
     [HttpGet("user-subscriptions")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<SubscriptionDto>>>> GetAllUserSubscriptions(
+    public async Task<ActionResult<JsonModel>> GetAllUserSubscriptions(
         [FromQuery] string? searchTerm = null,
         [FromQuery] string? status = null,
         [FromQuery] string? category = null,
@@ -286,7 +286,7 @@ public class SubscriptionManagementController : ControllerBase
                 .Take(pageSize)
                 .ToList();
 
-                   var result = ApiResponse<IEnumerable<SubscriptionDto>>.PaginatedResponse(
+                   var result = JsonModel>.PaginatedResponse(
                        paginatedSubscriptions, 
                        totalCount, 
                        page, 
@@ -299,7 +299,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user subscriptions for admin");
-            return StatusCode(500, ApiResponse<IEnumerable<SubscriptionDto>>.ErrorResponse("Failed to retrieve user subscriptions"));
+            return StatusCode(500, JsonModel>.ErrorResponse("Failed to retrieve user subscriptions"));
         }
     }
 
@@ -307,7 +307,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Cancel a user subscription
     /// </summary>
     [HttpPut("user-subscriptions/{id}/cancel")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDto>>> CancelUserSubscription(string id, [FromBody] string? reason = null)
+    public async Task<ActionResult<JsonModel> CancelUserSubscription(string id, [FromBody] string? reason = null)
     {
         try
         {
@@ -326,7 +326,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cancelling user subscription {SubscriptionId}", id);
-            return StatusCode(500, ApiResponse<SubscriptionDto>.ErrorResponse("Failed to cancel user subscription"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to cancel user subscription"));
         }
     }
 
@@ -334,7 +334,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Pause a user subscription
     /// </summary>
     [HttpPut("user-subscriptions/{id}/pause")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDto>>> PauseUserSubscription(string id, [FromBody] string? reason = null)
+    public async Task<ActionResult<JsonModel> PauseUserSubscription(string id, [FromBody] string? reason = null)
     {
         try
         {
@@ -353,7 +353,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error pausing user subscription {SubscriptionId}", id);
-            return StatusCode(500, ApiResponse<SubscriptionDto>.ErrorResponse("Failed to pause user subscription"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to pause user subscription"));
         }
     }
 
@@ -361,7 +361,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Resume a user subscription
     /// </summary>
     [HttpPut("user-subscriptions/{id}/resume")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDto>>> ResumeUserSubscription(string id)
+    public async Task<ActionResult<JsonModel> ResumeUserSubscription(string id)
     {
         try
         {
@@ -380,7 +380,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error resuming user subscription {SubscriptionId}", id);
-            return StatusCode(500, ApiResponse<SubscriptionDto>.ErrorResponse("Failed to resume user subscription"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to resume user subscription"));
         }
     }
 
@@ -388,7 +388,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Extend a user subscription
     /// </summary>
     [HttpPut("user-subscriptions/{id}/extend")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDto>>> ExtendUserSubscription(string id, [FromBody] ExtendSubscriptionDto extendDto)
+    public async Task<ActionResult<JsonModel> ExtendUserSubscription(string id, [FromBody] ExtendSubscriptionDto extendDto)
     {
         try
         {
@@ -415,7 +415,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error extending user subscription {SubscriptionId}", id);
-            return StatusCode(500, ApiResponse<SubscriptionDto>.ErrorResponse("Failed to extend user subscription"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to extend user subscription"));
         }
     }
 
@@ -427,7 +427,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Get all categories for admin management
     /// </summary>
     [HttpGet("categories")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<CategoryDto>>>> GetAllCategories(
+    public async Task<ActionResult<JsonModel>> GetAllCategories(
         [FromQuery] string? searchTerm = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
@@ -456,7 +456,7 @@ public class SubscriptionManagementController : ControllerBase
                 .Take(pageSize)
                 .ToList();
 
-            var result = ApiResponse<IEnumerable<CategoryDto>>.PaginatedResponse(
+            var result = JsonModel>.PaginatedResponse(
                 paginatedCategories, 
                 totalCount, 
                 page, 
@@ -469,7 +469,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting categories for admin");
-            return StatusCode(500, ApiResponse<IEnumerable<CategoryDto>>.ErrorResponse("Failed to retrieve categories"));
+            return StatusCode(500, JsonModel>.ErrorResponse("Failed to retrieve categories"));
         }
     }
 
@@ -477,7 +477,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Create a new category
     /// </summary>
     [HttpPost("categories")]
-    public async Task<ActionResult<ApiResponse<CategoryDto>>> CreateCategory([FromBody] CreateCategoryDto createDto)
+    public async Task<ActionResult<JsonModel> CreateCategory([FromBody] CreateCategoryDto createDto)
     {
         try
         {
@@ -496,7 +496,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating category");
-            return StatusCode(500, ApiResponse<CategoryDto>.ErrorResponse("Failed to create category"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to create category"));
         }
     }
 
@@ -504,7 +504,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Update an existing category
     /// </summary>
     [HttpPut("categories/{id}")]
-    public async Task<ActionResult<ApiResponse<CategoryDto>>> UpdateCategory(Guid id, [FromBody] UpdateCategoryDto updateDto)
+    public async Task<ActionResult<JsonModel> UpdateCategory(Guid id, [FromBody] UpdateCategoryDto updateDto)
     {
         try
         {
@@ -523,7 +523,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating category {CategoryId}", id);
-            return StatusCode(500, ApiResponse<CategoryDto>.ErrorResponse("Failed to update category"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to update category"));
         }
     }
 
@@ -531,7 +531,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Delete a category
     /// </summary>
     [HttpDelete("categories/{id}")]
-    public async Task<ActionResult<ApiResponse<object>>> DeleteCategory(Guid id)
+    public async Task<ActionResult<JsonModel> DeleteCategory(Guid id)
     {
         try
         {
@@ -550,7 +550,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting category {CategoryId}", id);
-            return StatusCode(500, ApiResponse<object>.ErrorResponse("Failed to delete category"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to delete category"));
         }
     }
 
@@ -562,7 +562,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Get subscription analytics for admin dashboard
     /// </summary>
     [HttpGet("analytics")]
-    public async Task<ActionResult<ApiResponse<SubscriptionAnalyticsDto>>> GetAnalytics(
+    public async Task<ActionResult<JsonModel> GetAnalytics(
         [FromQuery] string period = "month",
         [FromQuery] DateTime? startDate = null,
         [FromQuery] DateTime? endDate = null)
@@ -578,7 +578,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription analytics");
-            return StatusCode(500, ApiResponse<SubscriptionAnalyticsDto>.ErrorResponse("Failed to retrieve analytics"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve analytics"));
         }
     }
 
@@ -590,7 +590,7 @@ public class SubscriptionManagementController : ControllerBase
     /// Perform bulk operations on subscriptions
     /// </summary>
     [HttpPost("bulk-actions")]
-    public async Task<ActionResult<ApiResponse<BulkActionResultDto>>> PerformBulkAction([FromBody] BulkActionRequestDto request)
+    public async Task<ActionResult<JsonModel> PerformBulkAction([FromBody] BulkActionRequestDto request)
     {
         try
         {
@@ -602,7 +602,7 @@ public class SubscriptionManagementController : ControllerBase
             {
                 try
                 {
-                    ApiResponse<SubscriptionDto> response = null;
+                    JsonModel response = null;
 
                     switch (request.Action.ToLower())
                     {
@@ -668,7 +668,7 @@ public class SubscriptionManagementController : ControllerBase
                 }
             }
 
-            var result = new ApiResponse<BulkActionResultDto>
+            var result = new JsonModel
             {
                 Success = true,
                 Data = new BulkActionResultDto
@@ -686,7 +686,7 @@ public class SubscriptionManagementController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error performing bulk action {Action}", request.Action);
-            return StatusCode(500, ApiResponse<BulkActionResultDto>.ErrorResponse("Failed to perform bulk action"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to perform bulk action"));
         }
     }
 

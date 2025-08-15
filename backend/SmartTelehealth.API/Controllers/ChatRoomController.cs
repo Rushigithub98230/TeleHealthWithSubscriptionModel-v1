@@ -28,7 +28,7 @@ public class ChatRoomController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<ChatRoomDto>>> CreateChatRoom([FromBody] CreateChatRoomDto createDto)
+    public async Task<ActionResult<JsonModel> CreateChatRoom([FromBody] CreateChatRoomDto createDto)
     {
         try
         {
@@ -38,12 +38,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating chat room");
-            return StatusCode(500, ApiResponse<ChatRoomDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpPost("patient-provider")]
-    public async Task<ActionResult<ApiResponse<ChatRoomDto>>> CreatePatientProviderChatRoom(
+    public async Task<ActionResult<JsonModel> CreatePatientProviderChatRoom(
         [FromBody] CreatePatientProviderChatRoomDto createDto)
     {
         try
@@ -58,12 +58,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating patient-provider chat room");
-            return StatusCode(500, ApiResponse<ChatRoomDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpPost("group")]
-    public async Task<ActionResult<ApiResponse<ChatRoomDto>>> CreateGroupChatRoom([FromBody] CreateGroupChatRoomDto createDto)
+    public async Task<ActionResult<JsonModel> CreateGroupChatRoom([FromBody] CreateGroupChatRoomDto createDto)
     {
         try
         {
@@ -82,12 +82,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating group chat room");
-            return StatusCode(500, ApiResponse<ChatRoomDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpPost("direct")]
-    public async Task<ActionResult<ApiResponse<ChatRoomDto>>> CreateDirectChatRoom([FromBody] CreateDirectChatRoomDto createDto)
+    public async Task<ActionResult<JsonModel> CreateDirectChatRoom([FromBody] CreateDirectChatRoomDto createDto)
     {
         try
         {
@@ -102,12 +102,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating direct chat room");
-            return StatusCode(500, ApiResponse<ChatRoomDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpPost("support")]
-    public async Task<ActionResult<ApiResponse<ChatRoomDto>>> CreateSupportChatRoom([FromBody] CreateSupportChatRoomDto createDto)
+    public async Task<ActionResult<JsonModel> CreateSupportChatRoom([FromBody] CreateSupportChatRoomDto createDto)
     {
         try
         {
@@ -122,12 +122,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating support chat room");
-            return StatusCode(500, ApiResponse<ChatRoomDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpGet("{chatRoomId}")]
-    public async Task<ActionResult<ApiResponse<ChatRoomDto>>> GetChatRoom(Guid chatRoomId)
+    public async Task<ActionResult<JsonModel> GetChatRoom(Guid chatRoomId)
     {
         try
         {
@@ -146,12 +146,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting chat room {ChatRoomId}", chatRoomId);
-            return StatusCode(500, ApiResponse<ChatRoomDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ChatRoomDto>>>> GetUserChatRooms()
+    public async Task<ActionResult<JsonModel>> GetUserChatRooms()
     {
         try
         {
@@ -165,12 +165,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user chat rooms");
-            return StatusCode(500, ApiResponse<IEnumerable<ChatRoomDto>>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel>.ErrorResponse("Internal server error", 500));
         }
     }
 
     // [HttpGet("with-unread")]
-    // public async Task<ActionResult<ApiResponse<IEnumerable<ChatRoomDto>>>> GetUserChatRoomsWithUnreadCount()
+    // public async Task<ActionResult<JsonModel>> GetUserChatRoomsWithUnreadCount()
     // {
     //     try
     //     {
@@ -184,12 +184,12 @@ public class ChatRoomController : ControllerBase
     //     catch (Exception ex)
     //     {
     //         _logger.LogError(ex, "Error getting user chat rooms with unread count");
-    //         return StatusCode(500, ApiResponse<IEnumerable<ChatRoomDto>>.ErrorResponse("Internal server error", 500));
+    //         return StatusCode(500, JsonModel>.ErrorResponse("Internal server error", 500));
     //     }
     // }
 
     [HttpPut("{chatRoomId}")]
-    public async Task<ActionResult<ApiResponse<ChatRoomDto>>> UpdateChatRoom(Guid chatRoomId, [FromBody] UpdateChatRoomDto updateDto)
+    public async Task<ActionResult<JsonModel> UpdateChatRoom(Guid chatRoomId, [FromBody] UpdateChatRoomDto updateDto)
     {
         try
         {
@@ -207,12 +207,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating chat room {ChatRoomId}", chatRoomId);
-            return StatusCode(500, ApiResponse<ChatRoomDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpDelete("{chatRoomId}")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeleteChatRoom(Guid chatRoomId)
+    public async Task<ActionResult<JsonModel> DeleteChatRoom(Guid chatRoomId)
     {
         try
         {
@@ -226,12 +226,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting chat room {ChatRoomId}", chatRoomId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpPost("{chatRoomId}/participants")]
-    public async Task<ActionResult<ApiResponse<ChatRoomParticipantDto>>> AddParticipant(
+    public async Task<ActionResult<JsonModel> AddParticipant(
         Guid chatRoomId, 
         [FromBody] ChatRoomAddParticipantDto addDto)
     {
@@ -253,12 +253,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding participant to chat room {ChatRoomId}", chatRoomId);
-            return StatusCode(500, ApiResponse<ChatRoomParticipantDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpDelete("{chatRoomId}/participants/{participantId}")]
-    public async Task<ActionResult<ApiResponse<bool>>> RemoveParticipant(Guid chatRoomId, Guid participantId)
+    public async Task<ActionResult<JsonModel> RemoveParticipant(Guid chatRoomId, Guid participantId)
     {
         try
         {
@@ -272,12 +272,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing participant from chat room {ChatRoomId}", chatRoomId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpGet("{chatRoomId}/participants")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ChatRoomParticipantDto>>>> GetChatRoomParticipants(Guid chatRoomId)
+    public async Task<ActionResult<JsonModel>> GetChatRoomParticipants(Guid chatRoomId)
     {
         try
         {
@@ -296,12 +296,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting participants for chat room {ChatRoomId}", chatRoomId);
-            return StatusCode(500, ApiResponse<IEnumerable<ChatRoomParticipantDto>>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel>.ErrorResponse("Internal server error", 500));
         }
     }
 
     [HttpPut("{chatRoomId}/participants/{participantId}/role")]
-    public async Task<ActionResult<ApiResponse<bool>>> UpdateParticipantRole(
+    public async Task<ActionResult<JsonModel> UpdateParticipantRole(
         Guid chatRoomId, 
         Guid participantId, 
         [FromBody] UpdateParticipantRoleDto updateDto)
@@ -318,12 +318,12 @@ public class ChatRoomController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating participant role in chat room {ChatRoomId}", chatRoomId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
         }
     }
 
     // [HttpPost("{chatRoomId}/leave")]
-    // public async Task<ActionResult<ApiResponse<bool>>> LeaveChatRoom(Guid chatRoomId)
+    // public async Task<ActionResult<JsonModel> LeaveChatRoom(Guid chatRoomId)
     // {
     //     try
     //     {
@@ -337,12 +337,12 @@ public class ChatRoomController : ControllerBase
     //     catch (Exception ex)
     //     {
     //         _logger.LogError(ex, "Error leaving chat room {ChatRoomId}", chatRoomId);
-    //         return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+    //         return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
     //     }
     // }
 
     // [HttpPost("{chatRoomId}/invite")]
-    // public async Task<ActionResult<ApiResponse<bool>>> InviteUserToChatRoom(
+    // public async Task<ActionResult<JsonModel> InviteUserToChatRoom(
     //     Guid chatRoomId, 
     //     [FromBody] InviteUserDto inviteDto)
     // {
@@ -358,12 +358,12 @@ public class ChatRoomController : ControllerBase
     //     catch (Exception ex)
     //     {
     //         _logger.LogError(ex, "Error inviting user to chat room {ChatRoomId}", chatRoomId);
-    //         return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+    //         return StatusCode(500, JsonModel.ErrorResponse("Internal server error", 500));
     //     }
     // }
 
     // [HttpGet("{chatRoomId}/analytics")]
-    // public async Task<ActionResult<ApiResponse<Dictionary<string, object>>>> GetChatRoomAnalytics(
+    // public async Task<ActionResult<JsonModel>> GetChatRoomAnalytics(
     //     Guid chatRoomId,
     //     [FromQuery] DateTime fromDate,
     //     [FromQuery] DateTime toDate)
@@ -380,7 +380,7 @@ public class ChatRoomController : ControllerBase
     //     catch (Exception ex)
     //     {
     //         _logger.LogError(ex, "Error getting analytics for chat room {ChatRoomId}", chatRoomId);
-    //         return StatusCode(500, ApiResponse<Dictionary<string, object>>.ErrorResponse("Internal server error", 500));
+    //         return StatusCode(500, JsonModel>.ErrorResponse("Internal server error", 500));
     //     }
     // }
 

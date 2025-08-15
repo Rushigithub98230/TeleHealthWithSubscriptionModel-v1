@@ -30,20 +30,20 @@ public class SubscriptionAutomationController : ControllerBase
     /// Manually trigger automated billing process
     /// </summary>
     [HttpPost("trigger-billing")]
-    public async Task<ActionResult<ApiResponse<string>>> TriggerAutomatedBilling()
+    public async Task<ActionResult<JsonModel> TriggerAutomatedBilling()
     {
         try
         {
             _logger.LogInformation("Manual billing trigger requested by admin");
             await _automatedBillingService.ProcessRecurringBillingAsync();
             
-            return Ok(ApiResponse<string>.SuccessResponse("Billing process completed successfully", 
+            return Ok(JsonModel.SuccessResponse("Billing process completed successfully", 
                 "Automated billing process triggered successfully"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in manual billing trigger");
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to process automated billing"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to process automated billing"));
         }
     }
 
@@ -51,18 +51,18 @@ public class SubscriptionAutomationController : ControllerBase
     /// Process subscription renewal
     /// </summary>
     [HttpPost("renew/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<string>>> RenewSubscription(string subscriptionId)
+    public async Task<ActionResult<JsonModel> RenewSubscription(string subscriptionId)
     {
         try
         {
             await _automatedBillingService.ProcessSubscriptionRenewalAsync();
-            return Ok(ApiResponse<string>.SuccessResponse("Subscription renewal processed successfully", 
+            return Ok(JsonModel.SuccessResponse("Subscription renewal processed successfully", 
                 "Subscription renewal completed"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error renewing subscription {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to renew subscription"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to renew subscription"));
         }
     }
 
@@ -70,23 +70,23 @@ public class SubscriptionAutomationController : ControllerBase
     /// Process plan change with proration
     /// </summary>
     [HttpPost("change-plan/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<string>>> ChangePlan(string subscriptionId, [FromBody] ChangePlanRequest request)
+    public async Task<ActionResult<JsonModel> ChangePlan(string subscriptionId, [FromBody] ChangePlanRequest request)
     {
         try
         {
             if (!Guid.TryParse(subscriptionId, out var subscriptionGuid) || !Guid.TryParse(request.NewPlanId, out var planGuid))
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Invalid subscription or plan ID"));
+                return BadRequest(JsonModel.ErrorResponse("Invalid subscription or plan ID"));
             }
             
             await _automatedBillingService.ProcessPlanChangeAsync(subscriptionGuid, planGuid);
-            return Ok(ApiResponse<string>.SuccessResponse("Plan change processed successfully", 
+            return Ok(JsonModel.SuccessResponse("Plan change processed successfully", 
                 "Plan change completed"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error changing plan for subscription {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to change plan"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to change plan"));
         }
     }
 
@@ -94,30 +94,30 @@ public class SubscriptionAutomationController : ControllerBase
     /// Process state transition
     /// </summary>
     [HttpPost("state-transition/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<string>>> ProcessStateTransition(string subscriptionId, [FromBody] StateTransitionRequest request)
+    public async Task<ActionResult<JsonModel> ProcessStateTransition(string subscriptionId, [FromBody] StateTransitionRequest request)
     {
         try
         {
             if (!Guid.TryParse(subscriptionId, out var subscriptionGuid))
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Invalid subscription ID"));
+                return BadRequest(JsonModel.ErrorResponse("Invalid subscription ID"));
             }
             
             var success = await _lifecycleService.UpdateSubscriptionStatusAsync(subscriptionGuid, request.NewStatus, request.Reason);
             if (success)
             {
-                return Ok(ApiResponse<string>.SuccessResponse("State transition processed successfully", 
+                return Ok(JsonModel.SuccessResponse("State transition processed successfully", 
                     "State transition completed"));
             }
             else
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Failed to process state transition"));
+                return BadRequest(JsonModel.ErrorResponse("Failed to process state transition"));
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing state transition for subscription {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to process state transition"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to process state transition"));
         }
     }
 
@@ -125,30 +125,30 @@ public class SubscriptionAutomationController : ControllerBase
     /// Process subscription expiration
     /// </summary>
     [HttpPost("expire/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<string>>> ProcessExpiration(string subscriptionId)
+    public async Task<ActionResult<JsonModel> ProcessExpiration(string subscriptionId)
     {
         try
         {
             if (!Guid.TryParse(subscriptionId, out var subscriptionGuid))
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Invalid subscription ID"));
+                return BadRequest(JsonModel.ErrorResponse("Invalid subscription ID"));
             }
             
             var success = await _lifecycleService.ExpireSubscriptionAsync(subscriptionGuid);
             if (success)
             {
-                return Ok(ApiResponse<string>.SuccessResponse("Subscription expired successfully", 
+                return Ok(JsonModel.SuccessResponse("Subscription expired successfully", 
                     "Subscription expiration completed"));
             }
             else
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Failed to expire subscription"));
+                return BadRequest(JsonModel.ErrorResponse("Failed to expire subscription"));
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing expiration for subscription {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to process expiration"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to process expiration"));
         }
     }
 
@@ -156,30 +156,30 @@ public class SubscriptionAutomationController : ControllerBase
     /// Suspend subscription
     /// </summary>
     [HttpPost("suspend/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<string>>> SuspendSubscription(string subscriptionId, [FromBody] SuspendRequest request)
+    public async Task<ActionResult<JsonModel> SuspendSubscription(string subscriptionId, [FromBody] SuspendRequest request)
     {
         try
         {
             if (!Guid.TryParse(subscriptionId, out var subscriptionGuid))
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Invalid subscription ID"));
+                return BadRequest(JsonModel.ErrorResponse("Invalid subscription ID"));
             }
             
             var success = await _lifecycleService.SuspendSubscriptionAsync(subscriptionGuid, request.Reason);
             if (success)
             {
-                return Ok(ApiResponse<string>.SuccessResponse("Subscription suspended successfully", 
+                return Ok(JsonModel.SuccessResponse("Subscription suspended successfully", 
                     "Subscription suspension completed"));
             }
             else
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Failed to suspend subscription"));
+                return BadRequest(JsonModel.ErrorResponse("Failed to suspend subscription"));
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error suspending subscription {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to suspend subscription"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to suspend subscription"));
         }
     }
 }

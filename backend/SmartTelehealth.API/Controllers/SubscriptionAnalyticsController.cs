@@ -39,7 +39,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get comprehensive subscription analytics dashboard
     /// </summary>
     [HttpGet("dashboard")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDashboardDto>>> GetDashboard([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel> GetDashboard([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -59,12 +59,12 @@ public class SubscriptionAnalyticsController : ControllerBase
 
             await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "GetSubscriptionDashboard", "Analytics", "Dashboard", "Dashboard accessed");
             
-            return Ok(ApiResponse<SubscriptionDashboardDto>.SuccessResponse(dashboard));
+            return Ok(JsonModel.SuccessResponse(dashboard));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription dashboard");
-            return StatusCode(500, ApiResponse<SubscriptionDashboardDto>.ErrorResponse("Failed to retrieve dashboard data"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve dashboard data"));
         }
     }
 
@@ -72,7 +72,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get revenue analytics with detailed breakdown
     /// </summary>
     [HttpGet("revenue")]
-    public async Task<ActionResult<ApiResponse<RevenueAnalyticsDto>>> GetRevenueAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel> GetRevenueAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -81,12 +81,12 @@ public class SubscriptionAnalyticsController : ControllerBase
 
             var revenue = await GetRevenueMetricsAsync(start, end);
             
-            return Ok(ApiResponse<RevenueAnalyticsDto>.SuccessResponse(revenue));
+            return Ok(JsonModel.SuccessResponse(revenue));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting revenue analytics");
-            return StatusCode(500, ApiResponse<RevenueAnalyticsDto>.ErrorResponse("Failed to retrieve revenue analytics"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve revenue analytics"));
         }
     }
 
@@ -94,7 +94,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get churn analysis and retention metrics
     /// </summary>
     [HttpGet("churn")]
-    public async Task<ActionResult<ApiResponse<ChurnAnalyticsDto>>> GetChurnAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel> GetChurnAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -103,12 +103,12 @@ public class SubscriptionAnalyticsController : ControllerBase
 
             var churn = await GetChurnMetricsAsync(start, end);
             
-            return Ok(ApiResponse<ChurnAnalyticsDto>.SuccessResponse(churn));
+            return Ok(JsonModel.SuccessResponse(churn));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting churn analytics");
-            return StatusCode(500, ApiResponse<ChurnAnalyticsDto>.ErrorResponse("Failed to retrieve churn analytics"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve churn analytics"));
         }
     }
 
@@ -116,7 +116,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get plan performance analytics
     /// </summary>
     [HttpGet("plans")]
-    public async Task<ActionResult<ApiResponse<PlanAnalyticsDto>>> GetPlanAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel> GetPlanAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -125,12 +125,12 @@ public class SubscriptionAnalyticsController : ControllerBase
 
             var plans = await GetPlanMetricsAsync(start, end);
             
-            return Ok(ApiResponse<PlanAnalyticsDto>.SuccessResponse(plans));
+            return Ok(JsonModel.SuccessResponse(plans));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting plan analytics");
-            return StatusCode(500, ApiResponse<PlanAnalyticsDto>.ErrorResponse("Failed to retrieve plan analytics"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve plan analytics"));
         }
     }
 
@@ -138,7 +138,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get usage analytics and patterns
     /// </summary>
     [HttpGet("usage")]
-    public async Task<ActionResult<ApiResponse<UsageAnalyticsDto>>> GetUsageAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel> GetUsageAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -147,12 +147,12 @@ public class SubscriptionAnalyticsController : ControllerBase
 
             var usage = await GetUsageMetricsAsync(start, end);
             
-            return Ok(ApiResponse<UsageAnalyticsDto>.SuccessResponse(usage));
+            return Ok(JsonModel.SuccessResponse(usage));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting usage analytics");
-            return StatusCode(500, ApiResponse<UsageAnalyticsDto>.ErrorResponse("Failed to retrieve usage analytics"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve usage analytics"));
         }
     }
 
@@ -160,7 +160,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get trend analysis and forecasting
     /// </summary>
     [HttpGet("trends")]
-    public async Task<ActionResult<ApiResponse<TrendAnalyticsDto>>> GetTrendAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel> GetTrendAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -169,12 +169,12 @@ public class SubscriptionAnalyticsController : ControllerBase
 
             var trends = await GetTrendMetricsAsync(start, end);
             
-            return Ok(ApiResponse<TrendAnalyticsDto>.SuccessResponse(trends));
+            return Ok(JsonModel.SuccessResponse(trends));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting trend analytics");
-            return StatusCode(500, ApiResponse<TrendAnalyticsDto>.ErrorResponse("Failed to retrieve trend analytics"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve trend analytics"));
         }
     }
 
@@ -182,19 +182,19 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get billing cycle report
     /// </summary>
     [HttpGet("billing-cycle")]
-    public async Task<ActionResult<ApiResponse<BillingCycleReportDto>>> GetBillingCycleReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel> GetBillingCycleReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
             // var report = await _automatedBillingService.GetBillingCycleReportAsync(startDate, endDate);
             
             // return Ok(report);
-            return StatusCode(501, ApiResponse<BillingCycleReportDto>.ErrorResponse("Billing cycle report not implemented"));
+            return StatusCode(501, JsonModel.ErrorResponse("Billing cycle report not implemented"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting billing cycle report");
-            return StatusCode(500, ApiResponse<BillingCycleReportDto>.ErrorResponse("Failed to retrieve billing cycle report"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve billing cycle report"));
         }
     }
 
@@ -202,7 +202,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Trigger manual billing cycle
     /// </summary>
     [HttpPost("trigger-billing-cycle")]
-    public async Task<ActionResult<ApiResponse<bool>>> TriggerBillingCycle()
+    public async Task<ActionResult<JsonModel> TriggerBillingCycle()
     {
         try
         {
@@ -211,12 +211,12 @@ public class SubscriptionAnalyticsController : ControllerBase
             // await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "TriggerBillingCycle", "Analytics", "Manual", "Manual billing cycle triggered");
             
             // return Ok(result);
-            return StatusCode(501, ApiResponse<bool>.ErrorResponse("Manual billing cycle not implemented"));
+            return StatusCode(501, JsonModel.ErrorResponse("Manual billing cycle not implemented"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error triggering billing cycle");
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Failed to trigger billing cycle"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to trigger billing cycle"));
         }
     }
 
@@ -224,7 +224,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get subscription analytics for specific subscription
     /// </summary>
     [HttpGet("subscription/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<SubscriptionAnalyticsDto>>> GetSubscriptionAnalytics(string subscriptionId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel> GetSubscriptionAnalytics(string subscriptionId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -235,7 +235,7 @@ public class SubscriptionAnalyticsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription analytics for {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<SubscriptionAnalyticsDto>.ErrorResponse("Failed to retrieve subscription analytics"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve subscription analytics"));
         }
     }
 
@@ -259,7 +259,7 @@ public class SubscriptionAnalyticsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error exporting analytics");
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to export analytics"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to export analytics"));
         }
     }
 

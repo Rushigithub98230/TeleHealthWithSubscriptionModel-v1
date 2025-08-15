@@ -90,31 +90,31 @@ public class UserService : IUserService
     }
 
     // User profile operations
-    public async Task<ApiResponse<UserDto>> GetUserByIdAsync(int userId)
+    public async Task<JsonModel> GetUserByIdAsync(int userId)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<UserDto>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             var userDto = MapToUserDto(user);
-            return ApiResponse<UserDto>.SuccessResponse(userDto, "User retrieved successfully");
+            return new JsonModel { data = userDto, Message = "User retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user {UserId}", userId);
-            return ApiResponse<UserDto>.ErrorResponse($"Failed to get user: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get user: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<UserDto>> UpdateUserAsync(int userId, UpdateUserDto updateDto)
+    public async Task<JsonModel> UpdateUserAsync(int userId, UpdateUserDto updateDto)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<UserDto>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             // Update user properties
             if (!string.IsNullOrEmpty(updateDto.FirstName))
@@ -142,30 +142,30 @@ public class UserService : IUserService
             await _userRepository.UpdateAsync(user);
 
             var userDto = _mapper.Map<UserDto>(user);
-            return ApiResponse<UserDto>.SuccessResponse(userDto, "User updated successfully");
+            return new JsonModel { data = userDto, Message = "User updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating user {UserId}", userId);
-            return ApiResponse<UserDto>.ErrorResponse($"Failed to update user: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to update user: {ex.Message}", StatusCode = 500 };
         }
     }
 
     // --- DOCUMENT MANAGEMENT (Updated to use centralized DocumentService) ---
     
-    public async Task<ApiResponse<DocumentDto>> UploadProfilePictureAsync(int userId, IFormFile file)
+    public async Task<JsonModel> UploadProfilePictureAsync(int userId, IFormFile file)
     {
         try
         {
             // Validate user exists
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<DocumentDto>.ErrorResponse("User not found", 404);
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 };
 
             // Get profile picture document type
             var profilePictureType = await _documentTypeService.GetByNameAsync("Profile Picture");
             if (profilePictureType == null)
-                return ApiResponse<DocumentDto>.ErrorResponse("Profile picture document type not found", 404);
+                return new JsonModel { data = new object(), Message = "Profile picture document type not found", StatusCode = 404 };
 
             // Read file content
             using var memoryStream = new MemoryStream();
@@ -201,38 +201,38 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading profile picture for user {UserId}", userId);
-            return ApiResponse<DocumentDto>.ErrorResponse($"Failed to upload profile picture: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to upload profile picture: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<DocumentDto>>> GetUserDocumentsAsync(int userId, string? referenceType = null)
+    public async Task<JsonModel> GetUserDocumentsAsync(int userId, string? referenceType = null)
     {
         try
         {
             // Validate user exists
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse("User not found", 404);
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 };
 
             // Get documents using centralized document service
             var documentsResult = await _documentService.GetUserDocumentsAsync(userId, referenceType);
-            return ApiResponse<IEnumerable<DocumentDto>>.SuccessResponse(documentsResult.Data);
+            return new JsonModel { data = .SuccessResponse(documentsResult.Data);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting documents for user {UserId}", userId);
-            return ApiResponse<IEnumerable<DocumentDto>>.ErrorResponse($"Failed to get user documents: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get user documents: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentDto>> UploadUserDocumentAsync(int userId, UploadUserDocumentRequest request)
+    public async Task<JsonModel> UploadUserDocumentAsync(int userId, UploadUserDocumentRequest request)
     {
         try
         {
             // Validate user exists
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<DocumentDto>.ErrorResponse("User not found", 404);
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 };
 
             // Override user ID to ensure it's linked to the correct user
             request.UserId = userId;
@@ -245,18 +245,18 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading document for user {UserId}", userId);
-            return ApiResponse<DocumentDto>.ErrorResponse($"Failed to upload user document: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to upload user document: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteUserDocumentAsync(Guid documentId, int userId)
+    public async Task<JsonModel> DeleteUserDocumentAsync(Guid documentId, int userId)
     {
         try
         {
             // Validate user exists
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<bool>.ErrorResponse("User not found", 404);
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 };
 
             // Delete using centralized document service
             var result = await _documentService.DeleteDocumentAsync(documentId, userId);
@@ -265,78 +265,78 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting document {DocumentId} for user {UserId}", documentId, userId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to delete user document: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to delete user document: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteUserAsync(int userId)
+    public async Task<JsonModel> DeleteUserAsync(int userId)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<bool>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             await _userRepository.DeleteAsync(userId);
-            return ApiResponse<bool>.SuccessResponse(true, "User deleted successfully");
+            return new JsonModel { data = true, Message = "User deleted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting user {UserId}", userId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to delete user: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to delete user: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<UserDto>>> GetUsersByRoleAsync(string role)
+    public async Task<JsonModel> GetUsersByRoleAsync(string role)
     {
         try
         {
             var users = await _userRepository.GetByRoleAsync(role);
             var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
-            return ApiResponse<IEnumerable<UserDto>>.SuccessResponse(userDtos, $"Users with role {role} retrieved successfully");
+            return new JsonModel { data = userDtos, Message = $"Users with role {role} retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting users by role {Role}", role);
-            return ApiResponse<IEnumerable<UserDto>>.ErrorResponse($"Failed to get users by role: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get users by role: {ex.Message}", StatusCode = 500 };
         }
     }
 
 
 
-    public async Task<ApiResponse<bool>> ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
+    public async Task<JsonModel> ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<bool>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             // Verify current password
             if (!VerifyPassword(changePasswordDto.CurrentPassword, user.PasswordHash))
-                return ApiResponse<bool>.ErrorResponse("Current password is incorrect");
+                return new JsonModel { data = new object(), Message = "Current password is incorrect", StatusCode = 500 };
 
             // Hash new password
             user.PasswordHash = HashPassword(changePasswordDto.NewPassword);
             user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
-            return ApiResponse<bool>.SuccessResponse(true, "Password changed successfully");
+            return new JsonModel { data = true, Message = "Password changed successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error changing password for user {UserId}", userId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to change password: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to change password: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ResetPasswordAsync(string email)
+    public async Task<JsonModel> ResetPasswordAsync(string email)
     {
         try
         {
             var user = await _userRepository.GetByEmailAsync(email);
             if (user == null)
-                return ApiResponse<bool>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             // Generate reset token
             var resetToken = Guid.NewGuid().ToString();
@@ -348,28 +348,28 @@ public class UserService : IUserService
             // Send reset email
             await _notificationService.SendPasswordResetEmailAsync(email, resetToken);
 
-            return ApiResponse<bool>.SuccessResponse(true, "Password reset email sent successfully");
+            return new JsonModel { data = true, Message = "Password reset email sent successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error resetting password for email {Email}", email);
-            return ApiResponse<bool>.ErrorResponse($"Failed to reset password: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to reset password: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ConfirmPasswordResetAsync(string email, string resetToken, string newPassword)
+    public async Task<JsonModel> ConfirmPasswordResetAsync(string email, string resetToken, string newPassword)
     {
         try
         {
             var user = await _userRepository.GetByEmailAsync(email);
             if (user == null)
-                return ApiResponse<bool>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             if (user.PasswordResetToken != resetToken)
-                return ApiResponse<bool>.ErrorResponse("Invalid reset token");
+                return new JsonModel { data = new object(), Message = "Invalid reset token", StatusCode = 500 };
 
             if (user.ResetTokenExpires < DateTime.UtcNow)
-                return ApiResponse<bool>.ErrorResponse("Reset token has expired");
+                return new JsonModel { data = new object(), Message = "Reset token has expired", StatusCode = 500 };
 
             // Update password
             user.PasswordHash = HashPassword(newPassword);
@@ -378,22 +378,22 @@ public class UserService : IUserService
             user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
-            return ApiResponse<bool>.SuccessResponse(true, "Password reset successfully");
+            return new JsonModel { data = true, Message = "Password reset successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error confirming password reset for email {Email}", email);
-            return ApiResponse<bool>.ErrorResponse($"Failed to confirm password reset: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to confirm password reset: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateUserProfileAsync(int userId, UpdateUserProfileDto profileDto)
+    public async Task<JsonModel> UpdateUserProfileAsync(int userId, UpdateUserProfileDto profileDto)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<bool>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             // Update profile properties
             if (!string.IsNullOrEmpty(profileDto.FirstName))
@@ -418,22 +418,22 @@ public class UserService : IUserService
             user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
-            return ApiResponse<bool>.SuccessResponse(true, "Profile updated successfully");
+            return new JsonModel { data = true, Message = "Profile updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating user profile {UserId}", userId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to update profile: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to update profile: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateUserPreferencesAsync(int userId, UpdateUserPreferencesDto preferencesDto)
+    public async Task<JsonModel> UpdateUserPreferencesAsync(int userId, UpdateUserPreferencesDto preferencesDto)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<bool>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             // Update preferences
             if (!string.IsNullOrEmpty(preferencesDto.NotificationPreferences))
@@ -445,23 +445,23 @@ public class UserService : IUserService
             user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
-            return ApiResponse<bool>.SuccessResponse(true, "Preferences updated successfully");
+            return new JsonModel { data = true, Message = "Preferences updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating user preferences {UserId}", userId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to update preferences: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to update preferences: {ex.Message}", StatusCode = 500 };
         }
     }
 
     // Patient operations
-    public async Task<ApiResponse<PatientDto>> GetPatientByIdAsync(int patientId)
+    public async Task<JsonModel> GetPatientByIdAsync(int patientId)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(patientId);
             if (user == null || user.UserType != "Patient")
-                return ApiResponse<PatientDto>.ErrorResponse("Patient not found");
+                return new JsonModel { data = new object(), Message = "Patient not found", StatusCode = 500 };
 
             var patientDto = MapToPatientDto(user);
             
@@ -477,31 +477,31 @@ public class UserService : IUserService
                 patientDto.TotalSpent = statsData.TotalSpent ?? 0m;
             }
 
-            return ApiResponse<PatientDto>.SuccessResponse(patientDto);
+            return new JsonModel { data = patientDto, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting patient by ID: {PatientId}", patientId);
-            return ApiResponse<PatientDto>.ErrorResponse($"Failed to get patient: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get patient: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<PatientDto>>> GetAllPatientsAsync()
+    public async Task<JsonModel> GetAllPatientsAsync()
     {
         try
         {
             var patients = await _userRepository.GetByUserTypeAsync("Patient");
             var patientDtos = patients.Select(MapToPatientDto).ToList();
-            return ApiResponse<IEnumerable<PatientDto>>.SuccessResponse(patientDtos);
+            return new JsonModel { data = .SuccessResponse(patientDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all patients");
-            return ApiResponse<IEnumerable<PatientDto>>.ErrorResponse($"Failed to get patients: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get patients: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<object>> GetPatientMedicalHistoryAsync(int patientId)
+    public async Task<JsonModel> GetPatientMedicalHistoryAsync(int patientId)
     {
         try
         {
@@ -515,16 +515,16 @@ public class UserService : IUserService
                 Lifestyle = "Non-smoker, occasional alcohol"
             };
 
-            return ApiResponse<object>.SuccessResponse(medicalHistory);
+            return new JsonModel { data = medicalHistory, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting patient medical history: {PatientId}", patientId);
-            return ApiResponse<object>.ErrorResponse($"Failed to get medical history: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get medical history: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<object>> UpdatePatientMedicalHistoryAsync(int patientId, UpdateMedicalHistoryDto medicalHistoryDto)
+    public async Task<JsonModel> UpdatePatientMedicalHistoryAsync(int patientId, UpdateMedicalHistoryDto medicalHistoryDto)
     {
         try
         {
@@ -539,88 +539,88 @@ public class UserService : IUserService
                 UpdatedAt = DateTime.UtcNow
             };
 
-            return ApiResponse<object>.SuccessResponse(updatedHistory);
+            return new JsonModel { data = updatedHistory, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating patient medical history: {PatientId}", patientId);
-            return ApiResponse<object>.ErrorResponse($"Failed to update medical history: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to update medical history: {ex.Message}", StatusCode = 500 };
         }
     }
 
     // Provider operations
-    public async Task<ApiResponse<ProviderDto>> GetProviderAsync(string id)
+    public async Task<JsonModel> GetProviderAsync(string id)
     {
         if (!int.TryParse(id, out var providerId))
-            return ApiResponse<ProviderDto>.ErrorResponse("Invalid provider ID");
+            return new JsonModel { data = new object(), Message = "Invalid provider ID", StatusCode = 500 };
         var provider = await _userRepository.GetByIdAsync(providerId);
         if (provider == null)
-            return ApiResponse<ProviderDto>.ErrorResponse("Provider not found");
+            return new JsonModel { data = new object(), Message = "Provider not found", StatusCode = 500 };
         var providerDto = _mapper.Map<ProviderDto>(provider);
-        return ApiResponse<ProviderDto>.SuccessResponse(providerDto);
+        return new JsonModel { data = providerDto, Message = "Success", StatusCode = 200 };
     }
 
-    public async Task<ApiResponse<ProviderDto>> GetProviderByEmailAsync(string email)
+    public async Task<JsonModel> GetProviderByEmailAsync(string email)
     {
         try
         {
             var provider = await _userRepository.GetByEmailAsync(email);
             if (provider == null)
             {
-                return ApiResponse<ProviderDto>.ErrorResponse("Provider not found");
+                return new JsonModel { data = new object(), Message = "Provider not found", StatusCode = 500 };
             }
 
             var providerDto = MapToProviderDto(provider);
-            return ApiResponse<ProviderDto>.SuccessResponse(providerDto);
+            return new JsonModel { data = providerDto, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting provider by email {Email}", email);
-            return ApiResponse<ProviderDto>.ErrorResponse($"Failed to get provider: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get provider: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<ProviderDto>> GetProviderByLicenseAsync(string licenseNumber)
+    public async Task<JsonModel> GetProviderByLicenseAsync(string licenseNumber)
     {
         try
         {
             var provider = await _userRepository.GetByLicenseNumberAsync(licenseNumber);
             if (provider == null)
             {
-                return ApiResponse<ProviderDto>.ErrorResponse("Provider not found");
+                return new JsonModel { data = new object(), Message = "Provider not found", StatusCode = 500 };
             }
 
             var providerDto = MapToProviderDto(provider);
-            return ApiResponse<ProviderDto>.SuccessResponse(providerDto);
+            return new JsonModel { data = providerDto, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting provider by license {LicenseNumber}", licenseNumber);
-            return ApiResponse<ProviderDto>.ErrorResponse($"Failed to get provider: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get provider: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<ProviderDto>> GetProviderByIdAsync(int providerId)
+    public async Task<JsonModel> GetProviderByIdAsync(int providerId)
     {
         try
         {
             var provider = await _userRepository.GetByIdAsync(providerId);
             if (provider == null)
             {
-                return ApiResponse<ProviderDto>.ErrorResponse("Provider not found");
+                return new JsonModel { data = new object(), Message = "Provider not found", StatusCode = 500 };
             }
 
             var providerDto = _mapper.Map<ProviderDto>(provider);
-            return ApiResponse<ProviderDto>.SuccessResponse(providerDto);
+            return new JsonModel { data = providerDto, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting provider by ID {ProviderId}", providerId);
-            return ApiResponse<ProviderDto>.ErrorResponse($"Failed to get provider: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get provider: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<UserDto>>> GetAllProvidersAsync()
+    public async Task<JsonModel> GetAllProvidersAsync()
     {
         try
         {
@@ -633,16 +633,16 @@ public class UserService : IUserService
                 LastName = u.LastName,
                 // ... map other properties as needed ...
             }).ToList();
-            return ApiResponse<IEnumerable<UserDto>>.SuccessResponse(userDtos);
+            return new JsonModel { data = .SuccessResponse(userDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all providers");
-            return ApiResponse<IEnumerable<UserDto>>.ErrorResponse($"Failed to get providers: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get providers: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<ProviderDto>> CreateProviderAsync(CreateProviderDto createDto)
+    public async Task<JsonModel> CreateProviderAsync(CreateProviderDto createDto)
     {
         try
         {
@@ -661,22 +661,22 @@ public class UserService : IUserService
 
             await _userRepository.CreateAsync(provider);
 
-            return ApiResponse<ProviderDto>.SuccessResponse(MapToProviderDto(provider));
+            return JsonModel.SuccessResponse(MapToProviderDto(provider));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating provider");
-            return ApiResponse<ProviderDto>.ErrorResponse($"Failed to create provider: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to create provider: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<ProviderDto>> UpdateProviderAsync(int providerId, UpdateProviderDto updateDto)
+    public async Task<JsonModel> UpdateProviderAsync(int providerId, UpdateProviderDto updateDto)
     {
         try
         {
             var provider = await _userRepository.GetByIdAsync(providerId);
             if (provider == null || provider.UserType != "Provider")
-                return ApiResponse<ProviderDto>.ErrorResponse("Provider not found");
+                return new JsonModel { data = new object(), Message = "Provider not found", StatusCode = 500 };
 
             // Update provider properties
             if (!string.IsNullOrEmpty(updateDto.FirstName))
@@ -691,60 +691,60 @@ public class UserService : IUserService
             provider.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(provider);
 
-            return ApiResponse<ProviderDto>.SuccessResponse(MapToProviderDto(provider));
+            return JsonModel.SuccessResponse(MapToProviderDto(provider));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating provider: {ProviderId}", providerId);
-            return ApiResponse<ProviderDto>.ErrorResponse($"Failed to update provider: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to update provider: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteProviderAsync(int providerId)
+    public async Task<JsonModel> DeleteProviderAsync(int providerId)
     {
         try
         {
             var provider = await _userRepository.GetByIdAsync(providerId);
             if (provider == null || provider.UserType != "Provider")
-                return ApiResponse<bool>.ErrorResponse("Provider not found");
+                return new JsonModel { data = new object(), Message = "Provider not found", StatusCode = 500 };
 
             provider.IsActive = false;
             provider.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(provider);
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting provider: {ProviderId}", providerId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to delete provider: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to delete provider: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<ProviderDto>> VerifyProviderAsync(int providerId)
+    public async Task<JsonModel> VerifyProviderAsync(int providerId)
     {
         try
         {
             var provider = await _userRepository.GetByIdAsync(providerId);
             if (provider == null || provider.UserType != "Provider")
-                return ApiResponse<ProviderDto>.ErrorResponse("Provider not found");
+                return new JsonModel { data = new object(), Message = "Provider not found", StatusCode = 500 };
 
             // In a real implementation, this would involve verification logic
             provider.IsEmailVerified = true;
             provider.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(provider);
 
-            return ApiResponse<ProviderDto>.SuccessResponse(MapToProviderDto(provider));
+            return JsonModel.SuccessResponse(MapToProviderDto(provider));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error verifying provider: {ProviderId}", providerId);
-            return ApiResponse<ProviderDto>.ErrorResponse($"Failed to verify provider: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to verify provider: {ex.Message}", StatusCode = 500 };
         }
     }
 
     // Provider schedule operations
-    public async Task<ApiResponse<ProviderScheduleDto>> GetProviderScheduleAsync(int providerId)
+    public async Task<JsonModel> GetProviderScheduleAsync(int providerId)
     {
         try
         {
@@ -766,16 +766,16 @@ public class UserService : IUserService
                 IsActive = true
             };
 
-            return ApiResponse<ProviderScheduleDto>.SuccessResponse(schedule);
+            return new JsonModel { data = schedule, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting provider schedule: {ProviderId}", providerId);
-            return ApiResponse<ProviderScheduleDto>.ErrorResponse($"Failed to get provider schedule: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get provider schedule: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<ProviderScheduleDto>> UpdateProviderScheduleAsync(int providerId, UpdateProviderScheduleDto scheduleDto)
+    public async Task<JsonModel> UpdateProviderScheduleAsync(int providerId, UpdateProviderScheduleDto scheduleDto)
     {
         try
         {
@@ -790,39 +790,39 @@ public class UserService : IUserService
                 IsActive = scheduleDto.IsActive
             };
 
-            return ApiResponse<ProviderScheduleDto>.SuccessResponse(updatedSchedule);
+            return new JsonModel { data = updatedSchedule, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating provider schedule: {ProviderId}", providerId);
-            return ApiResponse<ProviderScheduleDto>.ErrorResponse($"Failed to update provider schedule: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to update provider schedule: {ex.Message}", StatusCode = 500 };
         }
     }
 
     // User statistics
-    public async Task<ApiResponse<object>> GetUserStatsAsync(int userId)
+    public async Task<JsonModel> GetUserStatsAsync(int userId)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<object>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             var stats = user.UserType == "Patient" 
                 ? await GetPatientStatsAsync(userId)
                 : await GetProviderStatsAsync(userId);
 
-            return ApiResponse<object>.SuccessResponse(stats);
+            return new JsonModel { data = stats, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user stats: {UserId}", userId);
-            return ApiResponse<object>.ErrorResponse($"Failed to get user stats: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get user stats: {ex.Message}", StatusCode = 500 };
         }
     }
 
     // Provider reviews
-    public async Task<ApiResponse<IEnumerable<ReviewDto>>> GetProviderReviewsAsync(int providerId)
+    public async Task<JsonModel> GetProviderReviewsAsync(int providerId)
     {
         try
         {
@@ -851,16 +851,16 @@ public class UserService : IUserService
                 }
             };
 
-            return ApiResponse<IEnumerable<ReviewDto>>.SuccessResponse(reviews);
+            return new JsonModel { data = .SuccessResponse(reviews);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting provider reviews: {ProviderId}", providerId);
-            return ApiResponse<IEnumerable<ReviewDto>>.ErrorResponse($"Failed to get provider reviews: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get provider reviews: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<ReviewDto>> AddProviderReviewAsync(int providerId, int userId, AddReviewDto reviewDto)
+    public async Task<JsonModel> AddProviderReviewAsync(int providerId, int userId, AddReviewDto reviewDto)
     {
         try
         {
@@ -875,17 +875,17 @@ public class UserService : IUserService
                 CreatedAt = DateTime.UtcNow
             };
 
-            return ApiResponse<ReviewDto>.SuccessResponse(review);
+            return new JsonModel { data = review, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding provider review: {ProviderId}", providerId);
-            return ApiResponse<ReviewDto>.ErrorResponse($"Failed to add review: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to add review: {ex.Message}", StatusCode = 500 };
         }
     }
 
     // Notifications
-    public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(int userId)
+    public async Task<JsonModel> GetUserNotificationsAsync(int userId)
     {
         try
         {
@@ -914,59 +914,59 @@ public class UserService : IUserService
                 }
             };
 
-            return ApiResponse<IEnumerable<NotificationDto>>.SuccessResponse(notifications);
+            return new JsonModel { data = .SuccessResponse(notifications);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user notifications: {UserId}", userId);
-            return ApiResponse<IEnumerable<NotificationDto>>.ErrorResponse($"Failed to get notifications: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get notifications: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> MarkNotificationAsReadAsync(Guid notificationId)
+    public async Task<JsonModel> MarkNotificationAsReadAsync(Guid notificationId)
     {
         try
         {
             // This would typically update a notifications repository
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error marking notification as read: {NotificationId}", notificationId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to mark notification as read: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to mark notification as read: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> MarkAllNotificationsAsReadAsync(Guid userId)
+    public async Task<JsonModel> MarkAllNotificationsAsReadAsync(Guid userId)
     {
         try
         {
             // This would typically update a notifications repository
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error marking all notifications as read: {UserId}", userId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to mark all notifications as read: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to mark all notifications as read: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteNotificationAsync(Guid notificationId)
+    public async Task<JsonModel> DeleteNotificationAsync(Guid notificationId)
     {
         try
         {
             // This would typically delete from a notifications repository
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting notification: {NotificationId}", notificationId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to delete notification: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to delete notification: {ex.Message}", StatusCode = 500 };
         }
     }
 
     // User preferences
-    public async Task<ApiResponse<object>> GetUserPreferencesAsync(Guid userId)
+    public async Task<JsonModel> GetUserPreferencesAsync(Guid userId)
     {
         try
         {
@@ -981,26 +981,26 @@ public class UserService : IUserService
                 TimeZone = "UTC"
             };
 
-            return ApiResponse<object>.SuccessResponse(preferences);
+            return new JsonModel { data = preferences, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user preferences: {UserId}", userId);
-            return ApiResponse<object>.ErrorResponse($"Failed to get preferences: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get preferences: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<object>> UpdateUserPreferencesAsync(Guid userId, UpdateUserPreferencesDto preferencesDto)
+    public async Task<JsonModel> UpdateUserPreferencesAsync(Guid userId, UpdateUserPreferencesDto preferencesDto)
     {
         try
         {
             // This would typically update a preferences repository
-            return ApiResponse<object>.SuccessResponse(preferencesDto.Preferences);
+            return new JsonModel { data = preferencesDto.Preferences, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating user preferences: {UserId}", userId);
-            return ApiResponse<object>.ErrorResponse($"Failed to update preferences: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to update preferences: {ex.Message}", StatusCode = 500 };
         }
     }
 
@@ -1022,63 +1022,63 @@ public class UserService : IUserService
         return hashedPassword == hash;
     }
 
-    public async Task<ApiResponse<bool>> RequestPasswordResetAsync(string email)
+    public async Task<JsonModel> RequestPasswordResetAsync(string email)
     {
         try
         {
             var user = await _userRepository.GetByEmailAsync(email);
             if (user == null)
-                return ApiResponse<bool>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             // In a real implementation, send password reset email
             await _notificationService.SendPasswordResetEmailAsync(email, "reset-token");
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error requesting password reset: {Email}", email);
-            return ApiResponse<bool>.ErrorResponse($"Failed to request password reset: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to request password reset: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ResetPasswordAsync(ResetPasswordDto resetDto)
+    public async Task<JsonModel> ResetPasswordAsync(ResetPasswordDto resetDto)
     {
         try
         {
             // In a real implementation, verify token and update password
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error resetting password");
-            return ApiResponse<bool>.ErrorResponse($"Failed to reset password: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to reset password: {ex.Message}", StatusCode = 500 };
         }
     }
 
     // Email verification
-    public async Task<ApiResponse<bool>> VerifyEmailAsync(string token)
+    public async Task<JsonModel> VerifyEmailAsync(string token)
     {
         try
         {
             // In a real implementation, verify email token
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error verifying email");
-            return ApiResponse<bool>.ErrorResponse($"Failed to verify email: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to verify email: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> SendEmailVerificationAsync(string email)
+    public async Task<JsonModel> SendEmailVerificationAsync(string email)
     {
         try
         {
             var user = await _userRepository.GetByEmailAsync(email);
             if (user == null)
             {
-                return ApiResponse<bool>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
             }
 
             var verificationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -1086,23 +1086,23 @@ public class UserService : IUserService
             // await _notificationService.SendEmailVerificationAsync(email, user.UserName, verificationToken);
             _logger.LogInformation("Email notifications disabled - would have sent email verification to {Email}", email);
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending email verification to {Email}", email);
-            return ApiResponse<bool>.ErrorResponse($"Failed to send email verification: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to send email verification: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ResendEmailVerificationAsync(int userId)
+    public async Task<JsonModel> ResendEmailVerificationAsync(int userId)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
-                return ApiResponse<bool>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
             }
 
             var verificationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -1110,34 +1110,34 @@ public class UserService : IUserService
             // await _notificationService.SendEmailVerificationAsync(user.Email, user.UserName, verificationToken);
             _logger.LogInformation("Email notifications disabled - would have sent email verification to {Email}", user.Email);
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error resending email verification for user {UserId}", userId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to resend email verification: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to resend email verification: {ex.Message}", StatusCode = 500 };
         }
     }
 
     // Account management
-    public async Task<ApiResponse<bool>> DeleteAccountAsync(int userId, string reason)
+    public async Task<JsonModel> DeleteAccountAsync(int userId, string reason)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                return ApiResponse<bool>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
 
             user.IsActive = false;
             user.UpdatedDate = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting account: {UserId}", userId);
-            return ApiResponse<bool>.ErrorResponse($"Failed to delete account: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to delete account: {ex.Message}", StatusCode = 500 };
         }
     }
 
@@ -1249,40 +1249,40 @@ public class UserService : IUserService
     }
 
     // === BEGIN INTERFACE STUBS ===
-    public async Task<ApiResponse<UserDto>> GetUserAsync(int userId)
+    public async Task<JsonModel> GetUserAsync(int userId)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
-                return ApiResponse<UserDto>.ErrorResponse("User not found");
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 500 };
             }
 
             var userDto = MapToUserDto(user);
-            return ApiResponse<UserDto>.SuccessResponse(userDto);
+            return new JsonModel { data = userDto, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user with ID: {UserId}", userId);
-            return ApiResponse<UserDto>.ErrorResponse($"Failed to get user: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get user: {ex.Message}", StatusCode = 500 };
         }
     }
-    public async Task<ApiResponse<IEnumerable<UserDto>>> GetAllUsersAsync()
+    public async Task<JsonModel> GetAllUsersAsync()
     {
         try
         {
             var users = await _userRepository.GetAllAsync();
             var userDtos = users.Select(MapToUserDto).ToList();
-            return ApiResponse<IEnumerable<UserDto>>.SuccessResponse(userDtos);
+            return new JsonModel { data = .SuccessResponse(userDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all users");
-            return ApiResponse<IEnumerable<UserDto>>.ErrorResponse($"Failed to get users: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get users: {ex.Message}", StatusCode = 500 };
         }
     }
-    public async Task<ApiResponse<UserDto>> CreateUserAsync(CreateUserDto createUserDto)
+    public async Task<JsonModel> CreateUserAsync(CreateUserDto createUserDto)
     {
         try
         {
@@ -1290,14 +1290,14 @@ public class UserService : IUserService
             var existingUser = await _userRepository.GetByEmailAsync(createUserDto.Email);
             if (existingUser != null)
             {
-                return ApiResponse<UserDto>.ErrorResponse("User with this email already exists");
+                return new JsonModel { data = new object(), Message = "User with this email already exists", StatusCode = 500 };
             }
 
             // Get the appropriate UserRole from database
             var userRole = await GetUserRoleByNameAsync(createUserDto.UserType);
             if (userRole == null)
             {
-                return ApiResponse<UserDto>.ErrorResponse($"Invalid user type: {createUserDto.UserType}");
+                return new JsonModel { data = new object(), Message = $"Invalid user type: {createUserDto.UserType}", StatusCode = 500 };
             }
 
             // Create new user
@@ -1335,35 +1335,35 @@ public class UserService : IUserService
 
             // Map to DTO and return
             var userDto = MapToUserDto(user);
-            return ApiResponse<UserDto>.SuccessResponse(userDto);
+            return new JsonModel { data = userDto, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating user with email: {Email}", createUserDto.Email);
-            return ApiResponse<UserDto>.ErrorResponse($"Failed to create user: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to create user: {ex.Message}", StatusCode = 500 };
         }
     }
-    public async Task<ApiResponse<MedicalHistoryDto>> GetMedicalHistoryAsync(int userId)
+    public async Task<JsonModel> GetMedicalHistoryAsync(int userId)
     {
         throw new NotImplementedException();
     }
-    public async Task<ApiResponse<MedicalHistoryDto>> UpdateMedicalHistoryAsync(int userId, UpdateMedicalHistoryDto medicalHistoryDto)
+    public async Task<JsonModel> UpdateMedicalHistoryAsync(int userId, UpdateMedicalHistoryDto medicalHistoryDto)
     {
         throw new NotImplementedException();
     }
-            public async Task<ApiResponse<IEnumerable<PaymentMethodDto>>> GetPaymentMethodsAsync(int userId)
+            public async Task<JsonModel> GetPaymentMethodsAsync(int userId)
     {
         throw new NotImplementedException();
     }
-    public async Task<ApiResponse<PaymentMethodDto>> AddPaymentMethodAsync(int userId, AddPaymentMethodDto addPaymentMethodDto)
+    public async Task<JsonModel> AddPaymentMethodAsync(int userId, AddPaymentMethodDto addPaymentMethodDto)
     {
         throw new NotImplementedException();
     }
-    public async Task<ApiResponse<bool>> DeletePaymentMethodAsync(int userId, string paymentMethodId)
+    public async Task<JsonModel> DeletePaymentMethodAsync(int userId, string paymentMethodId)
     {
         throw new NotImplementedException();
     }
-    public async Task<ApiResponse<bool>> SetDefaultPaymentMethodAsync(int userId, string paymentMethodId)
+    public async Task<JsonModel> SetDefaultPaymentMethodAsync(int userId, string paymentMethodId)
     {
         throw new NotImplementedException();
     }

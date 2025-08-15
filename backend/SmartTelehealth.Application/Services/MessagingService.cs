@@ -20,107 +20,107 @@ public class MessagingService : IMessagingService
         _logger = logger;
     }
 
-    public async Task<ApiResponse<MessageDto>> SendMessageAsync(CreateMessageDto createDto, string senderId)
+    public async Task<JsonModel> SendMessageAsync(CreateMessageDto createDto, string senderId)
     {
         try
         {
             var message = await _chatStorageService.StoreMessageAsync(createDto);
-            return ApiResponse<MessageDto>.SuccessResponse(message, "Message sent successfully");
+            return new JsonModel { data = message, Message = "Message sent successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending message");
-            return ApiResponse<MessageDto>.ErrorResponse("Failed to send message");
+            return new JsonModel { data = new object(), Message = "Failed to send message", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<MessageDto>> GetMessageAsync(string messageId)
+    public async Task<JsonModel> GetMessageAsync(string messageId)
     {
         try
         {
             var message = await _chatStorageService.GetMessageAsync(messageId);
             if (message == null)
-                return ApiResponse<MessageDto>.ErrorResponse("Message not found");
+                return new JsonModel { data = new object(), Message = "Message not found", StatusCode = 500 };
 
-            return ApiResponse<MessageDto>.SuccessResponse(message, "Message retrieved successfully");
+            return new JsonModel { data = message, Message = "Message retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting message {MessageId}", messageId);
-            return ApiResponse<MessageDto>.ErrorResponse("Failed to get message");
+            return new JsonModel { data = new object(), Message = "Failed to get message", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<MessageDto>>> GetChatRoomMessagesAsync(string chatRoomId, int page = 1, int pageSize = 50)
+    public async Task<JsonModel> GetChatRoomMessagesAsync(string chatRoomId, int page = 1, int pageSize = 50)
     {
         try
         {
             var messages = await _chatStorageService.GetChatRoomMessagesAsync(chatRoomId, page, pageSize);
-            return ApiResponse<IEnumerable<MessageDto>>.SuccessResponse(messages, "Chat room messages retrieved successfully");
+            return new JsonModel { data = messages, Message = "Chat room messages retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting chat room messages");
-            return ApiResponse<IEnumerable<MessageDto>>.ErrorResponse("Failed to get chat room messages");
+            return new JsonModel { data = new object(), Message = "Failed to get chat room messages", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateMessageAsync(string messageId, UpdateMessageDto updateDto)
+    public async Task<JsonModel> UpdateMessageAsync(string messageId, UpdateMessageDto updateDto)
     {
         try
         {
             var result = await _chatStorageService.UpdateMessageAsync(messageId, updateDto);
-            return ApiResponse<bool>.SuccessResponse(result, "Message updated successfully");
+            return new JsonModel { data = result, Message = "Message updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating message {MessageId}", messageId);
-            return ApiResponse<bool>.ErrorResponse("Failed to update message");
+            return new JsonModel { data = new object(), Message = "Failed to update message", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteMessageAsync(string messageId)
+    public async Task<JsonModel> DeleteMessageAsync(string messageId)
     {
         try
         {
             var result = await _chatStorageService.DeleteMessageAsync(messageId);
-            return ApiResponse<bool>.SuccessResponse(result, "Message deleted successfully");
+            return new JsonModel { data = result, Message = "Message deleted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting message {MessageId}", messageId);
-            return ApiResponse<bool>.ErrorResponse("Failed to delete message");
+            return new JsonModel { data = new object(), Message = "Failed to delete message", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<ChatRoomDto>> CreateChatRoomAsync(CreateChatRoomDto createDto)
+    public async Task<JsonModel> CreateChatRoomAsync(CreateChatRoomDto createDto)
     {
         try
         {
             var chatRoom = await _chatStorageService.CreateChatRoomAsync(createDto);
-            return ApiResponse<ChatRoomDto>.SuccessResponse(chatRoom, "Chat room created successfully");
+            return new JsonModel { data = chatRoom, Message = "Chat room created successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating chat room");
-            return ApiResponse<ChatRoomDto>.ErrorResponse("Failed to create chat room");
+            return new JsonModel { data = new object(), Message = "Failed to create chat room", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<ChatRoomDto>> GetChatRoomAsync(string chatRoomId)
+    public async Task<JsonModel> GetChatRoomAsync(string chatRoomId)
     {
         try
         {
             var chatRoom = await _chatStorageService.GetChatRoomAsync(chatRoomId);
             if (chatRoom == null)
-                return ApiResponse<ChatRoomDto>.ErrorResponse("Chat room not found");
+                return new JsonModel { data = new object(), Message = "Chat room not found", StatusCode = 500 };
 
-            return ApiResponse<ChatRoomDto>.SuccessResponse(chatRoom, "Chat room retrieved successfully");
+            return new JsonModel { data = chatRoom, Message = "Chat room retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting chat room {ChatRoomId}", chatRoomId);
-            return ApiResponse<ChatRoomDto>.ErrorResponse("Failed to get chat room");
+            return new JsonModel { data = new object(), Message = "Failed to get chat room", StatusCode = 500 };
         }
     }
 
@@ -137,305 +137,305 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<ApiResponse<ChatRoomDto>> UpdateChatRoomAsync(string chatRoomId, UpdateChatRoomDto updateDto)
+    public async Task<JsonModel> UpdateChatRoomAsync(string chatRoomId, UpdateChatRoomDto updateDto)
     {
         try
         {
             var chatRoom = await _chatStorageService.UpdateChatRoomAsync(chatRoomId, updateDto);
             if (chatRoom == null)
-                return ApiResponse<ChatRoomDto>.ErrorResponse("Chat room not found");
+                return new JsonModel { data = new object(), Message = "Chat room not found", StatusCode = 500 };
 
-            return ApiResponse<ChatRoomDto>.SuccessResponse(chatRoom, "Chat room updated successfully");
+            return new JsonModel { data = chatRoom, Message = "Chat room updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating chat room {ChatRoomId}", chatRoomId);
-            return ApiResponse<ChatRoomDto>.ErrorResponse("Failed to update chat room");
+            return new JsonModel { data = new object(), Message = "Failed to update chat room", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteChatRoomAsync(string chatRoomId)
+    public async Task<JsonModel> DeleteChatRoomAsync(string chatRoomId)
     {
         try
         {
             var result = await _chatStorageService.DeleteChatRoomAsync(chatRoomId);
-            return ApiResponse<bool>.SuccessResponse(result, "Chat room deleted successfully");
+            return new JsonModel { data = result, Message = "Chat room deleted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting chat room {ChatRoomId}", chatRoomId);
-            return ApiResponse<bool>.ErrorResponse("Failed to delete chat room");
+            return new JsonModel { data = new object(), Message = "Failed to delete chat room", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> AddParticipantAsync(string chatRoomId, string userId, string role = "Member")
+    public async Task<JsonModel> AddParticipantAsync(string chatRoomId, string userId, string role = "Member")
     {
         try
         {
             var result = await _chatStorageService.AddParticipantAsync(chatRoomId, userId, role);
-            return ApiResponse<bool>.SuccessResponse(result, "Participant added successfully");
+            return new JsonModel { data = result, Message = "Participant added successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding participant to chat room");
-            return ApiResponse<bool>.ErrorResponse("Failed to add participant");
+            return new JsonModel { data = new object(), Message = "Failed to add participant", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> RemoveParticipantAsync(string chatRoomId, string userId)
+    public async Task<JsonModel> RemoveParticipantAsync(string chatRoomId, string userId)
     {
         try
         {
             var result = await _chatStorageService.RemoveParticipantAsync(chatRoomId, userId);
-            return ApiResponse<bool>.SuccessResponse(result, "Participant removed successfully");
+            return new JsonModel { data = result, Message = "Participant removed successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing participant from chat room");
-            return ApiResponse<bool>.ErrorResponse("Failed to remove participant");
+            return new JsonModel { data = new object(), Message = "Failed to remove participant", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<ChatRoomParticipantDto>>> GetChatRoomParticipantsAsync(string chatRoomId)
+    public async Task<JsonModel> GetChatRoomParticipantsAsync(string chatRoomId)
     {
         try
         {
             var participants = await _chatStorageService.GetChatRoomParticipantsAsync(chatRoomId);
-            return ApiResponse<IEnumerable<ChatRoomParticipantDto>>.SuccessResponse(participants, "Chat room participants retrieved successfully");
+            return new JsonModel { data = participants, Message = "Chat room participants retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting chat room participants {ChatRoomId}", chatRoomId);
-            return ApiResponse<IEnumerable<ChatRoomParticipantDto>>.ErrorResponse("Failed to get chat room participants");
+            return new JsonModel { data = new object(), Message = "Failed to get chat room participants", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateParticipantRoleAsync(string chatRoomId, string userId, string newRole)
+    public async Task<JsonModel> UpdateParticipantRoleAsync(string chatRoomId, string userId, string newRole)
     {
         try
         {
             var result = await _chatStorageService.UpdateParticipantRoleAsync(chatRoomId, userId, newRole);
-            return ApiResponse<bool>.SuccessResponse(result, "Participant role updated successfully");
+            return new JsonModel { data = result, Message = "Participant role updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating participant role");
-            return ApiResponse<bool>.ErrorResponse("Failed to update participant role");
+            return new JsonModel { data = new object(), Message = "Failed to update participant role", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> MarkMessageAsReadAsync(string messageId, string userId)
+    public async Task<JsonModel> MarkMessageAsReadAsync(string messageId, string userId)
     {
         try
         {
             var result = await _chatStorageService.MarkMessageAsReadAsync(messageId, userId);
-            return ApiResponse<bool>.SuccessResponse(result, "Message marked as read successfully");
+            return new JsonModel { data = result, Message = "Message marked as read successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error marking message as read");
-            return ApiResponse<bool>.ErrorResponse("Failed to mark message as read");
+            return new JsonModel { data = new object(), Message = "Failed to mark message as read", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> AddReactionAsync(string messageId, string userId, string reactionType)
+    public async Task<JsonModel> AddReactionAsync(string messageId, string userId, string reactionType)
     {
         try
         {
             var result = await _chatStorageService.AddReactionAsync(messageId, userId, reactionType);
-            return ApiResponse<bool>.SuccessResponse(result, "Reaction added successfully");
+            return new JsonModel { data = result, Message = "Reaction added successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding reaction to message");
-            return ApiResponse<bool>.ErrorResponse("Failed to add reaction");
+            return new JsonModel { data = new object(), Message = "Failed to add reaction", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> RemoveReactionAsync(string messageId, string userId, string reactionType)
+    public async Task<JsonModel> RemoveReactionAsync(string messageId, string userId, string reactionType)
     {
         try
         {
             var result = await _chatStorageService.RemoveReactionAsync(messageId, userId, reactionType);
-            return ApiResponse<bool>.SuccessResponse(result, "Reaction removed successfully");
+            return new JsonModel { data = result, Message = "Reaction removed successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing reaction from message");
-            return ApiResponse<bool>.ErrorResponse("Failed to remove reaction");
+            return new JsonModel { data = new object(), Message = "Failed to remove reaction", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<MessageReactionDto>>> GetMessageReactionsAsync(string messageId)
+    public async Task<JsonModel> GetMessageReactionsAsync(string messageId)
     {
         try
         {
             var reactions = await _chatStorageService.GetMessageReactionsAsync(messageId);
-            return ApiResponse<IEnumerable<MessageReactionDto>>.SuccessResponse(reactions, "Message reactions retrieved successfully");
+            return new JsonModel { data = reactions, Message = "Message reactions retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting message reactions {MessageId}", messageId);
-            return ApiResponse<IEnumerable<MessageReactionDto>>.ErrorResponse("Failed to get message reactions");
+            return new JsonModel { data = new object(), Message = "Failed to get message reactions", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<MessageDto>>> SearchMessagesAsync(string chatRoomId, string searchTerm)
+    public async Task<JsonModel> SearchMessagesAsync(string chatRoomId, string searchTerm)
     {
         try
         {
             // This would be implemented in the chat storage service
             var messages = await _chatStorageService.GetChatRoomMessagesAsync(chatRoomId);
             var filteredMessages = messages.Where(m => m.Content.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
-            return ApiResponse<IEnumerable<MessageDto>>.SuccessResponse(filteredMessages, "Messages searched successfully");
+            return new JsonModel { data = filteredMessages, Message = "Messages searched successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error searching messages");
-            return ApiResponse<IEnumerable<MessageDto>>.ErrorResponse("Failed to search messages");
+            return new JsonModel { data = new object(), Message = "Failed to search messages", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ValidateChatRoomAccessAsync(string chatRoomId, string userId)
+    public async Task<JsonModel> ValidateChatRoomAccessAsync(string chatRoomId, string userId)
     {
         try
         {
             var result = await _chatStorageService.ValidateChatAccessAsync(userId, chatRoomId);
-            return ApiResponse<bool>.SuccessResponse(result, "Chat room access validated successfully");
+            return new JsonModel { data = result, Message = "Chat room access validated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating chat room access");
-            return ApiResponse<bool>.ErrorResponse("Failed to validate chat room access");
+            return new JsonModel { data = new object(), Message = "Failed to validate chat room access", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<MessageDto>>> GetUnreadMessagesAsync(string chatRoomId, string userId)
+    public async Task<JsonModel> GetUnreadMessagesAsync(string chatRoomId, string userId)
     {
         try
         {
             var messages = await _chatStorageService.GetUnreadMessagesAsync(userId, chatRoomId);
-            return ApiResponse<IEnumerable<MessageDto>>.SuccessResponse(messages, "Unread messages retrieved successfully");
+            return new JsonModel { data = messages, Message = "Unread messages retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting unread messages");
-            return ApiResponse<IEnumerable<MessageDto>>.ErrorResponse("Failed to get unread messages");
+            return new JsonModel { data = new object(), Message = "Failed to get unread messages", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> SendNotificationToUserAsync(string userId, string title, string message, string? data = null)
+    public async Task<JsonModel> SendNotificationToUserAsync(string userId, string title, string message, string? data = null)
     {
         try
         {
             // This would be implemented with a notification service
-            return ApiResponse<bool>.SuccessResponse(true, "Notification sent successfully");
+            return new JsonModel { data = true, Message = "Notification sent successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending notification to user");
-            return ApiResponse<bool>.ErrorResponse("Failed to send notification");
+            return new JsonModel { data = new object(), Message = "Failed to send notification", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> SendNotificationToChatRoomAsync(string chatRoomId, string title, string message)
+    public async Task<JsonModel> SendNotificationToChatRoomAsync(string chatRoomId, string title, string message)
     {
         try
         {
             // This would be implemented with a notification service
-            return ApiResponse<bool>.SuccessResponse(true, "Chat room notification sent successfully");
+            return new JsonModel { data = true, Message = "Chat room notification sent successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending notification to chat room");
-            return ApiResponse<bool>.ErrorResponse("Failed to send chat room notification");
+            return new JsonModel { data = new object(), Message = "Failed to send chat room notification", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> SendTypingIndicatorAsync(string chatRoomId, string userId, bool isTyping)
+    public async Task<JsonModel> SendTypingIndicatorAsync(string chatRoomId, string userId, bool isTyping)
     {
         try
         {
             // This would be implemented with real-time messaging
-            return ApiResponse<bool>.SuccessResponse(true, "Typing indicator sent successfully");
+            return new JsonModel { data = true, Message = "Typing indicator sent successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending typing indicator");
-            return ApiResponse<bool>.ErrorResponse("Failed to send typing indicator");
+            return new JsonModel { data = new object(), Message = "Failed to send typing indicator", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<string>> UploadMessageAttachmentAsync(byte[] fileData, string fileName, string contentType)
+    public async Task<JsonModel> UploadMessageAttachmentAsync(byte[] fileData, string fileName, string contentType)
     {
         try
         {
             using var stream = new MemoryStream(fileData);
             var attachmentId = await _chatStorageService.UploadMessageAttachmentAsync("temp", stream, fileName, contentType);
-            return ApiResponse<string>.SuccessResponse(attachmentId, "Attachment uploaded successfully");
+            return new JsonModel { data = attachmentId, Message = "Attachment uploaded successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading message attachment");
-            return ApiResponse<string>.ErrorResponse("Failed to upload attachment");
+            return new JsonModel { data = new object(), Message = "Failed to upload attachment", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<string>> EncryptMessageAsync(string message, string key)
+    public async Task<JsonModel> EncryptMessageAsync(string message, string key)
     {
         try
         {
             // This would be implemented with encryption
-            return ApiResponse<string>.SuccessResponse(message, "Message encrypted successfully");
+            return new JsonModel { data = message, Message = "Message encrypted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error encrypting message");
-            return ApiResponse<string>.ErrorResponse("Failed to encrypt message");
+            return new JsonModel { data = new object(), Message = "Failed to encrypt message", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<string>> DecryptMessageAsync(string encryptedMessage, string key)
+    public async Task<JsonModel> DecryptMessageAsync(string encryptedMessage, string key)
     {
         try
         {
             // This would be implemented with decryption
-            return ApiResponse<string>.SuccessResponse(encryptedMessage, "Message decrypted successfully");
+            return new JsonModel { data = encryptedMessage, Message = "Message decrypted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error decrypting message");
-            return ApiResponse<string>.ErrorResponse("Failed to decrypt message");
+            return new JsonModel { data = new object(), Message = "Failed to decrypt message", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<byte[]>> DownloadMessageAttachmentAsync(string attachmentId)
+    public async Task<JsonModel> DownloadMessageAttachmentAsync(string attachmentId)
     {
         try
         {
             var stream = await _chatStorageService.DownloadMessageAttachmentAsync(attachmentId);
             using var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
-            return ApiResponse<byte[]>.SuccessResponse(memoryStream.ToArray(), "Attachment downloaded successfully");
+            return new JsonModel { data = memoryStream.ToArray(), Message = "Attachment downloaded successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error downloading message attachment {AttachmentId}", attachmentId);
-            return ApiResponse<byte[]>.ErrorResponse("Failed to download attachment");
+            return new JsonModel { data = new object(), Message = "Failed to download attachment", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteMessageAttachmentAsync(string attachmentId)
+    public async Task<JsonModel> DeleteMessageAttachmentAsync(string attachmentId)
     {
         try
         {
             var result = await _chatStorageService.DeleteMessageAttachmentAsync(attachmentId);
-            return ApiResponse<bool>.SuccessResponse(result, "Attachment deleted successfully");
+            return new JsonModel { data = result, Message = "Attachment deleted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting message attachment {AttachmentId}", attachmentId);
-            return ApiResponse<bool>.ErrorResponse("Failed to delete attachment");
+            return new JsonModel { data = new object(), Message = "Failed to delete attachment", StatusCode = 500 };
         }
     }
 

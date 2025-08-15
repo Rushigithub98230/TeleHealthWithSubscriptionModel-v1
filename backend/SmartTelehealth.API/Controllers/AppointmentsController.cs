@@ -62,7 +62,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("categories")]
-    public async Task<ActionResult<JsonModel>> GetCategories()
+    public async Task<ActionResult<JsonModel> GetCategories()
     {
         try
         {
@@ -82,7 +82,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("providers/featured")]
-    public async Task<ActionResult<JsonModel>> GetFeaturedProviders()
+    public async Task<ActionResult<JsonModel> GetFeaturedProviders()
     {
         try
         {
@@ -102,7 +102,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("home-data")]
-    public async Task<ActionResult<JsonModel>> GetHomeData()
+    public async Task<ActionResult<JsonModel> GetHomeData()
     {
         try
         {
@@ -226,7 +226,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPost("{appointmentId}/payment")]
-    public async Task<ActionResult<JsonModel>> ProcessPayment(Guid appointmentId, [FromBody] ProcessPaymentDto request)
+    public async Task<ActionResult<JsonModel> ProcessPayment(Guid appointmentId, [FromBody] ProcessPaymentDto request)
     {
         try
         {
@@ -248,7 +248,7 @@ public class AppointmentsController : ControllerBase
     // Provider actions
     [HttpPost("{appointmentId}/accept")]
     [Authorize(Roles = "Provider")]
-    public async Task<ActionResult<JsonModel>> AcceptAppointment(Guid appointmentId, [FromBody] ProviderAcceptDto acceptDto)
+    public async Task<ActionResult<JsonModel> AcceptAppointment(Guid appointmentId, [FromBody] ProviderAcceptDto acceptDto)
     {
         try
         {
@@ -264,7 +264,7 @@ public class AppointmentsController : ControllerBase
 
     [HttpPost("{appointmentId}/reject")]
     [Authorize(Roles = "Provider")]
-    public async Task<ActionResult<JsonModel>> RejectAppointment(Guid appointmentId, [FromBody] ProviderRejectDto rejectDto)
+    public async Task<ActionResult<JsonModel> RejectAppointment(Guid appointmentId, [FromBody] ProviderRejectDto rejectDto)
     {
         try
         {
@@ -280,7 +280,7 @@ public class AppointmentsController : ControllerBase
 
     // Meeting management
     [HttpPost("{appointmentId}/start-meeting")]
-    public async Task<ActionResult<JsonModel>> StartMeeting(Guid appointmentId)
+    public async Task<ActionResult<JsonModel> StartMeeting(Guid appointmentId)
     {
         try
         {
@@ -295,7 +295,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPost("{appointmentId}/end-meeting")]
-    public async Task<ActionResult<JsonModel>> EndMeeting(Guid appointmentId)
+    public async Task<ActionResult<JsonModel> EndMeeting(Guid appointmentId)
     {
         try
         {
@@ -311,7 +311,7 @@ public class AppointmentsController : ControllerBase
 
     [HttpPost("{appointmentId}/complete")]
     [Authorize(Roles = "Provider")]
-    public async Task<ActionResult<JsonModel>> CompleteAppointment(Guid appointmentId, [FromBody] CompleteAppointmentDto completeDto)
+    public async Task<ActionResult<JsonModel> CompleteAppointment(Guid appointmentId, [FromBody] CompleteAppointmentDto completeDto)
     {
         try
         {
@@ -327,7 +327,7 @@ public class AppointmentsController : ControllerBase
 
     // Video call integration
     [HttpGet("{appointmentId}/meeting-link")]
-    public async Task<ActionResult<JsonModel>> GetMeetingLink(Guid appointmentId)
+    public async Task<ActionResult<JsonModel> GetMeetingLink(Guid appointmentId)
     {
         try
         {
@@ -346,7 +346,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("{appointmentId}/opentok-token")]
-    public async Task<ActionResult<JsonModel>> GetOpenTokToken(Guid appointmentId)
+    public async Task<ActionResult<JsonModel> GetOpenTokToken(Guid appointmentId)
     {
         try
         {
@@ -367,7 +367,7 @@ public class AppointmentsController : ControllerBase
 
     // CRUD operations
     [HttpGet]
-    public async Task<ActionResult<JsonModel>> GetUserAppointments()
+    public async Task<ActionResult<JsonModel> GetUserAppointments()
     {
         try
         {
@@ -383,7 +383,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<JsonModel>> GetAppointment(Guid id)
+    public async Task<ActionResult<JsonModel> GetAppointment(Guid id)
     {
         try
         {
@@ -398,7 +398,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<JsonModel>> UpdateAppointment(Guid id, [FromBody] UpdateAppointmentDto updateDto)
+    public async Task<ActionResult<JsonModel> UpdateAppointment(Guid id, [FromBody] UpdateAppointmentDto updateDto)
     {
         try
         {
@@ -413,7 +413,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<JsonModel>> CancelAppointment(Guid id, [FromBody] string reason)
+    public async Task<ActionResult<JsonModel> CancelAppointment(Guid id, [FromBody] string reason)
     {
         try
         {
@@ -430,7 +430,7 @@ public class AppointmentsController : ControllerBase
     // Provider availability
     [HttpGet("providers/{providerId}/availability")]
     [AllowAnonymous]
-    public async Task<ActionResult<JsonModel>> GetProviderAvailability(Guid providerId, [FromQuery] DateTime date)
+    public async Task<ActionResult<JsonModel> GetProviderAvailability(Guid providerId, [FromQuery] DateTime date)
     {
         try
         {
@@ -447,7 +447,7 @@ public class AppointmentsController : ControllerBase
     // Analytics
     [HttpGet("analytics")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> GetAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+    public async Task<ActionResult<JsonModel> GetAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {
         try
         {
@@ -463,7 +463,7 @@ public class AppointmentsController : ControllerBase
 
     // --- PARTICIPANT MANAGEMENT ---
     [HttpPost("{appointmentId}/participants")]
-    public async Task<ActionResult<JsonModel>> AddParticipant(Guid appointmentId, [FromBody] AddParticipantDto request)
+    public async Task<ActionResult<JsonModel> AddParticipant(Guid appointmentId, [FromBody] AddParticipantDto request)
     {
         try
         {
@@ -511,7 +511,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPost("{appointmentId}/invite-external")]
-    public async Task<ActionResult<JsonModel>> InviteExternal(Guid appointmentId, [FromBody] InviteExternalDto request)
+    public async Task<ActionResult<JsonModel> InviteExternal(Guid appointmentId, [FromBody] InviteExternalDto request)
     {
         try
         {
@@ -535,7 +535,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPost("{appointmentId}/join")]
-    public async Task<ActionResult<JsonModel>> JoinAppointment(Guid appointmentId, [FromBody] JoinAppointmentDto request)
+    public async Task<ActionResult<JsonModel> JoinAppointment(Guid appointmentId, [FromBody] JoinAppointmentDto request)
     {
         try
         {
@@ -559,7 +559,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPost("{appointmentId}/leave")]
-    public async Task<ActionResult<JsonModel>> LeaveAppointment(Guid appointmentId, [FromBody] LeaveAppointmentDto request)
+    public async Task<ActionResult<JsonModel> LeaveAppointment(Guid appointmentId, [FromBody] LeaveAppointmentDto request)
     {
         try
         {
@@ -583,7 +583,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("{appointmentId}/participants")]
-    public async Task<ActionResult<JsonModel>> GetParticipants(Guid appointmentId)
+    public async Task<ActionResult<JsonModel> GetParticipants(Guid appointmentId)
     {
         try
         {
@@ -603,7 +603,7 @@ public class AppointmentsController : ControllerBase
     }
 
             [HttpGet("{appointmentId}/video-token")]
-        public async Task<ActionResult<JsonModel>> GetVideoToken(Guid appointmentId, [FromQuery] string? userId, [FromQuery] string? email, [FromQuery] Guid? role = null)
+        public async Task<ActionResult<JsonModel> GetVideoToken(Guid appointmentId, [FromQuery] string? userId, [FromQuery] string? email, [FromQuery] Guid? role = null)
         {
             try
             {
@@ -628,7 +628,7 @@ public class AppointmentsController : ControllerBase
 
     // --- PAYMENT MANAGEMENT ---
     [HttpPost("{appointmentId}/confirm-payment")]
-    public async Task<ActionResult<JsonModel>> ConfirmPayment(Guid appointmentId, [FromBody] ConfirmPaymentDto request)
+    public async Task<ActionResult<JsonModel> ConfirmPayment(Guid appointmentId, [FromBody] ConfirmPaymentDto request)
     {
         try
         {
@@ -648,7 +648,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPost("{appointmentId}/refund")]
-    public async Task<ActionResult<JsonModel>> ProcessRefund(Guid appointmentId, [FromBody] ProcessRefundDto request)
+    public async Task<ActionResult<JsonModel> ProcessRefund(Guid appointmentId, [FromBody] ProcessRefundDto request)
     {
         try
         {
@@ -663,7 +663,7 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("{appointmentId}/payment-logs")]
-    public async Task<ActionResult<JsonModel>> GetPaymentLogs(Guid appointmentId)
+    public async Task<ActionResult<JsonModel> GetPaymentLogs(Guid appointmentId)
     {
         try
         {
@@ -684,7 +684,7 @@ public class AppointmentsController : ControllerBase
 
     // --- PROVIDER ACTIONS ---
     [HttpPost("{appointmentId}/provider-action")]
-    public async Task<ActionResult<JsonModel>> ProviderAction(Guid appointmentId, [FromBody] ProviderActionDto request)
+    public async Task<ActionResult<JsonModel> ProviderAction(Guid appointmentId, [FromBody] ProviderActionDto request)
     {
         try
         {

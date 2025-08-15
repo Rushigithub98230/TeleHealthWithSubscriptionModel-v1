@@ -21,36 +21,36 @@ namespace SmartTelehealth.Application.Services
             _fileStorageService = fileStorageService;
         }
 
-        public async Task<ApiResponse<Guid>> CreateTemplateAsync(CreateQuestionnaireTemplateDto dto, List<IFormFile> files)
+        public async Task<JsonModel> CreateTemplateAsync(CreateQuestionnaireTemplateDto dto, List<IFormFile> files)
         {
             try
             {
                 // Validate required fields
                 if (dto == null)
-                    return ApiResponse<Guid>.ErrorResponse("Invalid request data", 400);
+                    return new JsonModel { data = new object(), Message = "Invalid request data", StatusCode = 400 };
                 if (string.IsNullOrWhiteSpace(dto.Name))
-                    return ApiResponse<Guid>.ErrorResponse("Template name is required", 400);
+                    return new JsonModel { data = new object(), Message = "Template name is required", StatusCode = 400 };
                 if (dto.CategoryId == Guid.Empty)
-                    return ApiResponse<Guid>.ErrorResponse("Category ID is required", 400);
+                    return new JsonModel { data = new object(), Message = "Category ID is required", StatusCode = 400 };
                 if (dto.Questions == null || !dto.Questions.Any())
-                    return ApiResponse<Guid>.ErrorResponse("Template must have at least one question", 400);
+                    return new JsonModel { data = new object(), Message = "Template must have at least one question", StatusCode = 400 };
 
                 // Validate question types and properties
                 foreach (var question in dto.Questions)
                 {
                     if (!Enum.IsDefined(typeof(QuestionType), question.Type))
-                        return ApiResponse<Guid>.ErrorResponse($"Invalid question type: {question.Type}", 400);
+                        return new JsonModel { data = new object(), Message = $"Invalid question type: {question.Type}", StatusCode = 400 };
                     if (string.IsNullOrWhiteSpace(question.Text))
-                        return ApiResponse<Guid>.ErrorResponse("Question text is required", 400);
+                        return new JsonModel { data = new object(), Message = "Question text is required", StatusCode = 400 };
                     if (question.Type == QuestionType.Range)
                     {
                         if (question.MinValue.HasValue && question.MaxValue.HasValue && question.MinValue >= question.MaxValue)
-                            return ApiResponse<Guid>.ErrorResponse("Range question must have MinValue < MaxValue", 400);
+                            return new JsonModel { data = new object(), Message = "Range question must have MinValue < MaxValue", StatusCode = 400 };
                     }
                     if ((question.Type == QuestionType.Radio || question.Type == QuestionType.Checkbox || question.Type == QuestionType.Dropdown))
                     {
                         if (question.Options == null || !question.Options.Any())
-                            return ApiResponse<Guid>.ErrorResponse($"Multiple choice question '{question.Text}' must have options", 400);
+                            return new JsonModel { data = new object(), Message = $"Multiple choice question '{question.Text}' must have options", StatusCode = 400 };
                     }
                 }
 
@@ -60,7 +60,7 @@ namespace SmartTelehealth.Application.Services
                 {
                     if (!orderSet.Add(q.Order))
                     {
-                        return ApiResponse<Guid>.ErrorResponse("Duplicate question order values are not allowed.", 400);
+                        return new JsonModel { data = new object(), Message = "Duplicate question order values are not allowed.", StatusCode = 400 };
                     }
                 }
 
@@ -113,11 +113,11 @@ namespace SmartTelehealth.Application.Services
                     }).ToList()
                 };
                 await _repo.AddTemplateAsync(template);
-                return ApiResponse<Guid>.SuccessResponse(template.Id, "Template created successfully");
+                return new JsonModel { data = template.Id, Message = "Template created successfully", StatusCode = 200 };
             }
             catch (Exception ex)
             {
-                return ApiResponse<Guid>.ErrorResponse($"Failed to create template: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to create template: {ex.Message}", StatusCode = 500 };
             }
         }
 
@@ -129,12 +129,12 @@ namespace SmartTelehealth.Application.Services
             return result.Data;
         }
 
-        public async Task<ApiResponse<object>> DeleteTemplateAsync(Guid id)
+        public async Task<JsonModel> DeleteTemplateAsync(Guid id)
         {
             if (id == Guid.Empty)
-                return ApiResponse<object>.ErrorResponse("Invalid template ID", 400);
+                return new JsonModel { data = new object(), Message = "Invalid template ID", StatusCode = 400 };
             await _repo.DeleteTemplateAsync(id);
-            return ApiResponse<object>.SuccessResponse(null, "Template deleted successfully");
+            return new JsonModel { data = null, Message = "Template deleted successfully", StatusCode = 200 };
         }
 
         public async Task<IEnumerable<QuestionnaireTemplateDto>> GetAllTemplatesAsync()
@@ -143,74 +143,74 @@ namespace SmartTelehealth.Application.Services
             return templates.Select(MapToDto);
         }
 
-        public async Task<ApiResponse<QuestionnaireTemplateDto>> GetTemplateByIdAsync(Guid id)
+        public async Task<JsonModel> GetTemplateByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
-                return ApiResponse<QuestionnaireTemplateDto>.ErrorResponse("Invalid template ID", 400);
+                return new JsonModel { data = new object(), Message = "Invalid template ID", StatusCode = 400 };
             var template = await _repo.GetTemplateByIdAsync(id);
-            return template == null ? ApiResponse<QuestionnaireTemplateDto>.ErrorResponse("Template not found", 404) : ApiResponse<QuestionnaireTemplateDto>.SuccessResponse(MapToDto(template));
+            return template == null ? JsonModel.ErrorResponse("Template not found", 404) : JsonModel.SuccessResponse(MapToDto(template));
         }
 
-        public async Task<ApiResponse<List<QuestionnaireTemplateDto>>> GetTemplatesByCategoryAsync(Guid categoryId)
+        public async Task<JsonModel> GetTemplatesByCategoryAsync(Guid categoryId)
         {
             if (categoryId == Guid.Empty)
-                return ApiResponse<List<QuestionnaireTemplateDto>>.ErrorResponse("Invalid category ID", 400);
+                return new JsonModel { data = new object(), Message = "Invalid category ID", StatusCode = 400 };
             var templates = await _repo.GetTemplatesByCategoryAsync(categoryId);
-            return ApiResponse<List<QuestionnaireTemplateDto>>.SuccessResponse(templates.Select(MapToDto).ToList());
+            return new JsonModel { data = .SuccessResponse(templates.Select(MapToDto).ToList());
         }
 
-        public async Task<ApiResponse<UserResponseDto>> GetUserResponseAsync(int userId, Guid templateId)
+        public async Task<JsonModel> GetUserResponseAsync(int userId, Guid templateId)
         {
             if (userId <= 0)
-                return ApiResponse<UserResponseDto>.ErrorResponse("Invalid user ID", 400);
+                return new JsonModel { data = new object(), Message = "Invalid user ID", StatusCode = 400 };
             if (templateId == Guid.Empty)
-                return ApiResponse<UserResponseDto>.ErrorResponse("Invalid template ID", 400);
+                return new JsonModel { data = new object(), Message = "Invalid template ID", StatusCode = 400 };
             var response = await _repo.GetUserResponseAsync(userId, templateId);
-            return response != null ? ApiResponse<UserResponseDto>.SuccessResponse(MapToDto(response)) : ApiResponse<UserResponseDto>.ErrorResponse("User response not found", 404);
+            return response != null ? JsonModel.SuccessResponse(MapToDto(response)) : JsonModel.ErrorResponse("User response not found", 404);
         }
 
-        public async Task<ApiResponse<UserResponseDto>> GetUserResponseByIdAsync(Guid id)
+        public async Task<JsonModel> GetUserResponseByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
-                return ApiResponse<UserResponseDto>.ErrorResponse("Invalid response ID", 400);
+                return new JsonModel { data = new object(), Message = "Invalid response ID", StatusCode = 400 };
             var response = await _repo.GetUserResponseByIdAsync(id);
-            return response != null ? ApiResponse<UserResponseDto>.SuccessResponse(MapToDto(response)) : ApiResponse<UserResponseDto>.ErrorResponse("User response not found", 404);
+            return response != null ? JsonModel.SuccessResponse(MapToDto(response)) : JsonModel.ErrorResponse("User response not found", 404);
         }
 
-        public async Task<ApiResponse<List<UserResponseDto>>> GetUserResponsesByCategoryAsync(int userId, Guid categoryId)
+        public async Task<JsonModel> GetUserResponsesByCategoryAsync(int userId, Guid categoryId)
         {
             if (userId <= 0)
-                return ApiResponse<List<UserResponseDto>>.ErrorResponse("Invalid user ID", 400);
+                return new JsonModel { data = new object(), Message = "Invalid user ID", StatusCode = 400 };
             if (categoryId != Guid.Empty && categoryId == Guid.Empty)
-                return ApiResponse<List<UserResponseDto>>.ErrorResponse("Invalid category ID", 400);
+                return new JsonModel { data = new object(), Message = "Invalid category ID", StatusCode = 400 };
             var responses = await _repo.GetUserResponsesByCategoryAsync(userId, categoryId);
-            return ApiResponse<List<UserResponseDto>>.SuccessResponse(responses.Select(MapToDto).ToList());
+            return new JsonModel { data = .SuccessResponse(responses.Select(MapToDto).ToList());
         }
 
-        public async Task<ApiResponse<Guid>> SubmitUserResponseAsync(CreateUserResponseDto dto)
+        public async Task<JsonModel> SubmitUserResponseAsync(CreateUserResponseDto dto)
         {
             if (dto == null)
-                return ApiResponse<Guid>.ErrorResponse("Invalid request data", 400);
+                return new JsonModel { data = new object(), Message = "Invalid request data", StatusCode = 400 };
             if (dto.UserId <= 0)
-                return ApiResponse<Guid>.ErrorResponse("User ID is required", 400);
+                return new JsonModel { data = new object(), Message = "User ID is required", StatusCode = 400 };
             if (dto.TemplateId == Guid.Empty)
-                return ApiResponse<Guid>.ErrorResponse("Template ID is required", 400);
+                return new JsonModel { data = new object(), Message = "Template ID is required", StatusCode = 400 };
             if (dto.CategoryId == Guid.Empty)
-                return ApiResponse<Guid>.ErrorResponse("Category ID is required", 400);
+                return new JsonModel { data = new object(), Message = "Category ID is required", StatusCode = 400 };
             if (!Enum.IsDefined(typeof(ResponseStatus), dto.Status))
-                return ApiResponse<Guid>.ErrorResponse($"Invalid response status: {dto.Status}", 400);
+                return new JsonModel { data = new object(), Message = $"Invalid response status: {dto.Status}", StatusCode = 400 };
             if (dto.Answers == null || !dto.Answers.Any())
-                return ApiResponse<Guid>.ErrorResponse("At least one answer is required", 400);
+                return new JsonModel { data = new object(), Message = "At least one answer is required", StatusCode = 400 };
             foreach (var answer in dto.Answers)
             {
                 if (answer.QuestionId == Guid.Empty)
-                    return ApiResponse<Guid>.ErrorResponse("Question ID is required for each answer", 400);
+                    return new JsonModel { data = new object(), Message = "Question ID is required for each answer", StatusCode = 400 };
             }
 
             // Fetch template and questions
             var template = await _repo.GetTemplateByIdAsync(dto.TemplateId);
             if (template == null)
-                return ApiResponse<Guid>.ErrorResponse("Invalid template ID");
+                return new JsonModel { data = new object(), Message = "Invalid template ID", StatusCode = 500 };
             var questions = template.Questions.ToList();
 
             // 1. Ensure all required questions are answered
@@ -219,7 +219,7 @@ namespace SmartTelehealth.Application.Services
             {
                 if (!dto.Answers.Any(a => a.QuestionId == rq.Id))
                 {
-                    return ApiResponse<Guid>.ErrorResponse($"Required question '{rq.Text}' is missing in the response.");
+                    return new JsonModel { data = new object(), Message = $"Required question '{rq.Text}' is missing in the response.", StatusCode = 500 };
                 }
             }
 
@@ -229,7 +229,7 @@ namespace SmartTelehealth.Application.Services
             {
                 if (!questionIds.Contains(ans.QuestionId))
                 {
-                    return ApiResponse<Guid>.ErrorResponse($"Answer provided for a question not in the template.");
+                    return new JsonModel { data = new object(), Message = $"Answer provided for a question not in the template.", StatusCode = 500 };
                 }
             }
 
@@ -245,7 +245,7 @@ namespace SmartTelehealth.Application.Services
                         if ((q.MinValue.HasValue && ans.NumericValue < q.MinValue) ||
                             (q.MaxValue.HasValue && ans.NumericValue > q.MaxValue))
                         {
-                            return ApiResponse<Guid>.ErrorResponse($"Answer for '{q.Text}' is out of allowed range.");
+                            return new JsonModel { data = new object(), Message = $"Answer for '{q.Text}' is out of allowed range.", StatusCode = 500 };
                         }
                     }
                 }
@@ -257,7 +257,7 @@ namespace SmartTelehealth.Application.Services
                     {
                         if (!validOptionIds.Contains(optId))
                         {
-                            return ApiResponse<Guid>.ErrorResponse($"Invalid option selected for question '{q.Text}'.");
+                            return new JsonModel { data = new object(), Message = $"Invalid option selected for question '{q.Text}'.", StatusCode = 500 };
                         }
                     }
                 }
@@ -285,23 +285,23 @@ namespace SmartTelehealth.Application.Services
             };
             
             await _repo.AddUserResponseAsync(response);
-            return ApiResponse<Guid>.SuccessResponse(response.Id, "User response submitted successfully");
+            return new JsonModel { data = response.Id, Message = "User response submitted successfully", StatusCode = 200 };
         }
 
-        public async Task<ApiResponse<object>> UpdateTemplateAsync(Guid id, CreateQuestionnaireTemplateDto dto, List<IFormFile> files)
+        public async Task<JsonModel> UpdateTemplateAsync(Guid id, CreateQuestionnaireTemplateDto dto, List<IFormFile> files)
         {
             if (id == Guid.Empty)
-                return ApiResponse<object>.ErrorResponse("Invalid template ID", 400);
+                return new JsonModel { data = new object(), Message = "Invalid template ID", StatusCode = 400 };
             if (dto == null)
-                return ApiResponse<object>.ErrorResponse("Invalid request data", 400);
+                return new JsonModel { data = new object(), Message = "Invalid request data", StatusCode = 400 };
             if (string.IsNullOrWhiteSpace(dto.Name))
-                return ApiResponse<object>.ErrorResponse("Template name is required", 400);
+                return new JsonModel { data = new object(), Message = "Template name is required", StatusCode = 400 };
             if (dto.CategoryId == Guid.Empty)
-                return ApiResponse<object>.ErrorResponse("Category ID is required", 400);
+                return new JsonModel { data = new object(), Message = "Category ID is required", StatusCode = 400 };
             // Validate question types
             if (!ValidateQuestionTypes(dto.Questions))
             {
-                return ApiResponse<object>.ErrorResponse("Invalid question types detected", 400);
+                return new JsonModel { data = new object(), Message = "Invalid question types detected", StatusCode = 400 };
             }
 
             int qIdx = 0;
@@ -322,7 +322,7 @@ namespace SmartTelehealth.Application.Services
             }
             var template = await _repo.GetTemplateByIdAsync(id);
             if (template == null)
-                return ApiResponse<object>.ErrorResponse("Template not found", 404);
+                return new JsonModel { data = new object(), Message = "Template not found", StatusCode = 404 };
             
             // Update basic template properties
             template.Name = dto.Name;
@@ -336,7 +336,7 @@ namespace SmartTelehealth.Application.Services
             // that handles existing questions and their relationships
             
             await _repo.UpdateTemplateAsync(template);
-            return ApiResponse<object>.SuccessResponse(null, "Template updated successfully");
+            return new JsonModel { data = null, Message = "Template updated successfully", StatusCode = 200 };
         }
 
         // Interface overload: No file upload

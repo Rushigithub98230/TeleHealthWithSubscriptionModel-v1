@@ -780,10 +780,10 @@ namespace SmartTelehealth.Application.Services
         }
 
         // Remove or comment out GetBillingCycleRecordsAsync and related logic, as this method does not exist in the repository
-        // public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetBillingCycleRecordsAsync(Guid billingCycleId)
+        // public async Task<JsonModel> GetBillingCycleRecordsAsync(Guid billingCycleId)
         // {
         //     // Not implemented: No such method in repository
-        //     return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Not implemented", 501);
+        //     return new JsonModel { data = new object(), Message = "Not implemented", StatusCode = 501 };
         // }
 
         public async Task<JsonModel> ProcessBillingCycleAsync(Guid billingCycleId)

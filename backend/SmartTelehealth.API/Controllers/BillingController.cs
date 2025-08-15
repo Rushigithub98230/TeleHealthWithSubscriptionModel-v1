@@ -31,7 +31,7 @@ public class BillingController : ControllerBase
 
     [HttpGet("records")]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponse<IEnumerable<BillingRecordDto>>>> GetAllBillingRecords()
+    public async Task<ActionResult<JsonModel>> GetAllBillingRecords()
     {
         try
         {
@@ -94,7 +94,7 @@ public class BillingController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return NotFound(new ApiResponse<object>
+            return NotFound(new JsonModel
             {
                 Success = false,
                 Message = ex.Message
@@ -147,7 +147,7 @@ public class BillingController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return NotFound(new ApiResponse<object>
+            return NotFound(new JsonModel
             {
                 Success = false,
                 Message = ex.Message
@@ -210,7 +210,7 @@ public class BillingController : ControllerBase
     /// Calculate total amount with tax and shipping
     /// </summary>
     [HttpPost("calculate-total")]
-    public async Task<ActionResult<ApiResponse<BillingCalculationDto>>> CalculateTotal([FromBody] BillingCalculationRequestDto request)
+    public async Task<ActionResult<JsonModel> CalculateTotal([FromBody] BillingCalculationRequestDto request)
     {
         var taxAmountResponse = await _billingService.CalculateTaxAmountAsync(request.BaseAmount, request.State);
         var taxAmount = taxAmountResponse.Data;
@@ -225,7 +225,7 @@ public class BillingController : ControllerBase
             ShippingAmount = shippingAmount,
             TotalAmount = totalAmount
         };
-        return Ok(new ApiResponse<BillingCalculationDto>
+        return Ok(new JsonModel
         {
             Success = true,
             Data = result,
@@ -237,7 +237,7 @@ public class BillingController : ControllerBase
     /// Check if a billing record is overdue
     /// </summary>
     [HttpGet("{id}/overdue-status")]
-    public async Task<ActionResult<ApiResponse<OverdueStatusDto>>> CheckOverdueStatus(Guid id)
+    public async Task<ActionResult<JsonModel> CheckOverdueStatus(Guid id)
     {
         try
         {
@@ -254,7 +254,7 @@ public class BillingController : ControllerBase
                 DueDate = billingRecord.DueDate,
                 DaysOverdue = Math.Max(0, (int)((billingRecord.DueDate.HasValue ? (DateTime.UtcNow - billingRecord.DueDate.Value) : TimeSpan.Zero).TotalDays))
             };
-            return Ok(new ApiResponse<OverdueStatusDto>
+            return Ok(new JsonModel
             {
                 Success = true,
                 Data = overdueStatus,
@@ -263,7 +263,7 @@ public class BillingController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return NotFound(new ApiResponse<OverdueStatusDto>
+            return NotFound(new JsonModel
             {
                 Success = false,
                 Message = ex.Message
@@ -276,7 +276,7 @@ public class BillingController : ControllerBase
     /// </summary>
     [HttpGet("pending")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<BillingRecordDto>>>> GetPendingPayments()
+    public async Task<ActionResult<JsonModel>> GetPendingPayments()
     {
         var response = await _billingService.GetPendingPaymentsAsync();
         return StatusCode(response.StatusCode, response);
@@ -287,7 +287,7 @@ public class BillingController : ControllerBase
     /// </summary>
     [HttpGet("overdue")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<BillingRecordDto>>>> GetOverdueBillingRecords()
+    public async Task<ActionResult<JsonModel>> GetOverdueBillingRecords()
     {
         var response = await _billingService.GetOverdueBillingRecordsAsync();
         return StatusCode(response.StatusCode, response);

@@ -32,7 +32,7 @@ public class DocumentService : IDocumentService
         _documentTypeService = documentTypeService;
     }
 
-    public async Task<ApiResponse<DocumentDto>> UploadDocumentAsync(UploadDocumentRequest request)
+    public async Task<JsonModel> UploadDocumentAsync(UploadDocumentRequest request)
     {
         try
         {
@@ -40,7 +40,7 @@ public class DocumentService : IDocumentService
             var documentType = await _documentTypeRepository.GetByIdAsync(request.DocumentTypeId);
             if (documentType == null || documentType.IsDeleted || !documentType.IsActive)
             {
-                return ApiResponse<DocumentDto>.ErrorResponse("Invalid or inactive document type", 400);
+                return new JsonModel { data = new object(), Message = "Invalid or inactive document type", StatusCode = 400 };
             }
 
             // 2. Validate file against document type rules
@@ -54,20 +54,20 @@ public class DocumentService : IDocumentService
             var validationResult = await _documentTypeService.ValidateFileAgainstDocumentTypeAsync(validationRequest);
             if (!validationResult.Success)
             {
-                return ApiResponse<DocumentDto>.ErrorResponse("Document type validation failed", 400);
+                return new JsonModel { data = new object(), Message = "Document type validation failed", StatusCode = 400 };
             }
 
             if (!validationResult.Data.IsValid)
             {
                 var errorMessage = string.Join("; ", validationResult.Data.ValidationErrors);
-                return ApiResponse<DocumentDto>.ErrorResponse($"File validation failed: {errorMessage}", 400);
+                return new JsonModel { data = new object(), Message = $"File validation failed: {errorMessage}", StatusCode = 400 };
             }
 
             // 3. Upload file to storage
             var uploadResult = await _fileStorageService.UploadFileAsync(request.FileData, request.FileName, request.ContentType);
             if (!uploadResult.Success)
             {
-                return ApiResponse<DocumentDto>.ErrorResponse(uploadResult.Message ?? "File upload failed", uploadResult.StatusCode);
+                return new JsonModel { data = new object(), Message = uploadResult.Message ?? "File upload failed", uploadResult.StatusCode, StatusCode = 500 };
             }
 
             // 4. Create document record
@@ -113,7 +113,7 @@ public class DocumentService : IDocumentService
             await _documentTypeService.IncrementUsageCountAsync(request.DocumentTypeId);
 
             // 7. Return document DTO with document type information
-            return ApiResponse<DocumentDto>.SuccessResponse(new DocumentDto
+            return JsonModel.SuccessResponse(new DocumentDto
             {
                 DocumentId = document.Id,
                 OriginalName = document.OriginalName,
@@ -163,11 +163,11 @@ public class DocumentService : IDocumentService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading document {FileName}", request.FileName);
-            return ApiResponse<DocumentDto>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentDto>> GetDocumentAsync(Guid documentId, int? userId = null)
+    public async Task<JsonModel> GetDocumentAsync(Guid documentId, int? userId = null)
     {
         try
         {
@@ -175,7 +175,7 @@ public class DocumentService : IDocumentService
             var document = await _documentRepository.GetByIdAsync(documentId);
             if (document == null || document.IsDeleted)
             {
-                return ApiResponse<DocumentDto>.ErrorResponse("Document not found", 404);
+                return new JsonModel { data = new object(), Message = "Document not found", StatusCode = 404 };
             }
 
             // 2. Check access permissions
@@ -184,7 +184,7 @@ public class DocumentService : IDocumentService
                 var hasAccess = await ValidateDocumentAccessAsync(documentId, userId.Value);
                 if (!hasAccess.Success || !hasAccess.Data)
                 {
-                    return ApiResponse<DocumentDto>.ErrorResponse("Access denied", 403);
+                    return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
                 }
             }
 
@@ -207,7 +207,7 @@ public class DocumentService : IDocumentService
             var references = await _referenceRepository.FindAsync(r => r.DocumentId == documentId && !r.IsDeleted);
 
             // 5. Return document DTO
-            return ApiResponse<DocumentDto>.SuccessResponse(new DocumentDto
+            return JsonModel.SuccessResponse(new DocumentDto
             {
                 DocumentId = document.Id,
                 OriginalName = document.OriginalName,
@@ -245,11 +245,11 @@ public class DocumentService : IDocumentService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving document {DocumentId}", documentId);
-            return ApiResponse<DocumentDto>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentDto>> GetDocumentWithContentAsync(Guid documentId, int? userId = null)
+    public async Task<JsonModel> GetDocumentWithContentAsync(Guid documentId, int? userId = null)
     {
         try
         {
@@ -264,7 +264,7 @@ public class DocumentService : IDocumentService
             var fileBytes = await _fileStorageService.DownloadFileAsync(documentResult.Data!.FilePath);
             if (!fileBytes.Success)
             {
-                return ApiResponse<DocumentDto>.ErrorResponse("Failed to retrieve file content", 500);
+                return new JsonModel { data = new object(), Message = "Failed to retrieve file content", StatusCode = 500 };
             }
 
             // 3. Add content to DTO
@@ -274,11 +274,11 @@ public class DocumentService : IDocumentService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving document content {DocumentId}", documentId);
-            return ApiResponse<DocumentDto>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteDocumentAsync(Guid documentId, int userId)
+    public async Task<JsonModel> DeleteDocumentAsync(Guid documentId, int userId)
     {
         try
         {
@@ -286,14 +286,14 @@ public class DocumentService : IDocumentService
             var document = await _documentRepository.GetByIdAsync(documentId);
             if (document == null || document.IsDeleted)
             {
-                return ApiResponse<bool>.ErrorResponse("Document not found", 404);
+                return new JsonModel { data = new object(), Message = "Document not found", StatusCode = 404 };
             }
 
             // 2. Check access permissions
             var hasAccess = await ValidateDocumentAccessAsync(documentId, userId);
             if (!hasAccess.Success || !hasAccess.Data)
             {
-                return ApiResponse<bool>.ErrorResponse("Access denied", 403);
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
             }
 
             // 3. Delete from storage
@@ -316,16 +316,16 @@ public class DocumentService : IDocumentService
             await _documentRepository.DeleteAsync(document);
             await _documentRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting document {DocumentId}", documentId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> SoftDeleteDocumentAsync(Guid documentId, int userId)
+    public async Task<JsonModel> SoftDeleteDocumentAsync(Guid documentId, int userId)
     {
         try
         {
@@ -333,14 +333,14 @@ public class DocumentService : IDocumentService
             var document = await _documentRepository.GetByIdAsync(documentId);
             if (document == null || document.IsDeleted)
             {
-                return ApiResponse<bool>.ErrorResponse("Document not found", 404);
+                return new JsonModel { data = new object(), Message = "Document not found", StatusCode = 404 };
             }
 
             // 2. Check access permissions
             var hasAccess = await ValidateDocumentAccessAsync(documentId, userId);
             if (!hasAccess.Success || !hasAccess.Data)
             {
-                return ApiResponse<bool>.ErrorResponse("Access denied", 403);
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
             }
 
             // 3. Soft delete document
@@ -351,16 +351,16 @@ public class DocumentService : IDocumentService
 
             await _documentRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error soft deleting document {DocumentId}", documentId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<List<DocumentDto>>> GetDocumentsByEntityAsync(string entityType, Guid entityId, int? userId = null)
+    public async Task<JsonModel> GetDocumentsByEntityAsync(string entityType, Guid entityId, int? userId = null)
     {
         try
         {
@@ -379,16 +379,16 @@ public class DocumentService : IDocumentService
                 }
             }
 
-            return ApiResponse<List<DocumentDto>>.SuccessResponse(documents);
+            return new JsonModel { data = .SuccessResponse(documents);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting documents for entity {EntityType} {EntityId}", entityType, entityId);
-            return ApiResponse<List<DocumentDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<List<DocumentDto>>> GetDocumentsByReferenceTypeAsync(string entityType, Guid entityId, string referenceType, int? userId = null)
+    public async Task<JsonModel> GetDocumentsByReferenceTypeAsync(string entityType, Guid entityId, string referenceType, int? userId = null)
     {
         try
         {
@@ -408,16 +408,16 @@ public class DocumentService : IDocumentService
                 }
             }
 
-            return ApiResponse<List<DocumentDto>>.SuccessResponse(documents);
+            return new JsonModel { data = .SuccessResponse(documents);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting documents for entity {EntityType} {EntityId} with reference type {ReferenceType}", entityType, entityId, referenceType);
-            return ApiResponse<List<DocumentDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<List<DocumentDto>>> SearchDocumentsAsync(DocumentSearchRequest request, int? userId = null)
+    public async Task<JsonModel> SearchDocumentsAsync(DocumentSearchRequest request, int? userId = null)
     {
         try
         {
@@ -477,16 +477,16 @@ public class DocumentService : IDocumentService
                 .Take(request.PageSize)
                 .ToList();
 
-            return ApiResponse<List<DocumentDto>>.SuccessResponse(pagedDocuments);
+            return new JsonModel { data = .SuccessResponse(pagedDocuments);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error searching documents");
-            return ApiResponse<List<DocumentDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentReferenceDto>> AddDocumentReferenceAsync(Guid documentId, string entityType, Guid entityId, string? referenceType = null, int? createdById = null)
+    public async Task<JsonModel> AddDocumentReferenceAsync(Guid documentId, string entityType, Guid entityId, string? referenceType = null, int? createdById = null)
     {
         try
         {
@@ -503,7 +503,7 @@ public class DocumentService : IDocumentService
             await _referenceRepository.AddAsync(reference);
             await _referenceRepository.SaveChangesAsync();
 
-            return ApiResponse<DocumentReferenceDto>.SuccessResponse(new DocumentReferenceDto
+            return JsonModel.SuccessResponse(new DocumentReferenceDto
             {
                 Id = reference.Id,
                 DocumentId = reference.DocumentId,
@@ -520,11 +520,11 @@ public class DocumentService : IDocumentService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding document reference for document {DocumentId}", documentId);
-            return ApiResponse<DocumentReferenceDto>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> RemoveDocumentReferenceAsync(Guid documentId, string entityType, Guid entityId)
+    public async Task<JsonModel> RemoveDocumentReferenceAsync(Guid documentId, string entityType, Guid entityId)
     {
         try
         {
@@ -537,7 +537,7 @@ public class DocumentService : IDocumentService
             var refToDelete = reference.FirstOrDefault();
             if (refToDelete == null)
             {
-                return ApiResponse<bool>.ErrorResponse("Document reference not found", 404);
+                return new JsonModel { data = new object(), Message = "Document reference not found", StatusCode = 404 };
             }
 
             refToDelete.IsDeleted = true;
@@ -545,16 +545,16 @@ public class DocumentService : IDocumentService
 
             await _referenceRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing document reference for document {DocumentId}", documentId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<List<DocumentReferenceDto>>> GetDocumentReferencesAsync(Guid documentId)
+    public async Task<JsonModel> GetDocumentReferencesAsync(Guid documentId)
     {
         try
         {
@@ -574,35 +574,35 @@ public class DocumentService : IDocumentService
                 CreatedAt = r.CreatedDate ?? DateTime.UtcNow
             }).ToList();
 
-            return ApiResponse<List<DocumentReferenceDto>>.SuccessResponse(referenceDtos);
+            return new JsonModel { data = .SuccessResponse(referenceDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting document references for document {DocumentId}", documentId);
-            return ApiResponse<List<DocumentReferenceDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ValidateDocumentAccessAsync(Guid documentId, int userId)
+    public async Task<JsonModel> ValidateDocumentAccessAsync(Guid documentId, int userId)
     {
         try
         {
             var document = await _documentRepository.GetByIdAsync(documentId);
             if (document == null || document.IsDeleted)
             {
-                return ApiResponse<bool>.SuccessResponse(false);
+                return new JsonModel { data = false, Message = "Success", StatusCode = 200 };
             }
 
             // Public documents
             if (document.IsPublic)
             {
-                return ApiResponse<bool>.SuccessResponse(true);
+                return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
             }
 
             // Check if user created the document
             if (document.CreatedBy.HasValue && document.CreatedBy.Value == userId)
             {
-                return ApiResponse<bool>.SuccessResponse(true);
+                return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
             }
 
             // Check references for access
@@ -614,34 +614,34 @@ public class DocumentService : IDocumentService
             {
                 if (await ValidateEntityAccessAsync(reference.EntityType, reference.EntityId, userId))
                 {
-                    return ApiResponse<bool>.SuccessResponse(true);
+                    return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
                 }
             }
 
-            return ApiResponse<bool>.SuccessResponse(false);
+            return new JsonModel { data = false, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating document access for document {DocumentId}", documentId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateDocumentAccessAsync(Guid documentId, bool isPublic, int userId)
+    public async Task<JsonModel> UpdateDocumentAccessAsync(Guid documentId, bool isPublic, int userId)
     {
         try
         {
             var document = await _documentRepository.GetByIdAsync(documentId);
             if (document == null || document.IsDeleted)
             {
-                return ApiResponse<bool>.ErrorResponse("Document not found", 404);
+                return new JsonModel { data = new object(), Message = "Document not found", StatusCode = 404 };
             }
 
             // Check if user has permission to update
             var hasAccess = await ValidateDocumentAccessAsync(documentId, userId);
             if (!hasAccess.Success || !hasAccess.Data)
             {
-                return ApiResponse<bool>.ErrorResponse("Access denied", 403);
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
             }
 
             document.IsPublic = isPublic;
@@ -649,16 +649,16 @@ public class DocumentService : IDocumentService
 
             await _documentRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating document access for document {DocumentId}", documentId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<List<DocumentDto>>> UploadMultipleDocumentsAsync(List<UploadDocumentRequest> requests)
+    public async Task<JsonModel> UploadMultipleDocumentsAsync(List<UploadDocumentRequest> requests)
     {
         try
         {
@@ -673,16 +673,16 @@ public class DocumentService : IDocumentService
                 }
             }
 
-            return ApiResponse<List<DocumentDto>>.SuccessResponse(results);
+            return new JsonModel { data = .SuccessResponse(results);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading multiple documents");
-            return ApiResponse<List<DocumentDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteMultipleDocumentsAsync(List<Guid> documentIds, int userId)
+    public async Task<JsonModel> DeleteMultipleDocumentsAsync(List<Guid> documentIds, int userId)
     {
         try
         {
@@ -691,30 +691,30 @@ public class DocumentService : IDocumentService
                 await DeleteDocumentAsync(documentId, userId);
             }
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting multiple documents");
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentDto>> UpdateDocumentMetadataAsync(Guid documentId, string? description, bool? isPublic, int userId)
+    public async Task<JsonModel> UpdateDocumentMetadataAsync(Guid documentId, string? description, bool? isPublic, int userId)
     {
         try
         {
             var document = await _documentRepository.GetByIdAsync(documentId);
             if (document == null || document.IsDeleted)
             {
-                return ApiResponse<DocumentDto>.ErrorResponse("Document not found", 404);
+                return new JsonModel { data = new object(), Message = "Document not found", StatusCode = 404 };
             }
 
             // Check if user has permission to update
             var hasAccess = await ValidateDocumentAccessAsync(documentId, userId);
             if (!hasAccess.Success || !hasAccess.Data)
             {
-                return ApiResponse<DocumentDto>.ErrorResponse("Access denied", 403);
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
             }
 
             if (description != null)
@@ -736,11 +736,11 @@ public class DocumentService : IDocumentService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating document metadata for document {DocumentId}", documentId);
-            return ApiResponse<DocumentDto>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> SetDocumentExpirationAsync(Guid documentId, DateTime? expiresAt, int userId)
+    public async Task<JsonModel> SetDocumentExpirationAsync(Guid documentId, DateTime? expiresAt, int userId)
     {
         try
         {
@@ -749,14 +749,14 @@ public class DocumentService : IDocumentService
 
             if (reference == null)
             {
-                return ApiResponse<bool>.ErrorResponse("Document reference not found", 404);
+                return new JsonModel { data = new object(), Message = "Document reference not found", StatusCode = 404 };
             }
 
             // Check if user has permission to update
             var hasAccess = await ValidateDocumentAccessAsync(documentId, userId);
             if (!hasAccess.Success || !hasAccess.Data)
             {
-                return ApiResponse<bool>.ErrorResponse("Access denied", 403);
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
             }
 
             reference.ExpiresAt = expiresAt;
@@ -764,16 +764,16 @@ public class DocumentService : IDocumentService
 
             await _referenceRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error setting document expiration for document {DocumentId}", documentId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentDto>> UploadUserDocumentAsync(UploadUserDocumentRequest request)
+    public async Task<JsonModel> UploadUserDocumentAsync(UploadUserDocumentRequest request)
     {
         try
         {
@@ -797,7 +797,7 @@ public class DocumentService : IDocumentService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading user document");
-            return ApiResponse<DocumentDto>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
@@ -813,7 +813,7 @@ public class DocumentService : IDocumentService
 
 
 
-    public async Task<ApiResponse<List<DocumentDto>>> GetUserDocumentsAsync(int userId, string? referenceType = null)
+    public async Task<JsonModel> GetUserDocumentsAsync(int userId, string? referenceType = null)
     {
         try
         {
@@ -838,12 +838,12 @@ public class DocumentService : IDocumentService
                 }
             }
 
-            return ApiResponse<List<DocumentDto>>.SuccessResponse(documents);
+            return new JsonModel { data = .SuccessResponse(documents);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user documents for user {UserId}", userId);
-            return ApiResponse<List<DocumentDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 

@@ -25,14 +25,14 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("profile")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<UserDto>>> GetCurrentUserProfile()
+        public async Task<ActionResult<JsonModel> GetCurrentUserProfile()
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Unauthorized(new ApiResponse<UserDto>
+                    return Unauthorized(new JsonModel
                     {
                         Success = false,
                         Message = "User not authenticated"
@@ -41,7 +41,7 @@ namespace SmartTelehealth.API.Controllers
 
                 if (!int.TryParse(userId, out int userIdInt))
                 {
-                    return BadRequest(new ApiResponse<UserDto>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid user ID format"
@@ -54,7 +54,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting current user profile");
-                return StatusCode(500, new ApiResponse<UserDto>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -67,14 +67,14 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("profile")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<UserDto>>> UpdateProfile([FromBody] UpdateUserDto updateDto)
+        public async Task<ActionResult<JsonModel> UpdateProfile([FromBody] UpdateUserDto updateDto)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Unauthorized(new ApiResponse<UserDto>
+                    return Unauthorized(new JsonModel
                     {
                         Success = false,
                         Message = "User not authenticated"
@@ -83,7 +83,7 @@ namespace SmartTelehealth.API.Controllers
 
                 if (!int.TryParse(userId, out int userIdInt))
                 {
-                    return BadRequest(new ApiResponse<UserDto>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid user ID format"
@@ -97,7 +97,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user profile");
-                return StatusCode(500, new ApiResponse<UserDto>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -110,13 +110,13 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse<UserDto>>> GetUserById(string id)
+        public async Task<ActionResult<JsonModel> GetUserById(string id)
         {
             try
             {
                 if (!int.TryParse(id, out int userId))
                 {
-                    return BadRequest(new ApiResponse<UserDto>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid user ID format"
@@ -129,7 +129,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting user by ID: {UserId}", id);
-                return StatusCode(500, new ApiResponse<UserDto>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -142,7 +142,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse<PagedResult<UserDto>>>> GetAllUsers(
+        public async Task<ActionResult<JsonModel>> GetAllUsers(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string? searchTerm = null,
@@ -156,7 +156,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting all users");
-                return StatusCode(500, new ApiResponse<PagedResult<UserDto>>
+                return StatusCode(500, new JsonModel>
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -169,7 +169,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse<UserDto>>> CreateUser([FromBody] CreateUserDto createDto)
+        public async Task<ActionResult<JsonModel> CreateUser([FromBody] CreateUserDto createDto)
         {
             try
             {
@@ -179,7 +179,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating user");
-                return StatusCode(500, new ApiResponse<UserDto>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -192,13 +192,13 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse<UserDto>>> UpdateUser(string id, [FromBody] UpdateUserDto updateDto)
+        public async Task<ActionResult<JsonModel> UpdateUser(string id, [FromBody] UpdateUserDto updateDto)
         {
             try
             {
                 if (!int.TryParse(id, out int userId))
                 {
-                    return BadRequest(new ApiResponse<UserDto>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid user ID format"
@@ -212,7 +212,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user: {UserId}", id);
-                return StatusCode(500, new ApiResponse<UserDto>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -225,13 +225,13 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse<bool>>> DeleteUser(string id)
+        public async Task<ActionResult<JsonModel> DeleteUser(string id)
         {
             try
             {
                 if (!int.TryParse(id, out int userId))
                 {
-                    return BadRequest(new ApiResponse<bool>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid user ID format"
@@ -244,7 +244,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting user: {UserId}", id);
-                return StatusCode(500, new ApiResponse<bool>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -256,7 +256,7 @@ namespace SmartTelehealth.API.Controllers
         /// Get all providers
         /// </summary>
         [HttpGet("providers")]
-        public async Task<ActionResult<ApiResponse<List<ProviderDto>>>> GetAllProviders()
+        public async Task<ActionResult<JsonModel>> GetAllProviders()
         {
             try
             {
@@ -266,7 +266,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting all providers");
-                return StatusCode(500, new ApiResponse<List<ProviderDto>>
+                return StatusCode(500, new JsonModel>
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -278,13 +278,13 @@ namespace SmartTelehealth.API.Controllers
         /// Get provider by ID
         /// </summary>
         [HttpGet("providers/{id}")]
-        public async Task<ActionResult<ApiResponse<ProviderDto>>> GetProviderById(string id)
+        public async Task<ActionResult<JsonModel> GetProviderById(string id)
         {
             try
             {
                 if (!int.TryParse(id, out int providerId))
                 {
-                    return BadRequest(new ApiResponse<ProviderDto>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid provider ID format"
@@ -296,7 +296,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting provider by ID: {ProviderId}", id);
-                return StatusCode(500, new ApiResponse<ProviderDto>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -309,13 +309,13 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("providers/{id}")]
         [Authorize(Roles = "Provider")]
-        public async Task<ActionResult<ApiResponse<ProviderDto>>> UpdateProviderProfile(string id, [FromBody] UpdateProviderDto updateDto)
+        public async Task<ActionResult<JsonModel> UpdateProviderProfile(string id, [FromBody] UpdateProviderDto updateDto)
         {
             try
             {
                 if (!int.TryParse(id, out int providerId))
                 {
-                    return BadRequest(new ApiResponse<ProviderDto>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid provider ID format"
@@ -330,7 +330,7 @@ namespace SmartTelehealth.API.Controllers
 
                 if (!int.TryParse(id, out int idInt))
                 {
-                    return BadRequest(new ApiResponse<ProviderDto>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid ID format"
@@ -343,7 +343,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating provider profile: {ProviderId}", id);
-                return StatusCode(500, new ApiResponse<ProviderDto>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -356,14 +356,14 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("medical-history")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<MedicalHistoryDto>>> GetMedicalHistory()
+        public async Task<ActionResult<JsonModel> GetMedicalHistory()
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Unauthorized(new ApiResponse<MedicalHistoryDto>
+                    return Unauthorized(new JsonModel
                     {
                         Success = false,
                         Message = "User not authenticated"
@@ -372,7 +372,7 @@ namespace SmartTelehealth.API.Controllers
 
                 if (!int.TryParse(userId, out int userIdInt))
                 {
-                    return BadRequest(new ApiResponse<MedicalHistoryDto>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid user ID format"
@@ -384,7 +384,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting medical history");
-                return StatusCode(500, new ApiResponse<MedicalHistoryDto>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -397,14 +397,14 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("medical-history")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<MedicalHistoryDto>>> UpdateMedicalHistory([FromBody] UpdateMedicalHistoryDto updateDto)
+        public async Task<ActionResult<JsonModel> UpdateMedicalHistory([FromBody] UpdateMedicalHistoryDto updateDto)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Unauthorized(new ApiResponse<MedicalHistoryDto>
+                    return Unauthorized(new JsonModel
                     {
                         Success = false,
                         Message = "User not authenticated"
@@ -413,7 +413,7 @@ namespace SmartTelehealth.API.Controllers
 
                 if (!int.TryParse(userId, out int userIdInt))
                 {
-                    return BadRequest(new ApiResponse<MedicalHistoryDto>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid user ID format"
@@ -426,7 +426,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating medical history");
-                return StatusCode(500, new ApiResponse<MedicalHistoryDto>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -439,14 +439,14 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("payment-methods")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<List<PaymentMethodDto>>>> GetPaymentMethods()
+        public async Task<ActionResult<JsonModel>> GetPaymentMethods()
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Unauthorized(new ApiResponse<List<PaymentMethodDto>>
+                    return Unauthorized(new JsonModel>
                     {
                         Success = false,
                         Message = "User not authenticated"
@@ -455,7 +455,7 @@ namespace SmartTelehealth.API.Controllers
 
                 if (!int.TryParse(userId, out int userIdInt))
         {
-            return BadRequest(new ApiResponse<IEnumerable<PaymentMethodDto>>
+            return BadRequest(new JsonModel>
             {
                 Success = false,
                 Message = "Invalid user ID format"
@@ -467,7 +467,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting payment methods");
-                return StatusCode(500, new ApiResponse<List<PaymentMethodDto>>
+                return StatusCode(500, new JsonModel>
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -480,14 +480,14 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost("payment-methods")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<PaymentMethodDto>>> AddPaymentMethod([FromBody] CreatePaymentMethodDto createDto)
+        public async Task<ActionResult<JsonModel> AddPaymentMethod([FromBody] CreatePaymentMethodDto createDto)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Unauthorized(new ApiResponse<PaymentMethodDto>
+                    return Unauthorized(new JsonModel
                     {
                         Success = false,
                         Message = "User not authenticated"
@@ -496,7 +496,7 @@ namespace SmartTelehealth.API.Controllers
 
                 if (!int.TryParse(userId, out int userIdInt))
                 {
-                    return BadRequest(new ApiResponse<PaymentMethodDto>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid user ID format"
@@ -512,7 +512,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding payment method");
-                return StatusCode(500, new ApiResponse<PaymentMethodDto>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -525,14 +525,14 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpDelete("payment-methods/{id}")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<bool>>> DeletePaymentMethod(string id)
+        public async Task<ActionResult<JsonModel> DeletePaymentMethod(string id)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Unauthorized(new ApiResponse<bool>
+                    return Unauthorized(new JsonModel
                     {
                         Success = false,
                         Message = "User not authenticated"
@@ -541,7 +541,7 @@ namespace SmartTelehealth.API.Controllers
 
                 if (!int.TryParse(userId, out int userIdInt))
                 {
-                    return BadRequest(new ApiResponse<bool>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid user ID format"
@@ -553,7 +553,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting payment method");
-                return StatusCode(500, new ApiResponse<bool>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"
@@ -566,14 +566,14 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("payment-methods/{id}/default")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<bool>>> SetDefaultPaymentMethod(string id)
+        public async Task<ActionResult<JsonModel> SetDefaultPaymentMethod(string id)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Unauthorized(new ApiResponse<bool>
+                    return Unauthorized(new JsonModel
                     {
                         Success = false,
                         Message = "User not authenticated"
@@ -582,7 +582,7 @@ namespace SmartTelehealth.API.Controllers
 
                 if (!int.TryParse(userId, out int userIdInt))
                 {
-                    return BadRequest(new ApiResponse<bool>
+                    return BadRequest(new JsonModel
                     {
                         Success = false,
                         Message = "Invalid user ID format"
@@ -594,7 +594,7 @@ namespace SmartTelehealth.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error setting default payment method");
-                return StatusCode(500, new ApiResponse<bool>
+                return StatusCode(500, new JsonModel
                 {
                     Success = false,
                     Message = "Internal server error"

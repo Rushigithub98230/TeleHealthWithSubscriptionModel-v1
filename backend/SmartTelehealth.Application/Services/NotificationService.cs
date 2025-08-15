@@ -13,22 +13,22 @@ namespace SmartTelehealth.Application.Services
             _logger = logger;
         }
 
-        public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetNotificationsAsync()
+        public async Task<JsonModel> GetNotificationsAsync()
         {
             try
             {
                 // In a real implementation, this would fetch from a notification repository
                 var notifications = new List<NotificationDto>();
-                return ApiResponse<IEnumerable<NotificationDto>>.SuccessResponse(notifications);
+                return new JsonModel { data = .SuccessResponse(notifications);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting notifications");
-                return ApiResponse<IEnumerable<NotificationDto>>.ErrorResponse($"Failed to get notifications: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to get notifications: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<NotificationDto>> GetNotificationAsync(Guid id)
+        public async Task<JsonModel> GetNotificationAsync(Guid id)
         {
             try
             {
@@ -43,16 +43,16 @@ namespace SmartTelehealth.Application.Services
                     IsRead = false,
                     CreatedAt = DateTime.UtcNow
                 };
-                return ApiResponse<NotificationDto>.SuccessResponse(notification);
+                return new JsonModel { data = notification, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting notification {Id}", id);
-                return ApiResponse<NotificationDto>.ErrorResponse($"Failed to get notification: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to get notification: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<NotificationDto>> CreateNotificationAsync(CreateNotificationDto createNotificationDto)
+        public async Task<JsonModel> CreateNotificationAsync(CreateNotificationDto createNotificationDto)
         {
             try
             {
@@ -67,16 +67,16 @@ namespace SmartTelehealth.Application.Services
                     IsRead = false,
                     CreatedAt = DateTime.UtcNow
                 };
-                return ApiResponse<NotificationDto>.SuccessResponse(notification);
+                return new JsonModel { data = notification, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating notification");
-                return ApiResponse<NotificationDto>.ErrorResponse($"Failed to create notification: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to create notification: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<NotificationDto>> UpdateNotificationAsync(Guid id, object updateNotificationDto)
+        public async Task<JsonModel> UpdateNotificationAsync(Guid id, object updateNotificationDto)
         {
             try
             {
@@ -92,27 +92,27 @@ namespace SmartTelehealth.Application.Services
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
                     UpdatedAt = DateTime.UtcNow
                 };
-                return ApiResponse<NotificationDto>.SuccessResponse(notification);
+                return new JsonModel { data = notification, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating notification {Id}", id);
-                return ApiResponse<NotificationDto>.ErrorResponse($"Failed to update notification: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to update notification: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<bool>> DeleteNotificationAsync(Guid id)
+        public async Task<JsonModel> DeleteNotificationAsync(Guid id)
         {
             try
             {
                 // In a real implementation, this would delete from a notification repository
                 _logger.LogInformation("Deleting notification {Id}", id);
-                return ApiResponse<bool>.SuccessResponse(true);
+                return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting notification {Id}", id);
-                return ApiResponse<bool>.ErrorResponse($"Failed to delete notification: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to delete notification: {ex.Message}", StatusCode = 500 };
             }
         }
 
@@ -478,7 +478,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<ApiResponse<NotificationDto>> CreateInAppNotificationAsync(Guid userId, string title, string message)
+        public async Task<JsonModel> CreateInAppNotificationAsync(Guid userId, string title, string message)
         {
             try
             {
@@ -492,75 +492,75 @@ namespace SmartTelehealth.Application.Services
                     IsRead = false,
                     CreatedAt = DateTime.UtcNow
                 };
-                return ApiResponse<NotificationDto>.SuccessResponse(notification);
+                return new JsonModel { data = notification, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating in-app notification for user {UserId}", userId);
-                return ApiResponse<NotificationDto>.ErrorResponse($"Failed to create notification: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to create notification: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(Guid userId)
+        public async Task<JsonModel> GetUserNotificationsAsync(Guid userId)
         {
             try
             {
                 // In a real implementation, this would fetch from a notification repository
                 var notifications = new List<NotificationDto>();
-                return ApiResponse<IEnumerable<NotificationDto>>.SuccessResponse(notifications);
+                return new JsonModel { data = .SuccessResponse(notifications);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting notifications for user {UserId}", userId);
-                return ApiResponse<IEnumerable<NotificationDto>>.ErrorResponse($"Failed to get notifications: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to get notifications: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<bool>> MarkNotificationAsReadAsync(Guid notificationId)
+        public async Task<JsonModel> MarkNotificationAsReadAsync(Guid notificationId)
         {
             try
             {
                 // In a real implementation, this would update in a notification repository
                 _logger.LogInformation("Marking notification {Id} as read", notificationId);
-                return ApiResponse<bool>.SuccessResponse(true);
+                return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error marking notification {Id} as read", notificationId);
-                return ApiResponse<bool>.ErrorResponse($"Failed to mark notification as read: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to mark notification as read: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<int>> GetUnreadNotificationCountAsync(Guid userId)
+        public async Task<JsonModel> GetUnreadNotificationCountAsync(Guid userId)
         {
             try
             {
                 // In a real implementation, this would count from a notification repository
-                return ApiResponse<int>.SuccessResponse(0);
+                return new JsonModel { data = 0, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting unread notification count for user {UserId}", userId);
-                return ApiResponse<int>.ErrorResponse($"Failed to get unread count: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to get unread count: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<bool>> IsEmailValidAsync(string email)
+        public async Task<JsonModel> IsEmailValidAsync(string email)
         {
             try
             {
                 // In a real implementation, this would validate email format and check if it exists
                 var isValid = !string.IsNullOrEmpty(email) && email.Contains("@");
-                return ApiResponse<bool>.SuccessResponse(isValid);
+                return new JsonModel { data = isValid, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error validating email {Email}", email);
-                return ApiResponse<bool>.ErrorResponse($"Failed to validate email: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to validate email: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<bool>> SendSmsAsync(string phoneNumber, string message)
+        public async Task<JsonModel> SendSmsAsync(string phoneNumber, string message)
         {
             try
             {
@@ -570,18 +570,18 @@ namespace SmartTelehealth.Application.Services
                 // Simulate SMS sending
                 await Task.Delay(100);
                 
-                return ApiResponse<bool>.SuccessResponse(true);
+                return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending SMS to {PhoneNumber}", phoneNumber);
-                return ApiResponse<bool>.ErrorResponse($"Failed to send SMS: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to send SMS: {ex.Message}", StatusCode = 500 };
             }
         }
 
         public Task SendNotificationAsync(string userId, string title, string message) => throw new NotImplementedException();
 
-        public async Task<ApiResponse<NotificationDto>> CreateInAppNotificationAsync(int userId, string title, string message)
+        public async Task<JsonModel> CreateInAppNotificationAsync(int userId, string title, string message)
         {
             try
             {
@@ -596,42 +596,42 @@ namespace SmartTelehealth.Application.Services
                     IsRead = false,
                     CreatedAt = DateTime.UtcNow
                 };
-                return ApiResponse<NotificationDto>.SuccessResponse(notification);
+                return new JsonModel { data = notification, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating in-app notification for user {UserId}", userId);
-                return ApiResponse<NotificationDto>.ErrorResponse($"Failed to create in-app notification: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to create in-app notification: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(int userId)
+        public async Task<JsonModel> GetUserNotificationsAsync(int userId)
         {
             try
             {
                 // In a real implementation, this would fetch from a notification repository
                 var notifications = new List<NotificationDto>();
-                return ApiResponse<IEnumerable<NotificationDto>>.SuccessResponse(notifications);
+                return new JsonModel { data = .SuccessResponse(notifications);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting notifications for user {UserId}", userId);
-                return ApiResponse<IEnumerable<NotificationDto>>.ErrorResponse($"Failed to get user notifications: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to get user notifications: {ex.Message}", StatusCode = 500 };
             }
         }
 
-        public async Task<ApiResponse<int>> GetUnreadNotificationCountAsync(int userId)
+        public async Task<JsonModel> GetUnreadNotificationCountAsync(int userId)
         {
             try
             {
                 // In a real implementation, this would fetch from a notification repository
                 var unreadCount = 0;
-                return ApiResponse<int>.SuccessResponse(unreadCount);
+                return new JsonModel { data = unreadCount, Message = "Success", StatusCode = 200 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting unread notification count for user {UserId}", userId);
-                return ApiResponse<int>.ErrorResponse($"Failed to get unread notification count: {ex.Message}");
+                return new JsonModel { data = new object(), Message = $"Failed to get unread notification count: {ex.Message}", StatusCode = 500 };
             }
         }
 

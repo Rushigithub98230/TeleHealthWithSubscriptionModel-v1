@@ -34,7 +34,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         _logger = logger;
     }
 
-    public async Task<ApiResponse<ProviderOnboardingDto>> CreateOnboardingAsync(CreateProviderOnboardingDto createDto)
+    public async Task<JsonModel> CreateOnboardingAsync(CreateProviderOnboardingDto createDto)
     {
         try
         {
@@ -75,7 +75,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
             // TODO: Implement audit logging
             // await _auditService.LogActionAsync("ProviderOnboarding", "Create", savedOnboarding.Id.ToString(), "Onboarding application created");
 
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = true,
                 Message = "Onboarding application created successfully",
@@ -86,7 +86,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating onboarding application");
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = false,
                 Message = "Error creating onboarding application",
@@ -95,14 +95,14 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<ProviderOnboardingDto>> GetOnboardingAsync(Guid id)
+    public async Task<JsonModel> GetOnboardingAsync(Guid id)
     {
         try
         {
             var onboarding = await _onboardingRepository.GetByIdAsync(id);
             if (onboarding == null)
             {
-                return new ApiResponse<ProviderOnboardingDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Onboarding application not found",
@@ -111,7 +111,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
             }
 
             var dto = _mapper.Map<ProviderOnboardingDto>(onboarding);
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = true,
                 Data = dto,
@@ -121,7 +121,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving onboarding application");
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = false,
                 Message = "Error retrieving onboarding application",
@@ -130,14 +130,14 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<ProviderOnboardingDto>> GetOnboardingByUserIdAsync(int userId)
+    public async Task<JsonModel> GetOnboardingByUserIdAsync(int userId)
     {
         try
         {
             var onboarding = await _onboardingRepository.GetByUserIdAsync(userId);
             if (onboarding == null)
             {
-                return new ApiResponse<ProviderOnboardingDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Onboarding application not found",
@@ -146,7 +146,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
             }
 
             var dto = _mapper.Map<ProviderOnboardingDto>(onboarding);
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = true,
                 Data = dto,
@@ -156,7 +156,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving onboarding application by user ID");
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = false,
                 Message = "Error retrieving onboarding application",
@@ -165,14 +165,14 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<ProviderOnboardingDto>> UpdateOnboardingAsync(Guid id, UpdateProviderOnboardingDto updateDto)
+    public async Task<JsonModel> UpdateOnboardingAsync(Guid id, UpdateProviderOnboardingDto updateDto)
     {
         try
         {
             var onboarding = await _onboardingRepository.GetByIdAsync(id);
             if (onboarding == null)
             {
-                return new ApiResponse<ProviderOnboardingDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Onboarding application not found",
@@ -226,7 +226,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
             // TODO: Implement audit logging
             // await _auditService.LogActionAsync("ProviderOnboarding", "Update", id.ToString(), "Onboarding application updated");
 
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = true,
                 Message = "Onboarding application updated successfully",
@@ -237,7 +237,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating onboarding application");
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = false,
                 Message = "Error updating onboarding application",
@@ -246,14 +246,14 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<ProviderOnboardingDto>> SubmitOnboardingAsync(Guid id)
+    public async Task<JsonModel> SubmitOnboardingAsync(Guid id)
     {
         try
         {
             var onboarding = await _onboardingRepository.GetByIdAsync(id);
             if (onboarding == null)
             {
-                return new ApiResponse<ProviderOnboardingDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Onboarding application not found",
@@ -263,7 +263,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
 
             if (onboarding.Status != OnboardingStatus.Pending)
             {
-                return new ApiResponse<ProviderOnboardingDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Onboarding application cannot be submitted in current status",
@@ -289,7 +289,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
             //     "Admin"
             // );
 
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = true,
                 Message = "Onboarding application submitted successfully",
@@ -300,7 +300,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error submitting onboarding application");
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = false,
                 Message = "Error submitting onboarding application",
@@ -309,14 +309,14 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<ProviderOnboardingDto>> ReviewOnboardingAsync(Guid id, ReviewProviderOnboardingDto reviewDto)
+    public async Task<JsonModel> ReviewOnboardingAsync(Guid id, ReviewProviderOnboardingDto reviewDto)
     {
         try
         {
             var onboarding = await _onboardingRepository.GetByIdAsync(id);
             if (onboarding == null)
             {
-                return new ApiResponse<ProviderOnboardingDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Onboarding application not found",
@@ -326,7 +326,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
 
             if (onboarding.Status != OnboardingStatus.UnderReview && onboarding.Status != OnboardingStatus.RequiresMoreInfo)
             {
-                return new ApiResponse<ProviderOnboardingDto>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Onboarding application cannot be reviewed in current status",
@@ -359,7 +359,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
             //     onboarding.UserId.ToString()
             // );
 
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = true,
                 Message = "Onboarding application reviewed successfully",
@@ -370,7 +370,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reviewing onboarding application");
-            return new ApiResponse<ProviderOnboardingDto>
+            return new JsonModel
             {
                 Success = false,
                 Message = "Error reviewing onboarding application",
@@ -379,7 +379,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<ProviderOnboardingDto>>> GetAllOnboardingsAsync(string? status = null, int page = 1, int pageSize = 50)
+    public async Task<JsonModel> GetAllOnboardingsAsync(string? status = null, int page = 1, int pageSize = 50)
     {
         try
         {
@@ -395,7 +395,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
             }
 
             var dtos = _mapper.Map<IEnumerable<ProviderOnboardingDto>>(onboardings);
-            return new ApiResponse<IEnumerable<ProviderOnboardingDto>>
+            return new JsonModel>
             {
                 Success = true,
                 Data = dtos,
@@ -405,7 +405,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving onboarding applications");
-            return new ApiResponse<IEnumerable<ProviderOnboardingDto>>
+            return new JsonModel>
             {
                 Success = false,
                 Message = "Error retrieving onboarding applications",
@@ -414,13 +414,13 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<ProviderOnboardingDto>>> GetPendingOnboardingsAsync()
+    public async Task<JsonModel> GetPendingOnboardingsAsync()
     {
         try
         {
             var onboardings = await _onboardingRepository.GetPendingAsync();
             var dtos = _mapper.Map<IEnumerable<ProviderOnboardingDto>>(onboardings);
-            return new ApiResponse<IEnumerable<ProviderOnboardingDto>>
+            return new JsonModel>
             {
                 Success = true,
                 Data = dtos,
@@ -430,7 +430,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving pending onboarding applications");
-            return new ApiResponse<IEnumerable<ProviderOnboardingDto>>
+            return new JsonModel>
             {
                 Success = false,
                 Message = "Error retrieving pending onboarding applications",
@@ -439,13 +439,13 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<ProviderOnboardingDto>>> GetOnboardingsByStatusAsync(string status)
+    public async Task<JsonModel> GetOnboardingsByStatusAsync(string status)
     {
         try
         {
             var onboardings = await _onboardingRepository.GetByStatusAsync(status);
             var dtos = _mapper.Map<IEnumerable<ProviderOnboardingDto>>(onboardings);
-            return new ApiResponse<IEnumerable<ProviderOnboardingDto>>
+            return new JsonModel>
             {
                 Success = true,
                 Data = dtos,
@@ -455,7 +455,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving onboarding applications by status");
-            return new ApiResponse<IEnumerable<ProviderOnboardingDto>>
+            return new JsonModel>
             {
                 Success = false,
                 Message = "Error retrieving onboarding applications by status",
@@ -464,14 +464,14 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteOnboardingAsync(Guid id)
+    public async Task<JsonModel> DeleteOnboardingAsync(Guid id)
     {
         try
         {
             var result = await _onboardingRepository.DeleteAsync(id);
             if (!result)
             {
-                return new ApiResponse<bool>
+                return new JsonModel
                 {
                     Success = false,
                     Message = "Onboarding application not found",
@@ -483,7 +483,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
             // TODO: Implement audit logging
             // await _auditService.LogActionAsync("ProviderOnboarding", "Delete", id.ToString(), "Onboarding application deleted");
 
-            return new ApiResponse<bool>
+            return new JsonModel
             {
                 Success = true,
                 Message = "Onboarding application deleted successfully",
@@ -494,7 +494,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting onboarding application");
-            return new ApiResponse<bool>
+            return new JsonModel
             {
                 Success = false,
                 Message = "Error deleting onboarding application",
@@ -503,7 +503,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<ApiResponse<OnboardingStatisticsDto>> GetOnboardingStatisticsAsync()
+    public async Task<JsonModel> GetOnboardingStatisticsAsync()
     {
         try
         {
@@ -532,7 +532,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
                 AverageProcessingTimeDays = 3 // TODO: Calculate actual average
             };
 
-            return new ApiResponse<OnboardingStatisticsDto>
+            return new JsonModel
             {
                 Success = true,
                 Data = statistics,
@@ -542,7 +542,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving onboarding statistics");
-            return new ApiResponse<OnboardingStatisticsDto>
+            return new JsonModel
             {
                 Success = false,
                 Message = "Error retrieving onboarding statistics",

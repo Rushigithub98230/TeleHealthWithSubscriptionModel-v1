@@ -237,7 +237,7 @@ public class NotificationService : INotificationService
     }
     
     // In-app notifications
-    public async Task<ApiResponse<NotificationDto>> CreateInAppNotificationAsync(int userId, string title, string message)
+    public async Task<JsonModel> CreateInAppNotificationAsync(int userId, string title, string message)
     {
         try
         {
@@ -268,16 +268,16 @@ public class NotificationService : INotificationService
                 ScheduledAt = createdNotification.ScheduledAt
             };
 
-            return ApiResponse<NotificationDto>.SuccessResponse(notificationDto, "In-app notification created successfully");
+            return new JsonModel { data = notificationDto, Message = "In-app notification created successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating in-app notification for user {UserId}", userId);
-            return ApiResponse<NotificationDto>.ErrorResponse("Error creating in-app notification", 500);
+            return new JsonModel { data = new object(), Message = "Error creating in-app notification", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(int userId)
+    public async Task<JsonModel> GetUserNotificationsAsync(int userId)
     {
         try
         {
@@ -296,50 +296,50 @@ public class NotificationService : INotificationService
                 ScheduledAt = n.ScheduledAt
             });
 
-            return ApiResponse<IEnumerable<NotificationDto>>.SuccessResponse(notificationDtos, "User notifications retrieved successfully");
+            return new JsonModel { data = notificationDtos, Message = "User notifications retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting notifications for user {UserId}", userId);
-            return ApiResponse<IEnumerable<NotificationDto>>.ErrorResponse("Error retrieving user notifications", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving user notifications", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> MarkNotificationAsReadAsync(Guid notificationId)
+    public async Task<JsonModel> MarkNotificationAsReadAsync(Guid notificationId)
     {
         try
         {
             var notification = await _notificationRepository.GetByIdAsync(notificationId);
             if (notification == null)
-                return ApiResponse<bool>.ErrorResponse("Notification not found", 404);
+                return new JsonModel { data = new object(), Message = "Notification not found", StatusCode = 404 };
 
             notification.Status = NotificationStatus.Read;
             notification.IsRead = true;
             notification.ReadAt = DateTime.UtcNow;
             await _notificationRepository.UpdateAsync(notification);
 
-            return ApiResponse<bool>.SuccessResponse(true, "Notification marked as read successfully");
+            return new JsonModel { data = true, Message = "Notification marked as read successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error marking notification as read {NotificationId}", notificationId);
-            return ApiResponse<bool>.ErrorResponse("Error marking notification as read", 500);
+            return new JsonModel { data = new object(), Message = "Error marking notification as read", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<int>> GetUnreadNotificationCountAsync(int userId)
+    public async Task<JsonModel> GetUnreadNotificationCountAsync(int userId)
     {
         try
         {
             var notifications = await _notificationRepository.GetByUserIdAsync(userId);
             var unreadCount = notifications.Count(n => n.Status == NotificationStatus.Unread);
 
-            return ApiResponse<int>.SuccessResponse(unreadCount, "Unread notification count retrieved successfully");
+            return new JsonModel { data = unreadCount, Message = "Unread notification count retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting unread notification count for user {UserId}", userId);
-            return ApiResponse<int>.ErrorResponse("Error retrieving unread notification count", 500);
+            return new JsonModel { data = new object(), Message = "Error retrieving unread notification count", StatusCode = 500 };
         }
     }
     
@@ -526,7 +526,7 @@ public class NotificationService : INotificationService
         }
     }
     
-    public async Task<ApiResponse<bool>> IsEmailValidAsync(string email)
+    public async Task<JsonModel> IsEmailValidAsync(string email)
     {
         try
         {
@@ -536,16 +536,16 @@ public class NotificationService : INotificationService
                          email.Contains(".") &&
                          email.Length > 5;
 
-            return ApiResponse<bool>.SuccessResponse(isValid, "Email validation completed");
+            return new JsonModel { data = isValid, Message = "Email validation completed", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating email {Email}", email);
-            return ApiResponse<bool>.ErrorResponse("Error validating email", 500);
+            return new JsonModel { data = new object(), Message = "Error validating email", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> SendSmsAsync(string phoneNumber, string message)
+    public async Task<JsonModel> SendSmsAsync(string phoneNumber, string message)
     {
         try
         {
@@ -553,19 +553,19 @@ public class NotificationService : INotificationService
             // In a real application, this would integrate with an SMS service like Twilio
             _logger.LogInformation("SMS sent to {PhoneNumber}: {Message}", phoneNumber, message);
             
-            return ApiResponse<bool>.SuccessResponse(true, "SMS sent successfully");
+            return new JsonModel { data = true, Message = "SMS sent successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending SMS to {PhoneNumber}", phoneNumber);
-            return ApiResponse<bool>.ErrorResponse("Error sending SMS", 500);
+            return new JsonModel { data = new object(), Message = "Error sending SMS", StatusCode = 500 };
         }
     }
     
     // EMAIL FUNCTIONALITY DISABLED - SendEmailAsync method removed
     // TODO: Re-enable email functionality when needed
 
-    public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetNotificationsAsync()
+    public async Task<JsonModel> GetNotificationsAsync()
     {
         try
         {
@@ -583,22 +583,22 @@ public class NotificationService : INotificationService
                 ReadAt = n.ReadAt,
                 ScheduledAt = n.ScheduledAt
             });
-            return ApiResponse<IEnumerable<NotificationDto>>.SuccessResponse(dtos);
+            return new JsonModel { data = .SuccessResponse(dtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all notifications");
-            return ApiResponse<IEnumerable<NotificationDto>>.ErrorResponse("An error occurred while retrieving notifications", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving notifications", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<NotificationDto>> GetNotificationAsync(Guid id)
+    public async Task<JsonModel> GetNotificationAsync(Guid id)
     {
         try
         {
             var notification = await _notificationRepository.GetByIdAsync(id);
             if (notification == null)
-                return ApiResponse<NotificationDto>.ErrorResponse("Notification not found", 404);
+                return new JsonModel { data = new object(), Message = "Notification not found", StatusCode = 404 };
             var dto = new NotificationDto
             {
                 Id = notification.Id.ToString(),
@@ -612,16 +612,16 @@ public class NotificationService : INotificationService
                 ReadAt = notification.ReadAt,
                 ScheduledAt = notification.ScheduledAt
             };
-            return ApiResponse<NotificationDto>.SuccessResponse(dto);
+            return new JsonModel { data = dto, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting notification {Id}", id);
-            return ApiResponse<NotificationDto>.ErrorResponse("An error occurred while retrieving the notification", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving the notification", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<NotificationDto>> CreateNotificationAsync(CreateNotificationDto createNotificationDto)
+    public async Task<JsonModel> CreateNotificationAsync(CreateNotificationDto createNotificationDto)
     {
         try
         {
@@ -650,22 +650,22 @@ public class NotificationService : INotificationService
                 ReadAt = created.ReadAt,
                 ScheduledAt = created.ScheduledAt
             };
-            return ApiResponse<NotificationDto>.SuccessResponse(dto, "Notification created", 201);
+            return new JsonModel { data = dto, Message = "Notification created", 201, StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating notification");
-            return ApiResponse<NotificationDto>.ErrorResponse("An error occurred while creating the notification", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while creating the notification", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<NotificationDto>> UpdateNotificationAsync(Guid id, UpdateNotificationDto updateNotificationDto)
+    public async Task<JsonModel> UpdateNotificationAsync(Guid id, UpdateNotificationDto updateNotificationDto)
     {
         try
         {
             var notification = await _notificationRepository.GetByIdAsync(id);
             if (notification == null)
-                return ApiResponse<NotificationDto>.ErrorResponse("Notification not found", 404);
+                return new JsonModel { data = new object(), Message = "Notification not found", StatusCode = 404 };
             if (!string.IsNullOrEmpty(updateNotificationDto.Title))
                 notification.Title = updateNotificationDto.Title;
             if (!string.IsNullOrEmpty(updateNotificationDto.Message))
@@ -688,32 +688,32 @@ public class NotificationService : INotificationService
                 ReadAt = updatedNotification.ReadAt,
                 ScheduledAt = updatedNotification.ScheduledAt
             };
-            return ApiResponse<NotificationDto>.SuccessResponse(notificationDto, "Notification updated");
+            return new JsonModel { data = notificationDto, Message = "Notification updated", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating notification {Id}", id);
-            return ApiResponse<NotificationDto>.ErrorResponse("An error occurred while updating the notification", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while updating the notification", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteNotificationAsync(Guid id)
+    public async Task<JsonModel> DeleteNotificationAsync(Guid id)
     {
         try
         {
             var result = await _notificationRepository.DeleteAsync(id);
             if (!result)
-                return ApiResponse<bool>.ErrorResponse("Notification not found", 404);
-            return ApiResponse<bool>.SuccessResponse(true, "Notification deleted");
+                return new JsonModel { data = new object(), Message = "Notification not found", StatusCode = 404 };
+            return new JsonModel { data = true, Message = "Notification deleted", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting notification {Id}", id);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while deleting the notification", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while deleting the notification", StatusCode = 500 };
         }
     }
 
-    public Task<ApiResponse<NotificationDto>> UpdateNotificationAsync(Guid id, object updateNotificationDto) => throw new NotImplementedException();
+    public Task<JsonModel> UpdateNotificationAsync(Guid id, object updateNotificationDto) => throw new NotImplementedException();
     public async Task SendEmailVerificationAsync(string email, string userName, string verificationToken)
     {
         try

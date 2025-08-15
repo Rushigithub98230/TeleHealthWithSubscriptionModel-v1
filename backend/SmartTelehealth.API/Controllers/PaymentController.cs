@@ -37,7 +37,7 @@ public class PaymentController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PaymentHistoryDto>>>> GetAllPayments()
+    public async Task<ActionResult<JsonModel>> GetAllPayments()
     {
         try
         {
@@ -55,18 +55,18 @@ public class PaymentController : ControllerBase
     /// Get all payment methods for the current user
     /// </summary>
     [HttpGet("payment-methods")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PaymentMethodDto>>>> GetPaymentMethods()
+    public async Task<ActionResult<JsonModel>> GetPaymentMethods()
     {
         try
         {
             var userId = GetCurrentUserId();
             var paymentMethods = await _stripeService.GetCustomerPaymentMethodsAsync(userId.ToString());
-            return Ok(ApiResponse<IEnumerable<PaymentMethodDto>>.SuccessResponse(paymentMethods));
+            return Ok(JsonModel>.SuccessResponse(paymentMethods));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting payment methods for user");
-            return StatusCode(500, ApiResponse<IEnumerable<PaymentMethodDto>>.ErrorResponse("Failed to retrieve payment methods"));
+            return StatusCode(500, JsonModel>.ErrorResponse("Failed to retrieve payment methods"));
         }
     }
 
@@ -74,7 +74,7 @@ public class PaymentController : ControllerBase
     /// Add a new payment method for the current user
     /// </summary>
     [HttpPost("payment-methods")]
-    public async Task<ActionResult<ApiResponse<PaymentMethodDto>>> AddPaymentMethod([FromBody] AddPaymentMethodDto request)
+    public async Task<ActionResult<JsonModel> AddPaymentMethod([FromBody] AddPaymentMethodDto request)
     {
         try
         {
@@ -84,7 +84,7 @@ public class PaymentController : ControllerBase
             var validationResult = await _stripeService.ValidatePaymentMethodAsync(request.PaymentMethodId);
             if (!validationResult)
             {
-                return BadRequest(ApiResponse<PaymentMethodDto>.ErrorResponse("Invalid payment method"));
+                return BadRequest(JsonModel.ErrorResponse("Invalid payment method"));
             }
 
             // Add payment method to customer
@@ -96,18 +96,18 @@ public class PaymentController : ControllerBase
             
             if (paymentMethod == null)
             {
-                return BadRequest(ApiResponse<PaymentMethodDto>.ErrorResponse("Failed to retrieve payment method details"));
+                return BadRequest(JsonModel.ErrorResponse("Failed to retrieve payment method details"));
             }
             
             // Log the action
             await _auditService.LogUserActionAsync(userId.ToString(), "AddPaymentMethod", "PaymentMethod", paymentMethod.Id, "Payment method added successfully");
             
-            return Ok(ApiResponse<PaymentMethodDto>.SuccessResponse(paymentMethod, "Payment method added successfully"));
+            return Ok(JsonModel.SuccessResponse(paymentMethod, "Payment method added successfully"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding payment method for user");
-            return StatusCode(500, ApiResponse<PaymentMethodDto>.ErrorResponse("Failed to add payment method"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to add payment method"));
         }
     }
 
@@ -115,7 +115,7 @@ public class PaymentController : ControllerBase
     /// Set a payment method as default for the current user
     /// </summary>
     [HttpPut("payment-methods/{paymentMethodId}/default")]
-    public async Task<ActionResult<ApiResponse<bool>>> SetDefaultPaymentMethod(string paymentMethodId)
+    public async Task<ActionResult<JsonModel> SetDefaultPaymentMethod(string paymentMethodId)
     {
         try
         {
@@ -125,15 +125,15 @@ public class PaymentController : ControllerBase
             if (result)
             {
                 await _auditService.LogUserActionAsync(userId.ToString(), "SetDefaultPaymentMethod", "PaymentMethod", paymentMethodId, "Default payment method updated");
-                return Ok(ApiResponse<bool>.SuccessResponse(true, "Default payment method updated"));
+                return Ok(JsonModel.SuccessResponse(true, "Default payment method updated"));
             }
             
-            return BadRequest(ApiResponse<bool>.ErrorResponse("Failed to set default payment method"));
+            return BadRequest(JsonModel.ErrorResponse("Failed to set default payment method"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error setting default payment method for user");
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Failed to set default payment method"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to set default payment method"));
         }
     }
 
@@ -141,7 +141,7 @@ public class PaymentController : ControllerBase
     /// Remove a payment method for the current user
     /// </summary>
     [HttpDelete("payment-methods/{paymentMethodId}")]
-    public async Task<ActionResult<ApiResponse<bool>>> RemovePaymentMethod(string paymentMethodId)
+    public async Task<ActionResult<JsonModel> RemovePaymentMethod(string paymentMethodId)
     {
         try
         {
@@ -151,15 +151,15 @@ public class PaymentController : ControllerBase
             if (result)
             {
                 await _auditService.LogUserActionAsync(userId.ToString(), "RemovePaymentMethod", "PaymentMethod", paymentMethodId, "Payment method removed");
-                return Ok(ApiResponse<bool>.SuccessResponse(true, "Payment method removed"));
+                return Ok(JsonModel.SuccessResponse(true, "Payment method removed"));
             }
             
-            return BadRequest(ApiResponse<bool>.ErrorResponse("Failed to remove payment method"));
+            return BadRequest(JsonModel.ErrorResponse("Failed to remove payment method"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing payment method for user");
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Failed to remove payment method"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to remove payment method"));
         }
     }
 
@@ -167,7 +167,7 @@ public class PaymentController : ControllerBase
     /// Process a payment for a billing record
     /// </summary>
     [HttpPost("process-payment")]
-    public async Task<ActionResult<ApiResponse<PaymentResultDto>>> ProcessPayment([FromBody] ProcessPaymentRequestDto request)
+    public async Task<ActionResult<JsonModel> ProcessPayment([FromBody] ProcessPaymentRequestDto request)
     {
         try
         {
@@ -178,7 +178,7 @@ public class PaymentController : ControllerBase
             var billingRecord = await _billingService.GetBillingRecordAsync(request.BillingRecordId);
             if (!billingRecord.Success || billingRecord.Data == null)
             {
-                return BadRequest(ApiResponse<PaymentResultDto>.ErrorResponse("Billing record not found"));
+                return BadRequest(JsonModel.ErrorResponse("Billing record not found"));
             }
 
             if (billingRecord.Data.UserId != userId.ToString())
@@ -191,7 +191,7 @@ public class PaymentController : ControllerBase
             // Security validation
             if (!await _paymentSecurityService.ValidatePaymentRequestAsync(userId.ToString(), ipAddress, billingRecord.Data.Amount))
             {
-                return BadRequest(ApiResponse<PaymentResultDto>.ErrorResponse("Payment request validation failed"));
+                return BadRequest(JsonModel.ErrorResponse("Payment request validation failed"));
             }
 
             // Process payment
@@ -216,7 +216,7 @@ public class PaymentController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing payment for billing record {BillingRecordId}", request.BillingRecordId);
-            return StatusCode(500, ApiResponse<PaymentResultDto>.ErrorResponse("Failed to process payment"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to process payment"));
         }
     }
 
@@ -224,7 +224,7 @@ public class PaymentController : ControllerBase
     /// Retry a failed payment
     /// </summary>
     [HttpPost("retry-payment/{billingRecordId}")]
-    public async Task<ActionResult<ApiResponse<PaymentResultDto>>> RetryPayment(Guid billingRecordId)
+    public async Task<ActionResult<JsonModel> RetryPayment(Guid billingRecordId)
     {
         try
         {
@@ -234,7 +234,7 @@ public class PaymentController : ControllerBase
             var billingRecord = await _billingService.GetBillingRecordAsync(billingRecordId);
             if (!billingRecord.Success || billingRecord.Data == null)
             {
-                return BadRequest(ApiResponse<PaymentResultDto>.ErrorResponse("Billing record not found"));
+                return BadRequest(JsonModel.ErrorResponse("Billing record not found"));
             }
 
             if (billingRecord.Data.UserId != userId.ToString())
@@ -256,7 +256,7 @@ public class PaymentController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrying payment for billing record {BillingRecordId}", billingRecordId);
-            return StatusCode(500, ApiResponse<PaymentResultDto>.ErrorResponse("Failed to retry payment"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retry payment"));
         }
     }
 
@@ -264,7 +264,7 @@ public class PaymentController : ControllerBase
     /// Process a refund for a billing record
     /// </summary>
     [HttpPost("refund/{billingRecordId}")]
-    public async Task<ActionResult<ApiResponse<RefundResultDto>>> ProcessRefund(Guid billingRecordId, [FromBody] RefundRequestDto request)
+    public async Task<ActionResult<JsonModel> ProcessRefund(Guid billingRecordId, [FromBody] RefundRequestDto request)
     {
         try
         {
@@ -274,7 +274,7 @@ public class PaymentController : ControllerBase
             var billingRecord = await _billingService.GetBillingRecordAsync(billingRecordId);
             if (!billingRecord.Success || billingRecord.Data == null)
             {
-                return BadRequest(ApiResponse<RefundResultDto>.ErrorResponse("Billing record not found"));
+                return BadRequest(JsonModel.ErrorResponse("Billing record not found"));
             }
 
             if (billingRecord.Data.UserId != userId.ToString())
@@ -296,7 +296,7 @@ public class PaymentController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing refund for billing record {BillingRecordId}", billingRecordId);
-            return StatusCode(500, ApiResponse<RefundResultDto>.ErrorResponse("Failed to process refund"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to process refund"));
         }
     }
 
@@ -304,7 +304,7 @@ public class PaymentController : ControllerBase
     /// Get payment history for the current user
     /// </summary>
     [HttpGet("history")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PaymentHistoryDto>>>> GetPaymentHistory([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel>> GetPaymentHistory([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -315,7 +315,7 @@ public class PaymentController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting payment history for user");
-            return StatusCode(500, ApiResponse<IEnumerable<PaymentHistoryDto>>.ErrorResponse("Failed to retrieve payment history"));
+            return StatusCode(500, JsonModel>.ErrorResponse("Failed to retrieve payment history"));
         }
     }
 
@@ -323,17 +323,17 @@ public class PaymentController : ControllerBase
     /// Validate a payment method
     /// </summary>
     [HttpPost("validate-payment-method")]
-    public async Task<ActionResult<ApiResponse<SmartTelehealth.Application.DTOs.PaymentMethodValidationDto>>> ValidatePaymentMethod([FromBody] ValidatePaymentMethodDto request)
+    public async Task<ActionResult<JsonModel> ValidatePaymentMethod([FromBody] ValidatePaymentMethodDto request)
     {
         try
         {
             var validationResult = await _stripeService.ValidatePaymentMethodDetailedAsync(request.PaymentMethodId);
-            return Ok(ApiResponse<SmartTelehealth.Application.DTOs.PaymentMethodValidationDto>.SuccessResponse(validationResult));
+            return Ok(JsonModel.SuccessResponse(validationResult));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating payment method");
-            return StatusCode(500, ApiResponse<SmartTelehealth.Application.DTOs.PaymentMethodValidationDto>.ErrorResponse("Failed to validate payment method"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to validate payment method"));
         }
     }
 
@@ -341,7 +341,7 @@ public class PaymentController : ControllerBase
     /// Get payment analytics for the current user
     /// </summary>
     [HttpGet("analytics")]
-    public async Task<ActionResult<ApiResponse<PaymentAnalyticsDto>>> GetPaymentAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel> GetPaymentAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -352,7 +352,7 @@ public class PaymentController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting payment analytics for user");
-            return StatusCode(500, ApiResponse<PaymentAnalyticsDto>.ErrorResponse("Failed to retrieve payment analytics"));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve payment analytics"));
         }
     }
 

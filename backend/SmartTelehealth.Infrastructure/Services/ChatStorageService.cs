@@ -40,7 +40,7 @@ public class ChatStorageService : IChatStorageService
         _fileStorageService = fileStorageService;
     }
 
-    public async Task<ApiResponse<MessageDto>> StoreMessageAsync(CreateMessageDto createDto, string senderId)
+    public async Task<JsonModel> StoreMessageAsync(CreateMessageDto createDto, string senderId)
     {
         try
         {
@@ -48,7 +48,7 @@ public class ChatStorageService : IChatStorageService
             var hasAccess = await ValidateChatAccessAsync(senderId, createDto.ChatRoomId);
             if (!hasAccess)
             {
-                return ApiResponse<MessageDto>.ErrorResponse("Access denied to this chat room", 403);
+                return new JsonModel { data = new object(), Message = "Access denied to this chat room", StatusCode = 403 };
             }
 
             // Create message entity
@@ -87,36 +87,36 @@ public class ChatStorageService : IChatStorageService
             await UpdateChatRoomLastActivityAsync(Guid.Parse(createDto.ChatRoomId));
 
             var messageDto = await MapToMessageDtoAsync(savedMessage);
-            return ApiResponse<MessageDto>.SuccessResponse(messageDto, "Message stored successfully");
+            return new JsonModel { data = messageDto, Message = "Message stored successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error storing message for chat room {ChatRoomId}", createDto.ChatRoomId);
-            return ApiResponse<MessageDto>.ErrorResponse("Failed to store message", 500);
+            return new JsonModel { data = new object(), Message = "Failed to store message", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<MessageDto>> GetMessageAsync(Guid messageId)
+    public async Task<JsonModel> GetMessageAsync(Guid messageId)
     {
         try
         {
             var message = await _messageRepository.GetMessageByIdAsync(messageId);
             if (message == null)
             {
-                return ApiResponse<MessageDto>.ErrorResponse("Message not found", 404);
+                return new JsonModel { data = new object(), Message = "Message not found", StatusCode = 404 };
             }
 
             var messageDto = await MapToMessageDtoAsync(message);
-            return ApiResponse<MessageDto>.SuccessResponse(messageDto, "Message retrieved successfully");
+            return new JsonModel { data = messageDto, Message = "Message retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting message {MessageId}", messageId);
-            return ApiResponse<MessageDto>.ErrorResponse("Failed to retrieve message", 500);
+            return new JsonModel { data = new object(), Message = "Failed to retrieve message", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<MessageDto>>> GetChatRoomMessagesAsync(Guid chatRoomId, int skip = 0, int take = 50)
+    public async Task<JsonModel> GetChatRoomMessagesAsync(Guid chatRoomId, int skip = 0, int take = 50)
     {
         try
         {
@@ -129,29 +129,29 @@ public class ChatStorageService : IChatStorageService
                 messageDtos.Add(messageDto);
             }
 
-            return ApiResponse<IEnumerable<MessageDto>>.SuccessResponse(messageDtos, "Messages retrieved successfully");
+            return new JsonModel { data = messageDtos, Message = "Messages retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting messages for chat room {ChatRoomId}", chatRoomId);
-            return ApiResponse<IEnumerable<MessageDto>>.ErrorResponse("Failed to retrieve messages", 500);
+            return new JsonModel { data = new object(), Message = "Failed to retrieve messages", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<MessageDto>> UpdateMessageAsync(Guid messageId, UpdateMessageDto updateDto, int userId)
+    public async Task<JsonModel> UpdateMessageAsync(Guid messageId, UpdateMessageDto updateDto, int userId)
     {
         try
         {
             var message = await _messageRepository.GetMessageByIdAsync(messageId);
             if (message == null)
             {
-                return ApiResponse<MessageDto>.ErrorResponse("Message not found", 404);
+                return new JsonModel { data = new object(), Message = "Message not found", StatusCode = 404 };
             }
 
             // Check if user can edit this message
             if (message.SenderId != userId)
             {
-                return ApiResponse<MessageDto>.ErrorResponse("You can only edit your own messages", 403);
+                return new JsonModel { data = new object(), Message = "You can only edit your own messages", StatusCode = 403 };
             }
 
             // Update message content
@@ -173,64 +173,64 @@ public class ChatStorageService : IChatStorageService
             var updatedMessage = await _messageRepository.UpdateMessageAsync(message);
             var messageDto = await MapToMessageDtoAsync(updatedMessage);
 
-            return ApiResponse<MessageDto>.SuccessResponse(messageDto, "Message updated successfully");
+            return new JsonModel { data = messageDto, Message = "Message updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating message {MessageId}", messageId);
-            return ApiResponse<MessageDto>.ErrorResponse("Failed to update message", 500);
+            return new JsonModel { data = new object(), Message = "Failed to update message", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteMessageAsync(Guid messageId, int userId)
+    public async Task<JsonModel> DeleteMessageAsync(Guid messageId, int userId)
     {
         try
         {
             var message = await _messageRepository.GetMessageByIdAsync(messageId);
             if (message == null)
             {
-                return ApiResponse<bool>.ErrorResponse("Message not found", 404);
+                return new JsonModel { data = new object(), Message = "Message not found", StatusCode = 404 };
             }
 
             // Check if user can delete this message
             if (message.SenderId != userId)
             {
-                return ApiResponse<bool>.ErrorResponse("You can only delete your own messages", 403);
+                return new JsonModel { data = new object(), Message = "You can only delete your own messages", StatusCode = 403 };
             }
 
             var result = await _messageRepository.DeleteMessageAsync(messageId);
-            return ApiResponse<bool>.SuccessResponse(result, "Message deleted successfully");
+            return new JsonModel { data = result, Message = "Message deleted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting message {MessageId}", messageId);
-            return ApiResponse<bool>.ErrorResponse("Failed to delete message", 500);
+            return new JsonModel { data = new object(), Message = "Failed to delete message", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> SoftDeleteMessageAsync(Guid messageId, int userId)
+    public async Task<JsonModel> SoftDeleteMessageAsync(Guid messageId, int userId)
     {
         try
         {
             var message = await _messageRepository.GetMessageByIdAsync(messageId);
             if (message == null)
             {
-                return ApiResponse<bool>.ErrorResponse("Message not found", 404);
+                return new JsonModel { data = new object(), Message = "Message not found", StatusCode = 404 };
             }
 
             // Check if user can delete this message
             if (message.SenderId != userId)
             {
-                return ApiResponse<bool>.ErrorResponse("You can only delete your own messages", 403);
+                return new JsonModel { data = new object(), Message = "You can only delete your own messages", StatusCode = 403 };
             }
 
             var result = await _messageRepository.SoftDeleteMessageAsync(messageId);
-            return ApiResponse<bool>.SuccessResponse(result, "Message soft deleted successfully");
+            return new JsonModel { data = result, Message = "Message soft deleted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error soft deleting message {MessageId}", messageId);
-            return ApiResponse<bool>.ErrorResponse("Failed to soft delete message", 500);
+            return new JsonModel { data = new object(), Message = "Failed to soft delete message", StatusCode = 500 };
         }
     }
 

@@ -29,7 +29,7 @@ public class OpenTokService : IOpenTokService
         _logger.LogInformation("OpenTok service initialized with API key: {ApiKey}", apiKey);
     }
 
-    public async Task<ApiResponse<OpenTokSessionDto>> CreateSessionAsync(string sessionName, bool isArchived = false)
+    public async Task<JsonModel> CreateSessionAsync(string sessionName, bool isArchived = false)
     {
         try
         {
@@ -48,16 +48,16 @@ public class OpenTokService : IOpenTokService
             };
 
             _logger.LogInformation("Created OpenTok session: {SessionId} with name: {SessionName}", session.Id, sessionName);
-            return ApiResponse<OpenTokSessionDto>.SuccessResponse(sessionDto, "Session created successfully");
+            return new JsonModel { data = sessionDto, Message = "Session created successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating OpenTok session: {SessionName}", sessionName);
-            return ApiResponse<OpenTokSessionDto>.ErrorResponse("Failed to create session", 500);
+            return new JsonModel { data = new object(), Message = "Failed to create session", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<OpenTokSessionDto>> GetSessionAsync(string sessionId)
+    public async Task<JsonModel> GetSessionAsync(string sessionId)
     {
         try
         {
@@ -71,48 +71,48 @@ public class OpenTokService : IOpenTokService
                 CreatedAt = DateTime.UtcNow
             };
 
-            return ApiResponse<OpenTokSessionDto>.SuccessResponse(sessionDto, "Session retrieved successfully");
+            return new JsonModel { data = sessionDto, Message = "Session retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving OpenTok session: {SessionId}", sessionId);
-            return ApiResponse<OpenTokSessionDto>.ErrorResponse("Failed to retrieve session", 500);
+            return new JsonModel { data = new object(), Message = "Failed to retrieve session", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ArchiveSessionAsync(string sessionId)
+    public async Task<JsonModel> ArchiveSessionAsync(string sessionId)
     {
         try
         {
             // Note: OpenTok doesn't have a direct archive session method
             // This would typically be handled through recording or archiving features
             _logger.LogInformation("Session archive requested for: {SessionId}", sessionId);
-            return ApiResponse<bool>.SuccessResponse(true, "Session archive initiated");
+            return new JsonModel { data = true, Message = "Session archive initiated", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error archiving OpenTok session: {SessionId}", sessionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to archive session", 500);
+            return new JsonModel { data = new object(), Message = "Failed to archive session", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteSessionAsync(string sessionId)
+    public async Task<JsonModel> DeleteSessionAsync(string sessionId)
     {
         try
         {
             // Note: OpenTok doesn't provide a direct delete session method
             // Sessions are typically managed through the OpenTok dashboard
             _logger.LogInformation("Session deletion requested for: {SessionId}", sessionId);
-            return ApiResponse<bool>.SuccessResponse(true, "Session deletion initiated");
+            return new JsonModel { data = true, Message = "Session deletion initiated", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting OpenTok session: {SessionId}", sessionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to delete session", 500);
+            return new JsonModel { data = new object(), Message = "Failed to delete session", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<string>> GenerateTokenAsync(string sessionId, string userId, string userName, OpenTokRole role = OpenTokRole.Publisher)
+    public async Task<JsonModel> GenerateTokenAsync(string sessionId, string userId, string userName, OpenTokRole role = OpenTokRole.Publisher)
     {
         try
         {
@@ -120,16 +120,16 @@ public class OpenTokService : IOpenTokService
             var token = $"dummy-token-for-{sessionId}-{userId}-{userName}-{role}";
 
             _logger.LogInformation("Generated token for session: {SessionId}, user: {UserId}", sessionId, userId);
-            return ApiResponse<string>.SuccessResponse(token, "Token generated successfully");
+            return new JsonModel { data = token, Message = "Token generated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating token for session: {SessionId}, user: {UserId}", sessionId, userId);
-            return ApiResponse<string>.ErrorResponse("Failed to generate token", 500);
+            return new JsonModel { data = new object(), Message = "Failed to generate token", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<string>> GenerateTokenAsync(string sessionId, string userId, string userName, DateTime expireTime, OpenTokRole role = OpenTokRole.Publisher)
+    public async Task<JsonModel> GenerateTokenAsync(string sessionId, string userId, string userName, DateTime expireTime, OpenTokRole role = OpenTokRole.Publisher)
     {
         try
         {
@@ -137,16 +137,16 @@ public class OpenTokService : IOpenTokService
             var token = $"dummy-token-for-{sessionId}-{userId}-{userName}-{role}-exp-{expireTime:yyyyMMddHHmmss}";
 
             _logger.LogInformation("Generated token with expiry for session: {SessionId}, user: {UserId}", sessionId, userId);
-            return ApiResponse<string>.SuccessResponse(token, "Token generated successfully");
+            return new JsonModel { data = token, Message = "Token generated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating token with expiry for session: {SessionId}, user: {UserId}", sessionId, userId);
-            return ApiResponse<string>.ErrorResponse("Failed to generate token", 500);
+            return new JsonModel { data = new object(), Message = "Failed to generate token", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<OpenTokStreamDto>>> GetSessionStreamsAsync(string sessionId)
+    public async Task<JsonModel> GetSessionStreamsAsync(string sessionId)
     {
         try
         {
@@ -155,48 +155,48 @@ public class OpenTokService : IOpenTokService
             var streams = new List<OpenTokStreamDto>();
             
             _logger.LogInformation("Retrieved streams for session: {SessionId}", sessionId);
-            return ApiResponse<IEnumerable<OpenTokStreamDto>>.SuccessResponse(streams, "Streams retrieved successfully");
+            return new JsonModel { data = streams, Message = "Streams retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving streams for session: {SessionId}", sessionId);
-            return ApiResponse<IEnumerable<OpenTokStreamDto>>.ErrorResponse("Failed to retrieve streams", 500);
+            return new JsonModel { data = new object(), Message = "Failed to retrieve streams", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ForceDisconnectAsync(string sessionId, string connectionId)
+    public async Task<JsonModel> ForceDisconnectAsync(string sessionId, string connectionId)
     {
         try
         {
             // Note: OpenTok SDK doesn't provide direct force disconnect
             // This would typically be handled through the OpenTok dashboard or REST API
             _logger.LogInformation("Force disconnect requested for session: {SessionId}, connection: {ConnectionId}", sessionId, connectionId);
-            return ApiResponse<bool>.SuccessResponse(true, "Force disconnect initiated");
+            return new JsonModel { data = true, Message = "Force disconnect initiated", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error force disconnecting from session: {SessionId}", sessionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to force disconnect", 500);
+            return new JsonModel { data = new object(), Message = "Failed to force disconnect", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> MuteStreamAsync(string sessionId, string streamId, bool mute)
+    public async Task<JsonModel> MuteStreamAsync(string sessionId, string streamId, bool mute)
     {
         try
         {
             // Note: OpenTok SDK doesn't provide direct stream muting
             // This would typically be handled through the client-side SDK
             _logger.LogInformation("Stream mute request for session: {SessionId}, stream: {StreamId}, mute: {Mute}", sessionId, streamId, mute);
-            return ApiResponse<bool>.SuccessResponse(true, "Stream mute request processed");
+            return new JsonModel { data = true, Message = "Stream mute request processed", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error muting stream in session: {SessionId}", sessionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to mute stream", 500);
+            return new JsonModel { data = new object(), Message = "Failed to mute stream", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<OpenTokRecordingDto>> StartRecordingAsync(string sessionId, OpenTokRecordingOptions options)
+    public async Task<JsonModel> StartRecordingAsync(string sessionId, OpenTokRecordingOptions options)
     {
         try
         {
@@ -215,32 +215,32 @@ public class OpenTokService : IOpenTokService
             };
 
             _logger.LogInformation("Started recording for session: {SessionId}, recording: {RecordingId}", sessionId, recordingDto.RecordingId);
-            return ApiResponse<OpenTokRecordingDto>.SuccessResponse(recordingDto, "Recording started successfully");
+            return new JsonModel { data = recordingDto, Message = "Recording started successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error starting recording for session: {SessionId}", sessionId);
-            return ApiResponse<OpenTokRecordingDto>.ErrorResponse("Failed to start recording", 500);
+            return new JsonModel { data = new object(), Message = "Failed to start recording", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> StopRecordingAsync(string recordingId)
+    public async Task<JsonModel> StopRecordingAsync(string recordingId)
     {
         try
         {
             // Note: OpenTok doesn't have a direct stop recording method
             // This would typically be handled through the OpenTok dashboard or REST API
             _logger.LogInformation("Stopped recording: {RecordingId}", recordingId);
-            return ApiResponse<bool>.SuccessResponse(true, "Recording stopped successfully");
+            return new JsonModel { data = true, Message = "Recording stopped successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error stopping recording: {RecordingId}", recordingId);
-            return ApiResponse<bool>.ErrorResponse("Failed to stop recording", 500);
+            return new JsonModel { data = new object(), Message = "Failed to stop recording", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<OpenTokRecordingDto>> GetRecordingAsync(string recordingId)
+    public async Task<JsonModel> GetRecordingAsync(string recordingId)
     {
         try
         {
@@ -259,16 +259,16 @@ public class OpenTokService : IOpenTokService
                 Duration = TimeSpan.Zero // Placeholder
             };
 
-            return ApiResponse<OpenTokRecordingDto>.SuccessResponse(recordingDto, "Recording retrieved successfully");
+            return new JsonModel { data = recordingDto, Message = "Recording retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving recording: {RecordingId}", recordingId);
-            return ApiResponse<OpenTokRecordingDto>.ErrorResponse("Failed to retrieve recording", 500);
+            return new JsonModel { data = new object(), Message = "Failed to retrieve recording", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<OpenTokRecordingDto>>> GetSessionRecordingsAsync(string sessionId)
+    public async Task<JsonModel> GetSessionRecordingsAsync(string sessionId)
     {
         try
         {
@@ -277,16 +277,16 @@ public class OpenTokService : IOpenTokService
             var recordings = new List<OpenTokRecordingDto>();
             
             _logger.LogInformation("Retrieved {Count} recordings for session: {SessionId}", recordings.Count, sessionId);
-            return ApiResponse<IEnumerable<OpenTokRecordingDto>>.SuccessResponse(recordings, "Recordings retrieved successfully");
+            return new JsonModel { data = recordings, Message = "Recordings retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving recordings for session: {SessionId}", sessionId);
-            return ApiResponse<IEnumerable<OpenTokRecordingDto>>.ErrorResponse("Failed to retrieve recordings", 500);
+            return new JsonModel { data = new object(), Message = "Failed to retrieve recordings", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<string>> GetRecordingUrlAsync(string recordingId)
+    public async Task<JsonModel> GetRecordingUrlAsync(string recordingId)
     {
         try
         {
@@ -294,16 +294,16 @@ public class OpenTokService : IOpenTokService
             // This would typically be handled through the OpenTok dashboard or REST API
             var url = $"https://api.opentok.com/v2/archive/{recordingId}/url"; // Placeholder URL
 
-            return ApiResponse<string>.SuccessResponse(url, "Recording URL retrieved successfully");
+            return new JsonModel { data = url, Message = "Recording URL retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving recording URL: {RecordingId}", recordingId);
-            return ApiResponse<string>.ErrorResponse("Failed to retrieve recording URL", 500);
+            return new JsonModel { data = new object(), Message = "Failed to retrieve recording URL", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<OpenTokBroadcastDto>> StartBroadcastAsync(string sessionId, OpenTokBroadcastOptions options)
+    public async Task<JsonModel> StartBroadcastAsync(string sessionId, OpenTokBroadcastOptions options)
     {
         try
         {
@@ -321,32 +321,32 @@ public class OpenTokService : IOpenTokService
             };
 
             _logger.LogInformation("Started broadcast for session: {SessionId}, broadcast: {BroadcastId}", sessionId, broadcastDto.BroadcastId);
-            return ApiResponse<OpenTokBroadcastDto>.SuccessResponse(broadcastDto, "Broadcast started successfully");
+            return new JsonModel { data = broadcastDto, Message = "Broadcast started successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error starting broadcast for session: {SessionId}", sessionId);
-            return ApiResponse<OpenTokBroadcastDto>.ErrorResponse("Failed to start broadcast", 500);
+            return new JsonModel { data = new object(), Message = "Failed to start broadcast", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> StopBroadcastAsync(string broadcastId)
+    public async Task<JsonModel> StopBroadcastAsync(string broadcastId)
     {
         try
         {
             // Note: OpenTok doesn't have a direct stop broadcast method
             // This would typically be handled through the OpenTok dashboard or REST API
             _logger.LogInformation("Stopped broadcast: {BroadcastId}", broadcastId);
-            return ApiResponse<bool>.SuccessResponse(true, "Broadcast stopped successfully");
+            return new JsonModel { data = true, Message = "Broadcast stopped successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error stopping broadcast: {BroadcastId}", broadcastId);
-            return ApiResponse<bool>.ErrorResponse("Failed to stop broadcast", 500);
+            return new JsonModel { data = new object(), Message = "Failed to stop broadcast", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<OpenTokBroadcastDto>> GetBroadcastAsync(string broadcastId)
+    public async Task<JsonModel> GetBroadcastAsync(string broadcastId)
     {
         try
         {
@@ -365,16 +365,16 @@ public class OpenTokService : IOpenTokService
                 StoppedAt = DateTime.UtcNow // Placeholder
             };
 
-            return ApiResponse<OpenTokBroadcastDto>.SuccessResponse(broadcastDto, "Broadcast retrieved successfully");
+            return new JsonModel { data = broadcastDto, Message = "Broadcast retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving broadcast: {BroadcastId}", broadcastId);
-            return ApiResponse<OpenTokBroadcastDto>.ErrorResponse("Failed to retrieve broadcast", 500);
+            return new JsonModel { data = new object(), Message = "Failed to retrieve broadcast", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> HandleWebhookAsync(OpenTokWebhookDto webhook)
+    public async Task<JsonModel> HandleWebhookAsync(OpenTokWebhookDto webhook)
     {
         try
         {
@@ -403,16 +403,16 @@ public class OpenTokService : IOpenTokService
                     break;
             }
 
-            return ApiResponse<bool>.SuccessResponse(true, "Webhook processed successfully");
+            return new JsonModel { data = true, Message = "Webhook processed successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing OpenTok webhook: {EventType}", webhook.EventType);
-            return ApiResponse<bool>.ErrorResponse("Failed to process webhook", 500);
+            return new JsonModel { data = new object(), Message = "Failed to process webhook", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> LogSessionEventAsync(string sessionId, OpenTokEventType eventType, string connectionId, string? streamId = null)
+    public async Task<JsonModel> LogSessionEventAsync(string sessionId, OpenTokEventType eventType, string connectionId, string? streamId = null)
     {
         try
         {
@@ -422,16 +422,16 @@ public class OpenTokService : IOpenTokService
             // Here you would typically log to your database
             // For now, we'll just log to the console
 
-            return ApiResponse<bool>.SuccessResponse(true, "Event logged successfully");
+            return new JsonModel { data = true, Message = "Event logged successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error logging session event: {EventType} for session: {SessionId}", eventType, sessionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to log event", 500);
+            return new JsonModel { data = new object(), Message = "Failed to log event", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<OpenTokSessionAnalyticsDto>> GetSessionAnalyticsAsync(string sessionId)
+    public async Task<JsonModel> GetSessionAnalyticsAsync(string sessionId)
     {
         try
         {
@@ -451,16 +451,16 @@ public class OpenTokService : IOpenTokService
                 CreatedAt = DateTime.UtcNow
             };
 
-            return ApiResponse<OpenTokSessionAnalyticsDto>.SuccessResponse(analytics, "Analytics retrieved successfully");
+            return new JsonModel { data = analytics, Message = "Analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving analytics for session: {SessionId}", sessionId);
-            return ApiResponse<OpenTokSessionAnalyticsDto>.ErrorResponse("Failed to retrieve analytics", 500);
+            return new JsonModel { data = new object(), Message = "Failed to retrieve analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<OpenTokConnectionQualityDto>> GetConnectionQualityAsync(string sessionId, string connectionId)
+    public async Task<JsonModel> GetConnectionQualityAsync(string sessionId, string connectionId)
     {
         try
         {
@@ -478,16 +478,16 @@ public class OpenTokService : IOpenTokService
                 Timestamp = DateTime.UtcNow
             };
 
-            return ApiResponse<OpenTokConnectionQualityDto>.SuccessResponse(quality, "Connection quality retrieved successfully");
+            return new JsonModel { data = quality, Message = "Connection quality retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving connection quality for session: {SessionId}, connection: {ConnectionId}", sessionId, connectionId);
-            return ApiResponse<OpenTokConnectionQualityDto>.ErrorResponse("Failed to retrieve connection quality", 500);
+            return new JsonModel { data = new object(), Message = "Failed to retrieve connection quality", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> IsServiceHealthyAsync()
+    public async Task<JsonModel> IsServiceHealthyAsync()
     {
         try
         {
@@ -495,12 +495,12 @@ public class OpenTokService : IOpenTokService
             var session = await Task.Run(() => _openTok.CreateSession());
             
             _logger.LogInformation("OpenTok service health check passed");
-            return ApiResponse<bool>.SuccessResponse(true, "Service is healthy");
+            return new JsonModel { data = true, Message = "Service is healthy", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "OpenTok service health check failed");
-            return ApiResponse<bool>.ErrorResponse("Service is unhealthy", 500);
+            return new JsonModel { data = new object(), Message = "Service is unhealthy", StatusCode = 500 };
         }
     }
 } 

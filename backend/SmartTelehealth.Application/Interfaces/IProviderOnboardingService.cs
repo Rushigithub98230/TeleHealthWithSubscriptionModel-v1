@@ -4,17 +4,17 @@ namespace SmartTelehealth.Application.Interfaces;
 
 public interface IProviderOnboardingService
 {
-    Task<ApiResponse<ProviderOnboardingDto>> CreateOnboardingAsync(CreateProviderOnboardingDto createDto);
-    Task<ApiResponse<ProviderOnboardingDto>> GetOnboardingAsync(Guid id);
-    Task<ApiResponse<ProviderOnboardingDto>> GetOnboardingByUserIdAsync(int userId);
-    Task<ApiResponse<ProviderOnboardingDto>> UpdateOnboardingAsync(Guid id, UpdateProviderOnboardingDto updateDto);
-    Task<ApiResponse<ProviderOnboardingDto>> SubmitOnboardingAsync(Guid id);
-    Task<ApiResponse<ProviderOnboardingDto>> ReviewOnboardingAsync(Guid id, ReviewProviderOnboardingDto reviewDto);
-    Task<ApiResponse<IEnumerable<ProviderOnboardingDto>>> GetAllOnboardingsAsync(string? status = null, int page = 1, int pageSize = 50);
-    Task<ApiResponse<IEnumerable<ProviderOnboardingDto>>> GetPendingOnboardingsAsync();
-    Task<ApiResponse<IEnumerable<ProviderOnboardingDto>>> GetOnboardingsByStatusAsync(string status);
-    Task<ApiResponse<bool>> DeleteOnboardingAsync(Guid id);
-    Task<ApiResponse<OnboardingStatisticsDto>> GetOnboardingStatisticsAsync();
+    Task<JsonModel> CreateOnboardingAsync(CreateProviderOnboardingDto createDto);
+    Task<JsonModel> GetOnboardingAsync(Guid id);
+    Task<JsonModel> GetOnboardingByUserIdAsync(int userId);
+    Task<JsonModel> UpdateOnboardingAsync(Guid id, UpdateProviderOnboardingDto updateDto);
+    Task<JsonModel> SubmitOnboardingAsync(Guid id);
+    Task<JsonModel> ReviewOnboardingAsync(Guid id, ReviewProviderOnboardingDto reviewDto);
+    Task<JsonModel> GetAllOnboardingsAsync(string? status = null, int page = 1, int pageSize = 50);
+    Task<JsonModel> GetPendingOnboardingsAsync();
+    Task<JsonModel> GetOnboardingsByStatusAsync(string status);
+    Task<JsonModel> DeleteOnboardingAsync(Guid id);
+    Task<JsonModel> GetOnboardingStatisticsAsync();
 }
 
 public class OnboardingStatisticsDto

@@ -29,7 +29,7 @@ public class VideoCallController : ControllerBase
     /// Create a new video call session
     /// </summary>
     [HttpPost("sessions")]
-    public async Task<ActionResult<ApiResponse<OpenTokSessionDto>>> CreateSession([FromBody] CreateVideoSessionDto createDto)
+    public async Task<ActionResult<JsonModel> CreateSession([FromBody] CreateVideoSessionDto createDto)
     {
         try
         {
@@ -51,7 +51,7 @@ public class VideoCallController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating video session");
-            return StatusCode(500, ApiResponse<OpenTokSessionDto>.ErrorResponse("Failed to create video session", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to create video session", 500));
         }
     }
 
@@ -59,7 +59,7 @@ public class VideoCallController : ControllerBase
     /// Generate a token for joining a video session
     /// </summary>
     [HttpPost("sessions/{sessionId}/token")]
-    public async Task<ActionResult<ApiResponse<string>>> GenerateToken(
+    public async Task<ActionResult<JsonModel> GenerateToken(
         string sessionId, 
         [FromBody] GenerateTokenDto generateDto)
     {
@@ -82,7 +82,7 @@ public class VideoCallController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating token for session: {SessionId}", sessionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to generate token", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to generate token", 500));
         }
     }
 
@@ -90,7 +90,7 @@ public class VideoCallController : ControllerBase
     /// Get session information
     /// </summary>
     [HttpGet("sessions/{sessionId}")]
-    public async Task<ActionResult<ApiResponse<OpenTokSessionDto>>> GetSession(string sessionId)
+    public async Task<ActionResult<JsonModel> GetSession(string sessionId)
     {
         try
         {
@@ -104,7 +104,7 @@ public class VideoCallController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving session: {SessionId}", sessionId);
-            return StatusCode(500, ApiResponse<OpenTokSessionDto>.ErrorResponse("Failed to retrieve session", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve session", 500));
         }
     }
 
@@ -112,7 +112,7 @@ public class VideoCallController : ControllerBase
     /// Start recording a video session
     /// </summary>
     [HttpPost("sessions/{sessionId}/recordings")]
-    public async Task<ActionResult<ApiResponse<OpenTokRecordingDto>>> StartRecording(
+    public async Task<ActionResult<JsonModel> StartRecording(
         string sessionId, 
         [FromBody] StartRecordingDto recordingDto)
     {
@@ -139,7 +139,7 @@ public class VideoCallController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error starting recording for session: {SessionId}", sessionId);
-            return StatusCode(500, ApiResponse<OpenTokRecordingDto>.ErrorResponse("Failed to start recording", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to start recording", 500));
         }
     }
 
@@ -147,7 +147,7 @@ public class VideoCallController : ControllerBase
     /// Stop recording a video session
     /// </summary>
     [HttpPost("recordings/{recordingId}/stop")]
-    public async Task<ActionResult<ApiResponse<bool>>> StopRecording(string recordingId)
+    public async Task<ActionResult<JsonModel> StopRecording(string recordingId)
     {
         try
         {
@@ -161,7 +161,7 @@ public class VideoCallController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error stopping recording: {RecordingId}", recordingId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Failed to stop recording", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to stop recording", 500));
         }
     }
 
@@ -169,7 +169,7 @@ public class VideoCallController : ControllerBase
     /// Get session recordings
     /// </summary>
     [HttpGet("sessions/{sessionId}/recordings")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<OpenTokRecordingDto>>>> GetSessionRecordings(string sessionId)
+    public async Task<ActionResult<JsonModel>> GetSessionRecordings(string sessionId)
     {
         try
         {
@@ -183,7 +183,7 @@ public class VideoCallController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving recordings for session: {SessionId}", sessionId);
-            return StatusCode(500, ApiResponse<IEnumerable<OpenTokRecordingDto>>.ErrorResponse("Failed to retrieve recordings", 500));
+            return StatusCode(500, JsonModel>.ErrorResponse("Failed to retrieve recordings", 500));
         }
     }
 
@@ -191,7 +191,7 @@ public class VideoCallController : ControllerBase
     /// Start broadcasting a video session
     /// </summary>
     [HttpPost("sessions/{sessionId}/broadcasts")]
-    public async Task<ActionResult<ApiResponse<OpenTokBroadcastDto>>> StartBroadcast(
+    public async Task<ActionResult<JsonModel> StartBroadcast(
         string sessionId, 
         [FromBody] StartBroadcastDto broadcastDto)
     {
@@ -217,7 +217,7 @@ public class VideoCallController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error starting broadcast for session: {SessionId}", sessionId);
-            return StatusCode(500, ApiResponse<OpenTokBroadcastDto>.ErrorResponse("Failed to start broadcast", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to start broadcast", 500));
         }
     }
 
@@ -225,7 +225,7 @@ public class VideoCallController : ControllerBase
     /// Stop broadcasting a video session
     /// </summary>
     [HttpPost("broadcasts/{broadcastId}/stop")]
-    public async Task<ActionResult<ApiResponse<bool>>> StopBroadcast(string broadcastId)
+    public async Task<ActionResult<JsonModel> StopBroadcast(string broadcastId)
     {
         try
         {
@@ -239,7 +239,7 @@ public class VideoCallController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error stopping broadcast: {BroadcastId}", broadcastId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Failed to stop broadcast", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to stop broadcast", 500));
         }
     }
 
@@ -247,7 +247,7 @@ public class VideoCallController : ControllerBase
     /// Get session analytics
     /// </summary>
     [HttpGet("sessions/{sessionId}/analytics")]
-    public async Task<ActionResult<ApiResponse<OpenTokSessionAnalyticsDto>>> GetSessionAnalytics(string sessionId)
+    public async Task<ActionResult<JsonModel> GetSessionAnalytics(string sessionId)
     {
         try
         {
@@ -261,7 +261,7 @@ public class VideoCallController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving analytics for session: {SessionId}", sessionId);
-            return StatusCode(500, ApiResponse<OpenTokSessionAnalyticsDto>.ErrorResponse("Failed to retrieve analytics", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Failed to retrieve analytics", 500));
         }
     }
 
@@ -269,7 +269,7 @@ public class VideoCallController : ControllerBase
     /// Health check for video service
     /// </summary>
     [HttpGet("health")]
-    public async Task<ActionResult<ApiResponse<bool>>> HealthCheck()
+    public async Task<ActionResult<JsonModel> HealthCheck()
     {
         try
         {
@@ -279,7 +279,7 @@ public class VideoCallController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Video service health check failed");
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Video service is unhealthy", 500));
+            return StatusCode(500, JsonModel.ErrorResponse("Video service is unhealthy", 500));
         }
     }
 

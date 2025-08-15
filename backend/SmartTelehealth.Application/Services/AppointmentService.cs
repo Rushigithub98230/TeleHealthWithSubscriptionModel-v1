@@ -734,7 +734,7 @@ public class AppointmentService : IAppointmentService
         {
             var appointment = await _appointmentRepository.GetByIdAsync(id);
             if (appointment == null)
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel { data = new object(), Message = "Appointment not found", StatusCode = 500 };
 
                                                                   if (updateDto.AppointmentStatusId.HasValue)
                 appointment.AppointmentStatusId = updateDto.AppointmentStatusId.Value;

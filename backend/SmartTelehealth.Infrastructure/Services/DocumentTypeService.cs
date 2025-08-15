@@ -23,7 +23,7 @@ public class DocumentTypeService : IDocumentTypeService
         _logger = logger;
     }
 
-    public async Task<ApiResponse<DocumentTypeDto>> CreateDocumentTypeAsync(CreateDocumentTypeRequest request)
+    public async Task<JsonModel> CreateDocumentTypeAsync(CreateDocumentTypeRequest request)
     {
         try
         {
@@ -33,7 +33,7 @@ public class DocumentTypeService : IDocumentTypeService
             
             if (existingType.Any())
             {
-                return ApiResponse<DocumentTypeDto>.ErrorResponse("Document type with this name already exists", 400);
+                return new JsonModel { data = new object(), Message = "Document type with this name already exists", StatusCode = 400 };
             }
 
             var documentType = new DocumentType
@@ -60,18 +60,18 @@ public class DocumentTypeService : IDocumentTypeService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating document type {Name}", request.Name);
-            return ApiResponse<DocumentTypeDto>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentTypeDto>> GetDocumentTypeAsync(Guid documentTypeId)
+    public async Task<JsonModel> GetDocumentTypeAsync(Guid documentTypeId)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentType == null || documentType.IsDeleted)
             {
-                return ApiResponse<DocumentTypeDto>.ErrorResponse("Document type not found", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found", StatusCode = 404 };
             }
 
             // Get document count for this type
@@ -79,16 +79,16 @@ public class DocumentTypeService : IDocumentTypeService
                 d.DocumentTypeId == documentTypeId && !d.IsDeleted);
             var count = documentCount.Count();
 
-            return ApiResponse<DocumentTypeDto>.SuccessResponse(MapToDto(documentType, count));
+            return JsonModel.SuccessResponse(MapToDto(documentType, count));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<DocumentTypeDto>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentTypeDto>> GetByNameAsync(string name)
+    public async Task<JsonModel> GetByNameAsync(string name)
     {
         try
         {
@@ -98,7 +98,7 @@ public class DocumentTypeService : IDocumentTypeService
             var firstType = documentType.FirstOrDefault();
             if (firstType == null)
             {
-                return ApiResponse<DocumentTypeDto>.ErrorResponse("Document type not found", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found", StatusCode = 404 };
             }
 
             // Get document count for this type
@@ -106,29 +106,29 @@ public class DocumentTypeService : IDocumentTypeService
                 d.DocumentTypeId == firstType.Id && !d.IsDeleted);
             var count = documentCount.Count();
 
-            return ApiResponse<DocumentTypeDto>.SuccessResponse(MapToDto(firstType, count));
+            return JsonModel.SuccessResponse(MapToDto(firstType, count));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving document type by name {Name}", name);
-            return ApiResponse<DocumentTypeDto>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentTypeDto>> UpdateDocumentTypeAsync(Guid documentTypeId, UpdateDocumentTypeRequest request)
+    public async Task<JsonModel> UpdateDocumentTypeAsync(Guid documentTypeId, UpdateDocumentTypeRequest request)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentType == null || documentType.IsDeleted)
             {
-                return ApiResponse<DocumentTypeDto>.ErrorResponse("Document type not found", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found", StatusCode = 404 };
             }
 
             // Prevent modification of system-defined types
             if (documentType.IsSystemDefined)
             {
-                return ApiResponse<DocumentTypeDto>.ErrorResponse("Cannot modify system-defined document types", 403);
+                return new JsonModel { data = new object(), Message = "Cannot modify system-defined document types", StatusCode = 403 };
             }
 
             // Check if name is being changed and if it conflicts with existing types
@@ -141,7 +141,7 @@ public class DocumentTypeService : IDocumentTypeService
                 
                 if (existingType.Any())
                 {
-                    return ApiResponse<DocumentTypeDto>.ErrorResponse("Document type with this name already exists", 400);
+                    return new JsonModel { data = new object(), Message = "Document type with this name already exists", StatusCode = 400 };
                 }
             }
 
@@ -183,24 +183,24 @@ public class DocumentTypeService : IDocumentTypeService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<DocumentTypeDto>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteDocumentTypeAsync(Guid documentTypeId, Guid userId)
+    public async Task<JsonModel> DeleteDocumentTypeAsync(Guid documentTypeId, Guid userId)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentType == null || documentType.IsDeleted)
             {
-                return ApiResponse<bool>.ErrorResponse("Document type not found", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found", StatusCode = 404 };
             }
 
             // Prevent deletion of system-defined types
             if (documentType.IsSystemDefined)
             {
-                return ApiResponse<bool>.ErrorResponse("Cannot delete system-defined document types", 403);
+                return new JsonModel { data = new object(), Message = "Cannot delete system-defined document types", StatusCode = 403 };
             }
 
             // Check if there are documents using this type
@@ -209,35 +209,35 @@ public class DocumentTypeService : IDocumentTypeService
             
             if (documentsUsingType.Any())
             {
-                return ApiResponse<bool>.ErrorResponse("Cannot delete document type that has associated documents", 400);
+                return new JsonModel { data = new object(), Message = "Cannot delete document type that has associated documents", StatusCode = 400 };
             }
 
             await _documentTypeRepository.DeleteAsync(documentType);
             await _documentTypeRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> SoftDeleteDocumentTypeAsync(Guid documentTypeId, Guid userId)
+    public async Task<JsonModel> SoftDeleteDocumentTypeAsync(Guid documentTypeId, Guid userId)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentType == null || documentType.IsDeleted)
             {
-                return ApiResponse<bool>.ErrorResponse("Document type not found", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found", StatusCode = 404 };
             }
 
             // Prevent soft deletion of system-defined types
             if (documentType.IsSystemDefined)
             {
-                return ApiResponse<bool>.ErrorResponse("Cannot delete system-defined document types", 403);
+                return new JsonModel { data = new object(), Message = "Cannot delete system-defined document types", StatusCode = 403 };
             }
 
             documentType.IsDeleted = true;
@@ -247,16 +247,16 @@ public class DocumentTypeService : IDocumentTypeService
 
             await _documentTypeRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error soft deleting document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<List<DocumentTypeDto>>> GetAllDocumentTypesAsync(bool? isActive = null)
+    public async Task<JsonModel> GetAllDocumentTypesAsync(bool? isActive = null)
     {
         try
         {
@@ -279,16 +279,16 @@ public class DocumentTypeService : IDocumentTypeService
                 documentTypeDtos.Add(MapToDto(docType, count));
             }
 
-            return ApiResponse<List<DocumentTypeDto>>.SuccessResponse(documentTypeDtos);
+            return new JsonModel { data = .SuccessResponse(documentTypeDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all document types");
-            return ApiResponse<List<DocumentTypeDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<List<DocumentTypeDto>>> SearchDocumentTypesAsync(DocumentTypeSearchRequest request)
+    public async Task<JsonModel> SearchDocumentTypesAsync(DocumentTypeSearchRequest request)
     {
         try
         {
@@ -337,21 +337,21 @@ public class DocumentTypeService : IDocumentTypeService
                 .Take(request.PageSize)
                 .ToList();
 
-            return ApiResponse<List<DocumentTypeDto>>.SuccessResponse(pagedResults);
+            return new JsonModel { data = .SuccessResponse(pagedResults);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error searching document types");
-            return ApiResponse<List<DocumentTypeDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<List<DocumentTypeDto>>> GetActiveDocumentTypesAsync()
+    public async Task<JsonModel> GetActiveDocumentTypesAsync()
     {
         return await GetAllDocumentTypesAsync(true);
     }
 
-    public async Task<ApiResponse<List<DocumentTypeDto>>> GetSystemDocumentTypesAsync()
+    public async Task<JsonModel> GetSystemDocumentTypesAsync()
     {
         try
         {
@@ -367,16 +367,16 @@ public class DocumentTypeService : IDocumentTypeService
                 documentTypeDtos.Add(MapToDto(docType, count));
             }
 
-            return ApiResponse<List<DocumentTypeDto>>.SuccessResponse(documentTypeDtos);
+            return new JsonModel { data = .SuccessResponse(documentTypeDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting system document types");
-            return ApiResponse<List<DocumentTypeDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<List<DocumentTypeDto>>> GetAdminDocumentTypesAsync()
+    public async Task<JsonModel> GetAdminDocumentTypesAsync()
     {
         try
         {
@@ -392,21 +392,21 @@ public class DocumentTypeService : IDocumentTypeService
                 documentTypeDtos.Add(MapToDto(docType, count));
             }
 
-            return ApiResponse<List<DocumentTypeDto>>.SuccessResponse(documentTypeDtos);
+            return new JsonModel { data = .SuccessResponse(documentTypeDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting admin document types");
-            return ApiResponse<List<DocumentTypeDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentTypeDto>> GetDocumentTypeWithStatsAsync(Guid documentTypeId)
+    public async Task<JsonModel> GetDocumentTypeWithStatsAsync(Guid documentTypeId)
     {
         return await GetDocumentTypeAsync(documentTypeId);
     }
 
-    public async Task<ApiResponse<List<DocumentTypeDto>>> GetPopularDocumentTypesAsync(int limit = 10)
+    public async Task<JsonModel> GetPopularDocumentTypesAsync(int limit = 10)
     {
         try
         {
@@ -428,51 +428,51 @@ public class DocumentTypeService : IDocumentTypeService
                 .Select(x => MapToDto(x.Type, x.Count))
                 .ToList();
 
-            return ApiResponse<List<DocumentTypeDto>>.SuccessResponse(popularTypes);
+            return new JsonModel { data = .SuccessResponse(popularTypes);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting popular document types");
-            return ApiResponse<List<DocumentTypeDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ValidateDocumentTypeAsync(Guid documentTypeId)
+    public async Task<JsonModel> ValidateDocumentTypeAsync(Guid documentTypeId)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
-            return ApiResponse<bool>.SuccessResponse(documentType != null && !documentType.IsDeleted);
+            return new JsonModel { data = documentType != null && !documentType.IsDeleted, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> IsDocumentTypeActiveAsync(Guid documentTypeId)
+    public async Task<JsonModel> IsDocumentTypeActiveAsync(Guid documentTypeId)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
-            return ApiResponse<bool>.SuccessResponse(documentType != null && !documentType.IsDeleted && documentType.IsActive);
+            return new JsonModel { data = documentType != null && !documentType.IsDeleted && documentType.IsActive, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if document type is active {DocumentTypeId}", documentTypeId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<DocumentTypeValidationResponse>> ValidateFileAgainstDocumentTypeAsync(DocumentTypeValidationRequest request)
+    public async Task<JsonModel> ValidateFileAgainstDocumentTypeAsync(DocumentTypeValidationRequest request)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(request.DocumentTypeId);
             if (documentType == null || documentType.IsDeleted || !documentType.IsActive)
             {
-                return ApiResponse<DocumentTypeValidationResponse>.ErrorResponse("Document type not found or inactive", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found or inactive", StatusCode = 404 };
             }
 
             var validationErrors = new List<string>();
@@ -503,63 +503,63 @@ public class DocumentTypeService : IDocumentTypeService
                 AllowedExtensions = documentType.GetAllowedExtensionsList()
             };
 
-            return ApiResponse<DocumentTypeValidationResponse>.SuccessResponse(response);
+            return new JsonModel { data = response, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating file against document type {DocumentTypeId}", request.DocumentTypeId);
-            return ApiResponse<DocumentTypeValidationResponse>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ValidateFileExtensionAsync(Guid documentTypeId, string fileName)
+    public async Task<JsonModel> ValidateFileExtensionAsync(Guid documentTypeId, string fileName)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentType == null || documentType.IsDeleted || !documentType.IsActive)
             {
-                return ApiResponse<bool>.ErrorResponse("Document type not found or inactive", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found or inactive", StatusCode = 404 };
             }
 
             var isValid = documentType.IsValidFileExtension(fileName);
-            return ApiResponse<bool>.SuccessResponse(isValid);
+            return new JsonModel { data = isValid, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating file extension for document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ValidateFileSizeAsync(Guid documentTypeId, long fileSizeBytes)
+    public async Task<JsonModel> ValidateFileSizeAsync(Guid documentTypeId, long fileSizeBytes)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentType == null || documentType.IsDeleted || !documentType.IsActive)
             {
-                return ApiResponse<bool>.ErrorResponse("Document type not found or inactive", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found or inactive", StatusCode = 404 };
             }
 
             var isValid = documentType.IsValidFileSize(fileSizeBytes);
-            return ApiResponse<bool>.SuccessResponse(isValid);
+            return new JsonModel { data = isValid, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating file size for document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ActivateDocumentTypeAsync(Guid documentTypeId, Guid userId)
+    public async Task<JsonModel> ActivateDocumentTypeAsync(Guid documentTypeId, Guid userId)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentType == null || documentType.IsDeleted)
             {
-                return ApiResponse<bool>.ErrorResponse("Document type not found", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found", StatusCode = 404 };
             }
 
             documentType.IsActive = true;
@@ -568,23 +568,23 @@ public class DocumentTypeService : IDocumentTypeService
 
             await _documentTypeRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error activating document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeactivateDocumentTypeAsync(Guid documentTypeId, Guid userId)
+    public async Task<JsonModel> DeactivateDocumentTypeAsync(Guid documentTypeId, Guid userId)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentType == null || documentType.IsDeleted)
             {
-                return ApiResponse<bool>.ErrorResponse("Document type not found", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found", StatusCode = 404 };
             }
 
             documentType.IsActive = false;
@@ -593,16 +593,16 @@ public class DocumentTypeService : IDocumentTypeService
 
             await _documentTypeRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deactivating document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ActivateMultipleDocumentTypesAsync(List<Guid> documentTypeIds, Guid userId)
+    public async Task<JsonModel> ActivateMultipleDocumentTypesAsync(List<Guid> documentTypeIds, Guid userId)
     {
         try
         {
@@ -611,16 +611,16 @@ public class DocumentTypeService : IDocumentTypeService
                 await ActivateDocumentTypeAsync(documentTypeId, userId);
             }
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error activating multiple document types");
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeactivateMultipleDocumentTypesAsync(List<Guid> documentTypeIds, Guid userId)
+    public async Task<JsonModel> DeactivateMultipleDocumentTypesAsync(List<Guid> documentTypeIds, Guid userId)
     {
         try
         {
@@ -629,23 +629,23 @@ public class DocumentTypeService : IDocumentTypeService
                 await DeactivateDocumentTypeAsync(documentTypeId, userId);
             }
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deactivating multiple document types");
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> IncrementUsageCountAsync(Guid documentTypeId)
+    public async Task<JsonModel> IncrementUsageCountAsync(Guid documentTypeId)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentType == null || documentType.IsDeleted)
             {
-                return ApiResponse<bool>.ErrorResponse("Document type not found", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found", StatusCode = 404 };
             }
 
             documentType.UsageCount++;
@@ -654,23 +654,23 @@ public class DocumentTypeService : IDocumentTypeService
 
             await _documentTypeRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error incrementing usage count for document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateLastUsedAtAsync(Guid documentTypeId)
+    public async Task<JsonModel> UpdateLastUsedAtAsync(Guid documentTypeId)
     {
         try
         {
             var documentType = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentType == null || documentType.IsDeleted)
             {
-                return ApiResponse<bool>.ErrorResponse("Document type not found", 404);
+                return new JsonModel { data = new object(), Message = "Document type not found", StatusCode = 404 };
             }
 
             documentType.LastUsedAt = DateTime.UtcNow;
@@ -678,16 +678,16 @@ public class DocumentTypeService : IDocumentTypeService
 
             await _documentTypeRepository.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating last used at for document type {DocumentTypeId}", documentTypeId);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> CreateSystemDocumentTypeAsync(CreateDocumentTypeRequest request)
+    public async Task<JsonModel> CreateSystemDocumentTypeAsync(CreateDocumentTypeRequest request)
     {
         try
         {
@@ -696,16 +696,16 @@ public class DocumentTypeService : IDocumentTypeService
             request.CreatedById = Guid.Empty; // System user
 
             var result = await CreateDocumentTypeAsync(request);
-            return ApiResponse<bool>.SuccessResponse(result.Success);
+            return new JsonModel { data = result.Success, Message = "Success", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating system document type {Name}", request.Name);
-            return ApiResponse<bool>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<List<DocumentTypeDto>>> GetDocumentTypesForEntityAsync(string entityType, bool? isActive = null)
+    public async Task<JsonModel> GetDocumentTypesForEntityAsync(string entityType, bool? isActive = null)
     {
         try
         {
@@ -725,12 +725,12 @@ public class DocumentTypeService : IDocumentTypeService
                 filteredTypes.Add(MapToDto(docType, count));
             }
 
-            return ApiResponse<List<DocumentTypeDto>>.SuccessResponse(filteredTypes);
+            return new JsonModel { data = .SuccessResponse(filteredTypes);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting document types for entity {EntityType}", entityType);
-            return ApiResponse<List<DocumentTypeDto>>.ErrorResponse("Internal server error", 500);
+            return new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 };
         }
     }
 

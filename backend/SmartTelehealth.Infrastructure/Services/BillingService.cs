@@ -38,7 +38,7 @@ public class BillingService : IBillingService
         _auditService = auditService;
     }
     
-    public async Task<ApiResponse<BillingRecordDto>> CreateBillingRecordAsync(CreateBillingRecordDto createDto)
+    public async Task<JsonModel> CreateBillingRecordAsync(CreateBillingRecordDto createDto)
     {
         try
         {
@@ -63,7 +63,12 @@ public class BillingService : IBillingService
                 "Success"
             );
             
-            return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Billing record created successfully");
+            return new JsonModel
+            {
+                data = billingRecordDto,
+                Message = "Billing record created successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
@@ -74,30 +79,50 @@ public class BillingService : IBillingService
                 "N/A",
                 ex.Message
             );
-            return ApiResponse<BillingRecordDto>.ErrorResponse("An error occurred while creating the billing record", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while creating the billing record",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task<ApiResponse<BillingRecordDto>> ProcessPaymentAsync(Guid billingRecordId)
+    public async Task<JsonModel> ProcessPaymentAsync(Guid billingRecordId)
     {
         return await ProcessPaymentWithRetryAsync(billingRecordId, 0);
     }
 
-    private async Task<ApiResponse<BillingRecordDto>> ProcessPaymentWithRetryAsync(Guid billingRecordId, int attempt)
+    private async Task<JsonModel> ProcessPaymentWithRetryAsync(Guid billingRecordId, int attempt)
     {
         try
         {
             var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
             if (billingRecord == null)
-                return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Billing record not found",
+                    StatusCode = 404
+                };
             
             if (billingRecord.Status == BillingRecord.BillingStatus.Paid)
-                return ApiResponse<BillingRecordDto>.ErrorResponse("Payment has already been processed", 400);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Payment has already been processed",
+                    StatusCode = 400
+                };
             
             // Get user's default payment method
             var user = await _userRepository.GetByIdAsync(billingRecord.UserId);
             if (user == null)
-                return ApiResponse<BillingRecordDto>.ErrorResponse("User not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "User not found",
+                    StatusCode = 404
+                };
 
             var paymentMethods = await _stripeService.GetCustomerPaymentMethodsAsync(billingRecord.UserId.ToString());
             var defaultPaymentMethod = paymentMethods.FirstOrDefault(pm => pm.IsDefault);
@@ -113,7 +138,12 @@ public class BillingService : IBillingService
                 await SendPaymentNotificationsAsync(MapToDto(billingRecord), false);
                 await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "PaymentFailed", billingRecord.Id.ToString(), "Failed", "No default payment method");
                 
-                return ApiResponse<BillingRecordDto>.ErrorResponse("No default payment method found", 400);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "No default payment method found",
+                    StatusCode = 400
+                };
             }
 
             // Process payment through Stripe with retry logic
@@ -147,7 +177,12 @@ public class BillingService : IBillingService
                     null
                 );
 
-                return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Payment processed successfully");
+                return new JsonModel
+                {
+                    data = billingRecordDto,
+                    Message = "Payment processed successfully",
+                    StatusCode = 200
+                };
             }
             else
             {
@@ -197,11 +232,16 @@ public class BillingService : IBillingService
                 _logger.LogError(updateEx, "Error updating billing record status after payment failure");
             }
             
-            return ApiResponse<BillingRecordDto>.ErrorResponse("An error occurred while processing payment", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while processing payment",
+                StatusCode = 500
+            };
         }
     }
 
-    private async Task<ApiResponse<BillingRecordDto>> HandleFailedPaymentWithRetryAsync(BillingRecord billingRecord, PaymentResultDto paymentResult, int attempt)
+    private async Task<JsonModel> HandleFailedPaymentWithRetryAsync(BillingRecord billingRecord, PaymentResultDto paymentResult, int attempt)
     {
         // Update billing record as failed
         billingRecord.Status = BillingRecord.BillingStatus.Failed;
@@ -238,7 +278,12 @@ public class BillingService : IBillingService
         // Final failure - handle immediate suspension
         await HandleImmediateSuspensionAsync(billingRecord);
         
-        return ApiResponse<BillingRecordDto>.ErrorResponse($"Payment failed: {paymentResult.ErrorMessage}", 400);
+        return new JsonModel
+        {
+            data = new object(),
+            Message = $"Payment failed: {paymentResult.ErrorMessage}",
+            StatusCode = 400
+        };
     }
 
     private async Task HandleImmediateSuspensionAsync(BillingRecord billingRecord)
@@ -271,16 +316,26 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<ApiResponse<PaymentResultDto>> RetryPaymentAsync(Guid billingRecordId)
+    public async Task<JsonModel> RetryPaymentAsync(Guid billingRecordId)
     {
         try
         {
             var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
             if (billingRecord == null)
-                return ApiResponse<PaymentResultDto>.ErrorResponse("Billing record not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Billing record not found",
+                    StatusCode = 404
+                };
 
             if (billingRecord.Status == BillingRecord.BillingStatus.Paid)
-                return ApiResponse<PaymentResultDto>.ErrorResponse("Payment has already been processed", 400);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Payment has already been processed",
+                    StatusCode = 400
+                };
 
             // Reset status to pending for retry
             billingRecord.Status = BillingRecord.BillingStatus.Pending;
@@ -291,39 +346,71 @@ public class BillingService : IBillingService
             // Process payment with retry
             var result = await ProcessPaymentWithRetryAsync(billingRecordId, 0);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
-                return ApiResponse<PaymentResultDto>.SuccessResponse(new PaymentResultDto
+                var paymentResult = new PaymentResultDto
                 {
-                    PaymentIntentId = result.Data?.PaymentIntentId ?? string.Empty,
+                    PaymentIntentId = result.data is BillingRecordDto dto ? dto.PaymentIntentId : string.Empty,
                     Status = "succeeded",
-                    Amount = result.Data?.Amount ?? 0,
+                    Amount = result.data is BillingRecordDto dto2 ? dto2.Amount : 0,
                     Currency = "usd"
-                }, "Payment retry successful");
+                };
+                
+                return new JsonModel
+                {
+                    data = paymentResult,
+                    Message = "Payment retry successful",
+                    StatusCode = 200
+                };
             }
             
-            return ApiResponse<PaymentResultDto>.ErrorResponse("Payment retry failed", 400);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Payment retry failed",
+                StatusCode = 400
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrying payment for billing record {BillingRecordId}", billingRecordId);
-            return ApiResponse<PaymentResultDto>.ErrorResponse("Failed to retry payment", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to retry payment",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<RefundResultDto>> ProcessRefundAsync(Guid billingRecordId, decimal amount, string reason)
+    public async Task<JsonModel> ProcessRefundAsync(Guid billingRecordId, decimal amount, string reason)
     {
         try
         {
             var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
             if (billingRecord == null)
-                return ApiResponse<RefundResultDto>.ErrorResponse("Billing record not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Billing record not found",
+                    StatusCode = 404
+                };
 
             if (billingRecord.Status != BillingRecord.BillingStatus.Paid)
-                return ApiResponse<RefundResultDto>.ErrorResponse("Only paid billing records can be refunded", 400);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Only paid billing records can be refunded",
+                    StatusCode = 400
+                };
 
             if (string.IsNullOrEmpty(billingRecord.PaymentIntentId))
-                return ApiResponse<RefundResultDto>.ErrorResponse("No payment intent found for refund", 400);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "No payment intent found for refund",
+                    StatusCode = 400
+                };
 
             // Process refund through Stripe
             var refundResult = await _stripeService.ProcessRefundAsync(billingRecord.PaymentIntentId, amount);
@@ -363,39 +450,69 @@ public class BillingService : IBillingService
                     reason
                 );
 
-                return ApiResponse<RefundResultDto>.SuccessResponse(new RefundResultDto
+                return new JsonModel
                 {
-                    BillingRecordId = billingRecordId,
-                    RefundAmount = amount,
-                    Status = "completed",
-                    ProcessedAt = DateTime.UtcNow,
-                    Reason = reason
-                }, "Refund processed successfully");
+                    data = new RefundResultDto
+                    {
+                        BillingRecordId = billingRecordId,
+                        RefundAmount = amount,
+                        Status = "completed",
+                        ProcessedAt = DateTime.UtcNow,
+                        Reason = reason
+                    },
+                    Message = "Refund processed successfully",
+                    StatusCode = 200
+                };
             }
             
-            return ApiResponse<RefundResultDto>.ErrorResponse("Failed to process refund", 400);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to process refund",
+                StatusCode = 400
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing refund for billing record {BillingRecordId}", billingRecordId);
-            return ApiResponse<RefundResultDto>.ErrorResponse("Failed to process refund", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to process refund",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<BillingRecordDto>> GetBillingRecordAsync(Guid billingRecordId)
+    public async Task<JsonModel> GetBillingRecordAsync(Guid billingRecordId)
     {
         try
         {
             var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
             if (billingRecord == null)
-                return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Billing record not found",
+                    StatusCode = 404
+                };
 
-            return ApiResponse<BillingRecordDto>.SuccessResponse(MapToDto(billingRecord));
+            return new JsonModel
+            {
+                data = MapToDto(billingRecord),
+                Message = "Billing record retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting billing record {BillingRecordId}", billingRecordId);
-            return ApiResponse<BillingRecordDto>.ErrorResponse("Failed to retrieve billing record", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to retrieve billing record",
+                StatusCode = 500
+            };
         }
     }
 
@@ -428,7 +545,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<ApiResponse<PaymentAnalyticsDto>> GetPaymentAnalyticsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetPaymentAnalyticsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -465,12 +582,22 @@ public class BillingService : IBillingService
 
             analytics.MonthlyPayments = monthlyPayments;
 
-            return ApiResponse<PaymentAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel
+            {
+                data = analytics,
+                Message = "Payment analytics retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting payment analytics for user {UserId}", userId);
-            return ApiResponse<PaymentAnalyticsDto>.ErrorResponse("Error retrieving payment analytics", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error retrieving payment analytics",
+                StatusCode = 500
+            };
         }
     }
 
@@ -617,7 +744,7 @@ public class BillingService : IBillingService
     /// <summary>
     /// Aggregate accrued and cash revenue for admin reporting
     /// </summary>
-    public async Task<ApiResponse<RevenueSummaryDto>> GetRevenueSummaryAsync(DateTime? from = null, DateTime? to = null, string? planId = null)
+    public async Task<JsonModel> GetRevenueSummaryAsync(DateTime? from = null, DateTime? to = null, string? planId = null)
     {
         // TODO: Implement filtering by planId, type, status
         var allRecords = await _billingRepository.GetAllAsync();
@@ -640,11 +767,16 @@ public class BillingService : IBillingService
             TotalRefunded = totalRefunded,
             AsOf = now
         };
-        return ApiResponse<RevenueSummaryDto>.SuccessResponse(summary);
+        return new JsonModel
+        {
+            data = summary,
+            Message = "Revenue summary retrieved successfully",
+            StatusCode = 200
+        };
     }
 
     // PHASE 2 STUBS
-    public async Task<ApiResponse<BillingRecordDto>> CreateRecurringBillingAsync(CreateRecurringBillingDto createDto)
+    public async Task<JsonModel> CreateRecurringBillingAsync(CreateRecurringBillingDto createDto)
     {
         var billingRecord = new BillingRecord
         {
@@ -659,18 +791,28 @@ public class BillingService : IBillingService
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
         await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "RecurringBillingCreated", createdRecord.Id.ToString(), "Success");
-        return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Recurring billing record created successfully");
+        return new JsonModel
+        {
+            data = billingRecordDto,
+            Message = "Recurring billing record created successfully",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<BillingRecordDto>> ProcessRecurringPaymentAsync(Guid subscriptionId)
+    public async Task<JsonModel> ProcessRecurringPaymentAsync(Guid subscriptionId)
     {
         // Example: process payment for the next due billing record for the subscription
         var records = await _billingRepository.GetBySubscriptionIdAsync(subscriptionId);
         var nextDue = records.OrderBy(r => r.DueDate).FirstOrDefault(r => r.Status == BillingRecord.BillingStatus.Pending);
         if (nextDue == null)
-            return ApiResponse<BillingRecordDto>.ErrorResponse("No pending recurring payment found", 404);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "No pending recurring payment found",
+                StatusCode = 404
+            };
         return await ProcessPaymentAsync(nextDue.Id);
     }
-    public async Task<ApiResponse<bool>> CancelRecurringBillingAsync(Guid subscriptionId)
+    public async Task<JsonModel> CancelRecurringBillingAsync(Guid subscriptionId)
     {
         // Example: mark all future recurring billing records as cancelled
         var records = await _billingRepository.GetBySubscriptionIdAsync(subscriptionId);
@@ -679,9 +821,14 @@ public class BillingService : IBillingService
             record.Status = BillingRecord.BillingStatus.Cancelled;
             await _billingRepository.UpdateAsync(record);
         }
-        return ApiResponse<bool>.SuccessResponse(true, "Recurring billing cancelled");
+        return new JsonModel
+        {
+            data = true,
+            Message = "Recurring billing cancelled",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<BillingRecordDto>> CreateUpfrontPaymentAsync(CreateUpfrontPaymentDto createDto)
+    public async Task<JsonModel> CreateUpfrontPaymentAsync(CreateUpfrontPaymentDto createDto)
     {
         var billingRecord = new BillingRecord
         {
@@ -696,9 +843,14 @@ public class BillingService : IBillingService
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
         await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "UpfrontPaymentCreated", createdRecord.Id.ToString(), "Success");
-        return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Upfront payment processed successfully");
+        return new JsonModel
+        {
+            data = billingRecordDto,
+            Message = "Upfront payment processed successfully",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<BillingRecordDto>> ProcessBundlePaymentAsync(CreateBundlePaymentDto createDto)
+    public async Task<JsonModel> ProcessBundlePaymentAsync(CreateBundlePaymentDto createDto)
     {
         decimal total = createDto.Items.Sum(i => i.Amount);
         var billingRecord = new BillingRecord
@@ -714,22 +866,37 @@ public class BillingService : IBillingService
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
         await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "BundlePaymentProcessed", createdRecord.Id.ToString(), "Success");
-        return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Bundle payment processed successfully");
+        return new JsonModel
+        {
+            data = billingRecordDto,
+            Message = "Bundle payment processed successfully",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<BillingRecordDto>> ApplyBillingAdjustmentAsync(Guid billingRecordId, CreateBillingAdjustmentDto adjustmentDto)
+    public async Task<JsonModel> ApplyBillingAdjustmentAsync(Guid billingRecordId, CreateBillingAdjustmentDto adjustmentDto)
     {
         // Example: apply an adjustment (discount, credit, etc.)
         var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
         if (billingRecord == null)
-            return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found", 404);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Billing record not found",
+                StatusCode = 404
+            };
         billingRecord.Amount += adjustmentDto.Amount;
         billingRecord.UpdatedAt = DateTime.UtcNow;
         await _billingRepository.UpdateAsync(billingRecord);
         var billingRecordDto = MapToDto(billingRecord);
         await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "BillingAdjustmentApplied", billingRecord.Id.ToString(), "Success");
-        return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Billing adjustment applied successfully");
+        return new JsonModel
+        {
+            data = billingRecordDto,
+            Message = "Billing adjustment applied successfully",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<IEnumerable<BillingAdjustmentDto>>> GetBillingAdjustmentsAsync(Guid billingRecordId)
+    public async Task<JsonModel> GetBillingAdjustmentsAsync(Guid billingRecordId)
     {
         var adjustments = await _billingRepository.GetAdjustmentsByBillingRecordIdAsync(billingRecordId);
         var dtos = adjustments.Select(a => new BillingAdjustmentDto
@@ -743,35 +910,65 @@ public class BillingService : IBillingService
             AppliedAt = a.CreatedDate ?? DateTime.UtcNow,
             IsPercentage = a.IsPercentage
         });
-        return ApiResponse<IEnumerable<BillingAdjustmentDto>>.SuccessResponse(dtos, "Billing adjustments retrieved successfully");
+        return new JsonModel
+        {
+            data = dtos,
+            Message = "Billing adjustments retrieved successfully",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<BillingRecordDto>> RetryFailedPaymentAsync(Guid billingRecordId)
+    public async Task<JsonModel> RetryFailedPaymentAsync(Guid billingRecordId)
     {
         // Example: retry payment for a failed billing record
         var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
         if (billingRecord == null)
-            return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found", 404);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Billing record not found",
+                StatusCode = 404
+            };
         if (billingRecord.Status != BillingRecord.BillingStatus.Failed)
-            return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record is not in failed status", 400);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Billing record is not in failed status",
+                StatusCode = 400
+            };
         return await ProcessPaymentAsync(billingRecordId);
     }
-    public async Task<ApiResponse<BillingRecordDto>> ProcessPartialPaymentAsync(Guid billingRecordId, decimal amount)
+    public async Task<JsonModel> ProcessPartialPaymentAsync(Guid billingRecordId, decimal amount)
     {
         // Example: process a partial payment
         var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
         if (billingRecord == null)
-            return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found", 404);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Billing record not found",
+                StatusCode = 404
+            };
         if (amount <= 0 || amount > billingRecord.Amount)
-            return ApiResponse<BillingRecordDto>.ErrorResponse("Invalid partial payment amount", 400);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Invalid partial payment amount",
+                StatusCode = 400
+            };
         // Simulate partial payment logic
         billingRecord.Amount -= amount;
         billingRecord.UpdatedDate = DateTime.UtcNow;
         await _billingRepository.UpdateAsync(billingRecord);
         var billingRecordDto = MapToDto(billingRecord);
         await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "PartialPaymentProcessed", billingRecord.Id.ToString(), "Success");
-        return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Partial payment processed successfully");
+        return new JsonModel
+        {
+            data = billingRecordDto,
+            Message = "Partial payment processed successfully",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<BillingRecordDto>> CreateInvoiceAsync(CreateInvoiceDto createDto)
+    public async Task<JsonModel> CreateInvoiceAsync(CreateInvoiceDto createDto)
     {
         var billingRecord = new BillingRecord
         {
@@ -785,33 +982,58 @@ public class BillingService : IBillingService
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
         await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "InvoiceCreated", createdRecord.Id.ToString(), "Success");
-        return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Invoice created successfully");
+        return new JsonModel
+        {
+            data = billingRecordDto,
+            Message = "Invoice created successfully",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<byte[]>> GenerateInvoicePdfAsync(Guid billingRecordId)
+    public async Task<JsonModel> GenerateInvoicePdfAsync(Guid billingRecordId)
     {
         // Example: generate a PDF (stubbed as byte array)
         var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
         if (billingRecord == null)
-            return ApiResponse<byte[]>.ErrorResponse("Billing record not found", 404);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Billing record not found",
+                StatusCode = 404
+            };
         var pdfBytes = System.Text.Encoding.UTF8.GetBytes($"Invoice for {billingRecord.Id} - Amount: {billingRecord.Amount}");
-        return ApiResponse<byte[]>.SuccessResponse(pdfBytes, "Invoice PDF generated");
+        return new JsonModel
+        {
+            data = pdfBytes,
+            Message = "Invoice PDF generated",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<byte[]>> GenerateBillingReportAsync(DateTime startDate, DateTime endDate, string format = "pdf")
+    public async Task<JsonModel> GenerateBillingReportAsync(DateTime startDate, DateTime endDate, string format = "pdf")
     {
         // Example: generate a report (stubbed as byte array)
         var records = await _billingRepository.GetAllAsync();
         var reportBytes = System.Text.Encoding.UTF8.GetBytes($"Billing report from {startDate} to {endDate} - Total records: {records.Count()}");
-        return ApiResponse<byte[]>.SuccessResponse(reportBytes, "Billing report generated");
+        return new JsonModel
+        {
+            data = reportBytes,
+            Message = "Billing report generated",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<BillingSummaryDto>> GetBillingSummaryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetBillingSummaryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
     {
         // Example: summarize billing for a user
         var records = await _billingRepository.GetByUserIdAsync(userId);
         var total = records.Where(r => (!startDate.HasValue || r.CreatedDate >= startDate) && (!endDate.HasValue || r.CreatedDate <= endDate)).Sum(r => r.Amount);
         var summary = new BillingSummaryDto { UserId = userId, TotalBilled = total };
-        return ApiResponse<BillingSummaryDto>.SuccessResponse(summary, "Billing summary generated");
+        return new JsonModel
+        {
+            data = summary,
+            Message = "Billing summary generated",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<PaymentScheduleDto>> GetPaymentScheduleAsync(Guid subscriptionId)
+    public async Task<JsonModel> GetPaymentScheduleAsync(Guid subscriptionId)
     {
         // Example: return a payment schedule for a subscription
         var records = await _billingRepository.GetBySubscriptionIdAsync(subscriptionId);
@@ -830,19 +1052,29 @@ public class BillingService : IBillingService
                 TransactionId = r.StripePaymentIntentId
             }).ToList()
         };
-        return ApiResponse<PaymentScheduleDto>.SuccessResponse(schedule, "Payment schedule generated");
+        return new JsonModel
+        {
+            data = schedule,
+            Message = "Payment schedule generated",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<bool>> UpdatePaymentMethodAsync(Guid billingRecordId, string paymentMethodId)
+    public async Task<JsonModel> UpdatePaymentMethodAsync(Guid billingRecordId, string paymentMethodId)
     {
         // Not implemented in infrastructure layer
-        return await Task.FromResult(ApiResponse<bool>.ErrorResponse("Not implemented in infrastructure layer", 501));
+        return await Task.FromResult(new JsonModel
+        {
+            data = new object(),
+            Message = "Not implemented in infrastructure layer",
+            StatusCode = 501
+        });
     }
     /// <summary>
     /// Creates a new billing cycle record. UserId must always be a Guid.
     /// </summary>
     /// <param name="createDto">The billing cycle creation DTO.</param>
     /// <returns>API response with the created billing record DTO.</returns>
-    public async Task<ApiResponse<BillingRecordDto>> CreateBillingCycleAsync(CreateBillingCycleDto createDto)
+    public async Task<JsonModel> CreateBillingCycleAsync(CreateBillingCycleDto createDto)
     {
         var userId = createDto.UserId;
         var billingRecord = new BillingRecord
@@ -857,16 +1089,26 @@ public class BillingService : IBillingService
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
         await _auditService.LogPaymentEventAsync(userId.ToString(), "BillingCycleCreated", createdRecord.Id.ToString(), "Success");
-        return ApiResponse<BillingRecordDto>.SuccessResponse(billingRecordDto, "Billing cycle created successfully");
+        return new JsonModel
+        {
+            data = billingRecordDto,
+            Message = "Billing cycle created successfully",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetBillingCycleRecordsAsync(Guid billingCycleId)
+    public async Task<JsonModel> GetBillingCycleRecordsAsync(Guid billingCycleId)
     {
         // Example: fetch all records for a billing cycle
         var records = await _billingRepository.GetByBillingCycleIdAsync(billingCycleId);
         var dtos = records.Select(MapToDto);
-        return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos, "Billing cycle records retrieved successfully");
+        return new JsonModel
+        {
+            data = dtos,
+            Message = "Billing cycle records retrieved successfully",
+            StatusCode = 200
+        };
     }
-    public async Task<ApiResponse<BillingRecordDto>> ProcessBillingCycleAsync(Guid billingCycleId)
+    public async Task<JsonModel> ProcessBillingCycleAsync(Guid billingCycleId)
     {
         // Example: process all pending payments in a billing cycle
         var records = await _billingRepository.GetByBillingCycleIdAsync(billingCycleId);
@@ -875,89 +1117,159 @@ public class BillingService : IBillingService
             await ProcessPaymentAsync(record.Id);
         }
         var dtos = records.Select(MapToDto);
-        return ApiResponse<BillingRecordDto>.SuccessResponse(dtos.FirstOrDefault(), "Billing cycle processed");
+        return new JsonModel
+        {
+            data = dtos.FirstOrDefault(),
+            Message = "Billing cycle processed",
+            StatusCode = 200
+        };
     }
 
-    public async Task<ApiResponse<byte[]>> ExportRevenueAsync(DateTime? from = null, DateTime? to = null, string? planId = null, string format = "csv")
+    public async Task<JsonModel> ExportRevenueAsync(DateTime? from = null, DateTime? to = null, string? planId = null, string format = "csv")
     {
         try
         {
             // Implementation for revenue export
             var revenueData = await GetRevenueSummaryAsync(from, to, planId);
-            if (!revenueData.Success)
+            if (revenueData.StatusCode != 200)
             {
-                return ApiResponse<byte[]>.ErrorResponse("Failed to get revenue data");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Failed to get revenue data",
+                    StatusCode = 500
+                };
             }
 
             // Convert to CSV format
-            var csvData = ConvertToCsv(revenueData.Data);
+            var revenueSummary = revenueData.data as RevenueSummaryDto;
+            if (revenueSummary == null)
+            {
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Invalid revenue data format",
+                    StatusCode = 500
+                };
+            }
+            var csvData = ConvertToCsv(revenueSummary);
             var bytes = System.Text.Encoding.UTF8.GetBytes(csvData);
             
-            return ApiResponse<byte[]>.SuccessResponse(bytes, "Revenue data exported successfully");
+            return new JsonModel
+            {
+                data = bytes,
+                Message = "Revenue data exported successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error exporting revenue data");
-            return ApiResponse<byte[]>.ErrorResponse("Failed to export revenue data");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to export revenue data",
+                StatusCode = 500
+            };
         }
     }
 
     // Missing interface methods
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetUserBillingHistoryAsync(int userId)
+    public async Task<JsonModel> GetUserBillingHistoryAsync(int userId)
     {
         try
         {
             var billingRecords = await _billingRepository.GetByUserIdAsync(userId);
             var dtos = billingRecords.Select(MapToDto);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
+            return new JsonModel
+            {
+                data = dtos,
+                Message = "Billing history retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting billing history for user {UserId}", userId);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get billing history");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to get billing history",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetAllBillingRecordsAsync()
+    public async Task<JsonModel> GetAllBillingRecordsAsync()
     {
         try
         {
             var billingRecords = await _billingRepository.GetAllAsync();
             var dtos = billingRecords.Select(MapToDto);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
+            return new JsonModel
+            {
+                data = dtos,
+                Message = "All billing records retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all billing records");
-            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get billing records");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to get billing records",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetSubscriptionBillingHistoryAsync(Guid subscriptionId)
+    public async Task<JsonModel> GetSubscriptionBillingHistoryAsync(Guid subscriptionId)
     {
         try
         {
             var records = await _billingRepository.GetBySubscriptionIdAsync(subscriptionId);
             var dtos = records.Select(MapToDto);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
+            return new JsonModel
+            {
+                data = dtos,
+                Message = "Subscription billing history retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting billing history for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get subscription billing history");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to get subscription billing history",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<BillingRecordDto>> ProcessRefundAsync(Guid billingRecordId, decimal amount)
+    public async Task<JsonModel> ProcessRefundAsync(Guid billingRecordId, decimal amount)
     {
         try
         {
             var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
             if (billingRecord == null)
-                return ApiResponse<BillingRecordDto>.ErrorResponse("Billing record not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Billing record not found",
+                    StatusCode = 404
+                };
 
             if (string.IsNullOrEmpty(billingRecord.StripePaymentIntentId))
-                return ApiResponse<BillingRecordDto>.ErrorResponse("No payment intent found for refund");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "No payment intent found for refund",
+                    StatusCode = 400
+                };
 
             var refundResult = await _stripeService.ProcessRefundAsync(billingRecord.StripePaymentIntentId, amount);
             
@@ -973,81 +1285,141 @@ public class BillingService : IBillingService
                     "Success"
                 );
 
-                return ApiResponse<BillingRecordDto>.SuccessResponse(MapToDto(updatedRecord));
+                return new JsonModel
+                {
+                    data = MapToDto(updatedRecord),
+                    Message = "Refund processed successfully",
+                    StatusCode = 200
+                };
             }
 
-            return ApiResponse<BillingRecordDto>.ErrorResponse("Failed to process refund");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to process refund",
+                StatusCode = 500
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing refund for billing record {BillingRecordId}", billingRecordId);
-            return ApiResponse<BillingRecordDto>.ErrorResponse("Failed to process refund");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to process refund",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetOverdueBillingRecordsAsync()
+    public async Task<JsonModel> GetOverdueBillingRecordsAsync()
     {
         try
         {
             var overdueRecords = await _billingRepository.GetOverdueRecordsAsync();
             var dtos = overdueRecords.Select(MapToDto);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
+            return new JsonModel
+            {
+                data = dtos,
+                Message = "Overdue billing records retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting overdue billing records");
-            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get overdue billing records");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to get overdue billing records",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetPendingPaymentsAsync()
+    public async Task<JsonModel> GetPendingPaymentsAsync()
     {
         try
         {
             var pendingRecords = await _billingRepository.GetPendingRecordsAsync();
             var dtos = pendingRecords.Select(MapToDto);
-            return ApiResponse<IEnumerable<BillingRecordDto>>.SuccessResponse(dtos);
+            return new JsonModel
+            {
+                data = dtos,
+                Message = "Pending payments retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting pending payments");
-            return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Failed to get pending payments");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to get pending payments",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<decimal>> CalculateTotalAmountAsync(decimal subtotal, decimal tax, decimal shipping)
+    public async Task<JsonModel> CalculateTotalAmountAsync(decimal subtotal, decimal tax, decimal shipping)
     {
         try
         {
             var total = subtotal + tax + shipping;
-            return ApiResponse<decimal>.SuccessResponse(total);
+            return new JsonModel
+            {
+                data = total,
+                Message = "Total amount calculated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calculating total amount");
-            return ApiResponse<decimal>.ErrorResponse("Failed to calculate total amount");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to calculate total amount",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<decimal>> CalculateTaxAmountAsync(decimal amount, string taxRate)
+    public async Task<JsonModel> CalculateTaxAmountAsync(decimal amount, string taxRate)
     {
         try
         {
             if (decimal.TryParse(taxRate, out var rate))
             {
                 var tax = amount * (rate / 100);
-                return ApiResponse<decimal>.SuccessResponse(tax);
+                return new JsonModel
+                {
+                    data = tax,
+                    Message = "Tax amount calculated successfully",
+                    StatusCode = 200
+                };
             }
-            return ApiResponse<decimal>.ErrorResponse("Invalid tax rate");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Invalid tax rate",
+                StatusCode = 400
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calculating tax amount");
-            return ApiResponse<decimal>.ErrorResponse("Failed to calculate tax amount");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to calculate tax amount",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<decimal>> CalculateShippingAmountAsync(string shippingMethod, bool isExpress)
+    public async Task<JsonModel> CalculateShippingAmountAsync(string shippingMethod, bool isExpress)
     {
         try
         {
@@ -1060,50 +1432,85 @@ public class BillingService : IBillingService
             };
 
             var totalShipping = isExpress ? baseShipping * 1.5m : baseShipping;
-            return ApiResponse<decimal>.SuccessResponse(totalShipping);
+            return new JsonModel
+            {
+                data = totalShipping,
+                Message = "Shipping amount calculated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calculating shipping amount");
-            return ApiResponse<decimal>.ErrorResponse("Failed to calculate shipping amount");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to calculate shipping amount",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> IsPaymentOverdueAsync(Guid billingRecordId)
+    public async Task<JsonModel> IsPaymentOverdueAsync(Guid billingRecordId)
     {
         try
         {
             var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
             if (billingRecord == null)
-                return ApiResponse<bool>.ErrorResponse("Billing record not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Billing record not found",
+                    StatusCode = 404
+                };
 
             var isOverdue = billingRecord.DueDate < DateTime.UtcNow && 
                            billingRecord.Status == BillingRecord.BillingStatus.Pending;
             
-            return ApiResponse<bool>.SuccessResponse(isOverdue);
+            return new JsonModel
+            {
+                data = isOverdue,
+                Message = "Payment overdue status checked successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if payment is overdue for billing record {BillingRecordId}", billingRecordId);
-            return ApiResponse<bool>.ErrorResponse("Failed to check payment overdue status");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to check payment overdue status",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<DateTime>> CalculateDueDateAsync(DateTime startDate, int daysToAdd)
+    public async Task<JsonModel> CalculateDueDateAsync(DateTime startDate, int daysToAdd)
     {
         try
         {
             var dueDate = startDate.AddDays(daysToAdd);
-            return ApiResponse<DateTime>.SuccessResponse(dueDate);
+            return new JsonModel
+            {
+                data = dueDate,
+                Message = "Due date calculated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calculating due date");
-            return ApiResponse<DateTime>.ErrorResponse("Failed to calculate due date");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to calculate due date",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<BillingAnalyticsDto>> GetBillingAnalyticsAsync()
+    public async Task<JsonModel> GetBillingAnalyticsAsync()
     {
         try
         {
@@ -1120,16 +1527,26 @@ public class BillingService : IBillingService
                 PaymentMethods = new List<PaymentMethodDto>()
             };
 
-            return ApiResponse<BillingAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel
+            {
+                data = analytics,
+                Message = "Billing analytics retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting billing analytics");
-            return ApiResponse<BillingAnalyticsDto>.ErrorResponse("Failed to get billing analytics");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to get billing analytics",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<PaymentHistoryDto>>> GetPaymentHistoryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetPaymentHistoryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -1156,16 +1573,26 @@ public class BillingService : IBillingService
                 PaymentMethodId = r.StripePaymentIntentId
             });
 
-            return ApiResponse<IEnumerable<PaymentHistoryDto>>.SuccessResponse(paymentHistory);
+            return new JsonModel
+            {
+                data = paymentHistory,
+                Message = "Payment history retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting payment history for user {UserId}", userId);
-            return ApiResponse<IEnumerable<PaymentHistoryDto>>.ErrorResponse("Failed to get payment history");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to get payment history",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<PaymentAnalyticsDto>> GetPaymentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetPaymentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -1185,12 +1612,22 @@ public class BillingService : IBillingService
                 PaymentStatuses = new List<PaymentStatusAnalyticsDto>()
             };
 
-            return ApiResponse<PaymentAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel
+            {
+                data = analytics,
+                Message = "Payment analytics retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting payment analytics");
-            return ApiResponse<PaymentAnalyticsDto>.ErrorResponse("Failed to get payment analytics");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to get payment analytics",
+                StatusCode = 500
+            };
         }
     }
 

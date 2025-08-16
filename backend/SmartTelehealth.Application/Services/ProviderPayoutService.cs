@@ -34,45 +34,44 @@ namespace SmartTelehealth.Application.Services
             _mapper = mapper;
             _logger = logger;
         }
-        public async Task<ApiResponse<ProviderPayoutDto>> GetPayoutByIdAsync(Guid id)
+        public async Task<JsonModel> GetPayoutByIdAsync(Guid id)
         {
             try
             {
                 var payout = await _providerPayoutRepository.GetByIdAsync(id);
                 if (payout == null)
                 {
-                    return new ApiResponse<ProviderPayoutDto>
+                    return new JsonModel
                     {
-                        Success = false,
+                        data = new object(),
                         Message = "Payout not found",
                         StatusCode = 404
                     };
                 }
                 var payoutDto = _mapper.Map<ProviderPayoutDto>(payout);
-                return new ApiResponse<ProviderPayoutDto>
+                return new JsonModel
                 {
-                    Success = true,
+                    data = payoutDto,
                     Message = "Payout retrieved successfully",
-                    Data = payoutDto,
                     StatusCode = 200
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving provider payout");
-                return new ApiResponse<ProviderPayoutDto>
+                return new JsonModel
                 {
-                    Success = false,
+                    data = new object(),
                     Message = "Failed to retrieve payout",
                     StatusCode = 500
                 };
             }
         }
-        public async Task<ApiResponse<ProviderPayoutDto>> GetPayoutAsync(Guid id) => throw new NotImplementedException();
-        public async Task<ApiResponse<ProviderPayoutDto>> ProcessPayoutAsync(Guid id, ProcessPayoutDto processDto) => throw new NotImplementedException();
-        public async Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPayoutsByProviderAsync(int providerId) => throw new NotImplementedException();
-        public async Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPayoutsByPeriodAsync(Guid periodId) => throw new NotImplementedException();
-        public async Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetAllPayoutsAsync(string status = null, int page = 1, int pageSize = 50)
+        public async Task<JsonModel> GetPayoutAsync(Guid id) => throw new NotImplementedException();
+        public async Task<JsonModel> ProcessPayoutAsync(Guid id, ProcessPayoutDto processDto) => throw new NotImplementedException();
+        public async Task<JsonModel> GetPayoutsByProviderAsync(int providerId) => throw new NotImplementedException();
+        public async Task<JsonModel> GetPayoutsByPeriodAsync(Guid periodId) => throw new NotImplementedException();
+        public async Task<JsonModel> GetAllPayoutsAsync(string status = null, int page = 1, int pageSize = 50)
         {
             try
             {
@@ -88,85 +87,82 @@ namespace SmartTelehealth.Application.Services
                     payouts = payouts.Skip((page - 1) * pageSize).Take(pageSize);
                 }
                 var payoutDtos = _mapper.Map<IEnumerable<ProviderPayoutDto>>(payouts);
-                return new ApiResponse<IEnumerable<ProviderPayoutDto>>
+                return new JsonModel
                 {
-                    Success = true,
+                    data = payoutDtos,
                     Message = "Payouts retrieved successfully",
-                    Data = payoutDtos,
                     StatusCode = 200
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving payouts");
-                return new ApiResponse<IEnumerable<ProviderPayoutDto>>
+                return new JsonModel
                 {
-                    Success = false,
+                    data = new object(),
                     Message = "Failed to retrieve payouts",
                     StatusCode = 500
                 };
             }
         }
-        public async Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPendingPayoutsAsync()
+        public async Task<JsonModel> GetPendingPayoutsAsync()
         {
             try
             {
                 var payouts = await _providerPayoutRepository.GetPendingPayoutsAsync();
                 var payoutDtos = _mapper.Map<IEnumerable<ProviderPayoutDto>>(payouts);
-                return new ApiResponse<IEnumerable<ProviderPayoutDto>>
+                return new JsonModel
                 {
-                    Success = true,
+                    data = payoutDtos,
                     Message = "Pending payouts retrieved successfully",
-                    Data = payoutDtos,
                     StatusCode = 200
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving pending payouts");
-                return new ApiResponse<IEnumerable<ProviderPayoutDto>>
+                return new JsonModel
                 {
-                    Success = false,
+                    data = new object(),
                     Message = "Failed to retrieve pending payouts",
                     StatusCode = 500
                 };
             }
         }
-        public async Task<ApiResponse<IEnumerable<ProviderPayoutDto>>> GetPayoutsByStatusAsync(string status)
+        public async Task<JsonModel> GetPayoutsByStatusAsync(string status)
         {
             try
             {
                 var payouts = await _providerPayoutRepository.GetByStatusAsync(status);
                 var payoutDtos = _mapper.Map<IEnumerable<ProviderPayoutDto>>(payouts);
-                return new ApiResponse<IEnumerable<ProviderPayoutDto>>
+                return new JsonModel
                 {
-                    Success = true,
+                    data = payoutDtos,
                     Message = $"Payouts with status {status} retrieved successfully",
-                    Data = payoutDtos,
                     StatusCode = 200
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving payouts by status");
-                return new ApiResponse<IEnumerable<ProviderPayoutDto>>
+                return new JsonModel
                 {
-                    Success = false,
+                    data = new object(),
                     Message = "Failed to retrieve payouts by status",
                     StatusCode = 500
                 };
             }
         }
-        public async Task<ApiResponse<ProviderEarningsDto>> GetProviderEarningsAsync(int providerId)
+        public async Task<JsonModel> GetProviderEarningsAsync(int providerId)
         {
             try
             {
                 var provider = await _providerRepository.GetByIdAsync(providerId);
                 if (provider == null)
                 {
-                    return new ApiResponse<ProviderEarningsDto>
+                    return new JsonModel
                     {
-                        Success = false,
+                        data = new object(),
                         Message = "Provider not found",
                         StatusCode = 404
                     };
@@ -186,51 +182,49 @@ namespace SmartTelehealth.Application.Services
                     LastPayoutDate = null, // TODO: Get from payout history
                     NextPayoutDate = null // TODO: Calculate based on payout schedule
                 };
-                return new ApiResponse<ProviderEarningsDto>
+                return new JsonModel
                 {
-                    Success = true,
+                    data = earnings,
                     Message = "Provider earnings retrieved successfully",
-                    Data = earnings,
                     StatusCode = 200
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving provider earnings");
-                return new ApiResponse<ProviderEarningsDto>
+                return new JsonModel
                 {
-                    Success = false,
+                    data = new object(),
                     Message = "Failed to retrieve provider earnings",
                     StatusCode = 500
                 };
             }
         }
-        public async Task<ApiResponse<PayoutStatisticsDto>> GetPayoutStatisticsAsync()
+        public async Task<JsonModel> GetPayoutStatisticsAsync()
         {
             try
             {
                 var statistics = await _providerPayoutRepository.GetPayoutStatisticsAsync();
                 var statisticsDto = _mapper.Map<PayoutStatisticsDto>(statistics);
-                return new ApiResponse<PayoutStatisticsDto>
+                return new JsonModel
                 {
-                    Success = true,
+                    data = statisticsDto,
                     Message = "Payout statistics retrieved successfully",
-                    Data = statisticsDto,
                     StatusCode = 200
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving payout statistics");
-                return new ApiResponse<PayoutStatisticsDto>
+                return new JsonModel
                 {
-                    Success = false,
+                    data = new object(),
                     Message = "Failed to retrieve payout statistics",
                     StatusCode = 500
                 };
             }
         }
-        public async Task<ApiResponse<bool>> ProcessAllPendingPayoutsAsync()
+        public async Task<JsonModel> ProcessAllPendingPayoutsAsync()
         {
             try
             {
@@ -255,27 +249,26 @@ namespace SmartTelehealth.Application.Services
                     }
                 }
                 await _auditService.LogActionAsync("ProviderPayout", "ProcessAll", "System", $"Processed {processedCount} pending payouts");
-                return new ApiResponse<bool>
+                return new JsonModel
                 {
-                    Success = true,
+                    data = true,
                     Message = $"Processed {processedCount} pending payouts",
-                    Data = true,
                     StatusCode = 200
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing all pending payouts");
-                return new ApiResponse<bool>
+                return new JsonModel
                 {
-                    Success = false,
+                    data = new object(),
                     Message = "Failed to process pending payouts",
                     StatusCode = 500
                 };
             }
         }
-        public async Task<ApiResponse<bool>> GeneratePayoutsForPeriodAsync(Guid periodId) => throw new NotImplementedException();
-        public async Task<ApiResponse<PayoutPeriodDto>> CreatePeriodAsync(CreatePayoutPeriodDto createDto)
+        public async Task<JsonModel> GeneratePayoutsForPeriodAsync(Guid periodId) => throw new NotImplementedException();
+        public async Task<JsonModel> CreatePeriodAsync(CreatePayoutPeriodDto createDto)
         {
             try
             {
@@ -291,45 +284,43 @@ namespace SmartTelehealth.Application.Services
                 var createdPeriod = await _providerPayoutRepository.AddPeriodAsync();
                 var periodDto = _mapper.Map<PayoutPeriodDto>(createdPeriod);
                 await _auditService.LogActionAsync("PayoutPeriod", "Create", "System", $"Created payout period {createDto.Name}");
-                return new ApiResponse<PayoutPeriodDto>
+                return new JsonModel
                 {
-                    Success = true,
+                    data = periodDto,
                     Message = "Payout period created successfully",
-                    Data = periodDto,
                     StatusCode = 201
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating payout period");
-                return new ApiResponse<PayoutPeriodDto>
+                return new JsonModel
                 {
-                    Success = false,
+                    data = new object(),
                     Message = "Failed to create payout period",
                     StatusCode = 500
                 };
             }
         }
-        public async Task<ApiResponse<IEnumerable<PayoutPeriodDto>>> GetAllPeriodsAsync()
+        public async Task<JsonModel> GetAllPeriodsAsync()
         {
             try
             {
                 var periods = await _providerPayoutRepository.GetAllPeriodsAsync();
                 var periodDtos = _mapper.Map<IEnumerable<PayoutPeriodDto>>(periods);
-                return new ApiResponse<IEnumerable<PayoutPeriodDto>>
+                return new JsonModel
                 {
-                    Success = true,
+                    data = periodDtos,
                     Message = "Payout periods retrieved successfully",
-                    Data = periodDtos,
                     StatusCode = 200
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving payout periods");
-                return new ApiResponse<IEnumerable<PayoutPeriodDto>>
+                return new JsonModel
                 {
-                    Success = false,
+                    data = new object(),
                     Message = "Failed to retrieve payout periods",
                     StatusCode = 500
                 };

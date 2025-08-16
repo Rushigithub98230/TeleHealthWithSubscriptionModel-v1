@@ -23,7 +23,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         _logger = logger;
     }
     
-    public async Task<ApiResponse<HealthAssessmentDto>> CreateAssessmentAsync(CreateHealthAssessmentDto createDto)
+    public async Task<JsonModel> CreateAssessmentAsync(CreateHealthAssessmentDto createDto)
     {
         try
         {
@@ -34,109 +34,109 @@ public class HealthAssessmentService : IHealthAssessmentService
             
             var createdAssessment = await _healthAssessmentRepository.CreateAsync(assessment);
             var assessmentDto = _mapper.Map<HealthAssessmentDto>(createdAssessment);
-            return ApiResponse<HealthAssessmentDto>.SuccessResponse(assessmentDto, "Health assessment created successfully", 201);
+            return new JsonModel { data = assessmentDto, Message = "Health assessment created successfully", StatusCode = 201 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating health assessment");
-            return ApiResponse<HealthAssessmentDto>.ErrorResponse("An error occurred while creating the health assessment", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while creating the health assessment", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<HealthAssessmentDto>> GetAssessmentByIdAsync(Guid id)
+    public async Task<JsonModel> GetAssessmentByIdAsync(Guid id)
     {
         try
         {
             var assessment = await _healthAssessmentRepository.GetByIdAsync(id);
             if (assessment == null)
-                return ApiResponse<HealthAssessmentDto>.ErrorResponse("Health assessment not found", 404);
+                return new JsonModel { data = new object(), Message = "Health assessment not found", StatusCode = 404 };
             
             var assessmentDto = _mapper.Map<HealthAssessmentDto>(assessment);
-            return ApiResponse<HealthAssessmentDto>.SuccessResponse(assessmentDto, "Health assessment retrieved successfully");
+            return new JsonModel { data = assessmentDto, Message = "Health assessment retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting health assessment {Id}", id);
-            return ApiResponse<HealthAssessmentDto>.ErrorResponse("An error occurred while retrieving the health assessment", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving the health assessment", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<IEnumerable<HealthAssessmentDto>>> GetUserAssessmentsAsync(int userId)
+    public async Task<JsonModel> GetUserAssessmentsAsync(int userId)
     {
         try
         {
             var assessments = await _healthAssessmentRepository.GetByUserIdAsync(userId);
             var assessmentDtos = _mapper.Map<IEnumerable<HealthAssessmentDto>>(assessments);
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.SuccessResponse(assessmentDtos, "User health assessments retrieved successfully");
+            return new JsonModel { data = assessmentDtos, Message = "User health assessments retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting health assessments for user {UserId}", userId);
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.ErrorResponse("An error occurred while retrieving user health assessments", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving user health assessments", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<IEnumerable<HealthAssessmentDto>>> GetPendingAssessmentsAsync()
+    public async Task<JsonModel> GetPendingAssessmentsAsync()
     {
         try
         {
             var assessments = await _healthAssessmentRepository.GetPendingAssessmentsAsync();
             var assessmentDtos = _mapper.Map<IEnumerable<HealthAssessmentDto>>(assessments);
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.SuccessResponse(assessmentDtos, "Pending health assessments retrieved successfully");
+            return new JsonModel { data = assessmentDtos, Message = "Pending health assessments retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting pending health assessments");
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.ErrorResponse("An error occurred while retrieving pending health assessments", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving pending health assessments", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<HealthAssessmentDto>> UpdateAssessmentAsync(Guid id, UpdateHealthAssessmentDto updateDto)
+    public async Task<JsonModel> UpdateAssessmentAsync(Guid id, UpdateHealthAssessmentDto updateDto)
     {
         try
         {
             var assessment = await _healthAssessmentRepository.GetByIdAsync(id);
             if (assessment == null)
-                return ApiResponse<HealthAssessmentDto>.ErrorResponse("Health assessment not found", 404);
+                return new JsonModel { data = new object(), Message = "Health assessment not found", StatusCode = 404 };
             
             _mapper.Map(updateDto, assessment);
             assessment.UpdatedDate = DateTime.UtcNow;
             
             var updatedAssessment = await _healthAssessmentRepository.UpdateAsync(assessment);
             var assessmentDto = _mapper.Map<HealthAssessmentDto>(updatedAssessment);
-            return ApiResponse<HealthAssessmentDto>.SuccessResponse(assessmentDto, "Health assessment updated successfully");
+            return new JsonModel { data = assessmentDto, Message = "Health assessment updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating health assessment {Id}", id);
-            return ApiResponse<HealthAssessmentDto>.ErrorResponse("An error occurred while updating the health assessment", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while updating the health assessment", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<bool>> DeleteAssessmentAsync(Guid id)
+    public async Task<JsonModel> DeleteAssessmentAsync(Guid id)
     {
         try
         {
             var result = await _healthAssessmentRepository.DeleteAsync(id);
             if (!result)
-                return ApiResponse<bool>.ErrorResponse("Health assessment not found", 404);
+                return new JsonModel { data = new object(), Message = "Health assessment not found", StatusCode = 404 };
             
-            return ApiResponse<bool>.SuccessResponse(true, "Health assessment deleted successfully");
+            return new JsonModel { data = true, Message = "Health assessment deleted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting health assessment {Id}", id);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while deleting the health assessment", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while deleting the health assessment", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<bool>> ReviewAssessmentAsync(Guid id, int providerId, bool isEligible, string notes)
+    public async Task<JsonModel> ReviewAssessmentAsync(Guid id, int providerId, bool isEligible, string notes)
     {
         try
         {
             var assessment = await _healthAssessmentRepository.GetByIdAsync(id);
             if (assessment == null)
-                return ApiResponse<bool>.ErrorResponse("Health assessment not found", 404);
+                return new JsonModel { data = new object(), Message = "Health assessment not found", StatusCode = 404 };
             
             assessment.ProviderId = providerId;
             assessment.Status = HealthAssessment.AssessmentStatus.Reviewed;
@@ -146,61 +146,61 @@ public class HealthAssessmentService : IHealthAssessmentService
             assessment.UpdatedDate = DateTime.UtcNow;
             
             await _healthAssessmentRepository.UpdateAsync(assessment);
-            return ApiResponse<bool>.SuccessResponse(true, "Health assessment reviewed successfully");
+            return new JsonModel { data = true, Message = "Health assessment reviewed successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reviewing health assessment {Id}", id);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while reviewing the health assessment", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while reviewing the health assessment", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<bool>> CompleteAssessmentAsync(Guid id)
+    public async Task<JsonModel> CompleteAssessmentAsync(Guid id)
     {
         try
         {
             var assessment = await _healthAssessmentRepository.GetByIdAsync(id);
             if (assessment == null)
-                return ApiResponse<bool>.ErrorResponse("Health assessment not found", 404);
+                return new JsonModel { data = new object(), Message = "Health assessment not found", StatusCode = 404 };
             
             assessment.Status = HealthAssessment.AssessmentStatus.Completed;
             assessment.CompletedAt = DateTime.UtcNow;
             assessment.UpdatedDate = DateTime.UtcNow;
             
             await _healthAssessmentRepository.UpdateAsync(assessment);
-            return ApiResponse<bool>.SuccessResponse(true, "Health assessment completed successfully");
+            return new JsonModel { data = true, Message = "Health assessment completed successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error completing health assessment {Id}", id);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while completing the health assessment", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while completing the health assessment", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<bool>> CancelAssessmentAsync(Guid id, string reason)
+    public async Task<JsonModel> CancelAssessmentAsync(Guid id, string reason)
     {
         try
         {
             var assessment = await _healthAssessmentRepository.GetByIdAsync(id);
             if (assessment == null)
-                return ApiResponse<bool>.ErrorResponse("Health assessment not found", 404);
+                return new JsonModel { data = new object(), Message = "Health assessment not found", StatusCode = 404 };
             
             assessment.Status = HealthAssessment.AssessmentStatus.Cancelled;
             assessment.RejectionReason = reason;
             assessment.UpdatedDate = DateTime.UtcNow;
             
             await _healthAssessmentRepository.UpdateAsync(assessment);
-            return ApiResponse<bool>.SuccessResponse(true, "Health assessment cancelled successfully");
+            return new JsonModel { data = true, Message = "Health assessment cancelled successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cancelling health assessment {Id}", id);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while cancelling the health assessment", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while cancelling the health assessment", StatusCode = 500 };
         }
     }
     
     // Assessment Templates - Placeholder implementations
-    public async Task<ApiResponse<AssessmentTemplateDto>> CreateAssessmentTemplateAsync(CreateAssessmentTemplateDto createDto)
+    public async Task<JsonModel> CreateAssessmentTemplateAsync(CreateAssessmentTemplateDto createDto)
     {
         try
         {
@@ -216,74 +216,74 @@ public class HealthAssessmentService : IHealthAssessmentService
                 UpdatedAt = DateTime.UtcNow
             };
             
-            return ApiResponse<AssessmentTemplateDto>.SuccessResponse(template, "Assessment template created successfully", 201);
+            return new JsonModel { data = template, Message = "Assessment template created successfully", StatusCode = 201 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating assessment template");
-            return ApiResponse<AssessmentTemplateDto>.ErrorResponse("An error occurred while creating the assessment template", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while creating the assessment template", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<AssessmentTemplateDto>> GetAssessmentTemplateAsync(Guid id)
+    public async Task<JsonModel> GetAssessmentTemplateAsync(Guid id)
     {
         try
         {
             // TODO: Implement assessment template retrieval
-            return ApiResponse<AssessmentTemplateDto>.ErrorResponse("Assessment template not found", 404);
+            return new JsonModel { data = new object(), Message = "Assessment template not found", StatusCode = 404 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting assessment template {Id}", id);
-            return ApiResponse<AssessmentTemplateDto>.ErrorResponse("An error occurred while retrieving the assessment template", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving the assessment template", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<IEnumerable<AssessmentTemplateDto>>> GetAssessmentTemplatesByCategoryAsync(Guid categoryId)
+    public async Task<JsonModel> GetAssessmentTemplatesByCategoryAsync(Guid categoryId)
     {
         try
         {
             // TODO: Implement assessment templates by category
             var templates = new List<AssessmentTemplateDto>();
-            return ApiResponse<IEnumerable<AssessmentTemplateDto>>.SuccessResponse(templates, "Assessment templates retrieved successfully");
+            return new JsonModel { data = templates, Message = "Assessment templates retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting assessment templates for category {CategoryId}", categoryId);
-            return ApiResponse<IEnumerable<AssessmentTemplateDto>>.ErrorResponse("An error occurred while retrieving assessment templates", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving assessment templates", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<AssessmentTemplateDto>> UpdateAssessmentTemplateAsync(Guid id, UpdateAssessmentTemplateDto updateDto)
+    public async Task<JsonModel> UpdateAssessmentTemplateAsync(Guid id, UpdateAssessmentTemplateDto updateDto)
     {
         try
         {
             // TODO: Implement assessment template update
-            return ApiResponse<AssessmentTemplateDto>.ErrorResponse("Assessment template not found", 404);
+            return new JsonModel { data = new object(), Message = "Assessment template not found", StatusCode = 404 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating assessment template {Id}", id);
-            return ApiResponse<AssessmentTemplateDto>.ErrorResponse("An error occurred while updating the assessment template", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while updating the assessment template", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<bool>> DeleteAssessmentTemplateAsync(Guid id)
+    public async Task<JsonModel> DeleteAssessmentTemplateAsync(Guid id)
     {
         try
         {
             // TODO: Implement assessment template deletion
-            return ApiResponse<bool>.SuccessResponse(true, "Assessment template deleted successfully");
+            return new JsonModel { data = true, Message = "Assessment template deleted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting assessment template {Id}", id);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while deleting the assessment template", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while deleting the assessment template", StatusCode = 500 };
         }
     }
     
     // Assessment Reports - Placeholder implementations
-    public async Task<ApiResponse<AssessmentReportDto>> GenerateAssessmentReportAsync(Guid assessmentId)
+    public async Task<JsonModel> GenerateAssessmentReportAsync(Guid assessmentId)
     {
         try
         {
@@ -296,94 +296,94 @@ public class HealthAssessmentService : IHealthAssessmentService
                 CreatedAt = DateTime.UtcNow
             };
             
-            return ApiResponse<AssessmentReportDto>.SuccessResponse(report, "Assessment report generated successfully");
+            return new JsonModel { data = report, Message = "Assessment report generated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating assessment report for {AssessmentId}", assessmentId);
-            return ApiResponse<AssessmentReportDto>.ErrorResponse("An error occurred while generating the assessment report", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while generating the assessment report", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<byte[]>> ExportAssessmentReportAsync(Guid assessmentId, string format = "pdf")
+    public async Task<JsonModel> ExportAssessmentReportAsync(Guid assessmentId, string format = "pdf")
     {
         try
         {
             // TODO: Implement assessment report export
             var reportBytes = new byte[] { 0x25, 0x50, 0x44, 0x46 }; // PDF header
-            return ApiResponse<byte[]>.SuccessResponse(reportBytes, "Assessment report exported successfully");
+            return new JsonModel { data = reportBytes, Message = "Assessment report exported successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error exporting assessment report for {AssessmentId}", assessmentId);
-            return ApiResponse<byte[]>.ErrorResponse("An error occurred while exporting the assessment report", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while exporting the assessment report", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<IEnumerable<AssessmentReportDto>>> GetAssessmentReportsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetAssessmentReportsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
             // TODO: Implement assessment reports retrieval
             var reports = new List<AssessmentReportDto>();
-            return ApiResponse<IEnumerable<AssessmentReportDto>>.SuccessResponse(reports, "Assessment reports retrieved successfully");
+            return new JsonModel { data = reports, Message = "Assessment reports retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting assessment reports for user {UserId}", userId);
-            return ApiResponse<IEnumerable<AssessmentReportDto>>.ErrorResponse("An error occurred while retrieving assessment reports", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving assessment reports", StatusCode = 500 };
         }
     }
     
     // Provider Workflow - Placeholder implementations
-    public async Task<ApiResponse<IEnumerable<HealthAssessmentDto>>> GetProviderPendingAssessmentsAsync(int providerId)
+    public async Task<JsonModel> GetProviderPendingAssessmentsAsync(int providerId)
     {
         try
         {
             var assessments = await _healthAssessmentRepository.GetProviderPendingAssessmentsAsync(providerId);
             var assessmentDtos = _mapper.Map<IEnumerable<HealthAssessmentDto>>(assessments);
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.SuccessResponse(assessmentDtos, "Provider pending assessments retrieved successfully");
+            return new JsonModel { data = assessmentDtos, Message = "Provider pending assessments retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting provider pending assessments for provider {ProviderId}", providerId);
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.ErrorResponse($"Failed to get provider pending assessments: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get provider pending assessments: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<HealthAssessmentDto>>> GetProviderReviewedAssessmentsAsync(int providerId)
+    public async Task<JsonModel> GetProviderReviewedAssessmentsAsync(int providerId)
     {
         try
         {
             var assessments = await _healthAssessmentRepository.GetProviderReviewedAssessmentsAsync(providerId);
             var assessmentDtos = _mapper.Map<IEnumerable<HealthAssessmentDto>>(assessments);
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.SuccessResponse(assessmentDtos, "Provider reviewed assessments retrieved successfully");
+            return new JsonModel { data = assessmentDtos, Message = "Provider reviewed assessments retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting provider reviewed assessments for provider {ProviderId}", providerId);
-            return ApiResponse<IEnumerable<HealthAssessmentDto>>.ErrorResponse($"Failed to get provider reviewed assessments: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to get provider reviewed assessments: {ex.Message}", StatusCode = 500 };
         }
     }
     
-    public async Task<ApiResponse<bool>> AssignAssessmentToProviderAsync(Guid assessmentId, int providerId)
+    public async Task<JsonModel> AssignAssessmentToProviderAsync(Guid assessmentId, int providerId)
     {
         try
         {
             var assessment = await _healthAssessmentRepository.GetByIdAsync(assessmentId);
             if (assessment == null)
-                return ApiResponse<bool>.ErrorResponse("Health assessment not found", 404);
+                return new JsonModel { data = new object(), Message = "Health assessment not found", StatusCode = 404 };
             
             assessment.ProviderId = providerId;
             assessment.UpdatedDate = DateTime.UtcNow;
             
             await _healthAssessmentRepository.UpdateAsync(assessment);
-            return ApiResponse<bool>.SuccessResponse(true, "Assessment assigned to provider successfully");
+            return new JsonModel { data = true, Message = "Assessment assigned to provider successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error assigning assessment {AssessmentId} to provider {ProviderId}", assessmentId, providerId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while assigning the assessment to provider", 500);
+            return new JsonModel { data = new object(), Message = "An error occurred while assigning the assessment to provider", StatusCode = 500 };
         }
     }
 } 

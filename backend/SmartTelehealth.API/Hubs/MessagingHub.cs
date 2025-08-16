@@ -116,7 +116,7 @@ public class MessagingHub : Hub
             // Send via messaging service
             var result = await _messagingService.SendNotificationToUserAsync(targetUserId, title, message, chatRoomId);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 // Send real-time notification if user is online
                 if (_userConnections.ContainsKey(targetUserId))
@@ -160,7 +160,7 @@ public class MessagingHub : Hub
             // Send via messaging service
             var result = await _messagingService.SendNotificationToChatRoomAsync(chatRoomId, title, message);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 // Send real-time notification to all users in the chat room
                 await Clients.Group(chatRoomId).SendAsync("ChatRoomNotificationReceived", notification);
@@ -252,10 +252,10 @@ public class MessagingHub : Hub
         try
         {
             var message = await _messagingService.GetMessageAsync(messageId); // was Guid.Parse(messageId)
-            if (message.Success && message.Data != null)
-            {
-                await Clients.Group(message.Data.ChatRoomId.ToString()).SendAsync("MessageStatusUpdated", messageId, status);
-            }
+                    if (message.StatusCode == 200 && message.data != null)
+        {
+            await Clients.Group(((dynamic)message.data).ChatRoomId.ToString()).SendAsync("MessageStatusUpdated", messageId, status);
+        }
         }
         catch (Exception ex)
         {

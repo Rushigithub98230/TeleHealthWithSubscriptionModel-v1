@@ -77,9 +77,9 @@ public class VideoCallHub : Hub
 
             var result = await _videoCallService.InitiateVideoCallAsync(createCallDto);
             
-            if (result.Success && result.Data != null)
-            {
-                var call = result.Data;
+                    if (result.StatusCode == 200 && result.data != null)
+        {
+            var call = (VideoCallDto)result.data;
                 _activeCalls[call.CallId.ToString()] = call;
 
                 // Join the call group
@@ -124,7 +124,7 @@ public class VideoCallHub : Hub
         {
             var result = await _videoCallService.JoinVideoCallAsync(Guid.Parse(callId), userId);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, callId.ToString());
                 
@@ -166,7 +166,7 @@ public class VideoCallHub : Hub
         {
             var result = await _videoCallService.LeaveVideoCallAsync(Guid.Parse(callId), userId);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, callId.ToString());
                 
@@ -200,7 +200,7 @@ public class VideoCallHub : Hub
         {
             var result = await _videoCallService.EndVideoCallAsync(Guid.Parse(callId), reason);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 await Clients.Group(callId.ToString()).SendAsync("VideoCallEnded", callId, reason);
                 
@@ -235,7 +235,7 @@ public class VideoCallHub : Hub
         {
             var result = await _videoCallService.RejectVideoCallAsync(Guid.Parse(callId), reason);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 await Clients.Group(callId.ToString()).SendAsync("VideoCallRejected", callId, userId, reason);
                 
@@ -264,7 +264,7 @@ public class VideoCallHub : Hub
         {
             var result = await _videoCallService.ToggleVideoAsync(Guid.Parse(callId), enabled);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 await Clients.OthersInGroup(callId.ToString()).SendAsync("VideoToggled", callId, userId, enabled);
 
@@ -293,7 +293,7 @@ public class VideoCallHub : Hub
         {
             var result = await _videoCallService.ToggleAudioAsync(Guid.Parse(callId), enabled);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 await Clients.OthersInGroup(callId.ToString()).SendAsync("AudioToggled", callId, userId, enabled);
 
@@ -322,7 +322,7 @@ public class VideoCallHub : Hub
         {
             var result = await _videoCallService.StartScreenSharingAsync(Guid.Parse(callId));
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 await Clients.OthersInGroup(callId.ToString()).SendAsync("ScreenSharingStarted", callId, userId);
 
@@ -351,7 +351,7 @@ public class VideoCallHub : Hub
         {
             var result = await _videoCallService.StopScreenSharingAsync(Guid.Parse(callId));
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 await Clients.OthersInGroup(callId.ToString()).SendAsync("ScreenSharingStopped", callId, userId);
 
@@ -380,7 +380,7 @@ public class VideoCallHub : Hub
         {
             var result = await _videoCallService.UpdateCallQualityAsync(Guid.Parse(callId), audioQuality, videoQuality, networkQuality);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 // Log the event
                 await _videoCallService.LogVideoCallEventAsync(Guid.Parse(callId), new LogVideoCallEventDto
@@ -404,9 +404,9 @@ public class VideoCallHub : Hub
         {
             var result = await _videoCallService.GetVideoCallParticipantsAsync(Guid.Parse(callId));
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
-                await Clients.Caller.SendAsync("CallParticipants", callId, result.Data);
+                await Clients.Caller.SendAsync("CallParticipants", callId, result.data);
             }
         }
         catch (Exception ex)
@@ -444,9 +444,9 @@ public class VideoCallHub : Hub
         try
         {
             var result = await _openTokService.GenerateTokenAsync(sessionId, userId.ToString(), userName);
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
-                return result.Data;
+                return (string)result.data;
             }
             else
             {
@@ -466,9 +466,9 @@ public class VideoCallHub : Hub
         try
         {
             var result = await _openTokService.CreateSessionAsync(sessionName, true); // Enable archiving for HIPAA compliance
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
-                return result.Data;
+                return (OpenTokSessionDto)result.data;
             }
             else
             {
@@ -498,7 +498,7 @@ public class VideoCallHub : Hub
             };
 
             var result = await _openTokService.StartRecordingAsync(sessionId, options);
-            return result.Success;
+            return result.StatusCode == 200;
         }
         catch (Exception ex)
         {
@@ -512,7 +512,7 @@ public class VideoCallHub : Hub
         try
         {
             var result = await _openTokService.StopRecordingAsync(recordingId);
-            return result.Success;
+            return result.StatusCode == 200;
         }
         catch (Exception ex)
         {
@@ -526,7 +526,7 @@ public class VideoCallHub : Hub
         try
         {
             var result = await _openTokService.GetRecordingUrlAsync(recordingId);
-            return result.Success ? result.Data : string.Empty;
+            return result.StatusCode == 200 ? (string)result.data : string.Empty;
         }
         catch (Exception ex)
         {

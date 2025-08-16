@@ -137,6 +137,107 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
+    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null, string? planId = null)
+    {
+        try
+        {
+            var analytics = new SubscriptionAnalyticsDto
+            {
+                TotalSubscriptions = await GetTotalSubscriptionsAsync(),
+                ActiveSubscriptions = await GetActiveSubscriptionsAsync(),
+                PausedSubscriptions = await GetPausedSubscriptionsAsync(),
+                CancelledSubscriptions = await GetCancelledSubscriptionsAsync(),
+                NewSubscriptionsThisMonth = await GetNewSubscriptionsThisMonthAsync(),
+                ChurnRate = await CalculateChurnRateAsync(),
+                AverageSubscriptionValue = await CalculateAverageSubscriptionValueAsync(),
+                TopCategories = await GetTopCategoriesAsync(),
+                MonthlyGrowth = await GetMonthlyGrowthAsync()
+            };
+
+            return new JsonModel { data = analytics, Message = "Subscription analytics retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting subscription analytics");
+            return new JsonModel { data = new object(), Message = "Error retrieving subscription analytics", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> GetSubscriptionDashboardAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var dashboard = new SubscriptionDashboardDto
+            {
+                Period = new DateRangeDto
+                {
+                    StartDate = startDate ?? DateTime.UtcNow.AddDays(-30),
+                    EndDate = endDate ?? DateTime.UtcNow
+                },
+                Overview = await GetOverviewMetricsAsync(startDate, endDate),
+                Revenue = await GetRevenueMetricsAsync(startDate, endDate),
+                Churn = await GetChurnMetricsAsync(startDate, endDate),
+                Plans = await GetPlanMetricsAsync(startDate, endDate),
+                Usage = await GetUsageMetricsAsync(startDate, endDate),
+                Trends = new TrendAnalyticsDto
+                {
+                    MonthlyTrends = new List<MonthlyTrendDto>(), // TODO: Implement monthly trends
+                    YearlyTrends = new List<YearlyTrendDto>(), // TODO: Implement yearly trends
+                    SeasonalTrends = new List<SeasonalTrendDto>() // TODO: Implement seasonal trends
+                }
+            };
+
+            return new JsonModel { data = dashboard, Message = "Subscription dashboard retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting subscription dashboard");
+            return new JsonModel { data = new object(), Message = "Error retrieving subscription dashboard", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> GetChurnAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var churnAnalytics = await GetChurnMetricsAsync(startDate ?? DateTime.UtcNow.AddDays(-30), endDate ?? DateTime.UtcNow);
+            return new JsonModel { data = churnAnalytics, Message = "Churn analytics retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting churn analytics");
+            return new JsonModel { data = new object(), Message = "Error retrieving churn analytics", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> GetPlanAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var planAnalytics = await GetPlanMetricsAsync(startDate ?? DateTime.UtcNow.AddDays(-30), endDate ?? DateTime.UtcNow);
+            return new JsonModel { data = planAnalytics, Message = "Plan analytics retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting plan analytics");
+            return new JsonModel { data = new object(), Message = "Error retrieving plan analytics", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> GetUsageAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var usageAnalytics = await GetUsageMetricsAsync(startDate ?? DateTime.UtcNow.AddDays(-30), endDate ?? DateTime.UtcNow);
+            return new JsonModel { data = usageAnalytics, Message = "Usage analytics retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting usage analytics");
+            return new JsonModel { data = new object(), Message = "Error retrieving usage analytics", StatusCode = 500 };
+        }
+    }
+
     public async Task<decimal> GetMonthlyRecurringRevenueAsync()
     {
         try
@@ -650,7 +751,7 @@ public class AnalyticsService : IAnalyticsService
             var systemHealth = await GetSystemHealthAsync();
             var analytics = new SystemAnalyticsDto
             {
-                SystemHealth = systemHealth.data ?? new SystemHealthDto(),
+                SystemHealth = (SystemHealthDto)systemHealth.data ?? new SystemHealthDto(),
                 TotalApiCalls = 0, // TODO: Implement
                 SuccessfulApiCalls = 0, // TODO: Implement
                 FailedApiCalls = 0, // TODO: Implement
@@ -929,6 +1030,164 @@ public class AnalyticsService : IAnalyticsService
         {
             _logger.LogError(ex, "Error exporting subscription analytics");
             return new JsonModel { data = new object(), Message = "Error exporting subscription analytics", StatusCode = 500 };
+        }
+    }
+
+    // Missing methods for subscription dashboard
+    private async Task<OverviewMetricsDto> GetOverviewMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var totalSubscriptions = await GetTotalSubscriptionsAsync();
+            var activeSubscriptions = await GetActiveSubscriptionsAsync();
+            var newSubscriptions = await GetNewSubscriptionsThisMonthAsync();
+            var cancelledSubscriptions = await GetCancelledSubscriptionsAsync();
+            var pausedSubscriptions = await GetPausedSubscriptionsAsync();
+            var averageValue = await CalculateAverageSubscriptionValueAsync();
+            var totalRevenue = await GetMonthlyRecurringRevenueAsync();
+
+            return new OverviewMetricsDto
+            {
+                TotalSubscriptions = totalSubscriptions,
+                ActiveSubscriptions = activeSubscriptions,
+                CancelledSubscriptions = cancelledSubscriptions,
+                PausedSubscriptions = pausedSubscriptions,
+                TrialSubscriptions = 0, // TODO: Implement when trial tracking is available
+                NewSubscriptionsThisPeriod = newSubscriptions,
+                CancelledSubscriptionsThisPeriod = cancelledSubscriptions,
+                AverageSubscriptionValue = averageValue,
+                TotalRevenue = totalRevenue
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting overview metrics");
+            return new OverviewMetricsDto();
+        }
+    }
+
+    private async Task<RevenueAnalyticsDto> GetRevenueMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var mrr = await GetMonthlyRecurringRevenueAsync();
+            var arr = await GetAnnualRecurringRevenueAsync();
+            var totalRevenue = mrr;
+            var averageValue = await CalculateAverageSubscriptionValueAsync();
+
+            return new RevenueAnalyticsDto
+            {
+                TotalRevenue = totalRevenue,
+                MonthlyRevenue = mrr,
+                AverageRevenuePerSubscription = averageValue,
+                MonthlyRevenueBreakdown = new List<MonthlyRevenueData>(), // TODO: Implement monthly revenue tracking
+                RevenueByCategory = new List<CategoryRevenueData>() // TODO: Implement plan revenue tracking
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting revenue metrics");
+            return new RevenueAnalyticsDto();
+        }
+    }
+
+    private async Task<ChurnAnalyticsDto> GetChurnMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var churnRate = await CalculateChurnRateAsync(startDate, endDate);
+            var cancelledSubscriptions = await GetCancelledSubscriptionsAsync();
+            var retentionRate = 100 - churnRate;
+
+            return new ChurnAnalyticsDto
+            {
+                ChurnRate = churnRate,
+                RetentionRate = retentionRate,
+                CancelledSubscriptions = cancelledSubscriptions,
+                CancellationReasons = new List<CancellationReasonDto>(), // TODO: Implement cancellation reason tracking
+                AverageLifetime = 0, // TODO: Implement lifetime calculation
+                CohortRetention = new List<CohortRetentionDto>() // TODO: Implement cohort analysis
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting churn metrics");
+            return new ChurnAnalyticsDto();
+        }
+    }
+
+    private async Task<PlanAnalyticsDto> GetPlanMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var topCategories = await GetTopCategoriesAsync(startDate, endDate);
+            var totalPlans = await GetTotalSubscriptionPlansAsync();
+
+            return new PlanAnalyticsDto
+            {
+                PlanPerformance = new List<PlanPerformanceDto>(), // TODO: Implement plan performance tracking
+                TopPerformingPlans = new List<PlanPerformanceDto>(), // TODO: Implement top plans tracking
+                PlanComparison = new List<PlanPerformanceDto>() // TODO: Implement plan comparison
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting plan metrics");
+            return new PlanAnalyticsDto();
+        }
+    }
+
+    private async Task<UsageAnalyticsDto> GetUsageMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var totalUsers = await GetTotalUsersAsync();
+            var activeUsers = await GetActiveUsersAsync();
+            var averageUsage = await CalculateAverageUsageAsync();
+
+            return new UsageAnalyticsDto
+            {
+                TotalUsers = totalUsers,
+                ActiveUsers = activeUsers,
+                InactiveUsers = totalUsers - activeUsers,
+                AverageUsage = averageUsage,
+                FeatureUsage = new List<FeatureUsageDto>(), // TODO: Implement feature usage tracking
+                UserActivity = new List<UserActivityDto>() // TODO: Implement user activity tracking
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting usage metrics");
+            return new UsageAnalyticsDto();
+        }
+    }
+
+    // Helper methods for metrics
+    private async Task<int> GetTotalSubscriptionPlansAsync()
+    {
+        try
+        {
+            var categories = await _categoryRepository.GetAllActiveAsync();
+            return categories.Sum(c => c.SubscriptionPlans?.Count ?? 0);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting total subscription plans");
+            return 0;
+        }
+    }
+
+    private async Task<decimal> CalculateAverageUsageAsync()
+    {
+        try
+        {
+            // TODO: Implement when usage tracking is available
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating average usage");
+            return 0;
         }
     }
 } 

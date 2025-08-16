@@ -226,18 +226,18 @@ public class DocumentTypeSeedService
                 try
                 {
                     var result = await _documentTypeService.CreateSystemDocumentTypeAsync(documentType);
-                    if (result.Success)
+                    if (result.StatusCode == 200)
                     {
-                        _logger.LogInformation("Successfully seeded document type: {Name}", documentType.Name);
+                        _logger.LogInformation("Successfully seeded document type");
                     }
                     else
                     {
-                        _logger.LogWarning("Failed to seed document type {Name}: {Message}", documentType.Name, result.Message);
+                        _logger.LogWarning("Failed to seed document type");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error seeding document type {Name}", documentType.Name);
+                    _logger.LogError(ex, "Error seeding document type");
                 }
             }
 
@@ -254,7 +254,15 @@ public class DocumentTypeSeedService
         try
         {
             var systemTypes = await _documentTypeService.GetSystemDocumentTypesAsync();
-            return !systemTypes.Success || systemTypes.Data?.Count == 0;
+            
+            // Check if data is a collection and has items
+            if (systemTypes.data is IEnumerable<object> collection)
+            {
+                return systemTypes.StatusCode != 200 || !collection.Any();
+            }
+            
+            // If data is not a collection, assume seeding is required
+            return systemTypes.StatusCode != 200 || systemTypes.data == null;
         }
         catch (Exception ex)
         {

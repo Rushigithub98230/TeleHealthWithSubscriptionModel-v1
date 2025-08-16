@@ -21,16 +21,17 @@ public class OneTimeConsultationController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("my")]
-    public async Task<ActionResult<IEnumerable<ConsultationDto>>> GetMyOneTimeConsultations()
+    [HttpGet("my-consultations")]
+    public async Task<ActionResult<JsonModel>> GetMyOneTimeConsultations()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var parsedUserId))
-        {
-            _logger.LogError("Invalid or missing UserId for current user");
-            return Unauthorized();
-        }
-        var response = await _consultationService.GetUserOneTimeConsultationsAsync(parsedUserId);
-        return StatusCode(response.StatusCode, response.Data);
+        var userId = GetCurrentUserId();
+        var response = await _consultationService.GetUserOneTimeConsultationsAsync(userId);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    private int GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 } 

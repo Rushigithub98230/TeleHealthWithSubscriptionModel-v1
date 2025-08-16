@@ -68,7 +68,7 @@ public class ChatHub : Hub
         {
             // Validate access to chat room
             var accessValidation = await _messagingService.ValidateChatRoomAccessAsync(chatRoomId, userId.ToString());
-            if (!accessValidation.Success)
+            if (accessValidation.StatusCode != 200)
             {
                 await Clients.Caller.SendAsync("AccessDenied", "You don't have access to this chat room");
                 return;
@@ -135,15 +135,16 @@ public class ChatHub : Hub
 
             var result = await _messagingService.SendMessageAsync(createMessageDto, userId.ToString());
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 // Get the actual message data
                 var messages = await _messagingService.GetChatRoomMessagesAsync(chatRoomId, 0, 1);
-                if (messages.Success && messages.Data.Any())
+                if (messages.StatusCode == 200 && ((IEnumerable<object>)messages.data).Any())
                 {
-                    var message = messages.Data.First();
+                    var message = ((IEnumerable<object>)messages.data).First();
                     await Clients.Group(chatRoomId).SendAsync("MessageReceived", message);
-                    await Clients.Caller.SendAsync("MessageSent", message.Id);
+                    var messageId = message.GetType().GetProperty("Id")?.GetValue(message)?.ToString() ?? "";
+                    await Clients.Caller.SendAsync("MessageSent", messageId);
                 }
             }
             else
@@ -194,12 +195,13 @@ public class ChatHub : Hub
         try
         {
             var result = await _messagingService.MarkMessageAsReadAsync(messageId, userId.ToString());
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 var message = await _messagingService.GetMessageAsync(messageId);
-                if (message.Success && message.Data != null)
+                if (message.StatusCode == 200 && message.data != null)
                 {
-                    await Clients.Group(message.Data.ChatRoomId.ToString()).SendAsync("MessageRead", messageId, userId);
+                    var chatRoomId = message.data.GetType().GetProperty("ChatRoomId")?.GetValue(message.data)?.ToString() ?? "";
+                    await Clients.Group(chatRoomId).SendAsync("MessageRead", messageId, userId);
                 }
             }
         }
@@ -220,12 +222,13 @@ public class ChatHub : Hub
             var addReactionDto = new AddReactionDto { Emoji = emoji };
             var result = await _messagingService.AddReactionAsync(messageId, emoji, userId.ToString());
             
-            if (result.Success && result.Data != null)
+            if (result.StatusCode == 200 && result.data != null)
             {
                 var message = await _messagingService.GetMessageAsync(messageId);
-                if (message.Success && message.Data != null)
+                if (message.StatusCode == 200 && message.data != null)
                 {
-                    await Clients.Group(message.Data.ChatRoomId.ToString()).SendAsync("ReactionAdded", messageId, result.Data);
+                    var chatRoomId = message.data.GetType().GetProperty("ChatRoomId")?.GetValue(message.data)?.ToString() ?? "";
+                    await Clients.Group(chatRoomId).SendAsync("ReactionAdded", messageId, result.data);
                 }
             }
         }
@@ -244,12 +247,12 @@ public class ChatHub : Hub
         try
         {
             var result = await _messagingService.RemoveReactionAsync(messageId, emoji, userId.ToString());
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 var message = await _messagingService.GetMessageAsync(messageId);
-                if (message.Success && message.Data != null)
+                if (message.StatusCode == 200 && message.data != null)
                 {
-                    await Clients.Group(message.Data.ChatRoomId.ToString()).SendAsync("ReactionRemoved", messageId, userId, emoji);
+                    await Clients.Group(((dynamic)message.data).ChatRoomId.ToString()).SendAsync("ReactionRemoved", messageId, userId, emoji);
                 }
             }
         }

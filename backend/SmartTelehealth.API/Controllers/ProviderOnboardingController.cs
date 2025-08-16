@@ -27,28 +27,27 @@ public class ProviderOnboardingController : ControllerBase
     /// Create a new provider onboarding application
     /// </summary>
     [HttpPost]
-    [AllowAnonymous]
-    public async Task<ActionResult<ApiResponse<ProviderOnboardingDto>>> CreateOnboarding([FromBody] CreateProviderOnboardingDto createDto)
+    public async Task<ActionResult<JsonModel>> CreateOnboarding([FromBody] CreateProviderOnboardingDto createDto)
     {
-        var result = await _onboardingService.CreateOnboardingAsync(createDto);
-        return StatusCode(result.StatusCode, result);
+        var response = await _onboardingService.CreateOnboardingAsync(createDto);
+        return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Get onboarding by ID
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApiResponse<ProviderOnboardingDto>>> GetOnboarding(Guid id)
+    public async Task<ActionResult<JsonModel>> GetOnboarding(Guid id)
     {
-        var result = await _onboardingService.GetOnboardingAsync(id);
-        return StatusCode(result.StatusCode, result);
+        var response = await _onboardingService.GetOnboardingAsync(id);
+        return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Get onboarding by user ID
     /// </summary>
     [HttpGet("user/{userId}")]
-    public async Task<ActionResult<ApiResponse<ProviderOnboardingDto>>> GetOnboardingByUser(int userId)
+    public async Task<ActionResult<JsonModel>> GetOnboardingByUser(int userId)
     {
         var result = await _onboardingService.GetOnboardingByUserIdAsync(userId);
         return StatusCode(result.StatusCode, result);
@@ -58,7 +57,7 @@ public class ProviderOnboardingController : ControllerBase
     /// Update onboarding application
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponse<ProviderOnboardingDto>>> UpdateOnboarding(Guid id, [FromBody] UpdateProviderOnboardingDto updateDto)
+    public async Task<ActionResult<JsonModel>> UpdateOnboarding(Guid id, [FromBody] UpdateProviderOnboardingDto updateDto)
     {
         var result = await _onboardingService.UpdateOnboardingAsync(id, updateDto);
         return StatusCode(result.StatusCode, result);
@@ -68,7 +67,7 @@ public class ProviderOnboardingController : ControllerBase
     /// Submit onboarding application for review
     /// </summary>
     [HttpPost("{id}/submit")]
-    public async Task<ActionResult<ApiResponse<ProviderOnboardingDto>>> SubmitOnboarding(Guid id)
+    public async Task<ActionResult<JsonModel>> SubmitOnboarding(Guid id)
     {
         var result = await _onboardingService.SubmitOnboardingAsync(id);
         return StatusCode(result.StatusCode, result);
@@ -79,7 +78,7 @@ public class ProviderOnboardingController : ControllerBase
     /// </summary>
     [HttpPost("{id}/review")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<ApiResponse<ProviderOnboardingDto>>> ReviewOnboarding(Guid id, [FromBody] ReviewProviderOnboardingDto reviewDto)
+    public async Task<ActionResult<JsonModel>> ReviewOnboarding(Guid id, [FromBody] ReviewProviderOnboardingDto reviewDto)
     {
         var result = await _onboardingService.ReviewOnboardingAsync(id, reviewDto);
         return StatusCode(result.StatusCode, result);
@@ -90,7 +89,7 @@ public class ProviderOnboardingController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ProviderOnboardingDto>>>> GetAllOnboardings(
+    public async Task<ActionResult<JsonModel>> GetAllOnboardings(
         [FromQuery] string? status = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50)
@@ -104,7 +103,7 @@ public class ProviderOnboardingController : ControllerBase
     /// </summary>
     [HttpGet("pending")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ProviderOnboardingDto>>>> GetPendingOnboardings()
+    public async Task<ActionResult<JsonModel>> GetPendingOnboardings()
     {
         var result = await _onboardingService.GetPendingOnboardingsAsync();
         return StatusCode(result.StatusCode, result);
@@ -115,7 +114,7 @@ public class ProviderOnboardingController : ControllerBase
     /// </summary>
     [HttpGet("status/{status}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ProviderOnboardingDto>>>> GetOnboardingsByStatus(string status)
+    public async Task<ActionResult<JsonModel>> GetOnboardingsByStatus(string status)
     {
         var result = await _onboardingService.GetOnboardingsByStatusAsync(status);
         return StatusCode(result.StatusCode, result);
@@ -126,7 +125,7 @@ public class ProviderOnboardingController : ControllerBase
     /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeleteOnboarding(Guid id)
+    public async Task<ActionResult<JsonModel>> DeleteOnboarding(Guid id)
     {
         var result = await _onboardingService.DeleteOnboardingAsync(id);
         return StatusCode(result.StatusCode, result);
@@ -137,7 +136,7 @@ public class ProviderOnboardingController : ControllerBase
     /// </summary>
     [HttpGet("statistics")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<ApiResponse<OnboardingStatisticsDto>>> GetOnboardingStatistics()
+    public async Task<ActionResult<JsonModel>> GetOnboardingStatistics()
     {
         var result = await _onboardingService.GetOnboardingStatisticsAsync();
         return StatusCode(result.StatusCode, result);

@@ -20,37 +20,37 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllCategories()
+    public async Task<ActionResult<JsonModel>> GetAllCategories()
     {
         var response = await _categoryService.GetAllCategoriesAsync();
         return StatusCode(response.StatusCode, response);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetCategory(Guid id)
+    public async Task<ActionResult<JsonModel>> GetCategory(Guid id)
     {
         var response = await _categoryService.GetCategoryAsync(id);
         return StatusCode(response.StatusCode, response);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto createCategoryDto)
+    public async Task<ActionResult<JsonModel>> CreateCategory([FromBody] CreateCategoryDto createCategoryDto)
     {
         var response = await _categoryService.CreateCategoryAsync(createCategoryDto);
         return StatusCode(response.StatusCode, response);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] UpdateCategoryDto updateCategoryDto)
+    public async Task<ActionResult<JsonModel>> UpdateCategory(Guid id, [FromBody] UpdateCategoryDto updateCategoryDto)
     {
         if (!Guid.TryParse(updateCategoryDto.Id, out var dtoId) || id != dtoId)
-            return BadRequest("ID mismatch");
+            return BadRequest(new JsonModel { data = new object(), Message = "ID mismatch", StatusCode = 400 });
         var response = await _categoryService.UpdateCategoryAsync(id, updateCategoryDto);
         return StatusCode(response.StatusCode, response);
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteCategory(Guid id)
+    public async Task<ActionResult<JsonModel>> DeleteCategory(Guid id)
     {
         var response = await _categoryService.DeleteCategoryAsync(id);
         return StatusCode(response.StatusCode, response);

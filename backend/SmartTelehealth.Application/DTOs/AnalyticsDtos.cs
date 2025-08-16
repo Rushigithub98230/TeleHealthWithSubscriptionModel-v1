@@ -16,6 +16,10 @@ namespace SmartTelehealth.Application.DTOs
         public List<MonthlyRevenueData> MonthlyRevenueBreakdown { get; set; } = new List<MonthlyRevenueData>();
         public List<CategoryRevenueData> RevenueByCategory { get; set; } = new List<CategoryRevenueData>();
         public decimal TotalRefunds { get; set; }
+        public decimal MonthlyRecurringRevenue { get; set; }
+        public decimal AverageRevenuePerUser { get; set; }
+        public decimal RevenueGrowth { get; set; }
+        public List<PlanRevenueDto> RevenueByPlan { get; set; } = new List<PlanRevenueDto>();
     }
 
     public class MonthlyRevenueData
@@ -269,6 +273,7 @@ namespace SmartTelehealth.Application.DTOs
         public string Month { get; set; } = string.Empty;
         public decimal Revenue { get; set; }
         public int BillingCount { get; set; }
+        public int PaymentCount { get; set; }
     }
 
     public class BillingStatusDto
@@ -276,5 +281,40 @@ namespace SmartTelehealth.Application.DTOs
         public string Status { get; set; } = string.Empty;
         public int Count { get; set; }
         public decimal TotalAmount { get; set; }
+    }
+
+    // Added missing DTOs for SubscriptionAnalyticsController
+    public class UsageDistributionDto
+    {
+        public string Range { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
+
+    public class PeakUsageTimeDto
+    {
+        public int Hour { get; set; }
+        public int UsageCount { get; set; }
+    }
+
+    public class UsageTrendDto
+    {
+        public DateTime Date { get; set; }
+        public decimal AverageUsage { get; set; }
+    }
+
+    public class ForecastDto
+    {
+        public decimal NextMonthRevenue { get; set; }
+        public int NextMonthSubscriptions { get; set; }
+        public decimal GrowthRate { get; set; }
+        public decimal Confidence { get; set; }
+    }
+
+    // Added missing DTO for RevenueAnalyticsDto
+    public class PlanRevenueDto
+    {
+        public string PlanName { get; set; } = string.Empty;
+        public decimal Revenue { get; set; }
+        public int SubscriptionCount { get; set; }
     }
 } 

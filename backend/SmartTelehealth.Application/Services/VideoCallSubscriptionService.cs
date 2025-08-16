@@ -31,26 +31,41 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         _privilegeService = privilegeService;
     }
 
-    public async Task<ApiResponse<VideoCallAccessDto>> CheckVideoCallAccessAsync(int userId, Guid? consultationId = null)
+    public async Task<JsonModel> CheckVideoCallAccessAsync(int userId, Guid? consultationId = null)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetActiveSubscriptionByUserIdAsync(userId);
             if (subscription == null)
             {
-                return ApiResponse<VideoCallAccessDto>.ErrorResponse("No active subscription found", 403);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "No active subscription found",
+                    StatusCode = 403
+                };
             }
             // Check if subscription plan includes video calls (privilege)
             var videoCallRemaining = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "VideoCall");
             if (videoCallRemaining <= 0)
             {
-                return ApiResponse<VideoCallAccessDto>.ErrorResponse("Video calls not included in current plan or limit reached", 403);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Video calls not included in current plan or limit reached",
+                    StatusCode = 403
+                };
             }
             // Check consultation limits (privilege)
             var consultationRemaining = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "Teleconsultation");
             if (consultationRemaining == 0)
             {
-                return ApiResponse<VideoCallAccessDto>.ErrorResponse("Consultation limit reached for current billing period", 403);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Consultation limit reached for current billing period",
+                    StatusCode = 403
+                };
             }
             // Check if this is a one-time consultation
             if (consultationId.HasValue)
@@ -72,70 +87,129 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                 CanRecord = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "PrioritySupport") > 0,
                 CanBroadcast = false // Only for premium plans, add as privilege if needed
             };
-            return ApiResponse<VideoCallAccessDto>.SuccessResponse(accessDto, "Video call access granted");
+            return new JsonModel
+            {
+                data = accessDto,
+                Message = "Video call access granted",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking video call access for user: {UserId}", userId);
-            return ApiResponse<VideoCallAccessDto>.ErrorResponse("Failed to check video call access", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to check video call access",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<OpenTokSessionDto>> CreateVideoCallSessionAsync(int userId, Guid consultationId, string sessionName)
+    public async Task<JsonModel> CreateVideoCallSessionAsync(int userId, Guid consultationId, string sessionName)
     {
         try
         {
             var accessResult = await CheckVideoCallAccessAsync(userId, consultationId);
-            if (!accessResult.Success)
+            if (accessResult.StatusCode != 200)
             {
-                return ApiResponse<OpenTokSessionDto>.ErrorResponse(accessResult.Message, accessResult.StatusCode);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = accessResult.Message,
+                    StatusCode = accessResult.StatusCode
+                };
             }
             var consultation = await _consultationRepository.GetByIdAsync(consultationId);
             if (consultation == null)
             {
-                return ApiResponse<OpenTokSessionDto>.ErrorResponse("Consultation not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Consultation not found",
+                    StatusCode = 404
+                };
             }
             var sessionResult = await _openTokService.CreateSessionAsync(sessionName, false);
-            if (!sessionResult.Success)
+            if (sessionResult.StatusCode != 200)
             {
-                return ApiResponse<OpenTokSessionDto>.ErrorResponse("Failed to create video session", 500);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Failed to create video session",
+                    StatusCode = 500
+                };
             }
-            consultation.MeetingUrl = $"/video-call/{sessionResult.Data.SessionId}";
-            consultation.MeetingId = sessionResult.Data.SessionId;
-            await _consultationRepository.UpdateAsync(consultation);
-            // Increment consultation usage (privilege)
-            var subscription = await _subscriptionRepository.GetActiveSubscriptionByUserIdAsync(userId);
-            if (subscription != null && !consultation.IsOneTime)
+            
+            // Extract all values before any logger calls to avoid dynamic dispatch issues
+            string sessionId = "unknown";
+            try
             {
-                await _privilegeService.UsePrivilegeAsync(subscription.Id, "Teleconsultation");
+                var dynamicData = sessionResult.data as dynamic;
+                if (dynamicData != null)
+                {
+                    sessionId = dynamicData.SessionId?.ToString() ?? "unknown";
+                    consultation.MeetingUrl = $"/video-call/{sessionId}";
+                    consultation.MeetingId = sessionId;
+                    await _consultationRepository.UpdateAsync(consultation);
+                    
+                    // Increment consultation usage (privilege)
+                    var subscription = await _subscriptionRepository.GetActiveSubscriptionByUserIdAsync(userId);
+                    if (subscription != null && !consultation.IsOneTime)
+                    {
+                        await _privilegeService.UsePrivilegeAsync(subscription.Id, "Teleconsultation");
+                    }
+                }
             }
-            _logger.LogInformation("Created video call session for consultation: {ConsultationId}, session: {SessionId}", consultationId, sessionResult.Data.SessionId);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing session data for consultation: {ConsultationId}", consultationId);
+                // Continue execution even if dynamic access fails
+            }
+            
+            // Now log with extracted values (no dynamic dispatch)
+            _logger.LogInformation("Created video call session for consultation: {0}, session: {1}", consultationId, sessionId);
             return sessionResult;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating video call session for user: {UserId}, consultation: {ConsultationId}", userId, consultationId);
-            return ApiResponse<OpenTokSessionDto>.ErrorResponse("Failed to create video call session", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to create video call session",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<string>> GenerateVideoCallTokenAsync(int userId, string sessionId, OpenTokRole role)
+    public async Task<JsonModel> GenerateVideoCallTokenAsync(int userId, string sessionId, OpenTokRole role)
     {
         try
         {
             // Check access
             var accessResult = await CheckVideoCallAccessAsync(userId);
-            if (!accessResult.Success)
+            if (accessResult.StatusCode != 200)
             {
-                return ApiResponse<string>.ErrorResponse(accessResult.Message, accessResult.StatusCode);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = accessResult.Message,
+                    StatusCode = accessResult.StatusCode
+                };
             }
 
             // Generate token
             var tokenResult = await _openTokService.GenerateTokenAsync(sessionId, userId.ToString(), "User", role);
             
-            if (!tokenResult.Success)
+            if (tokenResult.StatusCode != 200)
             {
-                return ApiResponse<string>.ErrorResponse("Failed to generate video call token", 500);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Failed to generate video call token",
+                    StatusCode = 500
+                };
             }
 
             _logger.LogInformation("Generated video call token for user: {UserId}, session: {SessionId}", userId, sessionId);
@@ -144,18 +218,28 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating video call token for user: {UserId}, session: {SessionId}", userId, sessionId);
-            return ApiResponse<string>.ErrorResponse("Failed to generate video call token", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to generate video call token",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<VideoCallBillingDto>> ProcessVideoCallBillingAsync(int userId, Guid consultationId, int durationMinutes)
+    public async Task<JsonModel> ProcessVideoCallBillingAsync(int userId, Guid consultationId, int durationMinutes)
     {
         try
         {
             var consultation = await _consultationRepository.GetByIdAsync(consultationId);
             if (consultation == null)
             {
-                return ApiResponse<VideoCallBillingDto>.ErrorResponse("Consultation not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Consultation not found",
+                    StatusCode = 404
+                };
             }
             var subscription = await _subscriptionRepository.GetActiveSubscriptionByUserIdAsync(userId);
             decimal billingAmount = 0;
@@ -190,20 +274,30 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                     DueDate = DateTime.UtcNow.AddDays(30)
                 };
                 var billingResult = await _billingService.CreateBillingRecordAsync(billingDto);
-                if (!billingResult.Success)
+                if (billingResult.StatusCode != 200)
                 {
-                    return ApiResponse<VideoCallBillingDto>.ErrorResponse("Failed to create billing record", 500);
+                    return new JsonModel
+                    {
+                        data = new object(),
+                        Message = "Failed to create billing record",
+                        StatusCode = 500
+                    };
                 }
                 var billingResponse = new VideoCallBillingDto
                 {
-                    BillingRecordId = Guid.TryParse(billingResult.Data.Id, out var billId) ? billId : (Guid?)null,
+                    BillingRecordId = GetBillingRecordId(billingResult.data),
                     Amount = billingAmount,
                     DurationMinutes = durationMinutes,
                     IsIncludedInSubscription = billingAmount == 0,
                     ConsultationId = consultationId,
                     Description = $"Video consultation - {durationMinutes} minutes"
                 };
-                return ApiResponse<VideoCallBillingDto>.SuccessResponse(billingResponse, "Billing processed successfully");
+                return new JsonModel
+                {
+                    data = billingResponse,
+                    Message = "Billing processed successfully",
+                    StatusCode = 200
+                };
             }
             var noBillingResponse = new VideoCallBillingDto
             {
@@ -212,23 +306,38 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                 IsIncludedInSubscription = true,
                 ConsultationId = consultationId
             };
-            return ApiResponse<VideoCallBillingDto>.SuccessResponse(noBillingResponse, "No billing required");
+            return new JsonModel
+            {
+                data = noBillingResponse,
+                Message = "No billing required",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing video call billing for user: {UserId}, consultation: {ConsultationId}", userId, consultationId);
-            return ApiResponse<VideoCallBillingDto>.ErrorResponse("Failed to process video call billing", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to process video call billing",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<VideoCallUsageDto>> GetVideoCallUsageAsync(int userId)
+    public async Task<JsonModel> GetVideoCallUsageAsync(int userId)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetActiveSubscriptionByUserIdAsync(userId);
             if (subscription == null)
             {
-                return ApiResponse<VideoCallUsageDto>.ErrorResponse("No active subscription found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "No active subscription found",
+                    StatusCode = 404
+                };
             }
 
             // Get consultations for current billing period
@@ -252,16 +361,26 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                     currentPeriodConsultations.Average(c => c.DurationMinutes) : 0
             };
 
-            return ApiResponse<VideoCallUsageDto>.SuccessResponse(usageDto, "Usage data retrieved successfully");
+            return new JsonModel
+            {
+                data = usageDto,
+                Message = "Usage data retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting video call usage for user: {UserId}", userId);
-            return ApiResponse<VideoCallUsageDto>.ErrorResponse("Failed to get usage data", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to get usage data",
+                StatusCode = 500
+            };
         }
     }
 
-    private async Task<ApiResponse<VideoCallAccessDto>> CheckOneTimeVideoCallAccessAsync(Consultation consultation)
+    private async Task<JsonModel> CheckOneTimeVideoCallAccessAsync(Consultation consultation)
     {
         try
         {
@@ -272,7 +391,12 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
             
             if (now < scheduledTime.Subtract(timeWindow) || now > scheduledTime.Add(timeWindow))
             {
-                return ApiResponse<VideoCallAccessDto>.ErrorResponse("Video call access outside allowed time window", 403);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Video call access outside allowed time window",
+                    StatusCode = 403
+                };
             }
 
             // Check if consultation is paid
@@ -284,7 +408,12 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                 
                 if (!isPaid)
                 {
-                    return ApiResponse<VideoCallAccessDto>.ErrorResponse("Consultation payment required", 402);
+                    return new JsonModel
+                    {
+                        data = new object(),
+                        Message = "Consultation payment required",
+                        StatusCode = 402
+                    };
                 }
             }
 
@@ -301,12 +430,35 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                 IsOneTime = true
             };
 
-            return ApiResponse<VideoCallAccessDto>.SuccessResponse(accessDto, "One-time video call access granted");
+            return new JsonModel
+            {
+                data = accessDto,
+                Message = "One-time video call access granted",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking one-time video call access for consultation: {ConsultationId}", consultation.Id);
-            return ApiResponse<VideoCallAccessDto>.ErrorResponse("Failed to check one-time video call access", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to check one-time video call access",
+                StatusCode = 500
+            };
         }
+    }
+
+    private Guid? GetBillingRecordId(object billingData)
+    {
+        var dynamicData = billingData as dynamic;
+        if (dynamicData != null)
+        {
+            if (Guid.TryParse(dynamicData.Id?.ToString(), out Guid billId))
+            {
+                return billId;
+            }
+        }
+        return null;
     }
 } 

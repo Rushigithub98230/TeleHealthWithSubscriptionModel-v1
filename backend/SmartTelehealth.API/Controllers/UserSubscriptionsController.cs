@@ -34,11 +34,11 @@ public class UserSubscriptionsController : ControllerBase
     private int GetCurrentUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpGet("subscriptions")]
-    public async Task<ActionResult<IEnumerable<Subscription>>> GetUserSubscriptions()
+    public async Task<ActionResult<JsonModel>> GetUserSubscriptions()
     {
         var userId = GetCurrentUserId();
-        var subs = await _subscriptionRepo.GetByUserIdAsync(userId);
-        return Ok(subs);
+        var response = await _subscriptionService.GetUserSubscriptionsAsync(userId);
+        return StatusCode(response.StatusCode, response);
     }
 
     [HttpPost("subscriptions")]
@@ -51,7 +51,7 @@ public class UserSubscriptionsController : ControllerBase
             PlanId = dto.PlanId.ToString()
         };
         var result = await _subscriptionService.CreateSubscriptionAsync(createDto);
-        if (!result.Success) return BadRequest(result.Message);
+        if (result.StatusCode != 200) return BadRequest(result.Message);
         return Ok(result);
     }
 
@@ -60,31 +60,43 @@ public class UserSubscriptionsController : ControllerBase
     {
         var userId = GetCurrentUserId();
         var result = await _subscriptionService.CancelSubscriptionAsync(dto.SubscriptionId.ToString());
-        if (!result.Success) return BadRequest(result.Message);
+        if (result.StatusCode != 200) return BadRequest(result.Message);
         return Ok(result);
     }
 
-    [HttpGet("privileges/usage")]
-    public async Task<ActionResult<IEnumerable<UserPrivilegeUsageDto>>> GetPrivilegeUsage()
+    [HttpGet("privilege-usage")]
+    public async Task<ActionResult<JsonModel>> GetPrivilegeUsage()
     {
         var userId = GetCurrentUserId();
-        var subs = await _subscriptionRepo.GetByUserIdAsync(userId);
-        var usageList = new List<UserPrivilegeUsageDto>();
-        foreach (var sub in subs)
+        var subscriptions = await _subscriptionService.GetUserSubscriptionsAsync(userId);
+        
+        if (subscriptions.StatusCode != 200)
+            return StatusCode(subscriptions.StatusCode, subscriptions);
+            
+        var subscriptionList = subscriptions.data as IEnumerable<SubscriptionDto>;
+        if (subscriptionList == null || !subscriptionList.Any())
+            return Ok(new JsonModel { data = new List<object>(), Message = "No subscriptions found", StatusCode = 200 });
+            
+        var privilegeUsageList = new List<object>();
+        foreach (var subscription in subscriptionList)
         {
-            var planPrivileges = await _privilegeService.GetPrivilegesForPlanAsync(sub.SubscriptionPlanId);
-            foreach (var priv in planPrivileges)
+            var subscriptionId = Guid.Parse(subscription.Id);
+            var planId = Guid.Parse(subscription.PlanId);
+            var planPrivileges = await _privilegeService.GetPrivilegesForPlanAsync(planId);
+            foreach (var privilege in planPrivileges)
             {
-                var remaining = await _privilegeService.GetRemainingPrivilegeAsync(sub.Id, priv.Name);
-                usageList.Add(new UserPrivilegeUsageDto
+                var remaining = await _privilegeService.GetRemainingPrivilegeAsync(subscriptionId, privilege.Name);
+                privilegeUsageList.Add(new
                 {
-                    SubscriptionId = sub.Id,
-                    PrivilegeName = priv.Name,
+                    SubscriptionId = subscription.Id,
+                    PlanName = subscription.PlanName,
+                    PrivilegeName = privilege.Name,
                     Remaining = remaining
                 });
             }
         }
-        return Ok(usageList);
+        
+        return Ok(new JsonModel { data = privilegeUsageList, Message = "Privilege usage retrieved successfully", StatusCode = 200 });
     }
 
     [HttpPost("privileges/use")]

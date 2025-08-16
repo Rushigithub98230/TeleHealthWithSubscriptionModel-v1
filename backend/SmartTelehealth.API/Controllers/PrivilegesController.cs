@@ -1,88 +1,27 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartTelehealth.Application.DTOs;
+using SmartTelehealth.Application.Interfaces;
 using SmartTelehealth.Core.Entities;
-using SmartTelehealth.Core.Interfaces;
 
 namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,Superadmin")]
 public class PrivilegesController : ControllerBase
 {
-    private readonly IPrivilegeRepository _privilegeRepo;
-    private readonly ISubscriptionPlanPrivilegeRepository _planPrivilegeRepo;
-    private readonly ISubscriptionPlanRepository _planRepo;
+    private readonly IPrivilegeService _privilegeService;
 
-    public PrivilegesController(
-        IPrivilegeRepository privilegeRepo,
-        ISubscriptionPlanPrivilegeRepository planPrivilegeRepo,
-        ISubscriptionPlanRepository planRepo)
+    public PrivilegesController(IPrivilegeService privilegeService)
     {
-        _privilegeRepo = privilegeRepo;
-        _planPrivilegeRepo = planPrivilegeRepo;
-        _planRepo = planRepo;
+        _privilegeService = privilegeService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Privilege>>> GetAll()
-        => Ok(await _privilegeRepo.GetAllAsync());
-
-    [HttpPost]
-    public async Task<ActionResult> Create([FromBody] Privilege privilege)
+    public async Task<ActionResult<JsonModel>> GetAll()
     {
-        await _privilegeRepo.AddAsync(privilege);
-        return CreatedAtAction(nameof(GetAll), new { id = privilege.Id }, privilege);
+        var response = await _privilegeService.GetAllPrivilegesAsync();
+        return StatusCode(response.StatusCode, response);
     }
-
-    [HttpPut("{id}")]
-    public async Task<ActionResult> Update(Guid id, [FromBody] Privilege privilege)
-    {
-        if (id != privilege.Id) return BadRequest();
-        await _privilegeRepo.UpdateAsync(privilege);
-        return NoContent();
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(Guid id)
-    {
-        await _privilegeRepo.DeleteAsync(id);
-        return NoContent();
-    }
-
-    [HttpPost("/api/plans/{planId}/privileges")]
-    public async Task<ActionResult> AssignPrivilegeToPlan(Guid planId, [FromBody] AssignPrivilegeDto dto)
-    {
-        var plan = await _planRepo.GetByIdAsync(planId);
-        if (plan == null) return NotFound("Plan not found");
-        var privilege = await _privilegeRepo.GetByIdAsync(dto.PrivilegeId);
-        if (privilege == null) return NotFound("Privilege not found");
-        int value;
-        if (!int.TryParse(dto.Value, out value))
-            return BadRequest("Value must be an integer");
-        var planPrivilege = new SubscriptionPlanPrivilege
-        {
-            SubscriptionPlanId = planId,
-            PrivilegeId = dto.PrivilegeId,
-            Value = value
-        };
-        await _planPrivilegeRepo.AddAsync(planPrivilege);
-        return Ok();
-    }
-
-    [HttpDelete("/api/plans/{planId}/privileges/{privilegeId}")]
-    public async Task<ActionResult> RemovePrivilegeFromPlan(Guid planId, Guid privilegeId)
-    {
-        var planPrivileges = await _planPrivilegeRepo.GetByPlanIdAsync(planId);
-        var planPrivilege = planPrivileges.FirstOrDefault(pp => pp.PrivilegeId == privilegeId);
-        if (planPrivilege == null) return NotFound();
-        await _planPrivilegeRepo.DeleteAsync(planPrivilege.Id);
-        return NoContent();
-    }
-}
-
-public class AssignPrivilegeDto
-{
-    public Guid PrivilegeId { get; set; }
-    public string Value { get; set; } = string.Empty;
 } 

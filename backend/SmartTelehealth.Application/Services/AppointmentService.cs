@@ -75,10 +75,7 @@ public class AppointmentService : IAppointmentService
 
             // Get document type for appointment documents (you can make this configurable)
             var appointmentDocumentTypes = await _documentTypeService.GetAllDocumentTypesAsync(true);
-            var appointmentDocType = appointmentDocumentTypes.Data?.FirstOrDefault(dt => 
-                dt.Name.ToLower().Contains("appointment") || 
-                dt.Name.ToLower().Contains("medical") ||
-                dt.Name.ToLower().Contains("report"));
+            var appointmentDocType = GetAppointmentDocumentType(appointmentDocumentTypes.data);
 
             if (appointmentDocType == null)
             {
@@ -142,11 +139,11 @@ public class AppointmentService : IAppointmentService
             // Get documents using centralized document service
             var documentsResult = await _documentService.GetDocumentsByEntityAsync("Appointment", appointmentId);
             
-            if (documentsResult.Success)
+            if (documentsResult.StatusCode == 200)
             {
                 return new JsonModel
                 {
-                    data = documentsResult.Data,
+                    data = documentsResult.data,
                     Message = "Documents retrieved successfully",
                     StatusCode = 200
                 };
@@ -355,7 +352,11 @@ public class AppointmentService : IAppointmentService
         if (string.IsNullOrEmpty(appointment.OpenTokSessionId))
         {
             var sessionResult = await _openTokService.CreateSessionAsync($"Appointment-{appointmentId}");
-            appointment.OpenTokSessionId = sessionResult.Data?.SessionId ?? string.Empty;
+                            var dynamicData = sessionResult.data as dynamic;
+            if (dynamicData != null)
+            {
+                appointment.OpenTokSessionId = dynamicData.SessionId ?? string.Empty;
+            }
             await _appointmentRepository.UpdateAsync(appointment);
         }
         return appointment.OpenTokSessionId;
@@ -367,7 +368,7 @@ public class AppointmentService : IAppointmentService
         var participantRole = await _participantRoleRepository.GetByIdAsync(participantRoleId);
         var openTokRole = MapParticipantRoleNameToOpenTokRole(participantRole.Name);
         var tokenResult = await _openTokService.GenerateTokenAsync(sessionId, userId?.ToString() ?? string.Empty, email ?? string.Empty, openTokRole);
-        return tokenResult.Data ?? string.Empty;
+                    return tokenResult.data?.ToString() ?? string.Empty;
     }
 
     // --- PAYMENT MANAGEMENT ---
@@ -734,7 +735,12 @@ public class AppointmentService : IAppointmentService
         {
             var appointment = await _appointmentRepository.GetByIdAsync(id);
             if (appointment == null)
-                return ApiResponse<AppointmentDto>.ErrorResponse("Appointment not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Appointment not found",
+                    StatusCode = 404
+                };
 
                                                                   if (updateDto.AppointmentStatusId.HasValue)
                 appointment.AppointmentStatusId = updateDto.AppointmentStatusId.Value;
@@ -847,15 +853,15 @@ public class AppointmentService : IAppointmentService
             };
 
             var result = await CreateAppointmentAsync(createDto);
-            if (!result.Success)
+            if (result.StatusCode != 200)
                 return result;
 
             // Calculate fee
             var fee = await CalculateAppointmentFeeAsync(int.Parse(bookDto.PatientId), int.Parse(bookDto.ProviderId), Guid.Parse(bookDto.CategoryId));
-            if (fee.Success)
+            if (fee.StatusCode == 200)
             {
-                var appointment = result.Data;
-                appointment.Fee = fee.Data;
+                var appointment = (AppointmentDto)result.data;
+                appointment.Fee = (decimal)fee.data;
                 // Update appointment with calculated fee
                 var updateDto = new UpdateAppointmentDto();
                 await UpdateAppointmentAsync(Guid.Parse(appointment.Id), updateDto);
@@ -935,7 +941,7 @@ public class AppointmentService : IAppointmentService
             }
 
             // Update appointment status
-            appointment.AppointmentStatusId = await _appointmentRepository.GetByIdAsync("Approved"); // Approved status Guid
+            appointment.AppointmentStatusId = Guid.Parse("Approved"); // Approved status Guid
             appointment.IsPaymentCaptured = true;
             appointment.UpdatedDate = DateTime.UtcNow;
             await _appointmentRepository.UpdateAsync(appointment);
@@ -1776,5 +1782,25 @@ public class AppointmentService : IAppointmentService
             "External" => OpenTokRole.Subscriber,
             _ => OpenTokRole.Publisher
         };
+    }
+
+    private dynamic GetAppointmentDocumentType(object documentTypesData)
+    {
+        var docTypes = documentTypesData as IEnumerable<object>;
+        if (docTypes != null)
+        {
+            foreach (var dt in docTypes)
+            {
+                var dynamicDt = dt as dynamic;
+                if (dynamicDt != null && 
+                    (dynamicDt.Name?.ToLower().Contains("appointment") == true || 
+                     dynamicDt.Name?.ToLower().Contains("medical") == true ||
+                     dynamicDt.Name?.ToLower().Contains("report") == true))
+                {
+                    return dynamicDt;
+                }
+            }
+        }
+        return null;
     }
 } 

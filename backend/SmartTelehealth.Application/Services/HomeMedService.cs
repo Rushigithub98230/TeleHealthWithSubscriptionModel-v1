@@ -30,7 +30,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Prescription Management
-    public async Task<ApiResponse<PrescriptionDto>> CreatePrescriptionAsync(CreatePrescriptionDto createDto)
+    public async Task<JsonModel> CreatePrescriptionAsync(CreatePrescriptionDto createDto)
     {
         try
         {
@@ -61,16 +61,26 @@ public class HomeMedService : IHomeMedService
                 prescription.SentToPharmacyAt = DateTime.UtcNow;
             }
 
-            return ApiResponse<PrescriptionDto>.SuccessResponse(prescription, "Prescription created successfully", 201);
+            return new JsonModel
+            {
+                data = prescription,
+                Message = "Prescription created successfully",
+                StatusCode = 201
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating prescription");
-            return ApiResponse<PrescriptionDto>.ErrorResponse("An error occurred while creating the prescription", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while creating the prescription",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<PrescriptionDto>> GetPrescriptionAsync(Guid id)
+    public async Task<JsonModel> GetPrescriptionAsync(Guid id)
     {
         try
         {
@@ -82,46 +92,76 @@ public class HomeMedService : IHomeMedService
                 PrescribedAt = DateTime.UtcNow
             };
 
-            return ApiResponse<PrescriptionDto>.SuccessResponse(prescription, "Prescription retrieved successfully");
+            return new JsonModel
+            {
+                data = prescription,
+                Message = "Prescription retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting prescription {Id}", id);
-            return ApiResponse<PrescriptionDto>.ErrorResponse("An error occurred while retrieving the prescription", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving the prescription",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<PrescriptionDto>>> GetUserPrescriptionsAsync(Guid userId)
+    public async Task<JsonModel> GetUserPrescriptionsAsync(Guid userId)
     {
         try
         {
             // TODO: Implement user prescriptions retrieval
             var prescriptions = new List<PrescriptionDto>();
-            return ApiResponse<IEnumerable<PrescriptionDto>>.SuccessResponse(prescriptions, "User prescriptions retrieved successfully");
+            return new JsonModel
+            {
+                data = prescriptions,
+                Message = "User prescriptions retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting prescriptions for user {UserId}", userId);
-            return ApiResponse<IEnumerable<PrescriptionDto>>.ErrorResponse("An error occurred while retrieving user prescriptions", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving user prescriptions",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<PrescriptionDto>>> GetProviderPrescriptionsAsync(Guid providerId)
+    public async Task<JsonModel> GetProviderPrescriptionsAsync(Guid providerId)
     {
         try
         {
             // TODO: Implement provider prescriptions retrieval
             var prescriptions = new List<PrescriptionDto>();
-            return ApiResponse<IEnumerable<PrescriptionDto>>.SuccessResponse(prescriptions, "Provider prescriptions retrieved successfully");
+            return new JsonModel
+            {
+                data = prescriptions,
+                Message = "Provider prescriptions retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting prescriptions for provider {ProviderId}", providerId);
-            return ApiResponse<IEnumerable<PrescriptionDto>>.ErrorResponse("An error occurred while retrieving provider prescriptions", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving provider prescriptions",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<PrescriptionDto>> UpdatePrescriptionAsync(Guid id, UpdatePrescriptionDto updateDto)
+    public async Task<JsonModel> UpdatePrescriptionAsync(Guid id, UpdatePrescriptionDto updateDto)
     {
         try
         {
@@ -135,102 +175,172 @@ public class HomeMedService : IHomeMedService
                 Notes = updateDto.Notes
             };
 
-            return ApiResponse<PrescriptionDto>.SuccessResponse(prescription, "Prescription updated successfully");
+            return new JsonModel
+            {
+                data = prescription,
+                Message = "Prescription updated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating prescription {Id}", id);
-            return ApiResponse<PrescriptionDto>.ErrorResponse("An error occurred while updating the prescription", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while updating the prescription",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeletePrescriptionAsync(Guid id)
+    public async Task<JsonModel> DeletePrescriptionAsync(Guid id)
     {
         try
         {
             // TODO: Implement prescription deletion
-            return ApiResponse<bool>.SuccessResponse(true, "Prescription deleted successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Prescription deleted successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting prescription {Id}", id);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while deleting the prescription", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while deleting the prescription",
+                StatusCode = 500
+            };
         }
     }
 
     // Prescription Workflow
-    public async Task<ApiResponse<bool>> SendPrescriptionToPharmacyAsync(Guid prescriptionId)
+    public async Task<JsonModel> SendPrescriptionToPharmacyAsync(Guid prescriptionId)
     {
         try
         {
             // TODO: Implement sending prescription to pharmacy
-            return ApiResponse<bool>.SuccessResponse(true, "Prescription sent to pharmacy successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Prescription sent to pharmacy successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending prescription {Id} to pharmacy", prescriptionId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while sending prescription to pharmacy", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while sending prescription to pharmacy",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> ConfirmPrescriptionAsync(Guid prescriptionId, string pharmacyReference)
+    public async Task<JsonModel> ConfirmPrescriptionAsync(Guid prescriptionId, string pharmacyReference)
     {
         try
         {
             // TODO: Implement prescription confirmation
-            return ApiResponse<bool>.SuccessResponse(true, "Prescription confirmed successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Prescription confirmed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error confirming prescription {Id}", prescriptionId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while confirming the prescription", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while confirming the prescription",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> DispensePrescriptionAsync(Guid prescriptionId)
+    public async Task<JsonModel> DispensePrescriptionAsync(Guid prescriptionId)
     {
         try
         {
             // TODO: Implement prescription dispensing
-            return ApiResponse<bool>.SuccessResponse(true, "Prescription dispensed successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Prescription dispensed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error dispensing prescription {Id}", prescriptionId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while dispensing the prescription", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while dispensing the prescription",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> ShipPrescriptionAsync(Guid prescriptionId, string trackingNumber)
+    public async Task<JsonModel> ShipPrescriptionAsync(Guid prescriptionId, string trackingNumber)
     {
         try
         {
             // TODO: Implement prescription shipping
-            return ApiResponse<bool>.SuccessResponse(true, "Prescription shipped successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Prescription shipped successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error shipping prescription {Id}", prescriptionId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while shipping the prescription", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while shipping the prescription",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeliverPrescriptionAsync(Guid prescriptionId)
+    public async Task<JsonModel> DeliverPrescriptionAsync(Guid prescriptionId)
     {
         try
         {
             // TODO: Implement prescription delivery
-            return ApiResponse<bool>.SuccessResponse(true, "Prescription delivered successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Prescription delivered successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error delivering prescription {Id}", prescriptionId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while delivering the prescription", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while delivering the prescription",
+                StatusCode = 500
+            };
         }
     }
 
     // Medication Shipment Management
-    public async Task<ApiResponse<MedicationShipmentDto>> CreateShipmentAsync(CreateMedicationShipmentDto createDto)
+    public async Task<JsonModel> CreateShipmentAsync(CreateMedicationShipmentDto createDto)
     {
         try
         {
@@ -247,16 +357,26 @@ public class HomeMedService : IHomeMedService
                 Notes = createDto.Notes
             };
 
-            return ApiResponse<MedicationShipmentDto>.SuccessResponse(shipment, "Shipment created successfully", 201);
+            return new JsonModel
+            {
+                data = shipment,
+                Message = "Shipment created successfully",
+                StatusCode = 201
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating shipment");
-            return ApiResponse<MedicationShipmentDto>.ErrorResponse("An error occurred while creating the shipment", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while creating the shipment",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<MedicationShipmentDto>> GetShipmentAsync(Guid id)
+    public async Task<JsonModel> GetShipmentAsync(Guid id)
     {
         try
         {
@@ -268,31 +388,51 @@ public class HomeMedService : IHomeMedService
                 CreatedAt = DateTime.UtcNow
             };
 
-            return ApiResponse<MedicationShipmentDto>.SuccessResponse(shipment, "Shipment retrieved successfully");
+            return new JsonModel
+            {
+                data = shipment,
+                Message = "Shipment retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting shipment {Id}", id);
-            return ApiResponse<MedicationShipmentDto>.ErrorResponse("An error occurred while retrieving the shipment", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving the shipment",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<MedicationShipmentDto>>> GetUserShipmentsAsync(Guid userId)
+    public async Task<JsonModel> GetUserShipmentsAsync(Guid userId)
     {
         try
         {
             // TODO: Implement user shipments retrieval
             var shipments = new List<MedicationShipmentDto>();
-            return ApiResponse<IEnumerable<MedicationShipmentDto>>.SuccessResponse(shipments, "User shipments retrieved successfully");
+            return new JsonModel
+            {
+                data = shipments,
+                Message = "User shipments retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting shipments for user {UserId}", userId);
-            return ApiResponse<IEnumerable<MedicationShipmentDto>>.ErrorResponse("An error occurred while retrieving user shipments", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving user shipments",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<MedicationShipmentDto>> UpdateShipmentAsync(Guid id, UpdateMedicationShipmentDto updateDto)
+    public async Task<JsonModel> UpdateShipmentAsync(Guid id, UpdateMedicationShipmentDto updateDto)
     {
         try
         {
@@ -309,131 +449,221 @@ public class HomeMedService : IHomeMedService
                 Notes = updateDto.Notes
             };
 
-            return ApiResponse<MedicationShipmentDto>.SuccessResponse(shipment, "Shipment updated successfully");
+            return new JsonModel
+            {
+                data = shipment,
+                Message = "Shipment updated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating shipment {Id}", id);
-            return ApiResponse<MedicationShipmentDto>.ErrorResponse("An error occurred while updating the shipment", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while updating the shipment",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteShipmentAsync(Guid id)
+    public async Task<JsonModel> DeleteShipmentAsync(Guid id)
     {
         try
         {
             // TODO: Implement shipment deletion
-            return ApiResponse<bool>.SuccessResponse(true, "Shipment deleted successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Shipment deleted successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting shipment {Id}", id);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while deleting the shipment", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while deleting the shipment",
+                StatusCode = 500
+            };
         }
     }
 
     // Shipment Workflow
-    public async Task<ApiResponse<bool>> ProcessShipmentAsync(Guid shipmentId)
+    public async Task<JsonModel> ProcessShipmentAsync(Guid shipmentId)
     {
         try
         {
             // TODO: Implement shipment processing
-            return ApiResponse<bool>.SuccessResponse(true, "Shipment processed successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Shipment processed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing shipment {Id}", shipmentId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while processing the shipment", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while processing the shipment",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> ShipMedicationAsync(Guid shipmentId, string trackingNumber, string carrier)
+    public async Task<JsonModel> ShipMedicationAsync(Guid shipmentId, string trackingNumber, string carrier)
     {
         try
         {
             // TODO: Implement medication shipping
-            return ApiResponse<bool>.SuccessResponse(true, "Medication shipped successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Medication shipped successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error shipping medication for shipment {Id}", shipmentId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while shipping the medication", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while shipping the medication",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeliverMedicationAsync(Guid shipmentId)
+    public async Task<JsonModel> DeliverMedicationAsync(Guid shipmentId)
     {
         try
         {
             // TODO: Implement medication delivery
-            return ApiResponse<bool>.SuccessResponse(true, "Medication delivered successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Medication delivered successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error delivering medication for shipment {Id}", shipmentId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while delivering the medication", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while delivering the medication",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> ReturnShipmentAsync(Guid shipmentId, string reason)
+    public async Task<JsonModel> ReturnShipmentAsync(Guid shipmentId, string reason)
     {
         try
         {
             // TODO: Implement shipment return
-            return ApiResponse<bool>.SuccessResponse(true, "Shipment returned successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Shipment returned successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error returning shipment {Id}", shipmentId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while returning the shipment", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while returning the shipment",
+                StatusCode = 500
+            };
         }
     }
 
     // Tracking and Status
-    public async Task<ApiResponse<string>> GetTrackingStatusAsync(string trackingNumber)
+    public async Task<JsonModel> GetTrackingStatusAsync(string trackingNumber)
     {
         try
         {
             // TODO: Implement tracking status retrieval
-            return ApiResponse<string>.SuccessResponse("In Transit", "Tracking status retrieved successfully");
+            return new JsonModel
+            {
+                data = "In Transit",
+                Message = "Tracking status retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting tracking status for {TrackingNumber}", trackingNumber);
-            return ApiResponse<string>.ErrorResponse("An error occurred while retrieving tracking status", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving tracking status",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<DateTime>> GetEstimatedDeliveryAsync(Guid shipmentId)
+    public async Task<JsonModel> GetEstimatedDeliveryAsync(Guid shipmentId)
     {
         try
         {
             // TODO: Implement estimated delivery calculation
-            return ApiResponse<DateTime>.SuccessResponse(DateTime.UtcNow.AddDays(3), "Estimated delivery retrieved successfully");
+            return new JsonModel
+            {
+                data = DateTime.UtcNow.AddDays(3),
+                Message = "Estimated delivery retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting estimated delivery for shipment {Id}", shipmentId);
-            return ApiResponse<DateTime>.ErrorResponse("An error occurred while retrieving estimated delivery", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving estimated delivery",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateTrackingInfoAsync(Guid shipmentId, string trackingNumber, string status)
+    public async Task<JsonModel> UpdateTrackingInfoAsync(Guid shipmentId, string trackingNumber, string status)
     {
         try
         {
             // TODO: Implement tracking info update
-            return ApiResponse<bool>.SuccessResponse(true, "Tracking information updated successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Tracking information updated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating tracking info for shipment {Id}", shipmentId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while updating tracking information", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while updating tracking information",
+                StatusCode = 500
+            };
         }
     }
 
     // Analytics and Reporting
-    public async Task<ApiResponse<PrescriptionAnalyticsDto>> GetPrescriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetPrescriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -453,16 +683,26 @@ public class HomeMedService : IHomeMedService
                 EndDate = endDate ?? DateTime.UtcNow
             };
 
-            return ApiResponse<PrescriptionAnalyticsDto>.SuccessResponse(analytics, "Prescription analytics retrieved successfully");
+            return new JsonModel
+            {
+                data = analytics,
+                Message = "Prescription analytics retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting prescription analytics");
-            return ApiResponse<PrescriptionAnalyticsDto>.ErrorResponse("An error occurred while retrieving prescription analytics", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving prescription analytics",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<MedicationShipmentAnalyticsDto>> GetShipmentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetShipmentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -481,47 +721,77 @@ public class HomeMedService : IHomeMedService
                 EndDate = endDate ?? DateTime.UtcNow
             };
 
-            return ApiResponse<MedicationShipmentAnalyticsDto>.SuccessResponse(analytics, "Shipment analytics retrieved successfully");
+            return new JsonModel
+            {
+                data = analytics,
+                Message = "Shipment analytics retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting shipment analytics");
-            return ApiResponse<MedicationShipmentAnalyticsDto>.ErrorResponse("An error occurred while retrieving shipment analytics", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving shipment analytics",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<byte[]>> GeneratePrescriptionReportAsync(DateTime startDate, DateTime endDate, string format = "pdf")
+    public async Task<JsonModel> GeneratePrescriptionReportAsync(DateTime startDate, DateTime endDate, string format = "pdf")
     {
         try
         {
             // TODO: Implement prescription report generation
             var reportBytes = new byte[] { 0x25, 0x50, 0x44, 0x46 }; // PDF header
-            return ApiResponse<byte[]>.SuccessResponse(reportBytes, "Prescription report generated successfully");
+            return new JsonModel
+            {
+                data = reportBytes,
+                Message = "Prescription report generated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating prescription report");
-            return ApiResponse<byte[]>.ErrorResponse("An error occurred while generating the prescription report", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while generating the prescription report",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<byte[]>> GenerateShipmentReportAsync(DateTime startDate, DateTime endDate, string format = "pdf")
+    public async Task<JsonModel> GenerateShipmentReportAsync(DateTime startDate, DateTime endDate, string format = "pdf")
     {
         try
         {
             // TODO: Implement shipment report generation
             var reportBytes = new byte[] { 0x25, 0x50, 0x44, 0x46 }; // PDF header
-            return ApiResponse<byte[]>.SuccessResponse(reportBytes, "Shipment report generated successfully");
+            return new JsonModel
+            {
+                data = reportBytes,
+                Message = "Shipment report generated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating shipment report");
-            return ApiResponse<byte[]>.ErrorResponse("An error occurred while generating the shipment report", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while generating the shipment report",
+                StatusCode = 500
+            };
         }
     }
 
     // Pharmacy Integration (Database Level)
-    public async Task<ApiResponse<PharmacyIntegrationDto>> GetPharmacyIntegrationAsync()
+    public async Task<JsonModel> GetPharmacyIntegrationAsync()
     {
         try
         {
@@ -537,59 +807,99 @@ public class HomeMedService : IHomeMedService
                 LastSyncAt = DateTime.UtcNow
             };
 
-            return ApiResponse<PharmacyIntegrationDto>.SuccessResponse(integration, "Pharmacy integration retrieved successfully");
+            return new JsonModel
+            {
+                data = integration,
+                Message = "Pharmacy integration retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting pharmacy integration");
-            return ApiResponse<PharmacyIntegrationDto>.ErrorResponse("An error occurred while retrieving pharmacy integration", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving pharmacy integration",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> TestPharmacyConnectionAsync()
+    public async Task<JsonModel> TestPharmacyConnectionAsync()
     {
         try
         {
             // TODO: Implement pharmacy connection test
-            return ApiResponse<bool>.SuccessResponse(true, "Pharmacy connection test successful");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Pharmacy connection test successful",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error testing pharmacy connection");
-            return ApiResponse<bool>.ErrorResponse("An error occurred while testing pharmacy connection", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while testing pharmacy connection",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> SyncPrescriptionsAsync()
+    public async Task<JsonModel> SyncPrescriptionsAsync()
     {
         try
         {
             // TODO: Implement prescription synchronization
-            return ApiResponse<bool>.SuccessResponse(true, "Prescriptions synchronized successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Prescriptions synchronized successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error synchronizing prescriptions");
-            return ApiResponse<bool>.ErrorResponse("An error occurred while synchronizing prescriptions", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while synchronizing prescriptions",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> SyncShipmentsAsync()
+    public async Task<JsonModel> SyncShipmentsAsync()
     {
         try
         {
             // TODO: Implement shipment synchronization
-            return ApiResponse<bool>.SuccessResponse(true, "Shipments synchronized successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Shipments synchronized successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error synchronizing shipments");
-            return ApiResponse<bool>.ErrorResponse("An error occurred while synchronizing shipments", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while synchronizing shipments",
+                StatusCode = 500
+            };
         }
     }
 
     // Refill Management
-    public async Task<ApiResponse<PrescriptionDto>> CreateRefillRequestAsync(Guid prescriptionId)
+    public async Task<JsonModel> CreateRefillRequestAsync(Guid prescriptionId)
     {
         try
         {
@@ -601,142 +911,242 @@ public class HomeMedService : IHomeMedService
                 PrescribedAt = DateTime.UtcNow
             };
 
-            return ApiResponse<PrescriptionDto>.SuccessResponse(prescription, "Refill request created successfully");
+            return new JsonModel
+            {
+                data = prescription,
+                Message = "Refill request created successfully",
+                StatusCode = 201
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating refill request for prescription {Id}", prescriptionId);
-            return ApiResponse<PrescriptionDto>.ErrorResponse("An error occurred while creating the refill request", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while creating the refill request",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<PrescriptionDto>>> GetRefillRequestsAsync(Guid userId)
+    public async Task<JsonModel> GetRefillRequestsAsync(Guid userId)
     {
         try
         {
             // TODO: Implement refill requests retrieval
             var prescriptions = new List<PrescriptionDto>();
-            return ApiResponse<IEnumerable<PrescriptionDto>>.SuccessResponse(prescriptions, "Refill requests retrieved successfully");
+            return new JsonModel
+            {
+                data = prescriptions,
+                Message = "Refill requests retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting refill requests for user {UserId}", userId);
-            return ApiResponse<IEnumerable<PrescriptionDto>>.ErrorResponse("An error occurred while retrieving refill requests", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving refill requests",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> ApproveRefillRequestAsync(Guid prescriptionId)
+    public async Task<JsonModel> ApproveRefillRequestAsync(Guid prescriptionId)
     {
         try
         {
             // TODO: Implement refill request approval
-            return ApiResponse<bool>.SuccessResponse(true, "Refill request approved successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Refill request approved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error approving refill request for prescription {Id}", prescriptionId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while approving the refill request", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while approving the refill request",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> DenyRefillRequestAsync(Guid prescriptionId, string reason)
+    public async Task<JsonModel> DenyRefillRequestAsync(Guid prescriptionId, string reason)
     {
         try
         {
             // TODO: Implement refill request denial
-            return ApiResponse<bool>.SuccessResponse(true, "Refill request denied successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Refill request denied successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error denying refill request for prescription {Id}", prescriptionId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while denying the refill request", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while denying the refill request",
+                StatusCode = 500
+            };
         }
     }
 
     // Inventory Management (Placeholder for HomeMed API)
-    public async Task<ApiResponse<bool>> CheckMedicationAvailabilityAsync(string medicationName, string dosage)
+    public async Task<JsonModel> CheckMedicationAvailabilityAsync(string medicationName, string dosage)
     {
         try
         {
             // TODO: Implement medication availability check
-            return ApiResponse<bool>.SuccessResponse(true, "Medication availability checked successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Medication availability checked successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking medication availability for {MedicationName}", medicationName);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while checking medication availability", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while checking medication availability",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<decimal>> GetMedicationPriceAsync(string medicationName, string dosage)
+    public async Task<JsonModel> GetMedicationPriceAsync(string medicationName, string dosage)
     {
         try
         {
             // TODO: Implement medication price retrieval
-            return ApiResponse<decimal>.SuccessResponse(25.99m, "Medication price retrieved successfully");
+            return new JsonModel
+            {
+                data = 25.99m,
+                Message = "Medication price retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting medication price for {MedicationName}", medicationName);
-            return ApiResponse<decimal>.ErrorResponse("An error occurred while retrieving medication price", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving medication price",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> ReserveMedicationAsync(string medicationName, string dosage, int quantity)
+    public async Task<JsonModel> ReserveMedicationAsync(string medicationName, string dosage, int quantity)
     {
         try
         {
             // TODO: Implement medication reservation
-            return ApiResponse<bool>.SuccessResponse(true, "Medication reserved successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Medication reserved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reserving medication {MedicationName}", medicationName);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while reserving the medication", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while reserving the medication",
+                StatusCode = 500
+            };
         }
     }
 
     // Auto-dispatch (Placeholder for HomeMed API)
-    public async Task<ApiResponse<bool>> TriggerAutoDispatchAsync(Guid prescriptionId)
+    public async Task<JsonModel> TriggerAutoDispatchAsync(Guid prescriptionId)
     {
         try
         {
             // TODO: Implement auto-dispatch trigger
-            return ApiResponse<bool>.SuccessResponse(true, "Auto-dispatch triggered successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Auto-dispatch triggered successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error triggering auto-dispatch for prescription {Id}", prescriptionId);
-            return ApiResponse<bool>.ErrorResponse("An error occurred while triggering auto-dispatch", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while triggering auto-dispatch",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<bool>> ProcessAutoDispatchQueueAsync()
+    public async Task<JsonModel> ProcessAutoDispatchQueueAsync()
     {
         try
         {
             // TODO: Implement auto-dispatch queue processing
-            return ApiResponse<bool>.SuccessResponse(true, "Auto-dispatch queue processed successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Auto-dispatch queue processed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing auto-dispatch queue");
-            return ApiResponse<bool>.ErrorResponse("An error occurred while processing auto-dispatch queue", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while processing auto-dispatch queue",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<PrescriptionDto>>> GetAutoDispatchQueueAsync()
+    public async Task<JsonModel> GetAutoDispatchQueueAsync()
     {
         try
         {
             // TODO: Implement auto-dispatch queue retrieval
             var prescriptions = new List<PrescriptionDto>();
-            return ApiResponse<IEnumerable<PrescriptionDto>>.SuccessResponse(prescriptions, "Auto-dispatch queue retrieved successfully");
+            return new JsonModel
+            {
+                data = prescriptions,
+                Message = "Auto-dispatch queue retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting auto-dispatch queue");
-            return ApiResponse<IEnumerable<PrescriptionDto>>.ErrorResponse("An error occurred while retrieving auto-dispatch queue", 500);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while retrieving auto-dispatch queue",
+                StatusCode = 500
+            };
         }
     }
 } 

@@ -49,3 +49,24 @@ namespace SmartTelehealth.Application.DTOs
         public decimal TotalRecords { get; set; }
     }
 }
+
+// Bulk operation DTOs
+public class BulkActionRequestDto
+{
+    public string SubscriptionId { get; set; } = string.Empty;
+    public string Action { get; set; } = string.Empty;
+    public string? Reason { get; set; }
+    public int? AdditionalDays { get; set; }
+}
+
+public class BulkActionResultDto
+{
+    public string SubscriptionId { get; set; } = string.Empty;
+    public string Action { get; set; } = string.Empty;
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public int TotalCount { get; set; }
+    public int SuccessCount { get; set; }
+    public int FailureCount { get; set; }
+    public List<BulkActionResultDto> Results { get; set; } = new List<BulkActionResultDto>();
+}

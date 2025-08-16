@@ -42,7 +42,7 @@ public class AdminController : ControllerBase
     /// Get admin dashboard data
     /// </summary>
     [HttpGet("dashboard")]
-    public async Task<ActionResult<AdminDashboardDto>> GetDashboard()
+    public async Task<ActionResult<JsonModel>> GetDashboard()
     {
         try
         {
@@ -59,11 +59,11 @@ public class AdminController : ControllerBase
                 SystemHealth = await GetSystemHealthData()
             };
 
-            return Ok(dashboard);
+            return Ok(new JsonModel { data = dashboard, Message = "Dashboard data retrieved successfully", StatusCode = 200 });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "Error retrieving dashboard data", error = ex.Message });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Error retrieving dashboard data", StatusCode = 500 });
         }
     }
 
@@ -71,7 +71,7 @@ public class AdminController : ControllerBase
     /// Get all subscriptions
     /// </summary>
     [HttpGet("subscriptions")]
-    public async Task<IActionResult> GetAllSubscriptions()
+    public async Task<ActionResult<JsonModel>> GetAllSubscriptions()
     {
         var response = await _subscriptionService.GetActiveSubscriptionsAsync();
         return StatusCode(response.StatusCode, response);
@@ -81,7 +81,7 @@ public class AdminController : ControllerBase
     /// Get audit logs
     /// </summary>
     [HttpGet("audit-logs")]
-    public async Task<IActionResult> GetAuditLogs([FromQuery] string? action = null, [FromQuery] string? userId = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+    public async Task<ActionResult<JsonModel>> GetAuditLogs([FromQuery] string? action = null, [FromQuery] string? userId = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
         var response = await _auditService.GetAuditLogsAsync(action, userId, startDate, endDate, page, pageSize);
         return StatusCode(200, response);
@@ -91,23 +91,23 @@ public class AdminController : ControllerBase
     /// Export data
     /// </summary>
     [HttpGet("export/{dataType}")]
-    public async Task<IActionResult> ExportData(string dataType, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel>> ExportData(string dataType, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         // TODO: Implement data export functionality in service
-        return Ok(new { message = $"Export of {dataType} data initiated" });
+        return Ok(new JsonModel { data = new object(), Message = $"Export of {dataType} data initiated", StatusCode = 200 });
     }
 
     // Helper methods for dashboard
     private async Task<int> GetTotalSubscriptions()
     {
         var response = await _subscriptionService.GetActiveSubscriptionsAsync();
-        return response.Data?.Count() ?? 0;
+        return ((IEnumerable<SubscriptionDto>)response.data)?.Count() ?? 0;
     }
 
     private async Task<int> GetActiveSubscriptions()
     {
         var response = await _subscriptionService.GetActiveSubscriptionsAsync();
-        return response.Data?.Count(s => s.IsActive) ?? 0;
+        return ((IEnumerable<SubscriptionDto>)response.data)?.Count(s => s.IsActive) ?? 0;
     }
 
     private async Task<decimal> GetTotalRevenue()
@@ -137,7 +137,7 @@ public class AdminController : ControllerBase
     private async Task<IEnumerable<SubscriptionDto>> GetRecentSubscriptions()
     {
         var response = await _subscriptionService.GetActiveSubscriptionsAsync();
-        return response.Data?.OrderByDescending(s => s.CreatedAt).Take(10) ?? new List<SubscriptionDto>();
+        return ((IEnumerable<SubscriptionDto>)response.data)?.OrderByDescending(s => s.CreatedAt).Take(10) ?? new List<SubscriptionDto>();
     }
 
     private async Task<IEnumerable<BillingRecordDto>> GetRecentBillingRecords()

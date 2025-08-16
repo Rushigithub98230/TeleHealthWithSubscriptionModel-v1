@@ -58,6 +58,50 @@ public class CategoryService : ICategoryService
             return new JsonModel { data = new object(), Message = "An error occurred while retrieving categories", StatusCode = 500 };
         }
     }
+
+    public async Task<JsonModel> GetAllCategoriesAsync(int page, int pageSize, string? searchTerm, bool? isActive)
+    {
+        try
+        {
+            var categories = await _categoryRepository.GetAllActiveAsync();
+            var categoryDtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
+            
+            // Apply search filter if provided
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                categoryDtos = categoryDtos.Where(c => c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+            
+            // Apply active filter if provided
+            if (isActive.HasValue)
+            {
+                categoryDtos = categoryDtos.Where(c => c.IsActive == isActive.Value);
+            }
+            
+            // Apply pagination
+            var totalCount = categoryDtos.Count();
+            var pagedCategories = categoryDtos
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            
+            var result = new
+            {
+                Categories = pagedCategories,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+            };
+            
+            return new JsonModel { data = result, Message = "Categories retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all categories with filters");
+            return new JsonModel { data = new object(), Message = "An error occurred while retrieving categories", StatusCode = 500 };
+        }
+    }
     
     public async Task<JsonModel> GetActiveCategoriesAsync()
     {

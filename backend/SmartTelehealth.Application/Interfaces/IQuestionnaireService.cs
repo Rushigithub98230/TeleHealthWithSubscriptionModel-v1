@@ -9,17 +9,17 @@ namespace SmartTelehealth.Application.Interfaces
     public interface IQuestionnaireService
     {
         // Template CRUD
-        Task<ApiResponse<QuestionnaireTemplateDto>> GetTemplateByIdAsync(Guid id);
-        Task<ApiResponse<List<QuestionnaireTemplateDto>>> GetTemplatesByCategoryAsync(Guid categoryId);
+        Task<JsonModel> GetTemplateByIdAsync(Guid id);
+        Task<JsonModel> GetTemplatesByCategoryAsync(Guid categoryId);
         Task<IEnumerable<QuestionnaireTemplateDto>> GetAllTemplatesAsync();
-        Task<ApiResponse<Guid>> CreateTemplateAsync(CreateQuestionnaireTemplateDto dto, List<IFormFile> files);
-        Task<ApiResponse<object>> UpdateTemplateAsync(Guid id, CreateQuestionnaireTemplateDto dto, List<IFormFile> files);
-        Task<ApiResponse<object>> DeleteTemplateAsync(Guid id);
+        Task<JsonModel> CreateTemplateAsync(CreateQuestionnaireTemplateDto dto, List<IFormFile> files);
+        Task<JsonModel> UpdateTemplateAsync(Guid id, CreateQuestionnaireTemplateDto dto, List<IFormFile> files);
+        Task<JsonModel> DeleteTemplateAsync(Guid id);
 
         // User responses
-        Task<ApiResponse<UserResponseDto>> GetUserResponseAsync(int userId, Guid templateId);
-        Task<ApiResponse<UserResponseDto>> GetUserResponseByIdAsync(Guid id);
-        Task<ApiResponse<List<UserResponseDto>>> GetUserResponsesByCategoryAsync(int userId, Guid categoryId);
-        Task<ApiResponse<Guid>> SubmitUserResponseAsync(CreateUserResponseDto dto);
+        Task<JsonModel> GetUserResponseAsync(int userId, Guid templateId);
+        Task<JsonModel> GetUserResponseByIdAsync(Guid id);
+        Task<JsonModel> GetUserResponsesByCategoryAsync(int userId, Guid categoryId);
+        Task<JsonModel> SubmitUserResponseAsync(CreateUserResponseDto dto);
     }
 } 

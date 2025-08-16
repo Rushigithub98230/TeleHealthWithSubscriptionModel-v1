@@ -48,52 +48,52 @@ public class SubscriptionService : ISubscriptionService
         _billingService = billingService;
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> GetSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> GetSubscriptionAsync(string subscriptionId)
     {
         try
         {
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
-            return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(entity));
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
+            return new JsonModel { data = _mapper.Map<SubscriptionDto>(entity), Message = "Subscription retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to retrieve subscription");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetUserSubscriptionsAsync(int userId)
+    public async Task<JsonModel> GetUserSubscriptionsAsync(int userId)
     {
         try
         {
             var entities = await _subscriptionRepository.GetByUserIdAsync(userId);
             var dtos = _mapper.Map<IEnumerable<SubscriptionDto>>(entities);
-            return ApiResponse<IEnumerable<SubscriptionDto>>.SuccessResponse(dtos);
+            return new JsonModel { data = dtos, Message = "User subscriptions retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscriptions for user {UserId}", userId);
-            return ApiResponse<IEnumerable<SubscriptionDto>>.ErrorResponse("Failed to retrieve user subscriptions");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve user subscriptions", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> CreateSubscriptionAsync(CreateSubscriptionDto createDto)
+    public async Task<JsonModel> CreateSubscriptionAsync(CreateSubscriptionDto createDto)
     {
         try
         {
             // 1. Check if plan exists and is active
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(createDto.PlanId));
             if (plan == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription plan does not exist");
+                return new JsonModel { data = new object(), Message = "Subscription plan does not exist", StatusCode = 404 };
             if (!plan.IsActive)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription plan is not active");
+                return new JsonModel { data = new object(), Message = "Subscription plan is not active", StatusCode = 400 };
 
             // 2. Prevent duplicate subscriptions for the same user and plan (active or paused)
             var userSubscriptions = await _subscriptionRepository.GetByUserIdAsync(createDto.UserId);
             if (userSubscriptions.Any(s => s.SubscriptionPlanId == plan.Id && (s.Status == Subscription.SubscriptionStatuses.Active || s.Status == Subscription.SubscriptionStatuses.Paused)))
-                return ApiResponse<SubscriptionDto>.ErrorResponse("User already has an active or paused subscription for this plan");
+                return new JsonModel { data = new object(), Message = "User already has an active or paused subscription for this plan", StatusCode = 400 };
 
             var entity = _mapper.Map<Subscription>(createDto);
             
@@ -128,42 +128,42 @@ public class SubscriptionService : ISubscriptionService
             
             // Send confirmation and welcome emails
             var userResult = await _userService.GetUserByIdAsync(createDto.UserId);
-            if (userResult.Success && userResult.Data != null)
+            if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
-                // await _notificationService.SendSubscriptionConfirmationAsync(userResult.Data.Email, userResult.Data.FullName, dto);
-                // await _notificationService.SendSubscriptionWelcomeEmailAsync(userResult.Data.Email, userResult.Data.FullName, dto);
-                _logger.LogInformation("Email notifications disabled - would have sent confirmation emails to {Email}", userResult.Data.Email);
+                // await _notificationService.SendSubscriptionConfirmationAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, dto);
+                // await _notificationService.SendSubscriptionWelcomeEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, dto);
+                _logger.LogInformation("Email notifications disabled - would have sent confirmation emails to {Email}", ((UserDto)userResult.data).Email);
             }
             
             // Audit log
             await _auditService.LogUserActionAsync(createDto.UserId.ToString(), "CreateSubscription", "Subscription", created.Id.ToString(), "Subscription created successfully");
             
-            return ApiResponse<SubscriptionDto>.SuccessResponse(dto, "Subscription created");
+            return new JsonModel { data = dto, Message = "Subscription created", StatusCode = 201 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating subscription for user {UserId}", createDto.UserId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to create subscription");
+            return new JsonModel { data = new object(), Message = "Failed to create subscription", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> CancelSubscriptionAsync(string subscriptionId, string? reason = null)
+    public async Task<JsonModel> CancelSubscriptionAsync(string subscriptionId, string? reason = null)
     {
         try
         {
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
             
             // Prevent cancelling an already cancelled subscription
             if (entity.IsCancelled)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription is already cancelled");
+                return new JsonModel { data = new object(), Message = "Subscription is already cancelled", StatusCode = 400 };
             
             // Validate status transition
             var validation = entity.ValidateStatusTransition(Subscription.SubscriptionStatuses.Cancelled);
             if (validation != ValidationResult.Success)
-                return ApiResponse<SubscriptionDto>.ErrorResponse(validation.ErrorMessage);
+                return new JsonModel { data = new object(), Message = validation.ErrorMessage, StatusCode = 400 };
             
             var oldStatus = entity.Status;
             entity.Status = Subscription.SubscriptionStatuses.Cancelled;
@@ -185,43 +185,43 @@ public class SubscriptionService : ISubscriptionService
             
             // Send cancellation email
             var userResult = await _userService.GetUserByIdAsync(entity.UserId);
-            if (userResult.Success && userResult.Data != null)
+            if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
-                // await _notificationService.SendSubscriptionCancellationEmailAsync(userResult.Data.Email, userResult.Data.FullName, dto);
-                _logger.LogInformation("Email notifications disabled - would have sent cancellation email to {Email}", userResult.Data.Email);
+                // await _notificationService.SendSubscriptionCancellationEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, dto);
+                _logger.LogInformation("Email notifications disabled - would have sent cancellation email to {Email}", ((UserDto)userResult.data).Email);
             }
             
             // Audit log
             await _auditService.LogUserActionAsync(entity.UserId.ToString(), "CancelSubscription", "Subscription", subscriptionId, reason ?? "Subscription cancelled");
             
-            return ApiResponse<SubscriptionDto>.SuccessResponse(dto, "Subscription cancelled");
+            return new JsonModel { data = dto, Message = "Subscription cancelled", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cancelling subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to cancel subscription");
+            return new JsonModel { data = new object(), Message = "Failed to cancel subscription", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> PauseSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> PauseSubscriptionAsync(string subscriptionId)
     {
         try
         {
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
             
             if (entity.IsPaused)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription is already paused");
+                return new JsonModel { data = new object(), Message = "Subscription is already paused", StatusCode = 400 };
             
             if (entity.IsCancelled)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Cannot pause a cancelled subscription");
+                return new JsonModel { data = new object(), Message = "Cannot pause a cancelled subscription", StatusCode = 400 };
             
             // Validate status transition
             var validation = entity.ValidateStatusTransition(Subscription.SubscriptionStatuses.Paused);
             if (validation != ValidationResult.Success)
-                return ApiResponse<SubscriptionDto>.ErrorResponse(validation.ErrorMessage);
+                return new JsonModel { data = new object(), Message = validation.ErrorMessage, StatusCode = 400 };
             
             var oldStatus = entity.Status;
             entity.Status = Subscription.SubscriptionStatuses.Paused;
@@ -241,40 +241,40 @@ public class SubscriptionService : ISubscriptionService
             
             // Send pause notification email
             var userResult = await _userService.GetUserByIdAsync(entity.UserId);
-            if (userResult.Success && userResult.Data != null)
+            if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
-                // await _notificationService.SendSubscriptionPausedNotificationAsync(userResult.Data.Email, userResult.Data.FullName, dto);
-                _logger.LogInformation("Email notifications disabled - would have sent pause notification to {Email}", userResult.Data.Email);
+                // await _notificationService.SendSubscriptionPausedNotificationAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, dto);
+                _logger.LogInformation("Email notifications disabled - would have sent pause notification to {Email}", ((UserDto)userResult.data).Email);
             }
             
             // Audit log
             await _auditService.LogUserActionAsync(entity.UserId.ToString(), "PauseSubscription", "Subscription", subscriptionId, "Subscription paused");
             
-            return ApiResponse<SubscriptionDto>.SuccessResponse(dto, "Subscription paused");
+            return new JsonModel { data = dto, Message = "Subscription paused", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error pausing subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to pause subscription");
+            return new JsonModel { data = new object(), Message = "Failed to pause subscription", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> ResumeSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> ResumeSubscriptionAsync(string subscriptionId)
     {
         try
         {
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
             
             if (!entity.IsPaused)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription is not paused");
+                return new JsonModel { data = new object(), Message = "Subscription is not paused", StatusCode = 400 };
             
             // Validate status transition
             var validation = entity.ValidateStatusTransition(Subscription.SubscriptionStatuses.Active);
             if (validation != ValidationResult.Success)
-                return ApiResponse<SubscriptionDto>.ErrorResponse(validation.ErrorMessage);
+                return new JsonModel { data = new object(), Message = validation.ErrorMessage, StatusCode = 400 };
             
             var oldStatus = entity.Status;
             entity.Status = Subscription.SubscriptionStatuses.Active;
@@ -294,36 +294,36 @@ public class SubscriptionService : ISubscriptionService
             
             // Send resume email
             var userResult = await _userService.GetUserByIdAsync(entity.UserId);
-            if (userResult.Success && userResult.Data != null)
+            if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
-                // await _notificationService.SendSubscriptionResumeEmailAsync(userResult.Data.Email, userResult.Data.FullName, dto);
-                _logger.LogInformation("Email notifications disabled - would have sent resume email to {Email}", userResult.Data.Email);
+                // await _notificationService.SendSubscriptionResumeEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, dto);
+                _logger.LogInformation("Email notifications disabled - would have sent resume email to {Email}", ((UserDto)userResult.data).Email);
             }
             
             // Audit log
             await _auditService.LogUserActionAsync(entity.UserId.ToString(), "ResumeSubscription", "Subscription", subscriptionId, "Subscription resumed");
             
-            return ApiResponse<SubscriptionDto>.SuccessResponse(dto, "Subscription resumed");
+            return new JsonModel { data = dto, Message = "Subscription resumed", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error resuming subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to resume subscription");
+            return new JsonModel { data = new object(), Message = "Failed to resume subscription", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> UpgradeSubscriptionAsync(string subscriptionId, string newPlanId)
+    public async Task<JsonModel> UpgradeSubscriptionAsync(string subscriptionId, string newPlanId)
     {
         try
         {
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
             
             // Prevent upgrading to the same plan
             if (entity.SubscriptionPlanId == Guid.Parse(newPlanId))
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription is already on this plan");
+                return new JsonModel { data = new object(), Message = "Subscription is already on this plan", StatusCode = 400 };
             
             var oldPlanId = entity.SubscriptionPlanId;
             entity.SubscriptionPlanId = Guid.Parse(newPlanId);
@@ -334,27 +334,27 @@ public class SubscriptionService : ISubscriptionService
             // Audit log
             await _auditService.LogUserActionAsync(entity.UserId.ToString(), "UpgradeSubscription", "Subscription", subscriptionId, $"Upgraded from plan {oldPlanId} to {newPlanId}");
             
-            return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(updated), "Subscription upgraded");
+            return new JsonModel { data = _mapper.Map<SubscriptionDto>(updated), Message = "Subscription upgraded", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error upgrading subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to upgrade subscription");
+            return new JsonModel { data = new object(), Message = "Failed to upgrade subscription", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> ReactivateSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> ReactivateSubscriptionAsync(string subscriptionId)
     {
         try
         {
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
             
             // Validate status transition
             var validation = entity.ValidateStatusTransition(Subscription.SubscriptionStatuses.Active);
             if (validation != ValidationResult.Success)
-                return ApiResponse<SubscriptionDto>.ErrorResponse(validation.ErrorMessage);
+                return new JsonModel { data = new object(), Message = validation.ErrorMessage, StatusCode = 400 };
             
             var oldStatus = entity.Status;
             entity.Status = Subscription.SubscriptionStatuses.Active;
@@ -373,53 +373,96 @@ public class SubscriptionService : ISubscriptionService
             // Audit log
             await _auditService.LogUserActionAsync(entity.UserId.ToString(), "ReactivateSubscription", "Subscription", subscriptionId, "Subscription reactivated");
             
-            return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(updated), "Subscription reactivated");
+            return new JsonModel { data = _mapper.Map<SubscriptionDto>(updated), Message = "Subscription reactivated", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reactivating subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to reactivate subscription");
+            return new JsonModel { data = new object(), Message = "Failed to reactivate subscription", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<SubscriptionPlanDto>>> GetAllPlansAsync()
+    public async Task<JsonModel> GetAllPlansAsync()
     {
         try
         {
             var plans = await _subscriptionRepository.GetAllSubscriptionPlansAsync();
             var dtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(plans);
-            return ApiResponse<IEnumerable<SubscriptionPlanDto>>.SuccessResponse(dtos);
+            return new JsonModel { data = dtos, Message = "Subscription plans retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all subscription plans");
-            return ApiResponse<IEnumerable<SubscriptionPlanDto>>.ErrorResponse("Failed to retrieve subscription plans");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription plans", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionPlanDto>> GetPlanByIdAsync(string planId)
+    public async Task<JsonModel> GetAllPlansAsync(int page, int pageSize, string? searchTerm, string? categoryId, bool? isActive)
+    {
+        try
+        {
+            var allPlans = await _subscriptionRepository.GetAllSubscriptionPlansAsync();
+            
+            // Apply filters
+            var filteredPlans = allPlans.AsQueryable();
+            
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                filteredPlans = filteredPlans.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
+                                                       p.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+            
+            if (!string.IsNullOrEmpty(categoryId) && Guid.TryParse(categoryId, out var categoryGuid))
+            {
+                // Note: SubscriptionPlan doesn't have CategoryId property, so this filter is disabled
+                // filteredPlans = filteredPlans.Where(p => p.CategoryId == categoryGuid);
+            }
+            
+            if (isActive.HasValue)
+            {
+                filteredPlans = filteredPlans.Where(p => p.IsActive == isActive.Value);
+            }
+            
+            // Apply pagination
+            var totalCount = filteredPlans.Count();
+            var plans = filteredPlans
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            
+            var dtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(plans);
+            return new JsonModel { data = dtos, Message = "Subscription plans retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting filtered subscription plans");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription plans", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> GetPlanByIdAsync(string planId)
     {
         var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
         if (plan == null)
-            return ApiResponse<SubscriptionPlanDto>.ErrorResponse("Plan not found");
-        return ApiResponse<SubscriptionPlanDto>.SuccessResponse(_mapper.Map<SubscriptionPlanDto>(plan));
+            return new JsonModel { data = new object(), Message = "Plan not found", StatusCode = 404 };
+        return new JsonModel { data = _mapper.Map<SubscriptionPlanDto>(plan), Message = "Plan retrieved successfully", StatusCode = 200 };
     }
 
-    public async Task<ApiResponse<IEnumerable<BillingHistoryDto>>> GetBillingHistoryAsync(string subscriptionId)
+    public async Task<JsonModel> GetBillingHistoryAsync(string subscriptionId)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<IEnumerable<BillingHistoryDto>>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
 
             // Get billing records for this subscription
             var billingRecords = await _billingService.GetSubscriptionBillingHistoryAsync(subscription.Id);
             
-            if (!billingRecords.Success)
-                return ApiResponse<IEnumerable<BillingHistoryDto>>.ErrorResponse("Failed to retrieve billing history");
+            if (billingRecords.StatusCode != 200)
+                return new JsonModel { data = new object(), Message = "Failed to retrieve billing history", StatusCode = 500 };
 
-            var billingHistory = billingRecords.Data.Select(br => new BillingHistoryDto
+            var billingHistory = ((IEnumerable<BillingRecordDto>)billingRecords.data).Select(br => new BillingHistoryDto
             {
                 Id = br.Id.ToString(),
                 Amount = br.Amount,
@@ -431,71 +474,71 @@ public class SubscriptionService : ISubscriptionService
                 PaymentMethod = br.PaymentMethod
             });
 
-            return ApiResponse<IEnumerable<BillingHistoryDto>>.SuccessResponse(billingHistory);
+            return new JsonModel { data = billingHistory, Message = "Billing history retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting billing history for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<IEnumerable<BillingHistoryDto>>.ErrorResponse("Failed to retrieve billing history");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve billing history", StatusCode = 500 };
         }
     }
 
-            public async Task<ApiResponse<IEnumerable<PaymentMethodDto>>> GetPaymentMethodsAsync(int userId)
+            public async Task<JsonModel> GetPaymentMethodsAsync(int userId)
     {
         var methods = await _stripeService.GetCustomerPaymentMethodsAsync(userId.ToString());
-        return ApiResponse<IEnumerable<PaymentMethodDto>>.SuccessResponse(methods);
+        return new JsonModel { data = methods, Message = "Payment methods retrieved successfully", StatusCode = 200 };
     }
 
-    public async Task<ApiResponse<PaymentMethodDto>> AddPaymentMethodAsync(int userId, string paymentMethodId)
+    public async Task<JsonModel> AddPaymentMethodAsync(int userId, string paymentMethodId)
     {
         var methodId = await _stripeService.AddPaymentMethodAsync(userId.ToString(), paymentMethodId);
         var method = new PaymentMethodDto { Id = methodId };
-        return ApiResponse<PaymentMethodDto>.SuccessResponse(method, "Payment method added");
+        return new JsonModel { data = method, Message = "Payment method added", StatusCode = 200 };
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> GetSubscriptionByPlanIdAsync(string planId)
+    public async Task<JsonModel> GetSubscriptionByPlanIdAsync(string planId)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByPlanIdAsync(Guid.Parse(planId));
             if (subscription == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found for this plan");
-            return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(subscription));
+                return new JsonModel { data = new object(), Message = "Subscription not found for this plan", StatusCode = 404 };
+            return new JsonModel { data = _mapper.Map<SubscriptionDto>(subscription), Message = "Subscription retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription by plan ID {PlanId}", planId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to retrieve subscription");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetActiveSubscriptionsAsync()
+    public async Task<JsonModel> GetActiveSubscriptionsAsync()
     {
         try
         {
             var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync();
             var dtos = _mapper.Map<IEnumerable<SubscriptionDto>>(activeSubscriptions);
-            return ApiResponse<IEnumerable<SubscriptionDto>>.SuccessResponse(dtos);
+            return new JsonModel { data = dtos, Message = "Active subscriptions retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting active subscriptions");
-            return ApiResponse<IEnumerable<SubscriptionDto>>.ErrorResponse("Failed to retrieve active subscriptions");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve active subscriptions", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> GetSubscriptionByIdAsync(string subscriptionId)
+    public async Task<JsonModel> GetSubscriptionByIdAsync(string subscriptionId)
     {
         return await GetSubscriptionAsync(subscriptionId);
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> UpdateSubscriptionAsync(string subscriptionId, UpdateSubscriptionDto updateDto)
+    public async Task<JsonModel> UpdateSubscriptionAsync(string subscriptionId, UpdateSubscriptionDto updateDto)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
 
             // Update subscription properties
             if (!string.IsNullOrEmpty(updateDto.Status))
@@ -514,22 +557,22 @@ public class SubscriptionService : ISubscriptionService
             // Audit log
             await _auditService.LogUserActionAsync(subscription.UserId.ToString(), "UpdateSubscription", "Subscription", subscriptionId, "Subscription updated");
             
-            return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(updatedSubscription), "Subscription updated successfully");
+            return new JsonModel { data = _mapper.Map<SubscriptionDto>(updatedSubscription), Message = "Subscription updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to update subscription");
+            return new JsonModel { data = new object(), Message = "Failed to update subscription", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<PaymentResultDto>> ProcessPaymentAsync(string subscriptionId, PaymentRequestDto paymentRequest)
+    public async Task<JsonModel> ProcessPaymentAsync(string subscriptionId, PaymentRequestDto paymentRequest)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<PaymentResultDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
 
             // Process payment through Stripe
             var paymentResult = await _stripeService.ProcessPaymentAsync(
@@ -547,27 +590,27 @@ public class SubscriptionService : ISubscriptionService
                     await _subscriptionRepository.UpdateAsync(subscription);
                 }
 
-                return ApiResponse<PaymentResultDto>.SuccessResponse(paymentResult, "Payment processed successfully");
+                return new JsonModel { data = paymentResult, Message = "Payment processed successfully", StatusCode = 200 };
             }
             else
             {
-                return ApiResponse<PaymentResultDto>.ErrorResponse($"Payment failed: {paymentResult.ErrorMessage}");
+                return new JsonModel { data = new object(), Message = $"Payment failed: {paymentResult.ErrorMessage}", StatusCode = 400 };
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing payment for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<PaymentResultDto>.ErrorResponse("Failed to process payment");
+            return new JsonModel { data = new object(), Message = "Failed to process payment", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<UsageStatisticsDto>> GetUsageStatisticsAsync(string subscriptionId)
+    public async Task<JsonModel> GetUsageStatisticsAsync(string subscriptionId)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<UsageStatisticsDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
 
             var usages = await _usageRepo.GetBySubscriptionIdAsync(subscription.Id);
             var planPrivileges = await _planPrivilegeRepo.GetByPlanIdAsync(subscription.SubscriptionPlanId);
@@ -599,42 +642,42 @@ public class SubscriptionService : ISubscriptionService
                 }
             }
 
-            return ApiResponse<UsageStatisticsDto>.SuccessResponse(usageStats);
+            return new JsonModel { data = usageStats, Message = "Usage statistics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting usage statistics for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<UsageStatisticsDto>.ErrorResponse("Failed to retrieve usage statistics");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve usage statistics", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetAllSubscriptionsAsync()
+    public async Task<JsonModel> GetAllSubscriptionsAsync()
     {
         try
         {
             var allSubscriptions = await _subscriptionRepository.GetAllSubscriptionsAsync();
             var dtos = _mapper.Map<IEnumerable<SubscriptionDto>>(allSubscriptions);
-            return ApiResponse<IEnumerable<SubscriptionDto>>.SuccessResponse(dtos);
+            return new JsonModel { data = dtos, Message = "All subscriptions retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all subscriptions");
-            return ApiResponse<IEnumerable<SubscriptionDto>>.ErrorResponse("Failed to retrieve subscriptions");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscriptions", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionAnalyticsDto>> GetSubscriptionAnalyticsAsync(string subscriptionId)
+    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(string subscriptionId)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<SubscriptionAnalyticsDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
 
             // Get usage statistics
             var usageStats = await GetUsageStatisticsAsync(subscriptionId);
-            if (!usageStats.Success)
-                return ApiResponse<SubscriptionAnalyticsDto>.ErrorResponse("Failed to get usage statistics");
+            if (usageStats.StatusCode != 200)
+                return new JsonModel { data = new object(), Message = "Failed to get usage statistics", StatusCode = 500 };
 
             // Get billing history
             var billingHistory = await _billingService.GetPaymentHistoryAsync(subscription.UserId);
@@ -646,39 +689,39 @@ public class SubscriptionService : ISubscriptionService
                 Status = subscription.Status,
                 StartDate = subscription.StartDate,
                 NextBillingDate = subscription.NextBillingDate,
-                TotalAmountPaid = billingHistory.Data?.Sum(bh => bh.Amount) ?? 0,
-                PaymentCount = billingHistory.Data?.Count() ?? 0,
-                AveragePaymentAmount = billingHistory.Data?.Any() == true ? billingHistory.Data.Average(bh => bh.Amount) : 0,
-                UsageStatistics = usageStats.Data,
-                PaymentHistory = billingHistory.Data?.Select(bh => new PaymentHistoryDto
+                TotalAmountPaid = billingHistory.data is IEnumerable<BillingRecordDto> billingData1 ? billingData1.Sum(bh => bh.Amount) : 0,
+                PaymentCount = billingHistory.data is IEnumerable<BillingRecordDto> billingData2 ? billingData2.Count() : 0,
+                AveragePaymentAmount = billingHistory.data is IEnumerable<BillingRecordDto> billingData3 && billingData3.Any() ? billingData3.Average(bh => bh.Amount) : 0,
+                UsageStatistics = usageStats.data is UsageStatisticsDto usageData ? usageData : null,
+                PaymentHistory = billingHistory.data is IEnumerable<BillingRecordDto> billingData4 ? billingData4.Select(bh => new PaymentHistoryDto
                 {
-                    Id = bh.Id,
+                    Id = Guid.TryParse(bh.Id, out Guid id) ? id : Guid.Empty,
                     UserId = bh.UserId,
-                    SubscriptionId = bh.SubscriptionId,
+                    SubscriptionId = bh.SubscriptionId ?? string.Empty,
                     Amount = bh.Amount,
                     Currency = bh.Currency,
                     PaymentMethod = bh.PaymentMethod,
                     Status = bh.Status,
-                    TransactionId = bh.TransactionId,
-                    ErrorMessage = bh.ErrorMessage,
+                    TransactionId = bh.StripePaymentIntentId,
+                    ErrorMessage = bh.FailureReason,
                     CreatedAt = bh.CreatedAt,
-                    ProcessedAt = bh.ProcessedAt,
+                    ProcessedAt = bh.PaidAt,
                     PaymentDate = bh.CreatedAt,
-                    Description = bh.ErrorMessage,
-                    PaymentMethodId = bh.PaymentMethod
-                }).ToList() ?? new List<PaymentHistoryDto>()
+                    Description = bh.Description,
+                    PaymentMethodId = bh.PaymentMethodId
+                }).ToList() : new List<PaymentHistoryDto>()
             };
 
-            return ApiResponse<SubscriptionAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "Subscription analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription analytics for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionAnalyticsDto>.ErrorResponse("Failed to retrieve subscription analytics");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionPlanDto>> CreatePlanAsync(CreateSubscriptionPlanDto createPlanDto)
+    public async Task<JsonModel> CreatePlanAsync(CreateSubscriptionPlanDto createPlanDto)
     {
         try
         {
@@ -694,166 +737,370 @@ public class SubscriptionService : ISubscriptionService
                 // PlanPrivileges will be added later or via a separate call
             };
             var created = await _subscriptionRepository.CreateSubscriptionPlanAsync(plan);
-            return ApiResponse<SubscriptionPlanDto>.SuccessResponse(_mapper.Map<SubscriptionPlanDto>(created), "Plan created");
+            return new JsonModel { data = _mapper.Map<SubscriptionPlanDto>(created), Message = "Plan created", StatusCode = 201 };
         }
         catch (Exception ex)
         {
-            return ApiResponse<SubscriptionPlanDto>.ErrorResponse($"Failed to create plan: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to create plan: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionPlanDto>> UpdatePlanAsync(string planId, UpdateSubscriptionPlanDto updatePlanDto)
+    public async Task<JsonModel> UpdatePlanAsync(string planId, UpdateSubscriptionPlanDto updatePlanDto)
     {
         try
         {
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
-                return ApiResponse<SubscriptionPlanDto>.ErrorResponse("Plan not found");
+                return new JsonModel { data = new object(), Message = "Plan not found", StatusCode = 404 };
             plan.Name = updatePlanDto.Name;
             plan.Description = updatePlanDto.Description;
             plan.IsActive = updatePlanDto.IsActive;
             // Remove updates to Price, BillingCycleId, CurrencyId, etc., as they are not present in the DTO
             var updated = await _subscriptionRepository.UpdateSubscriptionPlanAsync(plan);
-            return ApiResponse<SubscriptionPlanDto>.SuccessResponse(_mapper.Map<SubscriptionPlanDto>(updated), "Plan updated");
+            return new JsonModel { data = _mapper.Map<SubscriptionPlanDto>(updated), Message = "Plan updated", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            return ApiResponse<SubscriptionPlanDto>.ErrorResponse($"Failed to update plan: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to update plan: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> ActivatePlanAsync(string planId)
+    public async Task<JsonModel> ActivatePlanAsync(string planId)
     {
         try
         {
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
-                return ApiResponse<bool>.ErrorResponse("Plan not found");
+                return new JsonModel { data = new object(), Message = "Plan not found", StatusCode = 404 };
             plan.IsActive = true;
             await _subscriptionRepository.UpdateSubscriptionPlanAsync(plan);
-            return ApiResponse<bool>.SuccessResponse(true, "Plan activated");
+            return new JsonModel { data = true, Message = "Plan activated", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.ErrorResponse($"Failed to activate plan: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to activate plan: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeactivatePlanAsync(string planId)
+    public async Task<JsonModel> DeactivatePlanAsync(string planId)
     {
         try
         {
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
-                return ApiResponse<bool>.ErrorResponse("Plan not found");
+                return new JsonModel { data = new object(), Message = "Plan not found", StatusCode = 404 };
             plan.IsActive = false;
             await _subscriptionRepository.UpdateSubscriptionPlanAsync(plan);
-            return ApiResponse<bool>.SuccessResponse(true, "Plan deactivated");
+            return new JsonModel { data = true, Message = "Plan deactivated", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.ErrorResponse($"Failed to deactivate plan: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to deactivate plan: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeletePlanAsync(string planId)
+    public async Task<JsonModel> DeletePlanAsync(string planId)
     {
         try
         {
             var result = await _subscriptionRepository.DeleteSubscriptionPlanAsync(Guid.Parse(planId));
             if (!result)
-                return ApiResponse<bool>.ErrorResponse("Plan not found or could not be deleted");
-            return ApiResponse<bool>.SuccessResponse(true, "Plan deleted");
+                return new JsonModel { data = new object(), Message = "Plan not found or could not be deleted", StatusCode = 404 };
+            return new JsonModel { data = true, Message = "Plan deleted", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.ErrorResponse($"Failed to delete plan: {ex.Message}");
+            return new JsonModel { data = new object(), Message = $"Failed to delete plan: {ex.Message}", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionDto>> GetByStripeSubscriptionIdAsync(string stripeSubscriptionId)
+    public async Task<JsonModel> GetByStripeSubscriptionIdAsync(string stripeSubscriptionId)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByStripeSubscriptionIdAsync(stripeSubscriptionId);
             if (subscription == null)
-                return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found for this Stripe ID");
-            return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(subscription));
+                return new JsonModel { data = new object(), Message = "Subscription not found for this Stripe ID", StatusCode = 404 };
+            return new JsonModel { data = _mapper.Map<SubscriptionDto>(subscription), Message = "Subscription retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription by Stripe ID {StripeSubscriptionId}", stripeSubscriptionId);
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Failed to retrieve subscription");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<SubscriptionPlanDto>>> GetAllSubscriptionPlansAsync()
+    // Admin management methods
+    public async Task<JsonModel> GetAllUserSubscriptionsAsync(int page, int pageSize, string? userId, string? planId, string? status, DateTime? startDate, DateTime? endDate)
+    {
+        try
+        {
+            var allSubscriptions = await _subscriptionRepository.GetAllSubscriptionsAsync();
+            var filteredSubscriptions = allSubscriptions.AsQueryable();
+            
+            if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out var userIdInt))
+            {
+                filteredSubscriptions = filteredSubscriptions.Where(s => s.UserId == userIdInt);
+            }
+            
+            if (!string.IsNullOrEmpty(planId) && Guid.TryParse(planId, out var planIdGuid))
+            {
+                filteredSubscriptions = filteredSubscriptions.Where(s => s.SubscriptionPlanId == planIdGuid);
+            }
+            
+            if (!string.IsNullOrEmpty(status))
+            {
+                filteredSubscriptions = filteredSubscriptions.Where(s => s.Status == status);
+            }
+            
+            if (startDate.HasValue)
+            {
+                filteredSubscriptions = filteredSubscriptions.Where(s => s.CreatedAt >= startDate.Value);
+            }
+            
+            if (endDate.HasValue)
+            {
+                filteredSubscriptions = filteredSubscriptions.Where(s => s.CreatedAt <= endDate.Value);
+            }
+            
+            var totalCount = filteredSubscriptions.Count();
+            var subscriptions = filteredSubscriptions
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            
+            var dtos = _mapper.Map<IEnumerable<SubscriptionDto>>(subscriptions);
+            return new JsonModel { data = dtos, Message = "User subscriptions retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all user subscriptions");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve user subscriptions", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> CancelUserSubscriptionAsync(string subscriptionId, string? reason)
+    {
+        try
+        {
+            var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
+            if (subscription == null)
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
+            
+            subscription.Status = "Cancelled";
+            // subscription.CancelledAt = DateTime.UtcNow; // Property doesn't exist
+            // subscription.CancellationReason = reason; // Property doesn't exist
+            subscription.UpdatedAt = DateTime.UtcNow;
+            
+            await _subscriptionRepository.UpdateAsync(subscription);
+            return new JsonModel { data = true, Message = "Subscription cancelled successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling user subscription {SubscriptionId}", subscriptionId);
+            return new JsonModel { data = new object(), Message = "Failed to cancel subscription", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> PauseUserSubscriptionAsync(string subscriptionId)
+    {
+        try
+        {
+            var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
+            if (subscription == null)
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
+            
+            subscription.Status = "Paused";
+            // subscription.PausedAt = DateTime.UtcNow; // Property doesn't exist
+            subscription.UpdatedAt = DateTime.UtcNow;
+            
+            await _subscriptionRepository.UpdateAsync(subscription);
+            return new JsonModel { data = true, Message = "Subscription paused successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error pausing user subscription {SubscriptionId}", subscriptionId);
+            return new JsonModel { data = new object(), Message = "Failed to pause subscription", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> ResumeUserSubscriptionAsync(string subscriptionId)
+    {
+        try
+        {
+            var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
+            if (subscription == null)
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
+            
+            subscription.Status = "Active";
+            // subscription.ResumedAt = DateTime.UtcNow; // Property doesn't exist
+            subscription.UpdatedAt = DateTime.UtcNow;
+            
+            await _subscriptionRepository.UpdateAsync(subscription);
+            return new JsonModel { data = true, Message = "Subscription resumed successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resuming user subscription {SubscriptionId}", subscriptionId);
+            return new JsonModel { data = new object(), Message = "Failed to resume subscription", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> ExtendUserSubscriptionAsync(string subscriptionId, int additionalDays)
+    {
+        try
+        {
+            var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
+            if (subscription == null)
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
+            
+            if (subscription.EndDate.HasValue)
+            {
+                subscription.EndDate = subscription.EndDate.Value.AddDays(additionalDays);
+            }
+            subscription.UpdatedAt = DateTime.UtcNow;
+            
+            await _subscriptionRepository.UpdateAsync(subscription);
+            return new JsonModel { data = true, Message = "Subscription extended successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extending user subscription {SubscriptionId}", subscriptionId);
+            return new JsonModel { data = new object(), Message = "Failed to extend subscription", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> PerformBulkActionAsync(List<BulkActionRequestDto> actions)
+    {
+        try
+        {
+            var results = new List<BulkActionResultDto>();
+            
+            foreach (var action in actions)
+            {
+                try
+                {
+                    JsonModel result = action.Action.ToLower() switch
+                    {
+                        "cancel" => await CancelUserSubscriptionAsync(action.SubscriptionId, action.Reason),
+                        "pause" => await PauseUserSubscriptionAsync(action.SubscriptionId),
+                        "resume" => await ResumeUserSubscriptionAsync(action.SubscriptionId),
+                        "extend" => await ExtendUserSubscriptionAsync(action.SubscriptionId, action.AdditionalDays ?? 30),
+                        _ => new JsonModel { data = new object(), Message = $"Unknown action: {action.Action}", StatusCode = 400 }
+                    };
+                    
+                    results.Add(new BulkActionResultDto
+                    {
+                        SubscriptionId = action.SubscriptionId,
+                        Action = action.Action,
+                        Success = result.StatusCode == 200,
+                        Message = result.Message
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error performing bulk action {Action} on subscription {SubscriptionId}", action.Action, action.SubscriptionId);
+                    results.Add(new BulkActionResultDto
+                    {
+                        SubscriptionId = action.SubscriptionId,
+                        Action = action.Action,
+                        Success = false,
+                        Message = "Internal error occurred"
+                    });
+                }
+            }
+            
+            return new JsonModel { data = results, Message = "Bulk actions completed", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error performing bulk actions");
+            return new JsonModel { data = new object(), Message = "Failed to perform bulk actions", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> GetAllSubscriptionPlansAsync()
     {
         try
         {
             var plans = await _subscriptionRepository.GetAllSubscriptionPlansAsync();
             var dtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(plans);
-            return ApiResponse<IEnumerable<SubscriptionPlanDto>>.SuccessResponse(dtos);
+            return new JsonModel { data = dtos, Message = "All subscription plans retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all subscription plans");
-            return ApiResponse<IEnumerable<SubscriptionPlanDto>>.ErrorResponse("Failed to retrieve subscription plans");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription plans", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<SubscriptionPlanDto>>> GetActiveSubscriptionPlansAsync()
+    public async Task<JsonModel> GetActiveSubscriptionPlansAsync()
     {
         try
         {
             var plans = await _subscriptionRepository.GetActiveSubscriptionPlansAsync();
             var dtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(plans);
-            return ApiResponse<IEnumerable<SubscriptionPlanDto>>.SuccessResponse(dtos);
+            return new JsonModel { data = dtos, Message = "Active subscription plans retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting active subscription plans");
-            return ApiResponse<IEnumerable<SubscriptionPlanDto>>.ErrorResponse("Failed to retrieve active subscription plans");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve active subscription plans", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<SubscriptionPlanDto>>> GetSubscriptionPlansByCategoryAsync(string category)
+    public async Task<JsonModel> GetSubscriptionPlansByCategoryAsync(string category)
     {
         try
         {
             // First get the category by name
             var categoryEntity = await _subscriptionRepository.GetCategoryByNameAsync(category);
             if (categoryEntity == null)
-                return ApiResponse<IEnumerable<SubscriptionPlanDto>>.ErrorResponse("Category not found");
+                return new JsonModel { data = new object(), Message = "Category not found", StatusCode = 404 };
 
             var plans = await _subscriptionRepository.GetSubscriptionPlansByCategoryAsync(categoryEntity.Id);
             var dtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(plans);
-            return ApiResponse<IEnumerable<SubscriptionPlanDto>>.SuccessResponse(dtos);
+            return new JsonModel { data = dtos, Message = "Subscription plans by category retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription plans by category {Category}", category);
-            return ApiResponse<IEnumerable<SubscriptionPlanDto>>.ErrorResponse("Failed to retrieve subscription plans by category");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription plans by category", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionPlanDto>> GetSubscriptionPlanAsync(string planId)
+    public async Task<JsonModel> GetAllCategoriesAsync(int page, int pageSize, string? searchTerm, bool? isActive)
+    {
+        try
+        {
+            // This method should be implemented in the CategoryService, not here
+            // For now, return a placeholder response
+            return new JsonModel { data = new object(), Message = "Categories service not implemented", StatusCode = 501 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all categories");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve categories", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> GetSubscriptionPlanAsync(string planId)
     {
         try
         {
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
-                return ApiResponse<SubscriptionPlanDto>.ErrorResponse("Subscription plan not found");
-            return ApiResponse<SubscriptionPlanDto>.SuccessResponse(_mapper.Map<SubscriptionPlanDto>(plan));
+                return new JsonModel { data = new object(), Message = "Subscription plan not found", StatusCode = 404 };
+            return new JsonModel { data = _mapper.Map<SubscriptionPlanDto>(plan), Message = "Subscription plan retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription plan {PlanId}", planId);
-            return ApiResponse<SubscriptionPlanDto>.ErrorResponse("Failed to retrieve subscription plan");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription plan", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionPlanDto>> CreateSubscriptionPlanAsync(CreateSubscriptionPlanDto createDto)
+    public async Task<JsonModel> CreateSubscriptionPlanAsync(CreateSubscriptionPlanDto createDto)
     {
         try
         {
@@ -871,22 +1118,22 @@ public class SubscriptionService : ISubscriptionService
                 $"Created plan: {createdPlan.Name}"
             );
 
-            return ApiResponse<SubscriptionPlanDto>.SuccessResponse(dto, "Subscription plan created successfully");
+            return new JsonModel { data = dto, Message = "Subscription plan created successfully", StatusCode = 201 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating subscription plan");
-            return ApiResponse<SubscriptionPlanDto>.ErrorResponse("Failed to create subscription plan");
+            return new JsonModel { data = new object(), Message = "Failed to create subscription plan", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<SubscriptionPlanDto>> UpdateSubscriptionPlanAsync(string planId, UpdateSubscriptionPlanDto updateDto)
+    public async Task<JsonModel> UpdateSubscriptionPlanAsync(string planId, UpdateSubscriptionPlanDto updateDto)
     {
         try
         {
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
-                return ApiResponse<SubscriptionPlanDto>.ErrorResponse("Subscription plan not found");
+                return new JsonModel { data = new object(), Message = "Subscription plan not found", StatusCode = 404 };
 
             // Update plan properties
             if (!string.IsNullOrEmpty(updateDto.Name))
@@ -913,31 +1160,31 @@ public class SubscriptionService : ISubscriptionService
                 $"Updated plan: {updatedPlan.Name}"
             );
 
-            return ApiResponse<SubscriptionPlanDto>.SuccessResponse(dto, "Subscription plan updated successfully");
+            return new JsonModel { data = dto, Message = "Subscription plan updated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating subscription plan {PlanId}", planId);
-            return ApiResponse<SubscriptionPlanDto>.ErrorResponse("Failed to update subscription plan");
+            return new JsonModel { data = new object(), Message = "Failed to update subscription plan", StatusCode = 500 };
         }
     }
 
-    public async Task<ApiResponse<bool>> DeleteSubscriptionPlanAsync(string planId)
+    public async Task<JsonModel> DeleteSubscriptionPlanAsync(string planId)
     {
         try
         {
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
-                return ApiResponse<bool>.ErrorResponse("Subscription plan not found");
+                return new JsonModel { data = new object(), Message = "Subscription plan not found", StatusCode = 404 };
 
             // Check if plan has active subscriptions
-            var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsByPlanAsync(plan.Id);
-            if (activeSubscriptions.Any())
-                return ApiResponse<bool>.ErrorResponse("Cannot delete plan with active subscriptions");
+            var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync();
+            if (activeSubscriptions.Any(s => s.SubscriptionPlanId == plan.Id))
+                return new JsonModel { data = new object(), Message = "Cannot delete plan with active subscriptions", StatusCode = 400 };
 
             var result = await _subscriptionRepository.DeleteSubscriptionPlanAsync(plan.Id);
             if (!result)
-                return ApiResponse<bool>.ErrorResponse("Failed to delete subscription plan");
+                return new JsonModel { data = new object(), Message = "Failed to delete subscription plan", StatusCode = 500 };
 
             await _auditService.LogActionAsync(
                 "SubscriptionPlan",
@@ -946,52 +1193,52 @@ public class SubscriptionService : ISubscriptionService
                 $"Deleted plan: {plan.Name}"
             );
 
-            return ApiResponse<bool>.SuccessResponse(true, "Subscription plan deleted successfully");
+            return new JsonModel { data = true, Message = "Subscription plan deleted successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting subscription plan {PlanId}", planId);
-            return ApiResponse<bool>.ErrorResponse("Failed to delete subscription plan");
+            return new JsonModel { data = new object(), Message = "Failed to delete subscription plan", StatusCode = 500 };
         }
     }
 
     // Example: Booking a consultation using privilege system
-    public async Task<ApiResponse<bool>> BookConsultationAsync(Guid userId, Guid subscriptionId)
+    public async Task<JsonModel> BookConsultationAsync(Guid userId, Guid subscriptionId)
     {
         // Check if user has remaining consult privileges
         var remaining = await _privilegeService.GetRemainingPrivilegeAsync(subscriptionId, "Teleconsultation");
         if (remaining <= 0)
-            return ApiResponse<bool>.ErrorResponse("No teleconsultations remaining in your plan.");
+            return new JsonModel { data = new object(), Message = "No teleconsultations remaining in your plan.", StatusCode = 400 };
         var used = await _privilegeService.UsePrivilegeAsync(subscriptionId, "Teleconsultation");
         if (!used)
-            return ApiResponse<bool>.ErrorResponse("Failed to use teleconsultation privilege.");
+            return new JsonModel { data = new object(), Message = "Failed to use teleconsultation privilege.", StatusCode = 500 };
         // Proceed with booking logic (not shown)
-        return ApiResponse<bool>.SuccessResponse(true, "Consultation booked.");
+        return new JsonModel { data = true, Message = "Consultation booked.", StatusCode = 200 };
     }
 
     // Example: Medication supply using privilege system
-    public async Task<ApiResponse<bool>> RequestMedicationSupplyAsync(Guid userId, Guid subscriptionId)
+    public async Task<JsonModel> RequestMedicationSupplyAsync(Guid userId, Guid subscriptionId)
     {
         var remaining = await _privilegeService.GetRemainingPrivilegeAsync(subscriptionId, "MedicationSupply");
         if (remaining <= 0)
-            return ApiResponse<bool>.ErrorResponse("No medication supply privilege remaining in your plan.");
+            return new JsonModel { data = new object(), Message = "No medication supply privilege remaining in your plan.", StatusCode = 400 };
         var used = await _privilegeService.UsePrivilegeAsync(subscriptionId, "MedicationSupply");
         if (!used)
-            return ApiResponse<bool>.ErrorResponse("Failed to use medication supply privilege.");
+            return new JsonModel { data = new object(), Message = "Failed to use medication supply privilege.", StatusCode = 500 };
         // Proceed with medication supply logic (not shown)
-        return ApiResponse<bool>.SuccessResponse(true, "Medication supply requested.");
+        return new JsonModel { data = true, Message = "Medication supply requested.", StatusCode = 200 };
     }
 
     // --- PAYMENT & BILLING EDGE CASES ---
 
     // 1. Handle failed payment and update subscription status
-    public async Task<ApiResponse<PaymentResultDto>> HandleFailedPaymentAsync(string subscriptionId, string reason)
+    public async Task<JsonModel> HandleFailedPaymentAsync(string subscriptionId, string reason)
     {
         try
         {
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
-                return ApiResponse<PaymentResultDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
 
             entity.Status = Subscription.SubscriptionStatuses.PaymentFailed;
             entity.LastPaymentError = reason;
@@ -1012,99 +1259,99 @@ public class SubscriptionService : ISubscriptionService
 
             // Send payment failed notification
             var userResult = await _userService.GetUserByIdAsync(entity.UserId);
-            if (userResult.Success && userResult.Data != null)
+            if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 var billingRecord = new BillingRecordDto { Amount = entity.CurrentPrice, DueDate = DateTime.UtcNow, Description = reason };
-                await _notificationService.SendPaymentFailedEmailAsync(userResult.Data.Email, userResult.Data.FullName, billingRecord);
+                await _notificationService.SendPaymentFailedEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord);
             }
 
             // Audit log
             await _auditService.LogPaymentEventAsync(entity.UserId.ToString(), "PaymentFailed", subscriptionId, "Failed", reason);
 
-            return ApiResponse<PaymentResultDto>.ErrorResponse($"Payment failed: {reason}");
+            return new JsonModel { data = new object(), Message = $"Payment failed: {reason}", StatusCode = 400 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error handling failed payment for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<PaymentResultDto>.ErrorResponse("Failed to handle payment failure");
+            return new JsonModel { data = new object(), Message = "Failed to handle payment failure", StatusCode = 500 };
         }
     }
 
     // 2. Retry payment and reactivate subscription if successful
-    public async Task<ApiResponse<PaymentResultDto>> RetryPaymentAsync(string subscriptionId, PaymentRequestDto paymentRequest)
+    public async Task<JsonModel> RetryPaymentAsync(string subscriptionId, PaymentRequestDto paymentRequest)
     {
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
-            return ApiResponse<PaymentResultDto>.ErrorResponse("Subscription not found");
+            return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
         // Simulate payment retry logic
         var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), paymentRequest.Amount, "USD");
         if (paymentResult.Status == "succeeded")
         {
             // Send payment success email
             var userResult = await _userService.GetUserByIdAsync(entity.UserId);
-            if (userResult.Success && userResult.Data != null)
+            if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 var billingRecord = new BillingRecordDto { Amount = paymentRequest.Amount, PaidDate = DateTime.UtcNow, Description = "Retry Payment" };
-                await _notificationService.SendPaymentSuccessEmailAsync(userResult.Data.Email, userResult.Data.FullName, billingRecord);
+                await _notificationService.SendPaymentSuccessEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord);
             }
             entity.Status = Subscription.SubscriptionStatuses.Active;
             entity.UpdatedAt = DateTime.UtcNow;
             await _subscriptionRepository.UpdateAsync(entity);
             // TODO: Trigger notification to user
-            return ApiResponse<PaymentResultDto>.SuccessResponse(paymentResult, "Payment retried and subscription reactivated");
+            return new JsonModel { data = paymentResult, Message = "Payment retried and subscription reactivated", StatusCode = 200 };
         }
         else
         {
-            return ApiResponse<PaymentResultDto>.ErrorResponse($"Payment retry failed: {paymentResult.ErrorMessage}");
+            return new JsonModel { data = new object(), Message = $"Payment retry failed: {paymentResult.ErrorMessage}", StatusCode = 400 };
         }
     }
 
     // 3. Auto-renewal logic (to be called by a scheduler/cron job)
-    public async Task<ApiResponse<SubscriptionDto>> AutoRenewSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> AutoRenewSubscriptionAsync(string subscriptionId)
     {
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
+            return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
         if (entity.Status != Subscription.SubscriptionStatuses.Active)
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Only active subscriptions can be auto-renewed");
+            return new JsonModel { data = new object(), Message = "Only active subscriptions can be auto-renewed", StatusCode = 400 };
         // Simulate payment
         var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), entity.CurrentPrice, "USD");
         if (paymentResult.Status == "succeeded")
         {
             // Send renewal confirmation email
             var userResult = await _userService.GetUserByIdAsync(entity.UserId);
-            if (userResult.Success && userResult.Data != null)
+            if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 var billingRecord = new BillingRecordDto { Amount = entity.CurrentPrice, PaidDate = DateTime.UtcNow, Description = "Auto-Renewal" };
-                await _notificationService.SendPaymentSuccessEmailAsync(userResult.Data.Email, userResult.Data.FullName, billingRecord);
+                await _notificationService.SendPaymentSuccessEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord);
             }
             entity.NextBillingDate = entity.NextBillingDate.AddMonths(1);
             entity.UpdatedAt = DateTime.UtcNow;
             await _subscriptionRepository.UpdateAsync(entity);
             // TODO: Add billing history record
-            return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(entity), "Subscription auto-renewed");
+            return new JsonModel { data = _mapper.Map<SubscriptionDto>(entity), Message = "Subscription auto-renewed", StatusCode = 200 };
         }
         else
         {
             await HandleFailedPaymentAsync(subscriptionId, paymentResult.ErrorMessage ?? "Auto-renewal payment failed");
-            return ApiResponse<SubscriptionDto>.ErrorResponse($"Auto-renewal payment failed: {paymentResult.ErrorMessage}");
+            return new JsonModel { data = new object(), Message = $"Auto-renewal payment failed: {paymentResult.ErrorMessage}", StatusCode = 400 };
         }
     }
 
     // 4. Prorated upgrades/downgrades
-    public async Task<ApiResponse<SubscriptionDto>> ProrateUpgradeAsync(string subscriptionId, string newPlanId)
+    public async Task<JsonModel> ProrateUpgradeAsync(string subscriptionId, string newPlanId)
     {
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Subscription not found");
+            return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
         if (entity.SubscriptionPlanId == Guid.Parse(newPlanId))
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Already on this plan");
+            return new JsonModel { data = new object(), Message = "Already on this plan", StatusCode = 400 };
         // Simulate proration calculation
         var daysLeft = (entity.NextBillingDate - DateTime.UtcNow).TotalDays;
         var oldPlan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(entity.SubscriptionPlanId);
         var newPlan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(newPlanId));
         if (oldPlan == null || newPlan == null)
-            return ApiResponse<SubscriptionDto>.ErrorResponse("Plan not found");
+            return new JsonModel { data = new object(), Message = "Plan not found", StatusCode = 404 };
         // In proration, use Price and BillingCycleId
         var credit = (decimal)(daysLeft / 30.0) * oldPlan.Price; // Assuming Price is the monthly price
         var charge = newPlan.Price - credit;
@@ -1116,29 +1363,29 @@ public class SubscriptionService : ISubscriptionService
             entity.UpdatedAt = DateTime.UtcNow;
             await _subscriptionRepository.UpdateAsync(entity);
             // TODO: Add billing history record
-            return ApiResponse<SubscriptionDto>.SuccessResponse(_mapper.Map<SubscriptionDto>(entity), "Subscription upgraded with proration");
+            return new JsonModel { data = _mapper.Map<SubscriptionDto>(entity), Message = "Subscription upgraded with proration", StatusCode = 200 };
         }
         else
         {
-            return ApiResponse<SubscriptionDto>.ErrorResponse($"Prorated upgrade payment failed: {paymentResult.ErrorMessage}");
+            return new JsonModel { data = new object(), Message = $"Prorated upgrade payment failed: {paymentResult.ErrorMessage}", StatusCode = 400 };
         }
     }
 
     // --- USAGE & LIMITS ---
 
     // Check if user can use a privilege (e.g., book a consult)
-    public async Task<ApiResponse<bool>> CanUsePrivilegeAsync(string subscriptionId, string privilegeName)
+    public async Task<JsonModel> CanUsePrivilegeAsync(string subscriptionId, string privilegeName)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null || subscription.Status != Subscription.SubscriptionStatuses.Active)
-                return ApiResponse<bool>.ErrorResponse("Subscription not active");
+                return new JsonModel { data = new object(), Message = "Subscription not active", StatusCode = 400 };
 
             var planPrivileges = await _planPrivilegeRepo.GetByPlanIdAsync(subscription.SubscriptionPlanId);
             var planPrivilege = planPrivileges.FirstOrDefault(p => p.Privilege.Name == privilegeName);
             if (planPrivilege == null)
-                return ApiResponse<bool>.ErrorResponse("Privilege not included in plan");
+                return new JsonModel { data = new object(), Message = "Privilege not included in plan", StatusCode = 400 };
 
             var usages = await _usageRepo.GetBySubscriptionIdAsync(subscription.Id);
             var usage = usages.FirstOrDefault(u => u.SubscriptionPlanPrivilegeId == planPrivilege.Id);
@@ -1146,14 +1393,14 @@ public class SubscriptionService : ISubscriptionService
             int allowed = planPrivilege.Value;
 
             if (used >= allowed)
-                return ApiResponse<bool>.ErrorResponse($"Usage limit reached for {privilegeName}");
+                return new JsonModel { data = new object(), Message = $"Usage limit reached for {privilegeName}", StatusCode = 400 };
 
-            return ApiResponse<bool>.SuccessResponse(true);
+            return new JsonModel { data = true, Message = "Privilege can be used", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking privilege usage for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to check privilege usage");
+            return new JsonModel { data = new object(), Message = "Failed to check privilege usage", StatusCode = 500 };
         }
     }
 
@@ -1220,20 +1467,20 @@ public class SubscriptionService : ISubscriptionService
     // --- ADMIN OPERATIONS ---
 
     // Deactivate a plan (admin action)
-    public async Task<ApiResponse<bool>> DeactivatePlanAsync(string planId, string adminUserId)
+    public async Task<JsonModel> DeactivatePlanAsync(string planId, string adminUserId)
     {
         // Example: deactivate plan and notify/pause all subscribers
         var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
         if (plan == null)
-            return ApiResponse<bool>.ErrorResponse("Plan not found");
+            return new JsonModel { data = new object(), Message = "Plan not found", StatusCode = 404 };
         plan.IsActive = false;
         await _subscriptionRepository.UpdateSubscriptionPlanAsync(plan);
         // TODO: Pause all subscribers and notify them
-        return ApiResponse<bool>.SuccessResponse(true, "Plan deactivated and subscribers notified/paused.");
+        return new JsonModel { data = true, Message = "Plan deactivated and subscribers notified/paused.", StatusCode = 200 };
     }
 
     // Bulk cancel subscriptions (admin action)
-    public async Task<ApiResponse<int>> BulkCancelSubscriptionsAsync(IEnumerable<string> subscriptionIds, string adminUserId, string? reason = null)
+    public async Task<JsonModel> BulkCancelSubscriptionsAsync(IEnumerable<string> subscriptionIds, string adminUserId, string? reason = null)
     {
         int cancelled = 0;
         foreach (var id in subscriptionIds)
@@ -1246,21 +1493,21 @@ public class SubscriptionService : ISubscriptionService
                 sub.CancelledDate = DateTime.UtcNow;
                 await _subscriptionRepository.UpdateAsync(sub);
                 var userResult = await _userService.GetUserByIdAsync(sub.UserId);
-                if (userResult.Success && userResult.Data != null)
+                if (userResult.StatusCode == 200 && userResult.data != null)
                 {
                     // EMAIL FUNCTIONALITY DISABLED - Commented out for now
-                    // await _notificationService.SendSubscriptionCancelledNotificationAsync(userResult.Data.Email, userResult.Data.FullName, _mapper.Map<SubscriptionDto>(sub));
-                    _logger.LogInformation("Email notifications disabled - would have sent cancellation notification to {Email}", userResult.Data.Email);
+                                    // await _notificationService.SendSubscriptionCancelledNotificationAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, _mapper.Map<SubscriptionDto>(sub));
+                _logger.LogInformation("Email notifications disabled - would have sent cancellation notification to {Email}", ((UserDto)userResult.data).Email);
                 }
                 await _auditService.LogUserActionAsync(adminUserId, "BulkCancelSubscription", "Subscription", id, "Cancelled by admin");
                 cancelled++;
             }
         }
-        return ApiResponse<int>.SuccessResponse(cancelled, $"{cancelled} subscriptions cancelled.");
+        return new JsonModel { data = cancelled, Message = $"{cancelled} subscriptions cancelled.", StatusCode = 200 };
     }
 
     // Bulk upgrade subscriptions (admin action)
-    public async Task<ApiResponse<int>> BulkUpgradeSubscriptionsAsync(IEnumerable<string> subscriptionIds, string newPlanId, string adminUserId)
+    public async Task<JsonModel> BulkUpgradeSubscriptionsAsync(IEnumerable<string> subscriptionIds, string newPlanId, string adminUserId)
     {
         int upgraded = 0;
         foreach (var id in subscriptionIds)
@@ -1272,27 +1519,27 @@ public class SubscriptionService : ISubscriptionService
                 sub.UpdatedAt = DateTime.UtcNow;
                 await _subscriptionRepository.UpdateAsync(sub);
                 var userResult = await _userService.GetUserByIdAsync(sub.UserId);
-                if (userResult.Success && userResult.Data != null)
+                if (userResult.StatusCode == 200 && userResult.data != null)
                 {
                     // EMAIL FUNCTIONALITY DISABLED - Commented out for now
-                    // await _notificationService.SendSubscriptionConfirmationAsync(userResult.Data.Email, userResult.Data.FullName, _mapper.Map<SubscriptionDto>(sub));
-                    _logger.LogInformation("Email notifications disabled - would have sent confirmation email to {Email}", userResult.Data.Email);
+                                    // await _notificationService.SendSubscriptionConfirmationAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, _mapper.Map<SubscriptionDto>(sub));
+                _logger.LogInformation("Email notifications disabled - would have sent confirmation email to {Email}", ((UserDto)userResult.data).Email);
                 }
                 await _auditService.LogUserActionAsync(adminUserId, "BulkUpgradeSubscription", "Subscription", id, $"Upgraded to plan {newPlanId}");
                 upgraded++;
             }
         }
-        return ApiResponse<int>.SuccessResponse(upgraded, $"{upgraded} subscriptions upgraded.");
+        return new JsonModel { data = upgraded, Message = $"{upgraded} subscriptions upgraded.", StatusCode = 200 };
     }
 
-    public async Task<ApiResponse<bool>> HandlePaymentProviderWebhookAsync(string eventType, string subscriptionId, string? errorMessage = null)
+    public async Task<JsonModel> HandlePaymentProviderWebhookAsync(string eventType, string subscriptionId, string? errorMessage = null)
     {
         try
         {
             if (eventType == "payment_failed")
             {
                 await HandleFailedPaymentAsync(subscriptionId, errorMessage ?? "Unknown error");
-                return ApiResponse<bool>.SuccessResponse(true, "Payment failure handled");
+                return new JsonModel { data = true, Message = "Payment failure handled", StatusCode = 200 };
             }
             if (eventType == "payment_succeeded")
             {
@@ -1303,40 +1550,40 @@ public class SubscriptionService : ISubscriptionService
                     await _subscriptionRepository.UpdateAsync(sub);
                     
                     var userResult = await _userService.GetUserByIdAsync(sub.UserId);
-                    if (userResult.Success && userResult.Data != null)
+                    if (userResult.StatusCode == 200 && userResult.data != null)
                     {
                         var billingRecord = new BillingRecordDto { Amount = sub.CurrentPrice, PaidDate = DateTime.UtcNow, Description = "Webhook Payment Success" };
                         // EMAIL FUNCTIONALITY DISABLED - Commented out for now
-                        // await _notificationService.SendPaymentSuccessEmailAsync(userResult.Data.Email, userResult.Data.FullName, billingRecord);
-                        _logger.LogInformation("Email notifications disabled - would have sent payment success email to {Email}", userResult.Data.Email);
+                        // await _notificationService.SendPaymentSuccessEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord);
+                        _logger.LogInformation("Email notifications disabled - would have sent payment success email to {Email}", ((UserDto)userResult.data).Email);
                     }
                     await _auditService.LogPaymentEventAsync(sub.UserId.ToString(), "PaymentSucceeded", subscriptionId, "Succeeded");
                 }
-                return ApiResponse<bool>.SuccessResponse(true, "Payment success handled");
+                return new JsonModel { data = true, Message = "Payment success handled", StatusCode = 200 };
             }
             
-            return ApiResponse<bool>.ErrorResponse("Unhandled webhook event type");
+            return new JsonModel { data = new object(), Message = "Unhandled webhook event type", StatusCode = 400 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error handling payment provider webhook for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to handle webhook event");
+            return new JsonModel { data = new object(), Message = "Failed to handle webhook event", StatusCode = 500 };
         }
     }
 
     // Additional methods for comprehensive subscription management
-    public async Task<ApiResponse<SubscriptionAnalyticsDto>> GetSubscriptionAnalyticsAsync(string subscriptionId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(string subscriptionId, DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<SubscriptionAnalyticsDto>.ErrorResponse("Subscription not found");
+                return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
 
             // Get usage statistics
             var usageStats = await GetUsageStatisticsAsync(subscriptionId);
-            if (!usageStats.Success)
-                return ApiResponse<SubscriptionAnalyticsDto>.ErrorResponse("Failed to get usage statistics");
+            if (usageStats.StatusCode != 200)
+                return new JsonModel { data = new object(), Message = "Failed to get usage statistics", StatusCode = 500 };
 
             // Get billing history with date range
             var billingHistory = await _billingService.GetPaymentHistoryAsync(subscription.UserId, startDate, endDate);
@@ -1348,35 +1595,35 @@ public class SubscriptionService : ISubscriptionService
                 Status = subscription.Status,
                 StartDate = subscription.StartDate,
                 NextBillingDate = subscription.NextBillingDate,
-                TotalAmountPaid = billingHistory.Data?.Sum(bh => bh.Amount) ?? 0,
-                PaymentCount = billingHistory.Data?.Count() ?? 0,
-                AveragePaymentAmount = billingHistory.Data?.Any() == true ? billingHistory.Data.Average(bh => bh.Amount) : 0,
-                UsageStatistics = usageStats.Data,
-                PaymentHistory = billingHistory.Data?.Select(bh => new PaymentHistoryDto
+                TotalAmountPaid = billingHistory.data is IEnumerable<BillingRecordDto> billingData5 ? billingData5.Sum(bh => bh.Amount) : 0,
+                PaymentCount = billingHistory.data is IEnumerable<BillingRecordDto> billingData6 ? billingData6.Count() : 0,
+                AveragePaymentAmount = billingHistory.data is IEnumerable<BillingRecordDto> billingData7 && billingData7.Any() ? billingData7.Average(bh => bh.Amount) : 0,
+                UsageStatistics = usageStats.data is UsageStatisticsDto usageData ? usageData : null,
+                PaymentHistory = billingHistory.data is IEnumerable<BillingRecordDto> billingData8 ? billingData8.Select(bh => new PaymentHistoryDto
                 {
-                    Id = bh.Id,
+                    Id = Guid.TryParse(bh.Id, out Guid id) ? id : Guid.Empty,
                     UserId = bh.UserId,
-                    SubscriptionId = bh.SubscriptionId,
+                    SubscriptionId = bh.SubscriptionId ?? string.Empty,
                     Amount = bh.Amount,
                     Currency = bh.Currency,
                     PaymentMethod = bh.PaymentMethod,
                     Status = bh.Status,
-                    TransactionId = bh.TransactionId,
-                    ErrorMessage = bh.ErrorMessage,
+                    TransactionId = bh.StripePaymentIntentId,
+                    ErrorMessage = bh.FailureReason,
                     CreatedAt = bh.CreatedAt,
-                    ProcessedAt = bh.ProcessedAt,
+                    ProcessedAt = bh.PaidAt,
                     PaymentDate = bh.CreatedAt,
-                    Description = bh.ErrorMessage,
-                    PaymentMethodId = bh.PaymentMethod
-                }).ToList() ?? new List<PaymentHistoryDto>()
+                    Description = bh.Description,
+                    PaymentMethodId = bh.PaymentMethodId
+                }).ToList() : new List<PaymentHistoryDto>()
             };
 
-            return ApiResponse<SubscriptionAnalyticsDto>.SuccessResponse(analytics);
+            return new JsonModel { data = analytics, Message = "Subscription analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription analytics for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionAnalyticsDto>.ErrorResponse("Failed to retrieve subscription analytics");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription analytics", StatusCode = 500 };
         }
     }
 } 

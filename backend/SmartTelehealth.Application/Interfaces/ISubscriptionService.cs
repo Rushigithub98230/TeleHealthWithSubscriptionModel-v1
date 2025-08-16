@@ -4,45 +4,62 @@ namespace SmartTelehealth.Application.Interfaces
 {
     public interface ISubscriptionService
     {
-        Task<ApiResponse<SubscriptionDto>> GetSubscriptionAsync(string subscriptionId);
-        Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetUserSubscriptionsAsync(int userId);
-        Task<ApiResponse<SubscriptionDto>> CreateSubscriptionAsync(CreateSubscriptionDto createDto);
-        Task<ApiResponse<SubscriptionDto>> CancelSubscriptionAsync(string subscriptionId, string? reason = null);
-        Task<ApiResponse<SubscriptionDto>> PauseSubscriptionAsync(string subscriptionId);
-        Task<ApiResponse<SubscriptionDto>> ResumeSubscriptionAsync(string subscriptionId);
-        Task<ApiResponse<SubscriptionDto>> GetSubscriptionByPlanIdAsync(string planId);
-        Task<ApiResponse<IEnumerable<PaymentMethodDto>>> GetPaymentMethodsAsync(int userId);
-        Task<ApiResponse<PaymentMethodDto>> AddPaymentMethodAsync(int userId, string paymentMethodId);
+        Task<JsonModel> GetSubscriptionAsync(string subscriptionId);
+        Task<JsonModel> GetUserSubscriptionsAsync(int userId);
+        Task<JsonModel> CreateSubscriptionAsync(CreateSubscriptionDto createDto);
+        Task<JsonModel> CancelSubscriptionAsync(string subscriptionId, string? reason = null);
+        Task<JsonModel> PauseSubscriptionAsync(string subscriptionId);
+        Task<JsonModel> ResumeSubscriptionAsync(string subscriptionId);
+        Task<JsonModel> GetSubscriptionByPlanIdAsync(string planId);
+        Task<JsonModel> GetPaymentMethodsAsync(int userId);
+        Task<JsonModel> AddPaymentMethodAsync(int userId, string paymentMethodId);
         
         // Missing methods from controllers
-        Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetActiveSubscriptionsAsync();
-        Task<ApiResponse<IEnumerable<SubscriptionPlanDto>>> GetAllPlansAsync();
-        Task<ApiResponse<SubscriptionPlanDto>> GetPlanByIdAsync(string planId);
-        Task<ApiResponse<SubscriptionDto>> GetSubscriptionByIdAsync(string subscriptionId);
-        Task<ApiResponse<SubscriptionDto>> UpdateSubscriptionAsync(string subscriptionId, UpdateSubscriptionDto updateDto);
-        Task<ApiResponse<SubscriptionDto>> ReactivateSubscriptionAsync(string subscriptionId);
-        Task<ApiResponse<SubscriptionDto>> UpgradeSubscriptionAsync(string subscriptionId, string newPlanId);
-        Task<ApiResponse<IEnumerable<BillingHistoryDto>>> GetBillingHistoryAsync(string subscriptionId);
-        Task<ApiResponse<PaymentResultDto>> ProcessPaymentAsync(string subscriptionId, PaymentRequestDto paymentRequest);
-        Task<ApiResponse<UsageStatisticsDto>> GetUsageStatisticsAsync(string subscriptionId);
-        Task<ApiResponse<IEnumerable<SubscriptionDto>>> GetAllSubscriptionsAsync();
-        Task<ApiResponse<SubscriptionAnalyticsDto>> GetSubscriptionAnalyticsAsync(string subscriptionId);
-        Task<ApiResponse<SubscriptionPlanDto>> CreatePlanAsync(CreateSubscriptionPlanDto createPlanDto);
-        Task<ApiResponse<SubscriptionPlanDto>> UpdatePlanAsync(string planId, UpdateSubscriptionPlanDto updatePlanDto);
-        Task<ApiResponse<bool>> ActivatePlanAsync(string planId);
-        Task<ApiResponse<bool>> DeactivatePlanAsync(string planId);
-        Task<ApiResponse<bool>> DeletePlanAsync(string planId);
-        Task<ApiResponse<SubscriptionDto>> GetByStripeSubscriptionIdAsync(string stripeSubscriptionId);
-        Task<ApiResponse<IEnumerable<SubscriptionPlanDto>>> GetAllSubscriptionPlansAsync();
-        Task<ApiResponse<IEnumerable<SubscriptionPlanDto>>> GetActiveSubscriptionPlansAsync();
-        Task<ApiResponse<IEnumerable<SubscriptionPlanDto>>> GetSubscriptionPlansByCategoryAsync(string category);
-        Task<ApiResponse<SubscriptionPlanDto>> GetSubscriptionPlanAsync(string planId);
-        Task<ApiResponse<SubscriptionPlanDto>> CreateSubscriptionPlanAsync(CreateSubscriptionPlanDto createDto);
-        Task<ApiResponse<SubscriptionPlanDto>> UpdateSubscriptionPlanAsync(string planId, UpdateSubscriptionPlanDto updateDto);
-        Task<ApiResponse<bool>> DeleteSubscriptionPlanAsync(string planId);
-        Task<ApiResponse<PaymentResultDto>> HandleFailedPaymentAsync(string subscriptionId, string reason);
-        Task<ApiResponse<bool>> CanUsePrivilegeAsync(string subscriptionId, string privilegeName);
-        Task<ApiResponse<bool>> DeactivatePlanAsync(string planId, string adminUserId);
-        Task<ApiResponse<bool>> HandlePaymentProviderWebhookAsync(string eventType, string subscriptionId, string? errorMessage = null);
+        Task<JsonModel> GetActiveSubscriptionsAsync();
+        Task<JsonModel> GetAllPlansAsync();
+        Task<JsonModel> GetAllPlansAsync(int page, int pageSize, string? searchTerm, string? categoryId, bool? isActive);
+        Task<JsonModel> GetPlanByIdAsync(string planId);
+        Task<JsonModel> GetSubscriptionByIdAsync(string subscriptionId);
+        Task<JsonModel> UpdateSubscriptionAsync(string subscriptionId, UpdateSubscriptionDto updateDto);
+        Task<JsonModel> ReactivateSubscriptionAsync(string subscriptionId);
+        Task<JsonModel> UpgradeSubscriptionAsync(string subscriptionId, string newPlanId);
+        Task<JsonModel> GetBillingHistoryAsync(string subscriptionId);
+        Task<JsonModel> ProcessPaymentAsync(string subscriptionId, PaymentRequestDto paymentRequest);
+        Task<JsonModel> GetUsageStatisticsAsync(string subscriptionId);
+        Task<JsonModel> GetAllSubscriptionsAsync();
+        Task<JsonModel> GetSubscriptionAnalyticsAsync(string subscriptionId);
+        Task<JsonModel> CreatePlanAsync(CreateSubscriptionPlanDto createPlanDto);
+        Task<JsonModel> UpdatePlanAsync(string planId, UpdateSubscriptionPlanDto updatePlanDto);
+        Task<JsonModel> ActivatePlanAsync(string planId);
+        Task<JsonModel> DeactivatePlanAsync(string planId);
+        Task<JsonModel> DeletePlanAsync(string planId);
+        
+        // Admin management methods
+        Task<JsonModel> GetAllUserSubscriptionsAsync(int page, int pageSize, string? userId, string? planId, string? status, DateTime? startDate, DateTime? endDate);
+        Task<JsonModel> CancelUserSubscriptionAsync(string subscriptionId, string? reason);
+        Task<JsonModel> PauseUserSubscriptionAsync(string subscriptionId);
+        Task<JsonModel> ResumeUserSubscriptionAsync(string subscriptionId);
+        Task<JsonModel> ExtendUserSubscriptionAsync(string subscriptionId, int additionalDays);
+        Task<JsonModel> GetByStripeSubscriptionIdAsync(string stripeSubscriptionId);
+        
+        // Bulk operations
+        Task<JsonModel> PerformBulkActionAsync(List<BulkActionRequestDto> actions);
+        Task<JsonModel> GetAllSubscriptionPlansAsync();
+        Task<JsonModel> GetActiveSubscriptionPlansAsync();
+        Task<JsonModel> GetSubscriptionPlansByCategoryAsync(string category);
+        Task<JsonModel> GetSubscriptionPlanAsync(string planId);
+        
+        // Category management
+        Task<JsonModel> GetAllCategoriesAsync(int page, int pageSize, string? searchTerm, bool? isActive);
+        Task<JsonModel> CreateSubscriptionPlanAsync(CreateSubscriptionPlanDto createDto);
+        
+        // Analytics methods
+        Task<JsonModel> GetSubscriptionAnalyticsAsync(string subscriptionId, DateTime? startDate, DateTime? endDate);
+        Task<JsonModel> UpdateSubscriptionPlanAsync(string planId, UpdateSubscriptionPlanDto updateDto);
+        Task<JsonModel> DeleteSubscriptionPlanAsync(string planId);
+        Task<JsonModel> HandleFailedPaymentAsync(string subscriptionId, string reason);
+        Task<JsonModel> CanUsePrivilegeAsync(string subscriptionId, string privilegeName);
+        Task<JsonModel> DeactivatePlanAsync(string planId, string adminUserId);
+        Task<JsonModel> HandlePaymentProviderWebhookAsync(string eventType, string subscriptionId, string? errorMessage = null);
     }
 } 

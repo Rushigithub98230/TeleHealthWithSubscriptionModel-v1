@@ -24,7 +24,7 @@ public class MessageController : ControllerBase
     }
 
     [HttpGet("{messageId}")]
-    public async Task<ActionResult<ApiResponse<MessageDto>>> GetMessage(Guid messageId)
+    public async Task<ActionResult<JsonModel>> GetMessage(Guid messageId)
     {
         try
         {
@@ -34,12 +34,12 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<MessageDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<MessageDto>>> SendMessage([FromBody] CreateMessageDto createDto)
+    public async Task<ActionResult<JsonModel>> SendMessage([FromBody] CreateMessageDto createDto)
     {
         try
         {
@@ -53,12 +53,12 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending message");
-            return StatusCode(500, ApiResponse<MessageDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPut("{messageId}")]
-    public async Task<ActionResult<ApiResponse<MessageDto>>> UpdateMessage(Guid messageId, [FromBody] UpdateMessageDto updateDto)
+    public async Task<ActionResult<JsonModel>> UpdateMessage(Guid messageId, [FromBody] UpdateMessageDto updateDto)
     {
         try
         {
@@ -72,12 +72,12 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<MessageDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpDelete("{messageId}")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeleteMessage(Guid messageId)
+    public async Task<ActionResult<JsonModel>> DeleteMessage(Guid messageId)
     {
         try
         {
@@ -91,12 +91,12 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPost("{messageId}/read")]
-    public async Task<ActionResult<ApiResponse<bool>>> MarkMessageAsRead(Guid messageId)
+    public async Task<ActionResult<JsonModel>> MarkMessageAsRead(Guid messageId)
     {
         try
         {
@@ -110,12 +110,12 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error marking message {MessageId} as read", messageId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPost("{messageId}/reactions")]
-    public async Task<ActionResult<ApiResponse<MessageReactionDto>>> AddReaction(Guid messageId, [FromBody] AddReactionDto addReactionDto)
+    public async Task<ActionResult<JsonModel>> AddReaction(Guid messageId, [FromBody] AddReactionDto addReactionDto)
     {
         try
         {
@@ -129,12 +129,12 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding reaction to message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<MessageReactionDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpDelete("{messageId}/reactions/{emoji}")]
-    public async Task<ActionResult<ApiResponse<bool>>> RemoveReaction(Guid messageId, string emoji)
+    public async Task<ActionResult<JsonModel>> RemoveReaction(Guid messageId, string emoji)
     {
         try
         {
@@ -148,12 +148,12 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing reaction from message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpGet("{messageId}/reactions")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<MessageReactionDto>>>> GetMessageReactions(Guid messageId)
+    public async Task<ActionResult<JsonModel>> GetMessageReactions(Guid messageId)
     {
         try
         {
@@ -163,12 +163,12 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting reactions for message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<IEnumerable<MessageReactionDto>>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPost("encrypt")]
-    public async Task<ActionResult<ApiResponse<string>>> EncryptMessage([FromBody] EncryptMessageDto encryptDto)
+    public async Task<ActionResult<JsonModel>> EncryptMessage([FromBody] EncryptMessageDto encryptDto)
     {
         try
         {
@@ -178,12 +178,12 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error encrypting message");
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPost("decrypt")]
-    public async Task<ActionResult<ApiResponse<string>>> DecryptMessage([FromBody] DecryptMessageDto decryptDto)
+    public async Task<ActionResult<JsonModel>> DecryptMessage([FromBody] DecryptMessageDto decryptDto)
     {
         try
         {
@@ -193,20 +193,20 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error decrypting message");
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPost("attachments/upload")]
-    public async Task<ActionResult<ApiResponse<string>>> UploadAttachment(IFormFile file)
+    public async Task<ActionResult<JsonModel>> UploadAttachment(IFormFile file)
     {
         try
         {
             if (file == null || file.Length == 0)
-                return BadRequest(ApiResponse<string>.ErrorResponse("No file provided", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "No file provided", StatusCode = 400 });
 
             if (file.Length > 10 * 1024 * 1024) // 10MB limit
-                return BadRequest(ApiResponse<string>.ErrorResponse("File size exceeds 10MB limit", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "File size exceeds 10MB limit", StatusCode = 400 });
 
             using var memoryStream = new MemoryStream();
             await file.CopyToAsync(memoryStream);
@@ -218,7 +218,7 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading attachment {FileName}", file?.FileName);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -228,12 +228,15 @@ public class MessageController : ControllerBase
         try
         {
             var result = await _messagingService.DownloadMessageAttachmentAsync(filePath);
-            if (!result.Success)
+            if (result.StatusCode != 200)
                 return NotFound();
 
             // Extract filename from path
             var fileName = Path.GetFileName(filePath);
-            return File(result.Data, "application/octet-stream", fileName);
+            var fileData = result.data as byte[];
+            if (fileData == null)
+                return BadRequest(new JsonModel { data = new object(), Message = "Invalid file data", StatusCode = 400 });
+            return File(fileData, "application/octet-stream", fileName);
         }
         catch (Exception ex)
         {
@@ -243,7 +246,7 @@ public class MessageController : ControllerBase
     }
 
     [HttpDelete("attachments")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeleteAttachment([FromQuery] string filePath)
+    public async Task<ActionResult<JsonModel>> DeleteAttachment([FromQuery] string filePath)
     {
         try
         {
@@ -253,7 +256,7 @@ public class MessageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting attachment {FilePath}", filePath);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 

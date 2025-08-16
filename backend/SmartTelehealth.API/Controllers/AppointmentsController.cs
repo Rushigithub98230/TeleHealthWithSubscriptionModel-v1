@@ -29,7 +29,7 @@ public class AppointmentsController : ControllerBase
     // Homepage endpoints
     [HttpGet("homepage")]
     [AllowAnonymous]
-    public async Task<ActionResult<HomepageDto>> GetHomepageData()
+    public async Task<ActionResult<JsonModel>> GetHomepageData()
     {
         try
         {
@@ -45,19 +45,19 @@ public class AppointmentsController : ControllerBase
 
             var homepageData = new HomepageDto
             {
-                Categories = categoriesResponse.data as IEnumerable<CategoryWithSubscriptionsDto> ?? new List<CategoryWithSubscriptionsDto>(),
-                FeaturedProviders = providersResponse.data as IEnumerable<FeaturedProviderDto> ?? new List<FeaturedProviderDto>(),
+                Categories = (categoriesResponse.data as IEnumerable<CategoryWithSubscriptionsDto>)?.ToList() ?? new List<CategoryWithSubscriptionsDto>(),
+                FeaturedProviders = (providersResponse.data as IEnumerable<FeaturedProviderDto>)?.ToList() ?? new List<FeaturedProviderDto>(),
                 TotalAppointments = 0, // Will be populated from analytics
                 TotalPatients = 0, // Will be populated from analytics
                 TotalProviders = 0 // Will be populated from analytics
             };
 
-            return Ok(homepageData);
+            return Ok(new JsonModel { data = homepageData, Message = "Homepage data retrieved successfully", StatusCode = 200 });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting homepage data");
-            return StatusCode(500, new { error = "Failed to load homepage data" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to load homepage data", StatusCode = 500 });
         }
     }
 
@@ -134,7 +134,7 @@ public class AppointmentsController : ControllerBase
 
     // Appointment booking flow
     [HttpPost("book")]
-    public async Task<ActionResult<AppointmentConfirmationDto>> BookAppointment([FromBody] AppointmentBookingDto bookingDto)
+    public async Task<ActionResult<JsonModel>> BookAppointment([FromBody] AppointmentBookingDto bookingDto)
     {
         try
         {
@@ -147,18 +147,18 @@ public class AppointmentsController : ControllerBase
                     patientGuid, categoryGuid);
                 if (subscriptionValidation.StatusCode != 200)
                 {
-                    return BadRequest(new { error = "Invalid subscription access" });
+                    return BadRequest(new JsonModel { data = new object(), Message = "Invalid subscription access", StatusCode = 400 });
                 }
             }
 
             // Calculate appointment fee
             if (!int.TryParse(bookingDto.PatientId, out int patientId))
             {
-                return BadRequest(new { error = "Invalid patient ID format" });
+                return BadRequest(new JsonModel { data = new object(), Message = "Invalid patient ID format", StatusCode = 400 });
             }
             if (!int.TryParse(bookingDto.ProviderId, out int providerId))
             {
-                return BadRequest(new { error = "Invalid provider ID format" });
+                return BadRequest(new JsonModel { data = new object(), Message = "Invalid provider ID format", StatusCode = 400 });
             }
             Guid categoryGuid2 = Guid.TryParse(bookingDto.CategoryId, out var cg2) ? cg2 : Guid.Empty;
             var feeCalculation = await _appointmentService.CalculateAppointmentFeeAsync(
@@ -166,7 +166,7 @@ public class AppointmentsController : ControllerBase
             
             if (feeCalculation.StatusCode != 200)
             {
-                return BadRequest(new { error = "Failed to calculate appointment fee" });
+                return BadRequest(new JsonModel { data = new object(), Message = "Failed to calculate appointment fee", StatusCode = 400 });
             }
 
             // Create appointment booking DTO
@@ -191,13 +191,13 @@ public class AppointmentsController : ControllerBase
             
             if (appointmentResponse.StatusCode != 200)
             {
-                return BadRequest(new { error = appointmentResponse.Message });
+                return BadRequest(new JsonModel { data = new object(), Message = appointmentResponse.Message, StatusCode = 400 });
             }
 
-            var appointment = appointmentResponse.data;
+            var appointment = appointmentResponse.data as AppointmentDto;
             if (appointment == null)
             {
-                return BadRequest(new { error = "Failed to create appointment" });
+                return BadRequest(new JsonModel { data = new object(), Message = "Failed to create appointment", StatusCode = 400 });
             }
 
             // Create confirmation DTO
@@ -216,12 +216,12 @@ public class AppointmentsController : ControllerBase
                 CreatedAt = appointment.CreatedAt
             };
 
-            return Ok(confirmation);
+            return Ok(new JsonModel { data = confirmation, Message = "Appointment booked successfully", StatusCode = 200 });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error booking appointment");
-            return StatusCode(500, new { error = "Failed to book appointment" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to book appointment", StatusCode = 500 });
         }
     }
 
@@ -258,7 +258,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error accepting appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to accept appointment" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to accept appointment", StatusCode = 500 });
         }
     }
 
@@ -274,7 +274,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error rejecting appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to reject appointment" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to reject appointment", StatusCode = 500 });
         }
     }
 
@@ -290,7 +290,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error starting meeting for appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to start meeting" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to start meeting", StatusCode = 500 });
         }
     }
 
@@ -305,7 +305,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error ending meeting for appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to end meeting" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to end meeting", StatusCode = 500 });
         }
     }
 
@@ -321,7 +321,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error completing appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to complete appointment" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to complete appointment", StatusCode = 500 });
         }
     }
 
@@ -334,14 +334,14 @@ public class AppointmentsController : ControllerBase
             var response = await _appointmentService.GenerateMeetingLinkAsync(appointmentId);
             if (response.StatusCode == 200)
             {
-                return Ok(new { meetingUrl = response.data });
+                return Ok(new JsonModel { data = new { meetingUrl = response.data }, Message = "Meeting link generated successfully", StatusCode = 200 });
             }
-            return BadRequest(new { error = response.Message });
+            return BadRequest(new JsonModel { data = new object(), Message = response.Message, StatusCode = 400 });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating meeting link for appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to generate meeting link" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to generate meeting link", StatusCode = 500 });
         }
     }
 
@@ -354,14 +354,14 @@ public class AppointmentsController : ControllerBase
             var response = await _appointmentService.GetOpenTokTokenAsync(appointmentId, userId);
             if (response.StatusCode == 200)
             {
-                return Ok(new { token = response.data });
+                return Ok(new JsonModel { data = new { token = response.data }, Message = "OpenTok token generated successfully", StatusCode = 200 });
             }
-            return BadRequest(new { error = response.Message });
+            return BadRequest(new JsonModel { data = new object(), Message = response.Message, StatusCode = 400 });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting OpenTok token for appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to get OpenTok token" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to get OpenTok token", StatusCode = 500 });
         }
     }
 
@@ -378,7 +378,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user appointments");
-            return StatusCode(500, new { error = "Failed to get appointments" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to get appointments", StatusCode = 500 });
         }
     }
 
@@ -393,7 +393,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting appointment {Id}", id);
-            return StatusCode(500, new { error = "Failed to get appointment" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to get appointment", StatusCode = 500 });
         }
     }
 
@@ -408,7 +408,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating appointment {Id}", id);
-            return StatusCode(500, new { error = "Failed to update appointment" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to update appointment", StatusCode = 500 });
         }
     }
 
@@ -423,7 +423,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cancelling appointment {Id}", id);
-            return StatusCode(500, new { error = "Failed to cancel appointment" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to cancel appointment", StatusCode = 500 });
         }
     }
 
@@ -440,7 +440,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting provider availability for provider {ProviderId}", providerId);
-            return StatusCode(500, new { error = "Failed to get provider availability" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to get provider availability", StatusCode = 500 });
         }
     }
 
@@ -457,7 +457,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting appointment analytics");
-            return StatusCode(500, new { error = "Failed to get analytics" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to get analytics", StatusCode = 500 });
         }
     }
 
@@ -472,7 +472,7 @@ public class AppointmentsController : ControllerBase
             {
                 if (!int.TryParse(request.UserId, out int parsedUserId))
                 {
-                    return BadRequest(new { error = "Invalid user ID format" });
+                    return BadRequest(new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 });
                 }
                 userId = parsedUserId;
             }
@@ -484,7 +484,7 @@ public class AppointmentsController : ControllerBase
             {
                 if (!int.TryParse(request.InvitedByUserId, out int parsedInvitedBy))
                 {
-                    return BadRequest(new { error = "Invalid invited by user ID format" });
+                    return BadRequest(new JsonModel { data = new object(), Message = "Invalid invited by user ID format", StatusCode = 400 });
                 }
                 invitedByUserId = parsedInvitedBy;
             }
@@ -520,7 +520,7 @@ public class AppointmentsController : ControllerBase
             {
                 if (!int.TryParse(request.InvitedByUserId, out int parsedInvitedBy))
                 {
-                    return BadRequest(new { error = "Invalid invited by user ID format" });
+                    return BadRequest(new JsonModel { data = new object(), Message = "Invalid invited by user ID format", StatusCode = 400 });
                 }
                 invitedByUserId = parsedInvitedBy;
             }
@@ -530,7 +530,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error inviting external participant to appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to invite external participant" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to invite external participant", StatusCode = 500 });
         }
     }
 
@@ -544,7 +544,7 @@ public class AppointmentsController : ControllerBase
             {
                 if (!int.TryParse(request.UserId, out int parsedUserId))
                 {
-                    return BadRequest(new { error = "Invalid user ID format" });
+                    return BadRequest(new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 });
                 }
                 userId = parsedUserId;
             }
@@ -554,7 +554,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error joining appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to join appointment" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to join appointment", StatusCode = 500 });
         }
     }
 
@@ -568,7 +568,7 @@ public class AppointmentsController : ControllerBase
             {
                 if (!int.TryParse(request.UserId, out int parsedUserId))
                 {
-                    return BadRequest(new { error = "Invalid user ID format" });
+                    return BadRequest(new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 });
                 }
                 userId = parsedUserId;
             }
@@ -578,7 +578,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error leaving appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to leave appointment" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to leave appointment", StatusCode = 500 });
         }
     }
 
@@ -612,7 +612,7 @@ public class AppointmentsController : ControllerBase
                 {
                     if (!int.TryParse(userId, out int parsedUserId))
                     {
-                        return BadRequest(new { error = "Invalid user ID format" });
+                        return BadRequest(new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 });
                     }
                     userIdInt = parsedUserId;
                 }
@@ -622,7 +622,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating video token for appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to generate video token" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to generate video token", StatusCode = 500 });
         }
     }
 
@@ -658,7 +658,7 @@ public class AppointmentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing refund for appointment {AppointmentId}", appointmentId);
-            return StatusCode(500, new { error = "Failed to process refund" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to process refund", StatusCode = 500 });
         }
     }
 
@@ -705,21 +705,21 @@ public class AppointmentsController : ControllerBase
 
     // Health check
     [HttpGet("health")]
-    public async Task<ActionResult> HealthCheck()
+    public async Task<ActionResult<JsonModel>> HealthCheck()
     {
         try
         {
             var response = await _appointmentService.IsAppointmentServiceHealthyAsync();
             if (response.StatusCode == 200)
             {
-                return Ok(new { status = "healthy", message = "Appointment service is operational" });
+                return Ok(new JsonModel { data = new { status = "healthy" }, Message = "Appointment service is operational", StatusCode = 200 });
             }
-            return StatusCode(503, new { status = "unhealthy", message = "Appointment service is not operational" });
+            return StatusCode(503, new JsonModel { data = new { status = "unhealthy" }, Message = "Appointment service is not operational", StatusCode = 503 });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking appointment service health");
-            return StatusCode(503, new { status = "error", message = "Failed to check service health" });
+            return StatusCode(503, new JsonModel { data = new { status = "error" }, Message = "Failed to check service health", StatusCode = 503 });
         }
     }
 

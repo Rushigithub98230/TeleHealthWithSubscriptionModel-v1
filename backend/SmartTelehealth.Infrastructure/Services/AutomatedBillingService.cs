@@ -139,16 +139,22 @@ public class AutomatedBillingService : BackgroundService
             };
 
             var billingResult = await billingService.CreateBillingRecordAsync(billingRecord);
-            if (!billingResult.Success)
+            if (billingResult.StatusCode != 200)
             {
                 _logger.LogError("Failed to create billing record for subscription {SubscriptionId}", subscription.Id);
                 return;
             }
 
             // Process payment with retry logic
-            var paymentResult = await ProcessPaymentWithRetryAsync(Guid.Parse(billingResult.Data.Id), billingService, auditService);
+            var billingData2 = billingResult.data as dynamic;
+            if (billingData2?.Id == null)
+            {
+                _logger.LogError("Invalid billing result data for subscription {SubscriptionId}", subscription.Id);
+                return;
+            }
+            var paymentResult = await ProcessPaymentWithRetryAsync(Guid.Parse(billingData2.Id.ToString()), billingService, auditService);
 
-            if (paymentResult.Success)
+            if (paymentResult.StatusCode == 200)
             {
                 // Update subscription billing date
                 subscription.NextBillingDate = subscription.NextBillingDate.AddMonths(1);
@@ -159,13 +165,18 @@ public class AutomatedBillingService : BackgroundService
 
                 // Send success notification
                 var userResult = await userService.GetUserByIdAsync(subscription.UserId);
-                if (userResult.Success && userResult.Data != null)
+                if (userResult.StatusCode == 200 && userResult.data != null)
                 {
-                    await notificationService.SendPaymentSuccessEmailAsync(
-                        userResult.Data.Email,
-                        userResult.Data.FullName,
-                        billingResult.Data
-                    );
+                    var userData = userResult.data as dynamic;
+                    var billingData = billingResult.data as dynamic;
+                    if (userData?.Email != null && userData?.FullName != null)
+                    {
+                        await notificationService.SendPaymentSuccessEmailAsync(
+                            userData.Email.ToString(),
+                            userData.FullName.ToString(),
+                            billingData
+                        );
+                    }
                 }
 
                 await auditService.LogPaymentEventAsync(
@@ -180,7 +191,8 @@ public class AutomatedBillingService : BackgroundService
             else
             {
                 // Handle failed payment with immediate suspension
-                await HandleFailedPaymentAsync(subscription, paymentResult.Message, subscriptionRepository, billingService, notificationService, auditService, userService);
+                var errorMessage = paymentResult.Message?.ToString() ?? "Unknown payment error";
+                await HandleFailedPaymentAsync(subscription, errorMessage, subscriptionRepository, billingService, notificationService, auditService, userService);
             }
         }
         catch (Exception ex)
@@ -190,7 +202,7 @@ public class AutomatedBillingService : BackgroundService
         }
     }
 
-    private async Task<ApiResponse<BillingRecordDto>> ProcessPaymentWithRetryAsync(
+    private async Task<JsonModel> ProcessPaymentWithRetryAsync(
         Guid billingRecordId,
         IBillingService billingService,
         IAuditService auditService)
@@ -201,7 +213,7 @@ public class AutomatedBillingService : BackgroundService
             {
                 var paymentResult = await billingService.ProcessPaymentAsync(billingRecordId);
                 
-                if (paymentResult.Success)
+                if (paymentResult.StatusCode == 200)
                 {
                     return paymentResult;
                 }
@@ -220,14 +232,24 @@ public class AutomatedBillingService : BackgroundService
                 
                 if (attempt == _maxRetryAttempts)
                 {
-                    return ApiResponse<BillingRecordDto>.ErrorResponse($"Payment failed after {_maxRetryAttempts} attempts: {ex.Message}");
+                    return new JsonModel
+                    {
+                        data = new object(),
+                        Message = $"Payment failed after {_maxRetryAttempts} attempts: {ex.Message}",
+                        StatusCode = 500
+                    };
                 }
                 
                 await Task.Delay(_retryDelay);
             }
         }
 
-        return ApiResponse<BillingRecordDto>.ErrorResponse($"Payment failed after {_maxRetryAttempts} attempts");
+        return new JsonModel
+        {
+            data = new object(),
+            Message = $"Payment failed after {_maxRetryAttempts} attempts",
+            StatusCode = 500
+        };
     }
 
     private async Task HandleFailedPaymentAsync(
@@ -286,11 +308,25 @@ public class AutomatedBillingService : BackgroundService
 
             foreach (var subscription in suspendedSubscriptions)
             {
+                                    // Extract all subscription values to avoid dynamic dispatch issues
+                    var subscriptionId = subscription.Id.ToString();
+                    var userId = subscription.UserId.ToString();
+                    var userIdInt = int.TryParse(userId, out int parsedUserId) ? parsedUserId : 0;
+                    var currentPrice = subscription.CurrentPrice;
+                    var subscriptionPlanName = subscription.SubscriptionPlan?.Name?.ToString() ?? "unknown";
+                    var suspendedDate = subscription.SuspendedDate;
+                    var failedPaymentAttempts = subscription.FailedPaymentAttempts;
+                    var nextBillingDate = subscription.NextBillingDate;
+                    var lastBillingDate = subscription.LastBillingDate;
+                    var lastPaymentError = subscription.LastPaymentError;
+                    var lastPaymentFailedDate = subscription.LastPaymentFailedDate;
+
                 try
                 {
+
                     // Check if enough time has passed since suspension
-                    if (subscription.SuspendedDate.HasValue &&
-                        DateTime.UtcNow - subscription.SuspendedDate.Value < _retryDelay)
+                    if (suspendedDate.HasValue &&
+                        DateTime.UtcNow - suspendedDate.Value < _retryDelay)
                     {
                         continue; // Skip if not enough time has passed
                     }
@@ -298,26 +334,31 @@ public class AutomatedBillingService : BackgroundService
                     // Retry payment for suspended subscription
                     var billingRecord = new CreateBillingRecordDto
                     {
-                        UserId = subscription.UserId.ToString(),
-                        SubscriptionId = subscription.Id.ToString(),
-                        Amount = subscription.CurrentPrice,
-                        Description = $"Retry payment for {subscription.SubscriptionPlan.Name}",
+                        UserId = userId,
+                        SubscriptionId = subscriptionId,
+                        Amount = currentPrice,
+                        Description = $"Retry payment for {subscriptionPlanName}",
                         DueDate = DateTime.UtcNow
                     };
 
                     var billingResult = await billingService.CreateBillingRecordAsync(billingRecord);
-                    if (!billingResult.Success)
+                    if (billingResult.StatusCode != 200)
                     {
                         continue;
                     }
 
-                    var paymentResult = await ProcessPaymentWithRetryAsync(Guid.Parse(billingResult.Data.Id), billingService, auditService);
+                    var billingData = billingResult.data as dynamic;
+                    if (billingData?.Id == null)
+                    {
+                        continue;
+                    }
+                    var paymentResult = await ProcessPaymentWithRetryAsync(Guid.Parse(billingData.Id.ToString()), billingService, auditService);
 
-                    if (paymentResult.Success)
+                    if (paymentResult.StatusCode == 200)
                     {
                         // Reactivate subscription
                         subscription.Status = Subscription.SubscriptionStatuses.Active;
-                        subscription.NextBillingDate = subscription.NextBillingDate.AddMonths(1);
+                        subscription.NextBillingDate = nextBillingDate.AddMonths(1);
                         subscription.LastBillingDate = DateTime.UtcNow;
                         subscription.FailedPaymentAttempts = 0;
                         subscription.LastPaymentError = null;
@@ -325,48 +366,49 @@ public class AutomatedBillingService : BackgroundService
                         await subscriptionRepository.UpdateAsync(subscription);
 
                         // Send reactivation notification
-                        var userResult = await userService.GetUserByIdAsync(subscription.UserId);
-                        if (userResult.Success && userResult.Data != null)
+                        var userResult = await userService.GetUserByIdAsync(userIdInt);
+                        if (userResult.StatusCode == 200 && userResult.data != null)
                         {
                             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                             // await notificationService.SendSubscriptionReactivatedNotificationAsync(
-                            //     subscription.UserId.ToString(),
-                            //     subscription.Id.ToString()
+                            //     userId,
+                            //     subscriptionId
                             // );
-                            _logger.LogInformation("Email notifications disabled - would have sent subscription reactivated notification to user {UserId}", subscription.UserId);
+                            _logger.LogInformation("Email notifications disabled - would have sent subscription reactivated notification to user {UserId}", userId);
                         }
 
                         await auditService.LogPaymentEventAsync(
-                            subscription.UserId.ToString(),
+                            userId,
                             "PaymentRetrySuccess",
-                            subscription.Id.ToString(),
+                            subscriptionId,
                             "Success"
                         );
 
-                        _logger.LogInformation("Successfully retried payment and reactivated subscription {SubscriptionId}", subscription.Id);
+                        _logger.LogInformation("Successfully retried payment and reactivated subscription");
                     }
                     else
                     {
                         // Update failure count but keep suspended
-                        subscription.FailedPaymentAttempts += 1;
+                        subscription.FailedPaymentAttempts = failedPaymentAttempts + 1;
                         subscription.LastPaymentError = paymentResult.Message;
                         subscription.LastPaymentFailedDate = DateTime.UtcNow;
                         await subscriptionRepository.UpdateAsync(subscription);
 
+                        var errorMessage = paymentResult.Message?.ToString() ?? "Unknown error";
                         await auditService.LogPaymentEventAsync(
-                            subscription.UserId.ToString(),
+                            userId,
                             "PaymentRetryFailed",
-                            subscription.Id.ToString(),
+                            subscriptionId,
                             "Failed",
-                            paymentResult.Message
+                            errorMessage
                         );
 
-                        _logger.LogWarning("Payment retry failed for suspended subscription {SubscriptionId}: {Error}", subscription.Id, paymentResult.Message);
+                        _logger.LogWarning("Payment retry failed for suspended subscription");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing payment retry for suspended subscription {SubscriptionId}", subscription.Id);
+                    _logger.LogError(ex, "Error processing payment retry for suspended subscription");
                 }
             }
         }
@@ -414,22 +456,32 @@ public class AutomatedBillingService : BackgroundService
         }
     }
 
-    public async Task<ApiResponse<bool>> TriggerManualBillingCycleAsync()
+    public async Task<JsonModel> TriggerManualBillingCycleAsync()
     {
         try
         {
             _logger.LogInformation("Manual billing cycle triggered");
             await ProcessBillingCycleAsync();
-            return ApiResponse<bool>.SuccessResponse(true, "Manual billing cycle completed successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Manual billing cycle completed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in manual billing cycle");
-            return ApiResponse<bool>.ErrorResponse("Failed to complete manual billing cycle");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to complete manual billing cycle",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task<ApiResponse<BillingCycleReportDto>> GetBillingCycleReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetBillingCycleReportAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
@@ -455,9 +507,13 @@ public class AutomatedBillingService : BackgroundService
 
             // Get billing statistics
             var billingHistory = await billingService.GetPaymentAnalyticsAsync(start, end);
-            report.SuccessfulPayments = (int)billingHistory.Data.SuccessfulTransactions;
-            report.FailedPayments = (int)billingHistory.Data.FailedTransactions;
-            report.TotalRevenue = billingHistory.Data.TotalPayments;
+            var analyticsData = billingHistory.data as dynamic;
+            if (analyticsData != null)
+            {
+                report.SuccessfulPayments = (int)(analyticsData.SuccessfulTransactions ?? 0);
+                report.FailedPayments = (int)(analyticsData.FailedTransactions ?? 0);
+                report.TotalRevenue = (decimal)(analyticsData.TotalPayments ?? 0);
+            }
 
             // Get subscription statistics
             var subscriptions = await subscriptionRepository.GetSubscriptionsInDateRangeAsync(start, end);
@@ -470,12 +526,22 @@ public class AutomatedBillingService : BackgroundService
             var failedPayments = await subscriptionRepository.GetSubscriptionsWithFailedPaymentsAsync();
             report.PaymentRetries = failedPayments.Count(s => s.FailedPaymentAttempts > 0);
 
-            return ApiResponse<BillingCycleReportDto>.SuccessResponse(report);
+            return new JsonModel
+            {
+                data = report,
+                Message = "Billing cycle report generated successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating billing cycle report");
-            return ApiResponse<BillingCycleReportDto>.ErrorResponse("Failed to generate billing cycle report");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to generate billing cycle report",
+                StatusCode = 500
+            };
         }
     }
 }

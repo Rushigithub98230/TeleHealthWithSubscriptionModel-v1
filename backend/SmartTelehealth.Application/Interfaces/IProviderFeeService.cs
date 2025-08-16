@@ -4,30 +4,30 @@ namespace SmartTelehealth.Application.Interfaces;
 
 public interface IProviderFeeService
 {
-    Task<ApiResponse<ProviderFeeDto>> CreateFeeAsync(CreateProviderFeeDto createDto);
-    Task<ApiResponse<ProviderFeeDto>> GetFeeAsync(Guid id);
-    Task<ApiResponse<ProviderFeeDto>> GetFeeByProviderAndCategoryAsync(int providerId, Guid categoryId);
-    Task<ApiResponse<ProviderFeeDto>> UpdateFeeAsync(Guid id, UpdateProviderFeeDto updateDto);
-    Task<ApiResponse<ProviderFeeDto>> ProposeFeeAsync(Guid id);
-    Task<ApiResponse<ProviderFeeDto>> ReviewFeeAsync(Guid id, ReviewProviderFeeDto reviewDto);
-    Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByProviderAsync(int providerId);
-    Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByCategoryAsync(Guid categoryId);
-    Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetAllFeesAsync(string? status = null, int page = 1, int pageSize = 50);
-    Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetPendingFeesAsync();
-    Task<ApiResponse<IEnumerable<ProviderFeeDto>>> GetFeesByStatusAsync(string status);
-    Task<ApiResponse<bool>> DeleteFeeAsync(Guid id);
-    Task<ApiResponse<FeeStatisticsDto>> GetFeeStatisticsAsync();
+    Task<JsonModel> CreateFeeAsync(CreateProviderFeeDto createDto);
+    Task<JsonModel> GetFeeAsync(Guid id);
+    Task<JsonModel> GetFeeByProviderAndCategoryAsync(int providerId, Guid categoryId);
+    Task<JsonModel> UpdateFeeAsync(Guid id, UpdateProviderFeeDto updateDto);
+    Task<JsonModel> ProposeFeeAsync(Guid id);
+    Task<JsonModel> ReviewFeeAsync(Guid id, ReviewProviderFeeDto reviewDto);
+    Task<JsonModel> GetFeesByProviderAsync(int providerId);
+    Task<JsonModel> GetFeesByCategoryAsync(Guid categoryId);
+    Task<JsonModel> GetAllFeesAsync(string? status = null, int page = 1, int pageSize = 50);
+    Task<JsonModel> GetPendingFeesAsync();
+    Task<JsonModel> GetFeesByStatusAsync(string status);
+    Task<JsonModel> DeleteFeeAsync(Guid id);
+    Task<JsonModel> GetFeeStatisticsAsync();
 }
 
 public interface ICategoryFeeRangeService
 {
-    Task<ApiResponse<CategoryFeeRangeDto>> CreateFeeRangeAsync(CreateCategoryFeeRangeDto createDto);
-    Task<ApiResponse<CategoryFeeRangeDto>> GetFeeRangeAsync(Guid id);
-    Task<ApiResponse<CategoryFeeRangeDto>> GetFeeRangeByCategoryAsync(Guid categoryId);
-    Task<ApiResponse<CategoryFeeRangeDto>> UpdateFeeRangeAsync(Guid id, UpdateCategoryFeeRangeDto updateDto);
-    Task<ApiResponse<IEnumerable<CategoryFeeRangeDto>>> GetAllFeeRangesAsync();
-    Task<ApiResponse<bool>> DeleteFeeRangeAsync(Guid id);
-    Task<ApiResponse<FeeRangeStatisticsDto>> GetFeeRangeStatisticsAsync();
+    Task<JsonModel> CreateFeeRangeAsync(CreateCategoryFeeRangeDto createDto);
+    Task<JsonModel> GetFeeRangeAsync(Guid id);
+    Task<JsonModel> GetFeeRangeByCategoryAsync(Guid categoryId);
+    Task<JsonModel> UpdateFeeRangeAsync(Guid id, UpdateCategoryFeeRangeDto updateDto);
+    Task<JsonModel> GetAllFeeRangesAsync();
+    Task<JsonModel> DeleteFeeRangeAsync(Guid id);
+    Task<JsonModel> GetFeeRangeStatisticsAsync();
 }
 
 public class FeeStatisticsDto

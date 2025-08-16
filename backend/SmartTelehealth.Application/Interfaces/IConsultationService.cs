@@ -41,4 +41,7 @@ public interface IConsultationService
     Task<JsonModel> ScheduleFollowUpAsync(Guid consultationId, DateTime followUpDate);
     Task<JsonModel> CancelFollowUpAsync(Guid consultationId);
     Task<JsonModel> GetUserOneTimeConsultationsAsync(int userId);
+    
+    // User Consultations
+    Task<JsonModel> GetUserConsultationsAsync(int userId);
 } 

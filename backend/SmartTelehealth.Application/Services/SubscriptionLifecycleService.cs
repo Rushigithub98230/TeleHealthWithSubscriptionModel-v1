@@ -533,20 +533,30 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
     /// <summary>
     /// Process subscription lifecycle state transitions
     /// </summary>
-    public async Task<ApiResponse<bool>> ProcessStateTransitionAsync(string subscriptionId, string newStatus, string reason = null, string changedByUserId = null)
+    public async Task<JsonModel> ProcessStateTransitionAsync(string subscriptionId, string newStatus, string reason = null, string changedByUserId = null)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<bool>.ErrorResponse("Subscription not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Subscription not found",
+                    StatusCode = 404
+                };
 
             var oldStatus = subscription.Status;
 
             // Validate state transition
             var validationResult = ValidateStateTransition(oldStatus, newStatus);
             if (!validationResult.IsValid)
-                return ApiResponse<bool>.ErrorResponse(validationResult.ErrorMessage);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = validationResult.ErrorMessage,
+                    StatusCode = 400
+                };
 
             // Update subscription status
             subscription.Status = newStatus;
@@ -580,12 +590,22 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
             _logger.LogInformation("Subscription {SubscriptionId} state changed from {OldStatus} to {NewStatus}", 
                 subscriptionId, oldStatus, newStatus);
 
-            return ApiResponse<bool>.SuccessResponse(true, "State transition processed successfully");
+            return new JsonModel
+            {
+                data = true,
+                Message = "State transition processed successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing state transition for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to process state transition");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to process state transition",
+                StatusCode = 500
+            };
         }
     }
 
@@ -716,13 +736,18 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
     /// <summary>
     /// Process subscription expiration
     /// </summary>
-    public async Task<ApiResponse<bool>> ProcessSubscriptionExpirationAsync(string subscriptionId)
+    public async Task<JsonModel> ProcessSubscriptionExpirationAsync(string subscriptionId)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<bool>.ErrorResponse("Subscription not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Subscription not found",
+                    StatusCode = 404
+                };
 
             if (subscription.Status == Subscription.SubscriptionStatuses.Active && 
                 subscription.NextBillingDate <= DateTime.UtcNow)
@@ -734,25 +759,40 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
                 );
             }
 
-            return ApiResponse<bool>.SuccessResponse(true, "Subscription is not due for expiration");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Subscription is not due for expiration",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing subscription expiration for {SubscriptionId}", subscriptionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to process subscription expiration");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to process subscription expiration",
+                StatusCode = 500
+            };
         }
     }
 
     /// <summary>
     /// Process trial expiration
     /// </summary>
-    public async Task<ApiResponse<bool>> ProcessTrialExpirationAsync(string subscriptionId)
+    public async Task<JsonModel> ProcessTrialExpirationAsync(string subscriptionId)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<bool>.ErrorResponse("Subscription not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Subscription not found",
+                    StatusCode = 404
+                };
 
             if (subscription.Status == Subscription.SubscriptionStatuses.TrialActive && 
                 subscription.TrialEndDate <= DateTime.UtcNow)
@@ -764,30 +804,50 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
                 );
             }
 
-            return ApiResponse<bool>.SuccessResponse(true, "Trial is not due for expiration");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Trial is not due for expiration",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing trial expiration for {SubscriptionId}", subscriptionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to process trial expiration");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to process trial expiration",
+                StatusCode = 500
+            };
         }
     }
 
     /// <summary>
     /// Reactivate a cancelled or expired subscription
     /// </summary>
-    public async Task<ApiResponse<bool>> ReactivateSubscriptionAsync(string subscriptionId, string reason = null)
+    public async Task<JsonModel> ReactivateSubscriptionAsync(string subscriptionId, string reason = null)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<bool>.ErrorResponse("Subscription not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Subscription not found",
+                    StatusCode = 404
+                };
 
             if (subscription.Status != Subscription.SubscriptionStatuses.Cancelled && 
                 subscription.Status != Subscription.SubscriptionStatuses.Expired)
             {
-                return ApiResponse<bool>.ErrorResponse("Subscription is not in a reactivatable state");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Subscription is not in a reactivatable state",
+                    StatusCode = 400
+                };
             }
 
             // Reset subscription dates
@@ -807,7 +867,12 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reactivating subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<bool>.ErrorResponse("Failed to reactivate subscription");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to reactivate subscription",
+                StatusCode = 500
+            };
         }
     }
 
@@ -832,13 +897,18 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
     /// <summary>
     /// Get subscription lifecycle status
     /// </summary>
-    public async Task<ApiResponse<SubscriptionLifecycleStatus>> GetSubscriptionLifecycleStatusAsync(string subscriptionId)
+    public async Task<JsonModel> GetSubscriptionLifecycleStatusAsync(string subscriptionId)
     {
         try
         {
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
-                return ApiResponse<SubscriptionLifecycleStatus>.ErrorResponse("Subscription not found");
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Subscription not found",
+                    StatusCode = 404
+                };
 
             var status = new SubscriptionLifecycleStatus
             {
@@ -858,19 +928,29 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
                                 subscription.Status == Subscription.SubscriptionStatuses.Paused
             };
 
-            return ApiResponse<SubscriptionLifecycleStatus>.SuccessResponse(status);
+            return new JsonModel
+            {
+                data = status,
+                Message = "Subscription lifecycle status retrieved successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting lifecycle status for subscription {SubscriptionId}", subscriptionId);
-            return ApiResponse<SubscriptionLifecycleStatus>.ErrorResponse("Failed to get lifecycle status");
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Failed to get lifecycle status",
+                StatusCode = 500
+            };
         }
     }
 
     /// <summary>
     /// Process bulk state transitions
     /// </summary>
-    public async Task<ApiResponse<BulkStateTransitionResult>> ProcessBulkStateTransitionsAsync(
+    public async Task<JsonModel> ProcessBulkStateTransitionsAsync(
         IEnumerable<string> subscriptionIds, string newStatus, string reason, string changedByUserId = null)
     {
         var result = new BulkStateTransitionResult
@@ -888,7 +968,7 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
             try
             {
                 var transitionResult = await ProcessStateTransitionAsync(subscriptionId, newStatus, reason, changedByUserId);
-                if (transitionResult.Success)
+                if (transitionResult.StatusCode == 200)
                 {
                     result.SuccessfulTransitions++;
                 }
@@ -905,7 +985,108 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
             }
         }
 
-        return ApiResponse<BulkStateTransitionResult>.SuccessResponse(result);
+        return new JsonModel
+        {
+            data = result,
+            Message = "Bulk state transitions processed successfully",
+            StatusCode = 200
+        };
+    }
+
+    public async Task<bool> ProcessSubscriptionExpirationAsync(Guid subscriptionId)
+    {
+        try
+        {
+            _logger.LogInformation("Processing subscription expiration for {SubscriptionId}", subscriptionId);
+            
+            var subscription = await _subscriptionRepository.GetByIdAsync(subscriptionId);
+            if (subscription == null)
+            {
+                _logger.LogWarning("Subscription {SubscriptionId} not found", subscriptionId);
+                return false;
+            }
+
+            if (subscription.Status != "Active" && subscription.Status != "Trial")
+            {
+                _logger.LogWarning("Subscription {SubscriptionId} is not in active or trial status", subscriptionId);
+                return false;
+            }
+
+            // Check if subscription has expired
+            if (subscription.EndDate <= DateTime.UtcNow)
+            {
+                var oldStatus = subscription.Status;
+                subscription.Status = "Expired";
+                subscription.UpdatedAt = DateTime.UtcNow;
+
+                // Add status history
+                await _statusHistoryRepository.CreateAsync(new SubscriptionStatusHistory
+                {
+                    SubscriptionId = subscriptionId,
+                    FromStatus = oldStatus,
+                    ToStatus = "Expired",
+                    Reason = "Subscription expired automatically",
+                    ChangedAt = DateTime.UtcNow
+                });
+
+                await _subscriptionRepository.UpdateAsync(subscription);
+                
+                _logger.LogInformation("Successfully expired subscription {SubscriptionId}", subscriptionId);
+                return true;
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing subscription expiration for {SubscriptionId}", subscriptionId);
+            return false;
+        }
+    }
+
+    public async Task<bool> ProcessSubscriptionSuspensionAsync(Guid subscriptionId, string reason)
+    {
+        try
+        {
+            _logger.LogInformation("Processing subscription suspension for {SubscriptionId}", subscriptionId);
+            
+            var subscription = await _subscriptionRepository.GetByIdAsync(subscriptionId);
+            if (subscription == null)
+            {
+                _logger.LogWarning("Subscription {SubscriptionId} not found", subscriptionId);
+                return false;
+            }
+
+            if (subscription.Status != "Active")
+            {
+                _logger.LogWarning("Subscription {SubscriptionId} is not in active status", subscriptionId);
+                return false;
+            }
+
+            var oldStatus = subscription.Status;
+            subscription.Status = "Suspended";
+            subscription.UpdatedAt = DateTime.UtcNow;
+
+            // Add status history
+            await _statusHistoryRepository.CreateAsync(new SubscriptionStatusHistory
+            {
+                SubscriptionId = subscriptionId,
+                FromStatus = oldStatus,
+                ToStatus = "Suspended",
+                Reason = reason,
+                ChangedAt = DateTime.UtcNow
+            });
+
+            await _subscriptionRepository.UpdateAsync(subscription);
+            
+            _logger.LogInformation("Successfully suspended subscription {SubscriptionId}", subscriptionId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing subscription suspension for {SubscriptionId}", subscriptionId);
+            return false;
+        }
     }
 }
 

@@ -36,15 +36,15 @@ public class LocalChatStorageService : ILocalChatStorageService, IChatStorageSer
         _storagePath = configuration["LocalStorage:ChatPath"] ?? "chat-storage";
     }
 
-    // ILocalChatStorageService methods (Guid-based with ApiResponse<T>)
-    public Task<ApiResponse<ChatRoomDto>> UpdateChatRoomAsync(Guid chatRoomId, UpdateChatRoomDto updateDto) => throw new NotImplementedException();
-    public Task<ApiResponse<bool>> DeleteChatRoomAsync(Guid chatRoomId) => throw new NotImplementedException();
-    public Task<ApiResponse<MessageDto>> CreateMessageAsync(CreateMessageDto createDto) => throw new NotImplementedException();
-    public Task<ApiResponse<MessageDto>> UpdateMessageAsync(Guid messageId, UpdateMessageDto updateDto) => throw new NotImplementedException();
-    public Task<ApiResponse<bool>> DeleteMessageAsync(Guid messageId) => throw new NotImplementedException();
-    public Task<ApiResponse<MessageDto>> GetMessageByIdAsync(Guid messageId) => throw new NotImplementedException();
-    public Task<ApiResponse<IEnumerable<MessageDto>>> GetMessagesByChatRoomAsync(Guid chatRoomId) => throw new NotImplementedException();
-    public Task<ApiResponse<ChatRoomDto>> CreateChatRoomAsync(CreateChatRoomDto createDto) => throw new NotImplementedException();
+    // ILocalChatStorageService methods (Guid-based with JsonModel)
+    public Task<JsonModel> UpdateChatRoomAsync(Guid chatRoomId, UpdateChatRoomDto updateDto) => throw new NotImplementedException();
+    public Task<JsonModel> DeleteChatRoomAsync(Guid chatRoomId) => throw new NotImplementedException();
+    public Task<JsonModel> CreateMessageAsync(CreateMessageDto createDto) => throw new NotImplementedException();
+    public Task<JsonModel> UpdateMessageAsync(Guid messageId, UpdateMessageDto updateDto) => throw new NotImplementedException();
+    public Task<JsonModel> DeleteMessageAsync(Guid messageId) => throw new NotImplementedException();
+    public Task<JsonModel> GetMessageByIdAsync(Guid messageId) => throw new NotImplementedException();
+    public Task<JsonModel> GetMessagesByChatRoomAsync(Guid chatRoomId) => throw new NotImplementedException();
+    public Task<JsonModel> CreateChatRoomAsync(CreateChatRoomDto createDto) => throw new NotImplementedException();
 
     // IChatStorageService methods (string-based with Task<T>)
     Task<ChatRoomDto> IChatStorageService.CreateChatRoomAsync(CreateChatRoomDto createDto) => throw new NotImplementedException();

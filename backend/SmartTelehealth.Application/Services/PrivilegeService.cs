@@ -1,10 +1,12 @@
 using SmartTelehealth.Core.Entities;
 using SmartTelehealth.Core.Interfaces;
 using Microsoft.Extensions.Logging;
+using SmartTelehealth.Application.Interfaces;
+using SmartTelehealth.Application.DTOs;
 
 namespace SmartTelehealth.Application.Services;
 
-public class PrivilegeService
+public class PrivilegeService : IPrivilegeService
 {
     private readonly IPrivilegeRepository _privilegeRepo;
     private readonly ISubscriptionPlanPrivilegeRepository _planPrivilegeRepo;
@@ -80,5 +82,30 @@ public class PrivilegeService
     {
         var planPrivileges = await _planPrivilegeRepo.GetByPlanIdAsync(planId);
         return planPrivileges.Select(pp => pp.Privilege);
+    }
+
+    // Get all privileges
+    public async Task<JsonModel> GetAllPrivilegesAsync()
+    {
+        try
+        {
+            var privileges = await _privilegeRepo.GetAllAsync();
+            return new JsonModel 
+            { 
+                data = privileges, 
+                Message = "All privileges retrieved successfully", 
+                StatusCode = 200 
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all privileges");
+            return new JsonModel 
+            { 
+                data = new object(), 
+                Message = "Error retrieving privileges", 
+                StatusCode = 500 
+            };
+        }
     }
 } 

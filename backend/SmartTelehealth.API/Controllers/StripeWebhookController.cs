@@ -34,7 +34,7 @@ public class StripeWebhookController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> HandleWebhook()
+    public async Task<ActionResult<JsonModel>> HandleWebhook()
     {
         var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
         var webhookSecret = _configuration["Stripe:WebhookSecret"];
@@ -42,7 +42,7 @@ public class StripeWebhookController : ControllerBase
         if (string.IsNullOrEmpty(webhookSecret) || webhookSecret == "whsec_test_webhook_secret_replace_in_production")
         {
             _logger.LogWarning("Webhook secret not properly configured");
-            return BadRequest("Webhook secret not configured");
+            return BadRequest(new JsonModel { data = new object(), Message = "Webhook secret not configured", StatusCode = 400 });
         }
 
         try
@@ -59,12 +59,12 @@ public class StripeWebhookController : ControllerBase
             // Process webhook with retry logic
             await ProcessWebhookWithRetryAsync(stripeEvent);
 
-            return Ok();
+            return Ok(new JsonModel { data = new object(), Message = "Webhook processed successfully", StatusCode = 200 });
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Stripe error processing webhook: {Message}", ex.Message);
-            return BadRequest(new { error = "Invalid webhook signature" });
+            return BadRequest(new JsonModel { data = new object(), Message = "Invalid webhook signature", StatusCode = 400 });
         }
     }
 
@@ -136,15 +136,19 @@ public class StripeWebhookController : ControllerBase
         var subscription = stripeEvent.Data.Object as Stripe.Subscription;
         if (subscription == null) return;
         var existingSubscriptionResponse = await _subscriptionService.GetByStripeSubscriptionIdAsync(subscription.Id);
-        var existingSubscription = existingSubscriptionResponse.Data;
+        var existingSubscription = existingSubscriptionResponse.data;
         if (existingSubscription != null)
         {
-            var updateDto = new UpdateSubscriptionDto
+            // Cast the object to the correct type to access properties
+            if (existingSubscription is SubscriptionDto subscriptionDto)
             {
-                Id = existingSubscription.Id
-            };
-            await _subscriptionService.UpdateSubscriptionAsync(existingSubscription.Id, updateDto);
-            _logger.LogInformation("Updated subscription status for Stripe subscription: {StripeSubscriptionId}", subscription.Id);
+                var updateDto = new UpdateSubscriptionDto
+                {
+                    Id = subscriptionDto.Id
+                };
+                await _subscriptionService.UpdateSubscriptionAsync(subscriptionDto.Id.ToString(), updateDto);
+                _logger.LogInformation("Updated subscription status for Stripe subscription: {StripeSubscriptionId}", subscription.Id);
+            }
         }
     }
 
@@ -153,15 +157,19 @@ public class StripeWebhookController : ControllerBase
         var subscription = stripeEvent.Data.Object as Stripe.Subscription;
         if (subscription == null) return;
         var existingSubscriptionResponse = await _subscriptionService.GetByStripeSubscriptionIdAsync(subscription.Id);
-        var existingSubscription = existingSubscriptionResponse.Data;
+        var existingSubscription = existingSubscriptionResponse.data;
         if (existingSubscription != null)
         {
-            var updateDto = new UpdateSubscriptionDto
+            // Cast the object to the correct type to access properties
+            if (existingSubscription is SubscriptionDto subscriptionDto)
             {
-                Id = existingSubscription.Id
-            };
-            await _subscriptionService.UpdateSubscriptionAsync(existingSubscription.Id, updateDto);
-            _logger.LogInformation("Updated subscription for Stripe subscription: {StripeSubscriptionId}", subscription.Id);
+                var updateDto = new UpdateSubscriptionDto
+                {
+                    Id = subscriptionDto.Id
+                };
+                await _subscriptionService.UpdateSubscriptionAsync(subscriptionDto.Id.ToString(), updateDto);
+                _logger.LogInformation("Updated subscription for Stripe subscription: {StripeSubscriptionId}", subscription.Id);
+            }
         }
     }
 
@@ -170,11 +178,15 @@ public class StripeWebhookController : ControllerBase
         var subscription = stripeEvent.Data.Object as Stripe.Subscription;
         if (subscription == null) return;
         var existingSubscriptionResponse = await _subscriptionService.GetByStripeSubscriptionIdAsync(subscription.Id);
-        var existingSubscription = existingSubscriptionResponse.Data;
+        var existingSubscription = existingSubscriptionResponse.data;
         if (existingSubscription != null)
         {
-            await _subscriptionService.CancelSubscriptionAsync(existingSubscription.Id.ToString(), "Cancelled via Stripe webhook");
-            _logger.LogInformation("Cancelled subscription for Stripe subscription: {StripeSubscriptionId}", subscription.Id);
+            // Cast the object to the correct type to access properties
+            if (existingSubscription is SubscriptionDto subscriptionDto)
+            {
+                await _subscriptionService.CancelSubscriptionAsync(subscriptionDto.Id.ToString(), "Cancelled via Stripe webhook");
+                _logger.LogInformation("Cancelled subscription for Stripe subscription: {StripeSubscriptionId}", subscription.Id);
+            }
         }
     }
 

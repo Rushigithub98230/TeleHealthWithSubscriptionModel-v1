@@ -17,37 +17,37 @@ public class NotificationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllNotifications()
+    public async Task<ActionResult<JsonModel>> GetAllNotifications()
     {
         var response = await _notificationService.GetNotificationsAsync();
         return StatusCode(response.StatusCode, response);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetNotification(Guid id)
+    public async Task<ActionResult<JsonModel>> GetNotification(Guid id)
     {
         var response = await _notificationService.GetNotificationAsync(id);
         return StatusCode(response.StatusCode, response);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationDto createNotificationDto)
+    public async Task<ActionResult<JsonModel>> CreateNotification([FromBody] CreateNotificationDto createNotificationDto)
     {
         var response = await _notificationService.CreateNotificationAsync(createNotificationDto);
         return StatusCode(response.StatusCode, response);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateNotification(Guid id, [FromBody] UpdateNotificationDto updateNotificationDto)
+    public async Task<ActionResult<JsonModel>> UpdateNotification(Guid id, [FromBody] UpdateNotificationDto updateNotificationDto)
     {
         if (id != updateNotificationDto.Id)
-            return BadRequest("ID mismatch");
+            return BadRequest(new JsonModel { data = new object(), Message = "ID mismatch", StatusCode = 400 });
         var response = await _notificationService.UpdateNotificationAsync(id, updateNotificationDto);
         return StatusCode(response.StatusCode, response);
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteNotification(Guid id)
+    public async Task<ActionResult<JsonModel>> DeleteNotification(Guid id)
     {
         var response = await _notificationService.DeleteNotificationAsync(id);
         return StatusCode(response.StatusCode, response);

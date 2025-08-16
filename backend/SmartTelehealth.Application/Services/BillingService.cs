@@ -780,10 +780,10 @@ namespace SmartTelehealth.Application.Services
         }
 
         // Remove or comment out GetBillingCycleRecordsAsync and related logic, as this method does not exist in the repository
-        // public async Task<ApiResponse<IEnumerable<BillingRecordDto>>> GetBillingCycleRecordsAsync(Guid billingCycleId)
+        // public async Task<JsonModel> GetBillingCycleRecordsAsync(Guid billingCycleId)
         // {
         //     // Not implemented: No such method in repository
-        //     return ApiResponse<IEnumerable<BillingRecordDto>>.ErrorResponse("Not implemented", 501);
+        //     return new JsonModel { data = new object(), Message = "Not implemented", StatusCode = 501 };
         // }
 
         public async Task<JsonModel> ProcessBillingCycleAsync(Guid billingCycleId)
@@ -835,7 +835,7 @@ namespace SmartTelehealth.Application.Services
                 }
 
                 // Convert to CSV format
-                var csvData = ConvertToCsv(revenueData.data);
+                var csvData = ConvertToCsv((RevenueSummaryDto)revenueData.data);
                 var bytes = System.Text.Encoding.UTF8.GetBytes(csvData);
                 
                 return new JsonModel { data = bytes, Message = "Revenue data exported successfully", StatusCode = 200 };
@@ -1039,7 +1039,7 @@ namespace SmartTelehealth.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing refund for billing record {BillingRecordId}", billingRecordId);
-                return new JsonModel { data = new object(), Message = "Error processing refund", 500);
+                return new JsonModel { data = new object(), Message = "Error processing refund", StatusCode = 500 };
             }
         }
 

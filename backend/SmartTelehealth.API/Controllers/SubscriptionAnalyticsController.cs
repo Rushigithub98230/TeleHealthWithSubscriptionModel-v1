@@ -39,128 +39,57 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get comprehensive subscription analytics dashboard
     /// </summary>
     [HttpGet("dashboard")]
-    public async Task<ActionResult<ApiResponse<SubscriptionDashboardDto>>> GetDashboard([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel>> GetDashboard([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var start = startDate ?? DateTime.UtcNow.AddDays(-30);
-            var end = endDate ?? DateTime.UtcNow;
-
-            var dashboard = new SubscriptionDashboardDto
-            {
-                Period = new DateRangeDto { StartDate = start, EndDate = end },
-                Overview = await GetOverviewMetricsAsync(start, end),
-                Revenue = await GetRevenueMetricsAsync(start, end),
-                Churn = await GetChurnMetricsAsync(start, end),
-                Plans = await GetPlanMetricsAsync(start, end),
-                Usage = await GetUsageMetricsAsync(start, end),
-                Trends = await GetTrendMetricsAsync(start, end)
-            };
-
-            await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "GetSubscriptionDashboard", "Analytics", "Dashboard", "Dashboard accessed");
-            
-            return Ok(ApiResponse<SubscriptionDashboardDto>.SuccessResponse(dashboard));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting subscription dashboard");
-            return StatusCode(500, ApiResponse<SubscriptionDashboardDto>.ErrorResponse("Failed to retrieve dashboard data"));
-        }
+        var response = await _analyticsService.GetSubscriptionDashboardAsync(startDate, endDate);
+        return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Get revenue analytics with detailed breakdown
     /// </summary>
     [HttpGet("revenue")]
-    public async Task<ActionResult<ApiResponse<RevenueAnalyticsDto>>> GetRevenueAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel>> GetRevenueAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var start = startDate ?? DateTime.UtcNow.AddDays(-30);
-            var end = endDate ?? DateTime.UtcNow;
-
-            var revenue = await GetRevenueMetricsAsync(start, end);
-            
-            return Ok(ApiResponse<RevenueAnalyticsDto>.SuccessResponse(revenue));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting revenue analytics");
-            return StatusCode(500, ApiResponse<RevenueAnalyticsDto>.ErrorResponse("Failed to retrieve revenue analytics"));
-        }
+        var response = await _analyticsService.GetRevenueAnalyticsAsync(startDate, endDate);
+        return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Get churn analysis and retention metrics
     /// </summary>
     [HttpGet("churn")]
-    public async Task<ActionResult<ApiResponse<ChurnAnalyticsDto>>> GetChurnAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel>> GetChurnAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var start = startDate ?? DateTime.UtcNow.AddDays(-30);
-            var end = endDate ?? DateTime.UtcNow;
-
-            var churn = await GetChurnMetricsAsync(start, end);
-            
-            return Ok(ApiResponse<ChurnAnalyticsDto>.SuccessResponse(churn));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting churn analytics");
-            return StatusCode(500, ApiResponse<ChurnAnalyticsDto>.ErrorResponse("Failed to retrieve churn analytics"));
-        }
+        var response = await _analyticsService.GetChurnAnalyticsAsync(startDate, endDate);
+        return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Get plan performance analytics
     /// </summary>
     [HttpGet("plans")]
-    public async Task<ActionResult<ApiResponse<PlanAnalyticsDto>>> GetPlanAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel>> GetPlanAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var start = startDate ?? DateTime.UtcNow.AddDays(-30);
-            var end = endDate ?? DateTime.UtcNow;
-
-            var plans = await GetPlanMetricsAsync(start, end);
-            
-            return Ok(ApiResponse<PlanAnalyticsDto>.SuccessResponse(plans));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting plan analytics");
-            return StatusCode(500, ApiResponse<PlanAnalyticsDto>.ErrorResponse("Failed to retrieve plan analytics"));
-        }
+        var response = await _analyticsService.GetPlanAnalyticsAsync(startDate, endDate);
+        return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Get usage analytics and patterns
     /// </summary>
     [HttpGet("usage")]
-    public async Task<ActionResult<ApiResponse<UsageAnalyticsDto>>> GetUsageAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel>> GetUsageAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var start = startDate ?? DateTime.UtcNow.AddDays(-30);
-            var end = endDate ?? DateTime.UtcNow;
-
-            var usage = await GetUsageMetricsAsync(start, end);
-            
-            return Ok(ApiResponse<UsageAnalyticsDto>.SuccessResponse(usage));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting usage analytics");
-            return StatusCode(500, ApiResponse<UsageAnalyticsDto>.ErrorResponse("Failed to retrieve usage analytics"));
-        }
+        var response = await _analyticsService.GetUsageAnalyticsAsync(startDate, endDate);
+        return StatusCode(response.StatusCode, response);
     }
 
     /// <summary>
     /// Get trend analysis and forecasting
     /// </summary>
     [HttpGet("trends")]
-    public async Task<ActionResult<ApiResponse<TrendAnalyticsDto>>> GetTrendAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel>> GetTrendAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -169,12 +98,12 @@ public class SubscriptionAnalyticsController : ControllerBase
 
             var trends = await GetTrendMetricsAsync(start, end);
             
-            return Ok(ApiResponse<TrendAnalyticsDto>.SuccessResponse(trends));
+            return Ok(new JsonModel { data = trends, Message = "Trend analytics retrieved successfully", StatusCode = 200 });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting trend analytics");
-            return StatusCode(500, ApiResponse<TrendAnalyticsDto>.ErrorResponse("Failed to retrieve trend analytics"));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to retrieve trend analytics", StatusCode = 500 });
         }
     }
 
@@ -182,19 +111,19 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get billing cycle report
     /// </summary>
     [HttpGet("billing-cycle")]
-    public async Task<ActionResult<ApiResponse<BillingCycleReportDto>>> GetBillingCycleReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel>> GetBillingCycleReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
             // var report = await _automatedBillingService.GetBillingCycleReportAsync(startDate, endDate);
             
             // return Ok(report);
-            return StatusCode(501, ApiResponse<BillingCycleReportDto>.ErrorResponse("Billing cycle report not implemented"));
+            return StatusCode(501, new JsonModel { data = new object(), Message = "Billing cycle report not implemented", StatusCode = 501 });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting billing cycle report");
-            return StatusCode(500, ApiResponse<BillingCycleReportDto>.ErrorResponse("Failed to retrieve billing cycle report"));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to retrieve billing cycle report", StatusCode = 500 });
         }
     }
 
@@ -202,7 +131,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Trigger manual billing cycle
     /// </summary>
     [HttpPost("trigger-billing-cycle")]
-    public async Task<ActionResult<ApiResponse<bool>>> TriggerBillingCycle()
+    public async Task<ActionResult<JsonModel>> TriggerBillingCycle()
     {
         try
         {
@@ -211,12 +140,12 @@ public class SubscriptionAnalyticsController : ControllerBase
             // await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "TriggerBillingCycle", "Analytics", "Manual", "Manual billing cycle triggered");
             
             // return Ok(result);
-            return StatusCode(501, ApiResponse<bool>.ErrorResponse("Manual billing cycle not implemented"));
+            return StatusCode(501, new JsonModel { data = new object(), Message = "Manual billing cycle not implemented", StatusCode = 501 });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error triggering billing cycle");
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Failed to trigger billing cycle"));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to trigger billing cycle", StatusCode = 500 });
         }
     }
 
@@ -224,7 +153,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get subscription analytics for specific subscription
     /// </summary>
     [HttpGet("subscription/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<SubscriptionAnalyticsDto>>> GetSubscriptionAnalytics(string subscriptionId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<ActionResult<JsonModel>> GetSubscriptionAnalytics(string subscriptionId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         try
         {
@@ -235,7 +164,7 @@ public class SubscriptionAnalyticsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subscription analytics for {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<SubscriptionAnalyticsDto>.ErrorResponse("Failed to retrieve subscription analytics"));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to retrieve subscription analytics", StatusCode = 500 });
         }
     }
 
@@ -254,12 +183,20 @@ public class SubscriptionAnalyticsController : ControllerBase
             
             await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "ExportAnalytics", "Analytics", "Export", $"Analytics exported in {format} format");
 
-            return File(exportData.Data, "text/csv", $"subscription-analytics-{start:yyyy-MM-dd}-{end:yyyy-MM-dd}.csv");
+            // Cast the data to byte array for file download
+            if (exportData.data is byte[] fileData)
+            {
+                return File(fileData, "text/csv", $"subscription-analytics-{start:yyyy-MM-dd}-{end:yyyy-MM-dd}.csv");
+            }
+            else
+            {
+                return BadRequest(new JsonModel { data = new object(), Message = "Export data is not in the expected format", StatusCode = 400 });
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error exporting analytics");
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to export analytics"));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to export analytics", StatusCode = 500 });
         }
     }
 
@@ -267,27 +204,29 @@ public class SubscriptionAnalyticsController : ControllerBase
     private async Task<OverviewMetricsDto> GetOverviewMetricsAsync(DateTime startDate, DateTime endDate)
     {
         var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
-        var activeSubscriptions = allSubscriptions.Data.Where(s => s.Status == "Active");
-        var cancelledSubscriptions = allSubscriptions.Data.Where(s => s.Status == "Cancelled");
-        var pausedSubscriptions = allSubscriptions.Data.Where(s => s.Status == "Paused");
+        var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
+        var activeSubscriptions = subscriptions.Where(s => s.Status == "Active");
+        var cancelledSubscriptions = subscriptions.Where(s => s.Status == "Cancelled");
+        var pausedSubscriptions = subscriptions.Where(s => s.Status == "Paused");
 
         return new OverviewMetricsDto
         {
-            TotalSubscriptions = allSubscriptions.Data.Count(),
+            TotalSubscriptions = subscriptions.Count(),
             ActiveSubscriptions = activeSubscriptions.Count(),
             CancelledSubscriptions = cancelledSubscriptions.Count(),
             PausedSubscriptions = pausedSubscriptions.Count(),
-            TrialSubscriptions = allSubscriptions.Data.Count(s => s.IsTrialSubscription),
-            NewSubscriptionsThisPeriod = allSubscriptions.Data.Count(s => s.StartDate >= startDate && s.StartDate <= endDate),
+            TrialSubscriptions = subscriptions.Count(s => s.IsTrialSubscription),
+            NewSubscriptionsThisPeriod = subscriptions.Count(s => s.StartDate >= startDate && s.StartDate <= endDate),
             CancelledSubscriptionsThisPeriod = cancelledSubscriptions.Count(s => s.CancelledDate >= startDate && s.CancelledDate <= endDate),
-            AverageSubscriptionValue = allSubscriptions.Data.Any() ? allSubscriptions.Data.Average(s => s.CurrentPrice) : 0,
-            TotalRevenue = allSubscriptions.Data.Sum(s => s.CurrentPrice)
+            AverageSubscriptionValue = subscriptions.Any() ? subscriptions.Average(s => s.CurrentPrice) : 0,
+            TotalRevenue = subscriptions.Sum(s => s.CurrentPrice)
         };
     }
 
     private async Task<RevenueAnalyticsDto> GetRevenueMetricsAsync(DateTime startDate, DateTime endDate)
     {
         var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
+        var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
         
         // Create a mock billing history since we can't call GetPaymentHistoryAsync with "all"
         var billingHistory = new List<PaymentHistoryDto>();
@@ -308,10 +247,15 @@ public class SubscriptionAnalyticsController : ControllerBase
         {
             TotalRevenue = billingHistory.Where(bh => bh.Status == "Paid").Sum(bh => bh.Amount),
             MonthlyRecurringRevenue = billingHistory.Where(bh => bh.Status == "Paid" && bh.PaymentDate >= DateTime.UtcNow.AddDays(-30)).Sum(bh => bh.Amount),
-            AverageRevenuePerUser = allSubscriptions.Data.Any() ? billingHistory.Where(bh => bh.Status == "Paid").Sum(bh => bh.Amount) / allSubscriptions.Data.Count() : 0,
+            AverageRevenuePerUser = subscriptions.Any() ? billingHistory.Where(bh => bh.Status == "Paid").Sum(bh => bh.Amount) / subscriptions.Count() : 0,
             RevenueGrowth = CalculateGrowthRate(monthlyRevenue),
-            MonthlyRevenue = monthlyRevenue,
-            RevenueByPlan = allSubscriptions.Data
+            MonthlyRevenueBreakdown = monthlyRevenue.Select(mr => new MonthlyRevenueData
+            {
+                Month = mr.Month,
+                Revenue = mr.Revenue,
+                Subscriptions = mr.BillingCount
+            }).ToList(),
+            RevenueByPlan = subscriptions
                 .GroupBy(s => s.PlanName)
                 .Select(g => new PlanRevenueDto
                 {
@@ -326,9 +270,10 @@ public class SubscriptionAnalyticsController : ControllerBase
     private async Task<ChurnAnalyticsDto> GetChurnMetricsAsync(DateTime startDate, DateTime endDate)
     {
         var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
-        var cancelledSubscriptions = allSubscriptions.Data.Where(s => s.Status == "Cancelled" && s.CancelledDate >= startDate && s.CancelledDate <= endDate);
+        var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
+        var cancelledSubscriptions = subscriptions.Where(s => s.Status == "Cancelled" && s.CancelledDate >= startDate && s.CancelledDate <= endDate);
 
-        var churnRate = allSubscriptions.Data.Any() ? (decimal)cancelledSubscriptions.Count() / allSubscriptions.Data.Count() * 100 : 0;
+        var churnRate = subscriptions.Any() ? (decimal)cancelledSubscriptions.Count() / subscriptions.Count() * 100 : 0;
         var retentionRate = 100 - churnRate;
 
         return new ChurnAnalyticsDto
@@ -346,28 +291,30 @@ public class SubscriptionAnalyticsController : ControllerBase
                 })
                 .OrderByDescending(cr => cr.Count)
                 .ToList(),
-            AverageLifetime = CalculateAverageLifetime(allSubscriptions.Data),
-            CohortRetention = await CalculateCohortRetentionAsync(allSubscriptions.Data, startDate, endDate)
+            AverageLifetime = CalculateAverageLifetime(subscriptions),
+            CohortRetention = await CalculateCohortRetentionAsync(subscriptions, startDate, endDate)
         };
     }
 
     private async Task<PlanAnalyticsDto> GetPlanMetricsAsync(DateTime startDate, DateTime endDate)
     {
-        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
+                var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
         var allPlans = await _subscriptionService.GetAllPlansAsync();
+        var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
+        var plans = (IEnumerable<SubscriptionPlanDto>)allPlans.data;
 
-        var planMetrics = allPlans.Data.Select(plan => new PlanPerformanceDto
+        var planMetrics = plans.Select(plan => new PlanPerformanceDto
         {
             PlanName = plan.Name,
-            TotalSubscriptions = allSubscriptions.Data.Count(s => s.PlanName == plan.Name),
-            ActiveSubscriptions = allSubscriptions.Data.Count(s => s.PlanName == plan.Name && s.Status == "Active"),
-            CancelledSubscriptions = allSubscriptions.Data.Count(s => s.PlanName == plan.Name && s.Status == "Cancelled"),
-            NewSubscriptionsThisPeriod = allSubscriptions.Data.Count(s => s.PlanName == plan.Name && s.StartDate >= startDate && s.StartDate <= endDate),
-            Revenue = allSubscriptions.Data.Where(s => s.PlanName == plan.Name).Sum(s => s.CurrentPrice),
-            AverageSubscriptionValue = allSubscriptions.Data.Where(s => s.PlanName == plan.Name).Any() 
-                ? allSubscriptions.Data.Where(s => s.PlanName == plan.Name).Average(s => s.CurrentPrice) 
+            TotalSubscriptions = subscriptions.Count(s => s.PlanName == plan.Name),
+            ActiveSubscriptions = subscriptions.Count(s => s.PlanName == plan.Name && s.Status == "Active"),
+            CancelledSubscriptions = subscriptions.Count(s => s.PlanName == plan.Name && s.Status == "Cancelled"),
+            NewSubscriptionsThisPeriod = subscriptions.Count(s => s.PlanName == plan.Name && s.StartDate >= startDate && s.StartDate <= endDate),
+            Revenue = subscriptions.Where(s => s.PlanName == plan.Name).Sum(s => s.CurrentPrice),
+            AverageSubscriptionValue = subscriptions.Where(s => s.PlanName == plan.Name).Any()
+                ? subscriptions.Where(s => s.PlanName == plan.Name).Average(s => s.CurrentPrice)
                 : 0,
-            ConversionRate = CalculateConversionRate(plan, allSubscriptions.Data, startDate, endDate)
+            ConversionRate = CalculateConversionRate(plan, subscriptions, startDate, endDate)
         }).ToList();
 
         return new PlanAnalyticsDto
@@ -381,7 +328,8 @@ public class SubscriptionAnalyticsController : ControllerBase
     private async Task<UsageAnalyticsDto> GetUsageMetricsAsync(DateTime startDate, DateTime endDate)
     {
         var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
-        var activeSubscriptions = allSubscriptions.Data.Where(s => s.Status == "Active");
+        var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
+        var activeSubscriptions = subscriptions.Where(s => s.Status == "Active");
 
         return new UsageAnalyticsDto
         {
@@ -397,6 +345,7 @@ public class SubscriptionAnalyticsController : ControllerBase
     private async Task<TrendAnalyticsDto> GetTrendMetricsAsync(DateTime startDate, DateTime endDate)
     {
         var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
+        var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
         
         // Create a mock billing history since we can't call GetPaymentHistoryAsync with "all"
         var billingHistory = new List<PaymentHistoryDto>();
@@ -417,8 +366,8 @@ public class SubscriptionAnalyticsController : ControllerBase
         return new TrendAnalyticsDto
         {
             RevenueTrend = monthlyTrends,
-            SubscriptionGrowth = CalculateSubscriptionGrowth(allSubscriptions.Data, startDate, endDate),
-            ChurnTrend = CalculateChurnTrend(allSubscriptions.Data, startDate, endDate),
+            SubscriptionGrowth = CalculateSubscriptionGrowth(subscriptions, startDate, endDate),
+            ChurnTrend = CalculateChurnTrend(subscriptions, startDate, endDate),
             Forecast = await GenerateForecastAsync(monthlyTrends)
         };
     }
@@ -573,153 +522,4 @@ public class SubscriptionAnalyticsController : ControllerBase
     }
 }
 
-// DTOs for subscription analytics
-public class SubscriptionDashboardDto
-{
-    public DateRangeDto Period { get; set; } = new();
-    public OverviewMetricsDto Overview { get; set; } = new();
-    public RevenueAnalyticsDto Revenue { get; set; } = new();
-    public ChurnAnalyticsDto Churn { get; set; } = new();
-    public PlanAnalyticsDto Plans { get; set; } = new();
-    public UsageAnalyticsDto Usage { get; set; } = new();
-    public TrendAnalyticsDto Trends { get; set; } = new();
-}
-
-public class DateRangeDto
-{
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-}
-
-public class OverviewMetricsDto
-{
-    public int TotalSubscriptions { get; set; }
-    public int ActiveSubscriptions { get; set; }
-    public int CancelledSubscriptions { get; set; }
-    public int PausedSubscriptions { get; set; }
-    public int TrialSubscriptions { get; set; }
-    public int NewSubscriptionsThisPeriod { get; set; }
-    public int CancelledSubscriptionsThisPeriod { get; set; }
-    public decimal AverageSubscriptionValue { get; set; }
-    public decimal TotalRevenue { get; set; }
-}
-
-public class RevenueAnalyticsDto
-{
-    public decimal TotalRevenue { get; set; }
-    public decimal MonthlyRecurringRevenue { get; set; }
-    public decimal AverageRevenuePerUser { get; set; }
-    public decimal RevenueGrowth { get; set; }
-    public List<MonthlyRevenueDto> MonthlyRevenue { get; set; } = new();
-    public List<PlanRevenueDto> RevenueByPlan { get; set; } = new();
-}
-
-public class MonthlyRevenueDto
-{
-    public string Month { get; set; } = string.Empty;
-    public decimal Revenue { get; set; }
-    public int PaymentCount { get; set; }
-}
-
-public class PlanRevenueDto
-{
-    public string PlanName { get; set; } = string.Empty;
-    public decimal Revenue { get; set; }
-    public int SubscriptionCount { get; set; }
-}
-
-public class ChurnAnalyticsDto
-{
-    public decimal ChurnRate { get; set; }
-    public decimal RetentionRate { get; set; }
-    public int CancelledSubscriptions { get; set; }
-    public List<CancellationReasonDto> CancellationReasons { get; set; } = new();
-    public decimal AverageLifetime { get; set; }
-    public List<CohortRetentionDto> CohortRetention { get; set; } = new();
-}
-
-public class CancellationReasonDto
-{
-    public string Reason { get; set; } = string.Empty;
-    public int Count { get; set; }
-    public decimal Percentage { get; set; }
-}
-
-public class CohortRetentionDto
-{
-    public string Cohort { get; set; } = string.Empty;
-    public int InitialSubscriptions { get; set; }
-    public int RetainedSubscriptions { get; set; }
-    public decimal RetentionRate { get; set; }
-}
-
-public class PlanAnalyticsDto
-{
-    public List<PlanPerformanceDto> PlanPerformance { get; set; } = new();
-    public List<PlanPerformanceDto> TopPerformingPlans { get; set; } = new();
-    public List<PlanPerformanceDto> PlanComparison { get; set; } = new();
-}
-
-public class PlanPerformanceDto
-{
-    public string PlanName { get; set; } = string.Empty;
-    public int TotalSubscriptions { get; set; }
-    public int ActiveSubscriptions { get; set; }
-    public int CancelledSubscriptions { get; set; }
-    public int NewSubscriptionsThisPeriod { get; set; }
-    public decimal Revenue { get; set; }
-    public decimal AverageSubscriptionValue { get; set; }
-    public decimal ConversionRate { get; set; }
-}
-
-public class UsageAnalyticsDto
-{
-    public decimal AverageUsagePerUser { get; set; }
-    public List<UsageDistributionDto> UsageDistribution { get; set; } = new();
-    public List<PeakUsageTimeDto> PeakUsageTimes { get; set; } = new();
-    public int UnderutilizedSubscriptions { get; set; }
-    public int OverutilizedSubscriptions { get; set; }
-    public List<UsageTrendDto> UsageTrends { get; set; } = new();
-}
-
-public class UsageDistributionDto
-{
-    public string Range { get; set; } = string.Empty;
-    public int Count { get; set; }
-}
-
-public class PeakUsageTimeDto
-{
-    public int Hour { get; set; }
-    public int UsageCount { get; set; }
-}
-
-public class UsageTrendDto
-{
-    public DateTime Date { get; set; }
-    public decimal AverageUsage { get; set; }
-}
-
-public class TrendAnalyticsDto
-{
-    public List<MonthlyTrendDto> RevenueTrend { get; set; } = new();
-    public List<MonthlyTrendDto> SubscriptionGrowth { get; set; } = new();
-    public List<MonthlyTrendDto> ChurnTrend { get; set; } = new();
-    public ForecastDto Forecast { get; set; } = new();
-}
-
-public class MonthlyTrendDto
-{
-    public string Month { get; set; } = string.Empty;
-    public decimal Revenue { get; set; }
-    public int PaymentCount { get; set; }
-    public decimal AveragePayment { get; set; }
-}
-
-public class ForecastDto
-{
-    public decimal NextMonthRevenue { get; set; }
-    public int NextMonthSubscriptions { get; set; }
-    public decimal GrowthRate { get; set; }
-    public decimal Confidence { get; set; }
-} 
+// DTOs moved to SmartTelehealth.Application.DTOs namespace 

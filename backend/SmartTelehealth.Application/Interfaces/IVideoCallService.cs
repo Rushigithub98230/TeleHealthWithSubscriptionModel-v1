@@ -4,30 +4,30 @@ namespace SmartTelehealth.Application.Interfaces;
 
 public interface IVideoCallService
 {
-    Task<ApiResponse<VideoCallDto>> GetByIdAsync(Guid id);
-    Task<ApiResponse<IEnumerable<VideoCallDto>>> GetByUserIdAsync(int userId);
-    Task<ApiResponse<VideoCallDto>> CreateAsync(CreateVideoCallDto createDto);
-    Task<ApiResponse<VideoCallDto>> UpdateAsync(Guid id, UpdateVideoCallDto updateDto);
-    Task<ApiResponse<bool>> DeleteAsync(Guid id);
-    Task<ApiResponse<IEnumerable<VideoCallDto>>> GetAllAsync();
+    Task<JsonModel> GetByIdAsync(Guid id);
+    Task<JsonModel> GetByUserIdAsync(int userId);
+    Task<JsonModel> CreateAsync(CreateVideoCallDto createDto);
+    Task<JsonModel> UpdateAsync(Guid id, UpdateVideoCallDto updateDto);
+    Task<JsonModel> DeleteAsync(Guid id);
+    Task<JsonModel> GetAllAsync();
     
     // Video Call Management
-    Task<ApiResponse<VideoCallDto>> InitiateVideoCallAsync(CreateVideoCallDto createDto);
-    Task<ApiResponse<bool>> JoinVideoCallAsync(Guid callId, int userId);
-    Task<ApiResponse<bool>> LeaveVideoCallAsync(Guid callId, int userId);
-    Task<ApiResponse<bool>> EndVideoCallAsync(Guid callId, string? reason = null);
-    Task<ApiResponse<bool>> RejectVideoCallAsync(Guid callId, string reason);
+    Task<JsonModel> InitiateVideoCallAsync(CreateVideoCallDto createDto);
+    Task<JsonModel> JoinVideoCallAsync(Guid callId, int userId);
+    Task<JsonModel> LeaveVideoCallAsync(Guid callId, int userId);
+    Task<JsonModel> EndVideoCallAsync(Guid callId, string? reason = null);
+    Task<JsonModel> RejectVideoCallAsync(Guid callId, string reason);
     
     // Video/Audio Controls
-    Task<ApiResponse<bool>> ToggleVideoAsync(Guid callId, bool enabled);
-    Task<ApiResponse<bool>> ToggleAudioAsync(Guid callId, bool enabled);
-    Task<ApiResponse<bool>> StartScreenSharingAsync(Guid callId);
-    Task<ApiResponse<bool>> StopScreenSharingAsync(Guid callId);
+    Task<JsonModel> ToggleVideoAsync(Guid callId, bool enabled);
+    Task<JsonModel> ToggleAudioAsync(Guid callId, bool enabled);
+    Task<JsonModel> StartScreenSharingAsync(Guid callId);
+    Task<JsonModel> StopScreenSharingAsync(Guid callId);
     
     // Call Quality and Participants
-    Task<ApiResponse<bool>> UpdateCallQualityAsync(Guid callId, int audioQuality, int videoQuality, int networkQuality);
-    Task<ApiResponse<IEnumerable<VideoCallParticipantDto>>> GetVideoCallParticipantsAsync(Guid callId);
+    Task<JsonModel> UpdateCallQualityAsync(Guid callId, int audioQuality, int videoQuality, int networkQuality);
+    Task<JsonModel> GetVideoCallParticipantsAsync(Guid callId);
     
     // Logging
-    Task<ApiResponse<bool>> LogVideoCallEventAsync(Guid callId, LogVideoCallEventDto eventDto);
+    Task<JsonModel> LogVideoCallEventAsync(Guid callId, LogVideoCallEventDto eventDto);
 } 

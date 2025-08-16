@@ -19,7 +19,7 @@ public class OpenTokWebhookController : ControllerBase
     }
 
     [HttpPost("webhook")]
-    public async Task<IActionResult> HandleWebhook()
+    public async Task<ActionResult<JsonModel>> HandleWebhook()
     {
         try
         {
@@ -34,7 +34,7 @@ public class OpenTokWebhookController : ControllerBase
             
             if (webhookData == null)
             {
-                return BadRequest("Invalid webhook payload");
+                return BadRequest(new JsonModel { data = new object(), Message = "Invalid webhook payload", StatusCode = 400 });
             }
 
             // Extract webhook information
@@ -53,105 +53,105 @@ public class OpenTokWebhookController : ControllerBase
             // Process the webhook
             var result = await _openTokService.HandleWebhookAsync(webhook);
 
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 _logger.LogInformation("Successfully processed OpenTok webhook for session {SessionId}", webhook.SessionId);
-                return Ok(new { success = true, message = "Webhook processed successfully" });
+                return Ok(new JsonModel { data = new object(), Message = "Webhook processed successfully", StatusCode = 200 });
             }
             else
             {
                 _logger.LogError("Failed to process OpenTok webhook: {Error}", result.Message);
-                return StatusCode(500, new { success = false, message = result.Message });
+                return StatusCode(500, new JsonModel { data = new object(), Message = result.Message, StatusCode = 500 });
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing OpenTok webhook");
-            return StatusCode(500, new { success = false, message = "Internal server error" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpGet("health")]
-    public async Task<IActionResult> HealthCheck()
+    public async Task<ActionResult<JsonModel>> HealthCheck()
     {
         try
         {
             var result = await _openTokService.IsServiceHealthyAsync();
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
-                return Ok(new { status = "healthy", message = "OpenTok service is operational" });
+                return Ok(new JsonModel { data = new object(), Message = "OpenTok service is operational", StatusCode = 200 });
             }
             else
             {
-                return StatusCode(503, new { status = "unhealthy", message = "OpenTok service is not operational" });
+                return StatusCode(503, new JsonModel { data = new object(), Message = "OpenTok service is not operational", StatusCode = 503 });
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking OpenTok service health");
-            return StatusCode(503, new { status = "error", message = "Failed to check service health" });
+            return StatusCode(503, new JsonModel { data = new object(), Message = "Failed to check service health", StatusCode = 503 });
         }
     }
 
     [HttpPost("session/{sessionId}/token")]
-    public async Task<IActionResult> GenerateToken(string sessionId, [FromBody] TokenRequest request)
+    public async Task<ActionResult<JsonModel>> GenerateToken(string sessionId, [FromBody] TokenRequest request)
     {
         try
         {
             if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.UserName))
             {
-                return BadRequest("UserId and UserName are required");
+                return BadRequest(new JsonModel { data = new object(), Message = "UserId and UserName are required", StatusCode = 400 });
             }
 
             var result = await _openTokService.GenerateTokenAsync(sessionId, request.UserId, request.UserName, request.Role);
 
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
-                return Ok(new { token = result.Data });
+                return Ok(new JsonModel { data = new { token = result.data }, Message = "Token generated successfully", StatusCode = 200 });
             }
             else
             {
-                return BadRequest(new { error = result.Message });
+                return BadRequest(new JsonModel { data = new object(), Message = result.Message, StatusCode = 400 });
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating OpenTok token for session {SessionId}", sessionId);
-            return StatusCode(500, new { error = "Failed to generate token" });
+            _logger.LogError(ex, "Error generating token for session {SessionId}", sessionId);
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPost("session")]
-    public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request)
+    public async Task<ActionResult<JsonModel>> CreateSession([FromBody] CreateSessionRequest request)
     {
         try
         {
             if (string.IsNullOrEmpty(request.SessionName))
             {
-                return BadRequest("SessionName is required");
+                return BadRequest(new JsonModel { data = new object(), Message = "SessionName is required", StatusCode = 400 });
             }
 
             var result = await _openTokService.CreateSessionAsync(request.SessionName, request.IsArchived);
 
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
-                return Ok(result.Data);
+                return Ok(new JsonModel { data = result.data, Message = "Session created successfully", StatusCode = 200 });
             }
             else
             {
-                return BadRequest(new { error = result.Message });
+                return BadRequest(new JsonModel { data = new object(), Message = result.Message, StatusCode = 400 });
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating OpenTok session");
-            return StatusCode(500, new { error = "Failed to create session" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to create session", StatusCode = 500 });
         }
     }
 
     [HttpPost("session/{sessionId}/recording")]
-    public async Task<IActionResult> StartRecording(string sessionId, [FromBody] StartRecordingRequest request)
+    public async Task<ActionResult<JsonModel>> StartRecording(string sessionId, [FromBody] StartRecordingRequest request)
     {
         try
         {
@@ -169,65 +169,65 @@ public class OpenTokWebhookController : ControllerBase
 
             var result = await _openTokService.StartRecordingAsync(sessionId, options);
 
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
-                return Ok(result.Data);
+                return Ok(new JsonModel { data = result.data, Message = "Recording started successfully", StatusCode = 200 });
             }
             else
             {
-                return BadRequest(new { error = result.Message });
+                return BadRequest(new JsonModel { data = new object(), Message = result.Message, StatusCode = 400 });
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error starting OpenTok recording for session {SessionId}", sessionId);
-            return StatusCode(500, new { error = "Failed to start recording" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to start recording", StatusCode = 500 });
         }
     }
 
     [HttpDelete("recording/{recordingId}")]
-    public async Task<IActionResult> StopRecording(string recordingId)
+    public async Task<ActionResult<JsonModel>> StopRecording(string recordingId)
     {
         try
         {
             var result = await _openTokService.StopRecordingAsync(recordingId);
 
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
-                return Ok(new { success = true, message = "Recording stopped successfully" });
+                return Ok(new JsonModel { data = new object(), Message = "Recording stopped successfully", StatusCode = 200 });
             }
             else
             {
-                return BadRequest(new { error = result.Message });
+                return BadRequest(new JsonModel { data = new object(), Message = result.Message, StatusCode = 400 });
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error stopping OpenTok recording {RecordingId}", recordingId);
-            return StatusCode(500, new { error = "Failed to stop recording" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to stop recording", StatusCode = 500 });
         }
     }
 
     [HttpGet("recording/{recordingId}/url")]
-    public async Task<IActionResult> GetRecordingUrl(string recordingId)
+    public async Task<ActionResult<JsonModel>> GetRecordingUrl(string recordingId)
     {
         try
         {
             var result = await _openTokService.GetRecordingUrlAsync(recordingId);
 
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
-                return Ok(new { url = result.Data });
+                return Ok(new JsonModel { data = new { url = result.data }, Message = "Recording URL retrieved successfully", StatusCode = 200 });
             }
             else
             {
-                return BadRequest(new { error = result.Message });
+                return BadRequest(new JsonModel { data = new object(), Message = result.Message, StatusCode = 400 });
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting OpenTok recording URL {RecordingId}", recordingId);
-            return StatusCode(500, new { error = "Failed to get recording URL" });
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to get recording URL", StatusCode = 500 });
         }
     }
 }

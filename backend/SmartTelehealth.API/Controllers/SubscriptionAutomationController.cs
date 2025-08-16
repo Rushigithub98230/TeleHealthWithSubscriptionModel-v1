@@ -1,49 +1,54 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SmartTelehealth.Application.DTOs;
-using SmartTelehealth.Application.Services;
-using SmartTelehealth.Application.Services.BackgroundServices;
 using SmartTelehealth.Application.Interfaces;
+using System;
+using System.Threading.Tasks;
 
 namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin,SuperAdmin")]
 public class SubscriptionAutomationController : ControllerBase
 {
-    private readonly IAutomatedBillingService _automatedBillingService;
+    private readonly ISubscriptionAutomationService _automationService;
     private readonly ISubscriptionLifecycleService _lifecycleService;
+    private readonly IAutomatedBillingService _automatedBillingService;
     private readonly ILogger<SubscriptionAutomationController> _logger;
 
     public SubscriptionAutomationController(
-        IAutomatedBillingService automatedBillingService,
+        ISubscriptionAutomationService automationService,
         ISubscriptionLifecycleService lifecycleService,
+        IAutomatedBillingService automatedBillingService,
         ILogger<SubscriptionAutomationController> logger)
     {
-        _automatedBillingService = automatedBillingService;
+        _automationService = automationService;
         _lifecycleService = lifecycleService;
+        _automatedBillingService = automatedBillingService;
         _logger = logger;
     }
 
     /// <summary>
-    /// Manually trigger automated billing process
+    /// Manual billing trigger
     /// </summary>
-    [HttpPost("trigger-billing")]
-    public async Task<ActionResult<ApiResponse<string>>> TriggerAutomatedBilling()
+    [HttpPost("billing/trigger")]
+    public async Task<ActionResult<JsonModel>> TriggerBilling()
     {
         try
         {
             _logger.LogInformation("Manual billing trigger requested by admin");
             await _automatedBillingService.ProcessRecurringBillingAsync();
             
-            return Ok(ApiResponse<string>.SuccessResponse("Billing process completed successfully", 
-                "Automated billing process triggered successfully"));
+            return Ok(new JsonModel { 
+                data = true, 
+                Message = "Billing process completed successfully", 
+                StatusCode = 200 
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in manual billing trigger");
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to process automated billing"));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to process automated billing", StatusCode = 500 });
         }
     }
 
@@ -51,18 +56,21 @@ public class SubscriptionAutomationController : ControllerBase
     /// Process subscription renewal
     /// </summary>
     [HttpPost("renew/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<string>>> RenewSubscription(string subscriptionId)
+    public async Task<ActionResult<JsonModel>> RenewSubscription(string subscriptionId)
     {
         try
         {
             await _automatedBillingService.ProcessSubscriptionRenewalAsync();
-            return Ok(ApiResponse<string>.SuccessResponse("Subscription renewal processed successfully", 
-                "Subscription renewal completed"));
+            return Ok(new JsonModel { 
+                data = true, 
+                Message = "Subscription renewal processed successfully", 
+                StatusCode = 200 
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error renewing subscription {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to renew subscription"));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to renew subscription", StatusCode = 500 });
         }
     }
 
@@ -70,23 +78,26 @@ public class SubscriptionAutomationController : ControllerBase
     /// Process plan change with proration
     /// </summary>
     [HttpPost("change-plan/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<string>>> ChangePlan(string subscriptionId, [FromBody] ChangePlanRequest request)
+    public async Task<ActionResult<JsonModel>> ChangePlan(string subscriptionId, [FromBody] ChangePlanRequest request)
     {
         try
         {
             if (!Guid.TryParse(subscriptionId, out var subscriptionGuid) || !Guid.TryParse(request.NewPlanId, out var planGuid))
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Invalid subscription or plan ID"));
+                return BadRequest(new JsonModel { data = new object(), Message = "Invalid subscription or plan ID", StatusCode = 400 });
             }
             
             await _automatedBillingService.ProcessPlanChangeAsync(subscriptionGuid, planGuid);
-            return Ok(ApiResponse<string>.SuccessResponse("Plan change processed successfully", 
-                "Plan change completed"));
+            return Ok(new JsonModel { 
+                data = true, 
+                Message = "Plan change processed successfully", 
+                StatusCode = 200 
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error changing plan for subscription {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to change plan"));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to change plan", StatusCode = 500 });
         }
     }
 
@@ -94,30 +105,33 @@ public class SubscriptionAutomationController : ControllerBase
     /// Process state transition
     /// </summary>
     [HttpPost("state-transition/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<string>>> ProcessStateTransition(string subscriptionId, [FromBody] StateTransitionRequest request)
+    public async Task<ActionResult<JsonModel>> ProcessStateTransition(string subscriptionId, [FromBody] StateTransitionRequest request)
     {
         try
         {
             if (!Guid.TryParse(subscriptionId, out var subscriptionGuid))
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Invalid subscription ID"));
+                return BadRequest(new JsonModel { data = new object(), Message = "Invalid subscription ID", StatusCode = 400 });
             }
             
             var success = await _lifecycleService.UpdateSubscriptionStatusAsync(subscriptionGuid, request.NewStatus, request.Reason);
             if (success)
             {
-                return Ok(ApiResponse<string>.SuccessResponse("State transition processed successfully", 
-                    "State transition completed"));
+                return Ok(new JsonModel { 
+                    data = true, 
+                    Message = "State transition processed successfully", 
+                    StatusCode = 200 
+                });
             }
             else
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Failed to process state transition"));
+                return BadRequest(new JsonModel { data = new object(), Message = "Failed to process state transition", StatusCode = 400 });
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing state transition for subscription {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to process state transition"));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to process state transition", StatusCode = 400 });
         }
     }
 
@@ -125,78 +139,97 @@ public class SubscriptionAutomationController : ControllerBase
     /// Process subscription expiration
     /// </summary>
     [HttpPost("expire/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<string>>> ProcessExpiration(string subscriptionId)
+    public async Task<ActionResult<JsonModel>> ProcessExpiration(string subscriptionId)
     {
         try
         {
             if (!Guid.TryParse(subscriptionId, out var subscriptionGuid))
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Invalid subscription ID"));
+                return BadRequest(new JsonModel { data = new object(), Message = "Invalid subscription ID", StatusCode = 400 });
             }
             
-            var success = await _lifecycleService.ExpireSubscriptionAsync(subscriptionGuid);
-            if (success)
-            {
-                return Ok(ApiResponse<string>.SuccessResponse("Subscription expired successfully", 
-                    "Subscription expiration completed"));
-            }
-            else
-            {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Failed to expire subscription"));
-            }
+            await _lifecycleService.ProcessSubscriptionExpirationAsync(subscriptionGuid);
+            return Ok(new JsonModel { 
+                data = true, 
+                Message = "Subscription expired successfully", 
+                StatusCode = 200 
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing expiration for subscription {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to process expiration"));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to process expiration", StatusCode = 500 });
         }
     }
 
     /// <summary>
-    /// Suspend subscription
+    /// Process subscription suspension
     /// </summary>
     [HttpPost("suspend/{subscriptionId}")]
-    public async Task<ActionResult<ApiResponse<string>>> SuspendSubscription(string subscriptionId, [FromBody] SuspendRequest request)
+    public async Task<ActionResult<JsonModel>> ProcessSuspension(string subscriptionId, [FromBody] SuspensionRequest request)
     {
         try
         {
             if (!Guid.TryParse(subscriptionId, out var subscriptionGuid))
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Invalid subscription ID"));
+                return BadRequest(new JsonModel { data = new object(), Message = "Invalid subscription ID", StatusCode = 400 });
             }
             
-            var success = await _lifecycleService.SuspendSubscriptionAsync(subscriptionGuid, request.Reason);
-            if (success)
-            {
-                return Ok(ApiResponse<string>.SuccessResponse("Subscription suspended successfully", 
-                    "Subscription suspension completed"));
-            }
-            else
-            {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Failed to suspend subscription"));
-            }
+            await _lifecycleService.ProcessSubscriptionSuspensionAsync(subscriptionGuid, request.Reason);
+            return Ok(new JsonModel { 
+                data = true, 
+                Message = "Subscription suspended successfully", 
+                StatusCode = 200 
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error suspending subscription {SubscriptionId}", subscriptionId);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Failed to suspend subscription"));
+            _logger.LogError(ex, "Error processing suspension for subscription {SubscriptionId}", subscriptionId);
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to process suspension", StatusCode = 500 });
         }
     }
-}
 
-public class ChangePlanRequest
-{
-    public string NewPlanId { get; set; } = string.Empty;
-    public bool Prorate { get; set; } = true;
-}
+    /// <summary>
+    /// Get automation status
+    /// </summary>
+    [HttpGet("status")]
+    public async Task<ActionResult<JsonModel>> GetAutomationStatus()
+    {
+        try
+        {
+            var status = await _automationService.GetAutomationStatusAsync();
+            return Ok(new JsonModel { 
+                data = status, 
+                Message = "Automation status retrieved successfully", 
+                StatusCode = 200 
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving automation status");
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to retrieve automation status", StatusCode = 500 });
+        }
+    }
 
-public class StateTransitionRequest
-{
-    public string NewStatus { get; set; } = string.Empty;
-    public string? Reason { get; set; }
-}
-
-public class SuspendRequest
-{
-    public string Reason { get; set; } = string.Empty;
+    /// <summary>
+    /// Get automation logs
+    /// </summary>
+    [HttpGet("logs")]
+    public async Task<ActionResult<JsonModel>> GetAutomationLogs([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+    {
+        try
+        {
+            var logs = await _automationService.GetAutomationLogsAsync(page, pageSize);
+            return Ok(new JsonModel { 
+                data = logs, 
+                Message = "Automation logs retrieved successfully", 
+                StatusCode = 200 
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving automation logs");
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to retrieve automation logs", StatusCode = 500 });
+        }
+    }
 }

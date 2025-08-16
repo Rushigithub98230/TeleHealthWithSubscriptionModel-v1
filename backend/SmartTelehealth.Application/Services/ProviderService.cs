@@ -22,50 +22,90 @@ namespace SmartTelehealth.Application.Services
             _auditService = auditService;
         }
 
-        public async Task<ApiResponse<List<ProviderDto>>> GetAllProvidersAsync()
+        public async Task<JsonModel> GetAllProvidersAsync()
         {
             var providers = await _providerRepository.GetAllAsync();
             var dtos = _mapper.Map<List<ProviderDto>>(providers);
-            return ApiResponse<List<ProviderDto>>.SuccessResponse(dtos);
+            return new JsonModel
+            {
+                data = dtos,
+                Message = "Providers retrieved successfully",
+                StatusCode = 200
+            };
         }
 
-        public async Task<ApiResponse<ProviderDto>> GetProviderByIdAsync(int id)
+        public async Task<JsonModel> GetProviderByIdAsync(int id)
         {
             var provider = await _providerRepository.GetByIdAsync(id);
             if (provider == null)
-                return ApiResponse<ProviderDto>.ErrorResponse("Provider not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Provider not found",
+                    StatusCode = 404
+                };
             var dto = _mapper.Map<ProviderDto>(provider);
-            return ApiResponse<ProviderDto>.SuccessResponse(dto);
+            return new JsonModel
+            {
+                data = dto,
+                Message = "Provider retrieved successfully",
+                StatusCode = 200
+            };
         }
 
-        public async Task<ApiResponse<ProviderDto>> CreateProviderAsync(CreateProviderDto createProviderDto)
+        public async Task<JsonModel> CreateProviderAsync(CreateProviderDto createProviderDto)
         {
             var provider = _mapper.Map<Provider>(createProviderDto);
             var created = await _providerRepository.CreateAsync(provider);
             var dto = _mapper.Map<ProviderDto>(created);
             await _auditService.LogUserActionAsync(dto.Id.ToString(), "ProviderCreated", "Provider", dto.Id.ToString(), $"Provider {dto.FullName} created");
-            return ApiResponse<ProviderDto>.SuccessResponse(dto, "Provider created", 201);
+            return new JsonModel
+            {
+                data = dto,
+                Message = "Provider created",
+                StatusCode = 201
+            };
         }
 
-        public async Task<ApiResponse<ProviderDto>> UpdateProviderAsync(int id, UpdateProviderDto updateProviderDto)
+        public async Task<JsonModel> UpdateProviderAsync(int id, UpdateProviderDto updateProviderDto)
         {
             var existing = await _providerRepository.GetByIdAsync(id);
             if (existing == null)
-                return ApiResponse<ProviderDto>.ErrorResponse("Provider not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Provider not found",
+                    StatusCode = 404
+                };
             _mapper.Map(updateProviderDto, existing);
             var updated = await _providerRepository.UpdateAsync(existing);
             var dto = _mapper.Map<ProviderDto>(updated);
             await _auditService.LogUserActionAsync(dto.Id.ToString(), "ProviderUpdated", "Provider", dto.Id.ToString(), $"Provider {dto.FullName} updated");
-            return ApiResponse<ProviderDto>.SuccessResponse(dto, "Provider updated");
+            return new JsonModel
+            {
+                data = dto,
+                Message = "Provider updated",
+                StatusCode = 200
+            };
         }
 
-        public async Task<ApiResponse<bool>> DeleteProviderAsync(int id)
+        public async Task<JsonModel> DeleteProviderAsync(int id)
         {
             var result = await _providerRepository.DeleteAsync(id);
             if (!result)
-                return ApiResponse<bool>.ErrorResponse("Provider not found", 404);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Provider not found",
+                    StatusCode = 404
+                };
             await _auditService.LogUserActionAsync(id.ToString(), "ProviderDeleted", "Provider", id.ToString(), $"Provider {id} deleted");
-            return ApiResponse<bool>.SuccessResponse(true, "Provider deleted");
+            return new JsonModel
+            {
+                data = true,
+                Message = "Provider deleted",
+                StatusCode = 200
+            };
         }
     }
 } 

@@ -18,4 +18,8 @@ public interface ISubscriptionLifecycleService
     Task<IEnumerable<SubscriptionStatusHistory>> GetStatusHistoryAsync(Guid subscriptionId);
     Task<bool> ValidateStatusTransitionAsync(string currentStatus, string newStatus);
     Task<string> GetNextValidStatusAsync(string currentStatus);
+    
+    // Process methods for automation
+    Task<bool> ProcessSubscriptionExpirationAsync(Guid subscriptionId);
+    Task<bool> ProcessSubscriptionSuspensionAsync(Guid subscriptionId, string reason);
 }

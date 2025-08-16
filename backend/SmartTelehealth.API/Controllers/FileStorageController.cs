@@ -24,13 +24,13 @@ public class FileStorageController : ControllerBase
     /// Upload a single file
     /// </summary>
     [HttpPost("upload")]
-    public async Task<ActionResult<ApiResponse<string>>> UploadFile(IFormFile file)
+    public async Task<ActionResult<JsonModel>> UploadFile(IFormFile file)
     {
         try
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("No file provided", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "No file provided", StatusCode = 400 });
             }
 
             using var memoryStream = new MemoryStream();
@@ -39,7 +39,7 @@ public class FileStorageController : ControllerBase
 
             var result = await _fileStorageService.UploadFileAsync(fileData, file.FileName, file.ContentType);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 return Ok(result);
             }
@@ -49,7 +49,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading file {FileName}", file?.FileName);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -57,13 +57,13 @@ public class FileStorageController : ControllerBase
     /// Upload multiple files
     /// </summary>
     [HttpPost("upload-multiple")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<string>>>> UploadMultipleFiles(IFormFileCollection files)
+    public async Task<ActionResult<JsonModel>> UploadMultipleFiles(IFormFileCollection files)
     {
         try
         {
             if (files == null || !files.Any())
             {
-                return BadRequest(ApiResponse<IEnumerable<string>>.ErrorResponse("No files provided", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "No files provided", StatusCode = 400 });
             }
 
             var fileUploads = new List<FileUploadDto>();
@@ -86,7 +86,7 @@ public class FileStorageController : ControllerBase
 
             var result = await _fileStorageService.UploadMultipleFilesAsync(fileUploads);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 return Ok(result);
             }
@@ -96,7 +96,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading multiple files");
-            return StatusCode(500, ApiResponse<IEnumerable<string>>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -110,23 +110,23 @@ public class FileStorageController : ControllerBase
         {
             var result = await _fileStorageService.DownloadFileAsync(filePath);
             
-            if (!result.Success)
+            if (result.StatusCode != 200)
             {
-                return NotFound(ApiResponse<byte[]>.ErrorResponse("File not found", 404));
+                return NotFound(new JsonModel { data = new object(), Message = "File not found", StatusCode = 404 });
             }
 
             var fileInfo = await _fileStorageService.GetFileInfoAsync(filePath);
-            if (!fileInfo.Success)
+            if (fileInfo.StatusCode != 200)
             {
-                return NotFound(ApiResponse<byte[]>.ErrorResponse("File info not found", 404));
+                return NotFound(new JsonModel { data = new object(), Message = "File info not found", StatusCode = 404 });
             }
 
-            return File(result.Data, fileInfo.Data.ContentType, fileInfo.Data.FileName);
+            return File((byte[])result.data, ((dynamic)fileInfo.data).ContentType, ((dynamic)fileInfo.data).FileName);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error downloading file {FilePath}", filePath);
-            return StatusCode(500, ApiResponse<byte[]>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -134,13 +134,13 @@ public class FileStorageController : ControllerBase
     /// Get file information
     /// </summary>
     [HttpGet("info/{filePath}")]
-    public async Task<ActionResult<ApiResponse<FileInfoDto>>> GetFileInfo(string filePath)
+    public async Task<ActionResult<JsonModel>> GetFileInfo(string filePath)
     {
         try
         {
             var result = await _fileStorageService.GetFileInfoAsync(filePath);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 return Ok(result);
             }
@@ -150,7 +150,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting file info {FilePath}", filePath);
-            return StatusCode(500, ApiResponse<FileInfoDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -158,14 +158,14 @@ public class FileStorageController : ControllerBase
     /// Get secure URL for file access
     /// </summary>
     [HttpGet("secure-url/{filePath}")]
-    public async Task<ActionResult<ApiResponse<string>>> GetSecureUrl(string filePath, [FromQuery] int? expirationHours = 1)
+    public async Task<ActionResult<JsonModel>> GetSecureUrl(string filePath, [FromQuery] int? expirationHours = 1)
     {
         try
         {
             var expiration = expirationHours.HasValue ? TimeSpan.FromHours(expirationHours.Value) : TimeSpan.FromHours(1);
             var result = await _fileStorageService.GetSecureUrlAsync(filePath, expiration);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 return Ok(result);
             }
@@ -175,7 +175,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting secure URL {FilePath}", filePath);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -183,13 +183,13 @@ public class FileStorageController : ControllerBase
     /// Delete a file
     /// </summary>
     [HttpDelete("{filePath}")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeleteFile(string filePath)
+    public async Task<ActionResult<JsonModel>> DeleteFile(string filePath)
     {
         try
         {
             var result = await _fileStorageService.DeleteFileAsync(filePath);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 return Ok(result);
             }
@@ -199,7 +199,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting file {FilePath}", filePath);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -207,13 +207,13 @@ public class FileStorageController : ControllerBase
     /// Delete multiple files
     /// </summary>
     [HttpDelete("multiple")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeleteMultipleFiles([FromBody] List<string> filePaths)
+    public async Task<ActionResult<JsonModel>> DeleteMultipleFiles([FromBody] List<string> filePaths)
     {
         try
         {
             if (filePaths == null || !filePaths.Any())
             {
-                return BadRequest(ApiResponse<bool>.ErrorResponse("No file paths provided", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "No file paths provided", StatusCode = 400 });
             }
 
             var result = await _fileStorageService.DeleteMultipleFilesAsync(filePaths);
@@ -222,7 +222,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting multiple files");
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -230,13 +230,13 @@ public class FileStorageController : ControllerBase
     /// List files in a directory
     /// </summary>
     [HttpGet("list/{directoryPath}")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<string>>>> ListFiles(string directoryPath, [FromQuery] string? searchPattern = null)
+    public async Task<ActionResult<JsonModel>> ListFiles(string directoryPath, [FromQuery] string? searchPattern = null)
     {
         try
         {
             var result = await _fileStorageService.ListFilesAsync(directoryPath, searchPattern);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 return Ok(result);
             }
@@ -246,7 +246,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error listing files in directory {DirectoryPath}", directoryPath);
-            return StatusCode(500, ApiResponse<IEnumerable<string>>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -254,7 +254,7 @@ public class FileStorageController : ControllerBase
     /// Get storage information
     /// </summary>
     [HttpGet("storage-info")]
-    public async Task<ActionResult<ApiResponse<StorageInfoDto>>> GetStorageInfo()
+    public async Task<ActionResult<JsonModel>> GetStorageInfo()
     {
         try
         {
@@ -264,7 +264,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting storage info");
-            return StatusCode(500, ApiResponse<StorageInfoDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -273,7 +273,7 @@ public class FileStorageController : ControllerBase
     /// </summary>
     [HttpPost("cleanup")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponse<bool>>> CleanupExpiredFiles()
+    public async Task<ActionResult<JsonModel>> CleanupExpiredFiles()
     {
         try
         {
@@ -283,7 +283,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cleaning up expired files");
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -292,13 +292,13 @@ public class FileStorageController : ControllerBase
     /// </summary>
     [HttpPost("archive")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponse<bool>>> ArchiveOldFiles([FromBody] ArchiveFilesRequest request)
+    public async Task<ActionResult<JsonModel>> ArchiveOldFiles([FromBody] ArchiveFilesRequest request)
     {
         try
         {
             if (string.IsNullOrEmpty(request.SourcePath) || string.IsNullOrEmpty(request.ArchivePath))
             {
-                return BadRequest(ApiResponse<bool>.ErrorResponse("Source path and archive path are required", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "Source path and archive path are required", StatusCode = 400 });
             }
 
             var ageThreshold = TimeSpan.FromDays(request.AgeThresholdDays);
@@ -308,7 +308,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error archiving old files");
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -316,18 +316,18 @@ public class FileStorageController : ControllerBase
     /// Encrypt a file
     /// </summary>
     [HttpPost("encrypt")]
-    public async Task<ActionResult<ApiResponse<string>>> EncryptFile(IFormFile file, [FromQuery] string encryptionKey)
+    public async Task<ActionResult<JsonModel>> EncryptFile(IFormFile file, [FromQuery] string encryptionKey)
     {
         try
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("No file provided", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "No file provided", StatusCode = 400 });
             }
 
             if (string.IsNullOrEmpty(encryptionKey))
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse("Encryption key is required", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "Encryption key is required", StatusCode = 400 });
             }
 
             using var memoryStream = new MemoryStream();
@@ -336,7 +336,7 @@ public class FileStorageController : ControllerBase
 
             var result = await _fileStorageService.EncryptFileAsync(fileData, encryptionKey);
             
-            if (result.Success)
+            if (result.StatusCode == 200)
             {
                 return Ok(result);
             }
@@ -346,7 +346,7 @@ public class FileStorageController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error encrypting file {FileName}", file?.FileName);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -360,22 +360,22 @@ public class FileStorageController : ControllerBase
         {
             if (string.IsNullOrEmpty(encryptionKey))
             {
-                return BadRequest(ApiResponse<byte[]>.ErrorResponse("Encryption key is required", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "Encryption key is required", StatusCode = 400 });
             }
 
             var result = await _fileStorageService.DecryptFileAsync(encryptedFilePath, encryptionKey);
             
-            if (!result.Success)
+            if (result.StatusCode != 200)
             {
-                return NotFound(ApiResponse<byte[]>.ErrorResponse("Encrypted file not found", 404));
+                return NotFound(new JsonModel { data = new object(), Message = "Encrypted file not found", StatusCode = 404 });
             }
 
-            return File(result.Data, "application/octet-stream", $"decrypted_{Path.GetFileName(encryptedFilePath)}");
+            return File((byte[])result.data, "application/octet-stream", $"decrypted_{Path.GetFileName(encryptedFilePath)}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error decrypting file {FilePath}", encryptedFilePath);
-            return StatusCode(500, ApiResponse<byte[]>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 }

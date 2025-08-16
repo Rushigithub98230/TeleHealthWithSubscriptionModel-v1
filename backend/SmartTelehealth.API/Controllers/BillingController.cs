@@ -31,7 +31,7 @@ public class BillingController : ControllerBase
 
     [HttpGet("records")]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponse<IEnumerable<BillingRecordDto>>>> GetAllBillingRecords()
+    public async Task<ActionResult<JsonModel>> GetAllBillingRecords()
     {
         try
         {
@@ -39,18 +39,18 @@ public class BillingController : ControllerBase
             if (User.IsInRole("Admin") || User.IsInRole("Superadmin"))
             {
                 var allRecords = await _billingService.GetAllBillingRecordsAsync();
-                return Ok(new { data = allRecords.Data });
+                return Ok(new JsonModel { data = allRecords.data, Message = "All billing records retrieved successfully", StatusCode = 200 });
             }
             else
             {
                 var userId = GetCurrentUserId();
                 var userRecords = await _billingService.GetUserBillingHistoryAsync(userId);
-                return Ok(new { data = userRecords.Data });
+                return Ok(new JsonModel { data = userRecords.data, Message = "User billing records retrieved successfully", StatusCode = 200 });
             }
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { data = new List<BillingRecordDto>() });
+            return StatusCode(500, new JsonModel { data = new List<BillingRecordDto>(), Message = "Failed to retrieve billing records", StatusCode = 500 });
         }
     }
 
@@ -58,12 +58,12 @@ public class BillingController : ControllerBase
     /// Download invoice PDF for a billing record
     /// </summary>
     [HttpGet("{id}/invoice-pdf")]
-    public async Task<IActionResult> DownloadInvoicePdf(Guid id)
+    public async Task<ActionResult<JsonModel>> DownloadInvoicePdf(Guid id)
     {
         try
         {
             var billingRecordResponse = await _billingService.GetBillingRecordAsync(id);
-            var billingRecord = billingRecordResponse.Data;
+            var billingRecord = (BillingRecordDto)billingRecordResponse.data;
             if (billingRecord == null)
                 return NotFound(billingRecordResponse);
             var userId = GetCurrentUserId();
@@ -72,9 +72,9 @@ public class BillingController : ControllerBase
                 return Forbid();
             }
             var userResponse = await _userService.GetUserAsync(userId);
-            if (!userResponse.Success || userResponse.Data == null)
+            if (userResponse.StatusCode != 200 || userResponse.data == null)
             {
-                return NotFound("User not found");
+                return NotFound(new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 });
             }
             SubscriptionDto? subscription = null;
             if (!string.IsNullOrEmpty(billingRecord.SubscriptionId))
@@ -82,22 +82,23 @@ public class BillingController : ControllerBase
                 try
                 {
                     var subscriptionResponse = await _subscriptionService.GetSubscriptionAsync(billingRecord.SubscriptionId);
-                    subscription = subscriptionResponse.Data;
+                    subscription = (SubscriptionDto)subscriptionResponse.data;
                 }
                 catch
                 {
                     // Subscription not found, continue without it
                 }
             }
-            var pdfBytes = await _pdfService.GenerateInvoicePdfAsync(billingRecord, userResponse.Data, subscription);
-            return File(pdfBytes, "application/pdf", $"invoice-{billingRecord.Id}.pdf");
+            var pdfBytes = await _pdfService.GenerateInvoicePdfAsync(billingRecord, (UserDto)userResponse.data, subscription);
+            return Ok(new JsonModel { data = new { fileData = pdfBytes, fileName = $"invoice-{billingRecord.Id}.pdf", contentType = "application/pdf" }, Message = "Invoice PDF generated successfully", StatusCode = 200 });
         }
         catch (ArgumentException ex)
         {
-            return NotFound(new ApiResponse<object>
+            return NotFound(new JsonModel
             {
-                Success = false,
-                Message = ex.Message
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 404
             });
         }
     }
@@ -106,31 +107,31 @@ public class BillingController : ControllerBase
     /// Download billing history PDF
     /// </summary>
     [HttpGet("history-pdf")]
-    public async Task<IActionResult> DownloadBillingHistoryPdf()
+    public async Task<ActionResult<JsonModel>> DownloadBillingHistoryPdf()
     {
         var userId = GetCurrentUserId();
         var billingHistoryResponse = await _billingService.GetUserBillingHistoryAsync(userId);
-        var billingHistory = billingHistoryResponse.Data ?? new List<BillingRecordDto>();
+        var billingHistory = (IEnumerable<BillingRecordDto>)(billingHistoryResponse.data ?? new List<BillingRecordDto>());
         var userResponse = await _userService.GetUserAsync(userId);
-        if (!userResponse.Success || userResponse.Data == null)
+        if (userResponse.StatusCode != 200 || userResponse.data == null)
         {
-            return NotFound("User not found");
+            return NotFound(new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 });
         }
-        var pdfBytes = await _pdfService.GenerateBillingHistoryPdfAsync(billingHistory, userResponse.Data);
-        return File(pdfBytes, "application/pdf", $"billing-history-{userId}-{DateTime.Now:yyyyMMdd}.pdf");
+        var pdfBytes = await _pdfService.GenerateBillingHistoryPdfAsync(billingHistory, (UserDto)userResponse.data);
+        return Ok(new JsonModel { data = new { fileData = pdfBytes, fileName = $"billing-history-{userId}-{DateTime.Now:yyyyMMdd}.pdf", contentType = "application/pdf" }, Message = "Billing history PDF generated successfully", StatusCode = 200 });
     }
 
     /// <summary>
     /// Download subscription summary PDF
     /// </summary>
     [HttpGet("subscription/{subscriptionId}/summary-pdf")]
-    public async Task<IActionResult> DownloadSubscriptionSummaryPdf(Guid subscriptionId)
+    public async Task<ActionResult<JsonModel>> DownloadSubscriptionSummaryPdf(Guid subscriptionId)
     {
         try
         {
             var userId = GetCurrentUserId();
             var subscriptionResponse = await _subscriptionService.GetSubscriptionAsync(subscriptionId.ToString());
-            var subscription = subscriptionResponse.Data;
+            var subscription = (SubscriptionDto)subscriptionResponse.data;
             if (subscription == null)
                 return NotFound(subscriptionResponse);
             if (subscription.UserId != userId.ToString() && !User.IsInRole("Admin"))
@@ -138,19 +139,20 @@ public class BillingController : ControllerBase
                 return Forbid();
             }
             var userResponse = await _userService.GetUserAsync(userId);
-            if (!userResponse.Success || userResponse.Data == null)
+            if (userResponse.StatusCode != 200 || userResponse.data == null)
             {
-                return NotFound("User not found");
+                return NotFound(new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 });
             }
-            var pdfBytes = await _pdfService.GenerateSubscriptionSummaryPdfAsync(subscription, userResponse.Data);
-            return File(pdfBytes, "application/pdf", $"subscription-summary-{subscriptionId}-{DateTime.Now:yyyyMMdd}.pdf");
+            var pdfBytes = await _pdfService.GenerateSubscriptionSummaryPdfAsync(subscription, (UserDto)userResponse.data);
+            return Ok(new JsonModel { data = new { fileData = pdfBytes, fileName = $"subscription-summary-{subscriptionId}-{DateTime.Now:yyyyMMdd}.pdf", contentType = "application/pdf" }, Message = "Subscription summary PDF generated successfully", StatusCode = 200 });
         }
         catch (ArgumentException ex)
         {
-            return NotFound(new ApiResponse<object>
+            return NotFound(new JsonModel
             {
-                Success = false,
-                Message = ex.Message
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 404
             });
         }
     }
@@ -159,7 +161,7 @@ public class BillingController : ControllerBase
     /// Get user's billing history
     /// </summary>
     [HttpGet("history")]
-    public async Task<IActionResult> GetBillingHistory()
+    public async Task<ActionResult<JsonModel>> GetBillingHistory()
     {
         var userId = GetCurrentUserId();
         var response = await _billingService.GetUserBillingHistoryAsync(userId);
@@ -170,7 +172,7 @@ public class BillingController : ControllerBase
     /// Get specific billing record
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetBillingRecord(Guid id)
+    public async Task<ActionResult<JsonModel>> GetBillingRecord(Guid id)
     {
         var response = await _billingService.GetBillingRecordAsync(id);
         return StatusCode(response.StatusCode, response);
@@ -180,7 +182,7 @@ public class BillingController : ControllerBase
     /// Process payment for a billing record
     /// </summary>
     [HttpPost("{id}/process-payment")]
-    public async Task<IActionResult> ProcessPayment(Guid id)
+    public async Task<ActionResult<JsonModel>> ProcessPayment(Guid id)
     {
         var response = await _billingService.ProcessPaymentAsync(id);
         return StatusCode(response.StatusCode, response);
@@ -190,7 +192,7 @@ public class BillingController : ControllerBase
     /// Process refund for a billing record
     /// </summary>
     [HttpPost("{id}/refund")]
-    public async Task<IActionResult> ProcessRefund(Guid id, [FromBody] RefundRequestDto refundRequest)
+    public async Task<ActionResult<JsonModel>> ProcessRefund(Guid id, [FromBody] RefundRequestDto refundRequest)
     {
         var response = await _billingService.ProcessRefundAsync(id, refundRequest.Amount);
         return StatusCode(response.StatusCode, response);
@@ -200,7 +202,7 @@ public class BillingController : ControllerBase
     /// Get subscription billing history
     /// </summary>
     [HttpGet("subscription/{subscriptionId}")]
-    public async Task<IActionResult> GetSubscriptionBillingHistory(Guid subscriptionId)
+    public async Task<ActionResult<JsonModel>> GetSubscriptionBillingHistory(Guid subscriptionId)
     {
         var response = await _billingService.GetSubscriptionBillingHistoryAsync(subscriptionId);
         return StatusCode(response.StatusCode, response);
@@ -210,14 +212,14 @@ public class BillingController : ControllerBase
     /// Calculate total amount with tax and shipping
     /// </summary>
     [HttpPost("calculate-total")]
-    public async Task<ActionResult<ApiResponse<BillingCalculationDto>>> CalculateTotal([FromBody] BillingCalculationRequestDto request)
+    public async Task<ActionResult<JsonModel>> CalculateTotal([FromBody] BillingCalculationRequestDto request)
     {
         var taxAmountResponse = await _billingService.CalculateTaxAmountAsync(request.BaseAmount, request.State);
-        var taxAmount = taxAmountResponse.Data;
+        var taxAmount = (decimal)taxAmountResponse.data;
         var shippingAmountResponse = await _billingService.CalculateShippingAmountAsync(request.DeliveryAddress, request.IsExpress);
-        var shippingAmount = shippingAmountResponse.Data;
+        var shippingAmount = (decimal)shippingAmountResponse.data;
         var totalAmountResponse = await _billingService.CalculateTotalAmountAsync(request.BaseAmount, taxAmount, shippingAmount);
-        var totalAmount = totalAmountResponse.Data;
+        var totalAmount = (decimal)totalAmountResponse.data;
         var result = new BillingCalculationDto
         {
             BaseAmount = request.BaseAmount,
@@ -225,26 +227,26 @@ public class BillingController : ControllerBase
             ShippingAmount = shippingAmount,
             TotalAmount = totalAmount
         };
-        return Ok(new ApiResponse<BillingCalculationDto>
-        {
-            Success = true,
-            Data = result,
-            Message = "Total calculated successfully"
-        });
+                    return Ok(new JsonModel
+            {
+                data = result,
+                Message = "Total calculated successfully",
+                StatusCode = 200
+            });
     }
 
     /// <summary>
     /// Check if a billing record is overdue
     /// </summary>
     [HttpGet("{id}/overdue-status")]
-    public async Task<ActionResult<ApiResponse<OverdueStatusDto>>> CheckOverdueStatus(Guid id)
+    public async Task<ActionResult<JsonModel>> CheckOverdueStatus(Guid id)
     {
         try
         {
             var isOverdueResponse = await _billingService.IsPaymentOverdueAsync(id);
-            var isOverdue = isOverdueResponse.Data;
+            var isOverdue = (bool)isOverdueResponse.data;
             var billingRecordResponse = await _billingService.GetBillingRecordAsync(id);
-            var billingRecord = billingRecordResponse.Data;
+            var billingRecord = (BillingRecordDto)billingRecordResponse.data;
             if (billingRecord == null)
                 return NotFound(billingRecordResponse);
             var overdueStatus = new OverdueStatusDto
@@ -254,19 +256,20 @@ public class BillingController : ControllerBase
                 DueDate = billingRecord.DueDate,
                 DaysOverdue = Math.Max(0, (int)((billingRecord.DueDate.HasValue ? (DateTime.UtcNow - billingRecord.DueDate.Value) : TimeSpan.Zero).TotalDays))
             };
-            return Ok(new ApiResponse<OverdueStatusDto>
+            return Ok(new JsonModel
             {
-                Success = true,
-                Data = overdueStatus,
-                Message = "Overdue status checked successfully"
+                data = overdueStatus,
+                Message = "Overdue status checked successfully",
+                StatusCode = 200
             });
         }
         catch (ArgumentException ex)
         {
-            return NotFound(new ApiResponse<OverdueStatusDto>
+            return NotFound(new JsonModel
             {
-                Success = false,
-                Message = ex.Message
+                data = new object(),
+                Message = ex.Message,
+                StatusCode = 404
             });
         }
     }
@@ -276,7 +279,7 @@ public class BillingController : ControllerBase
     /// </summary>
     [HttpGet("pending")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<BillingRecordDto>>>> GetPendingPayments()
+    public async Task<ActionResult<JsonModel>> GetPendingPayments()
     {
         var response = await _billingService.GetPendingPaymentsAsync();
         return StatusCode(response.StatusCode, response);
@@ -287,7 +290,7 @@ public class BillingController : ControllerBase
     /// </summary>
     [HttpGet("overdue")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<BillingRecordDto>>>> GetOverdueBillingRecords()
+    public async Task<ActionResult<JsonModel>> GetOverdueBillingRecords()
     {
         var response = await _billingService.GetOverdueBillingRecordsAsync();
         return StatusCode(response.StatusCode, response);
@@ -298,7 +301,7 @@ public class BillingController : ControllerBase
     /// </summary>
     [HttpGet("revenue-summary")]
     [Authorize(Roles = "Admin,Superadmin")]
-    public async Task<IActionResult> GetRevenueSummary([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null)
+    public async Task<ActionResult<JsonModel>> GetRevenueSummary([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null)
     {
         var result = await _billingService.GetRevenueSummaryAsync(from, to, planId);
         return Ok(result);
@@ -309,11 +312,11 @@ public class BillingController : ControllerBase
     /// </summary>
     [HttpGet("export-revenue")]
     [Authorize(Roles = "Admin,Superadmin")]
-    public async Task<IActionResult> ExportRevenue([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null, [FromQuery] string format = "csv")
+    public async Task<ActionResult<JsonModel>> ExportRevenue([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null, [FromQuery] string format = "csv")
     {
         var result = await _billingService.ExportRevenueAsync(from, to, planId, format);
         var fileName = $"revenue-export-{DateTime.UtcNow:yyyyMMddHHmmss}.{format}";
-        return File(result.Data, "text/csv", fileName);
+        return Ok(new JsonModel { data = new { fileData = result.data, fileName = fileName, contentType = "text/csv" }, Message = "Revenue export generated successfully", StatusCode = 200 });
     }
 
     private int GetCurrentUserId()

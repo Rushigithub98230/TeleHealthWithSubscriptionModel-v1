@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using SmartTelehealth.Application.DTOs;
 
 namespace SmartTelehealth.API.Controllers
 {
@@ -15,7 +16,7 @@ namespace SmartTelehealth.API.Controllers
         }
 
         [HttpPost("test-payment")]
-        public IActionResult TestPayment([FromBody] PaymentMethodRequest request)
+        public ActionResult<JsonModel> TestPayment([FromBody] PaymentMethodRequest request)
         {
             _logger.LogInformation("Received Payment Method ID: {PaymentMethodId}", request.PaymentMethodId);
 
@@ -29,7 +30,12 @@ namespace SmartTelehealth.API.Controllers
 
             _logger.LogInformation("Stripe operation result: {Result}", result);
 
-            return Ok(result);
+            return Ok(new JsonModel 
+            { 
+                data = result, 
+                Message = "Payment method received successfully", 
+                StatusCode = 200 
+            });
         }
     }
 

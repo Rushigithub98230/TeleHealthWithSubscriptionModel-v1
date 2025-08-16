@@ -30,7 +30,7 @@ public class ChatController : ControllerBase
     }
 
     [HttpPost("messages")]
-    public async Task<ActionResult<ApiResponse<MessageDto>>> SendMessage([FromBody] CreateMessageDto createDto)
+    public async Task<ActionResult<JsonModel>> SendMessage([FromBody] CreateMessageDto createDto)
     {
         try
         {
@@ -44,12 +44,17 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending message");
-            return StatusCode(500, ApiResponse<MessageDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel 
+            { 
+                data = new object(), 
+                Message = "Internal server error", 
+                StatusCode = 500 
+            });
         }
     }
 
     [HttpPost("messages/with-notification")]
-    public async Task<ActionResult<ApiResponse<bool>>> SendMessageWithNotification([FromBody] CreateMessageDto createDto)
+    public async Task<ActionResult<JsonModel>> SendMessageWithNotification([FromBody] CreateMessageDto createDto)
     {
         try
         {
@@ -63,12 +68,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending message with notification");
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpGet("messages/{messageId}")]
-    public async Task<ActionResult<ApiResponse<MessageDto>>> GetMessage(Guid messageId)
+    public async Task<ActionResult<JsonModel>> GetMessage(Guid messageId)
     {
         try
         {
@@ -78,12 +83,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<MessageDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpGet("rooms/{chatRoomId}/messages")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<MessageDto>>>> GetChatRoomMessages(
+    public async Task<ActionResult<JsonModel>> GetChatRoomMessages(
         Guid chatRoomId, 
         [FromQuery] int skip = 0, 
         [FromQuery] int take = 50)
@@ -96,7 +101,7 @@ public class ChatController : ControllerBase
 
             // Validate access
             var accessResult = await _messagingService.ValidateChatRoomAccessAsync(chatRoomId.ToString(), userId.ToString());
-            if (!accessResult.Success)
+            if (accessResult.StatusCode != 200)
                 return StatusCode(accessResult.StatusCode, accessResult);
 
             var result = await _messagingService.GetChatRoomMessagesAsync(chatRoomId.ToString(), skip, take);
@@ -105,12 +110,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting messages for chat room {ChatRoomId}", chatRoomId);
-            return StatusCode(500, ApiResponse<IEnumerable<MessageDto>>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPut("messages/{messageId}")]
-    public async Task<ActionResult<ApiResponse<MessageDto>>> UpdateMessage(Guid messageId, [FromBody] UpdateMessageDto updateDto)
+    public async Task<ActionResult<JsonModel>> UpdateMessage(Guid messageId, [FromBody] UpdateMessageDto updateDto)
     {
         try
         {
@@ -124,12 +129,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<MessageDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpDelete("messages/{messageId}")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeleteMessage(Guid messageId)
+    public async Task<ActionResult<JsonModel>> DeleteMessage(Guid messageId)
     {
         try
         {
@@ -143,12 +148,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPost("messages/{messageId}/read")]
-    public async Task<ActionResult<ApiResponse<bool>>> MarkMessageAsRead(Guid messageId)
+    public async Task<ActionResult<JsonModel>> MarkMessageAsRead(Guid messageId)
     {
         try
         {
@@ -162,12 +167,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error marking message {MessageId} as read", messageId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpPost("messages/{messageId}/reactions")]
-    public async Task<ActionResult<ApiResponse<MessageReactionDto>>> AddReaction(Guid messageId, [FromBody] AddReactionDto addReactionDto)
+    public async Task<ActionResult<JsonModel>> AddReaction(Guid messageId, [FromBody] AddReactionDto addReactionDto)
     {
         try
         {
@@ -181,12 +186,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding reaction to message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<MessageReactionDto>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpDelete("messages/{messageId}/reactions/{emoji}")]
-    public async Task<ActionResult<ApiResponse<bool>>> RemoveReaction(Guid messageId, string emoji)
+    public async Task<ActionResult<JsonModel>> RemoveReaction(Guid messageId, string emoji)
     {
         try
         {
@@ -200,12 +205,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing reaction from message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpGet("messages/{messageId}/reactions")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<MessageReactionDto>>>> GetMessageReactions(Guid messageId)
+    public async Task<ActionResult<JsonModel>> GetMessageReactions(Guid messageId)
     {
         try
         {
@@ -215,12 +220,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting reactions for message {MessageId}", messageId);
-            return StatusCode(500, ApiResponse<IEnumerable<MessageReactionDto>>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpGet("rooms/{chatRoomId}/search")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<MessageDto>>>> SearchMessages(Guid chatRoomId, [FromQuery] string searchTerm)
+    public async Task<ActionResult<JsonModel>> SearchMessages(Guid chatRoomId, [FromQuery] string searchTerm)
     {
         try
         {
@@ -230,7 +235,7 @@ public class ChatController : ControllerBase
 
             // Validate access
             var accessResult = await _messagingService.ValidateChatRoomAccessAsync(chatRoomId.ToString(), userId.ToString());
-            if (!accessResult.Success)
+            if (accessResult.StatusCode != 200)
                 return StatusCode(accessResult.StatusCode, accessResult);
 
             var result = await _messagingService.SearchMessagesAsync(chatRoomId.ToString(), searchTerm);
@@ -239,12 +244,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error searching messages in chat room {ChatRoomId}", chatRoomId);
-            return StatusCode(500, ApiResponse<IEnumerable<MessageDto>>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     [HttpGet("rooms/{chatRoomId}/unread")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<MessageDto>>>> GetUnreadMessages(Guid chatRoomId)
+    public async Task<ActionResult<JsonModel>> GetUnreadMessages(Guid chatRoomId)
     {
         try
         {
@@ -254,7 +259,7 @@ public class ChatController : ControllerBase
 
             // Validate access
             var accessResult = await _messagingService.ValidateChatRoomAccessAsync(chatRoomId.ToString(), userId.ToString());
-            if (!accessResult.Success)
+            if (accessResult.StatusCode != 200)
                 return StatusCode(accessResult.StatusCode, accessResult);
 
             var result = await _messagingService.GetUnreadMessagesAsync(chatRoomId.ToString(), userId.ToString());
@@ -263,12 +268,12 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting unread messages for chat room {ChatRoomId}", chatRoomId);
-            return StatusCode(500, ApiResponse<IEnumerable<MessageDto>>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
     // [HttpGet("rooms/{chatRoomId}/history")]
-    // public async Task<ActionResult<ApiResponse<IEnumerable<MessageDto>>>> GetChatHistory(Guid chatRoomId, [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
+    // public async Task<ActionResult<JsonModel>IEnumerable<MessageDto>>>> GetChatHistory(Guid chatRoomId, [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
     // {
     //     try
     //     {
@@ -282,12 +287,12 @@ public class ChatController : ControllerBase
     //     catch (Exception ex)
     //     {
     //         _logger.LogError(ex, "Error getting chat history for chat room {ChatRoomId}", chatRoomId);
-    //         return StatusCode(500, ApiResponse<IEnumerable<MessageDto>>.ErrorResponse("Internal server error", 500));
+    //         return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
     //     }
     // }
 
     // [HttpGet("rooms/{chatRoomId}/statistics")]
-    // public async Task<ActionResult<ApiResponse<Dictionary<string, object>>>> GetChatRoomStatistics(Guid chatRoomId)
+    // public async Task<ActionResult<JsonModel>Dictionary<string, object>>>> GetChatRoomStatistics(Guid chatRoomId)
     // {
     //     try
     //     {
@@ -301,12 +306,12 @@ public class ChatController : ControllerBase
     //     catch (Exception ex)
     //     {
     //         _logger.LogError(ex, "Error getting statistics for chat room {ChatRoomId}", chatRoomId);
-    //         return StatusCode(500, ApiResponse<Dictionary<string, object>>.ErrorResponse("Internal server error", 500));
+    //         return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
     //     }
     // }
 
     // [HttpPost("rooms/{chatRoomId}/archive")]
-    // public async Task<ActionResult<ApiResponse<bool>>> ArchiveChatRoom(Guid chatRoomId)
+    // public async Task<ActionResult<JsonModel>bool>>> ArchiveChatRoom(Guid chatRoomId)
     // {
     //     try
     //     {
@@ -320,12 +325,12 @@ public class ChatController : ControllerBase
     //     catch (Exception ex)
     //     {
     //         _logger.LogError(ex, "Error archiving chat room {ChatRoomId}", chatRoomId);
-    //         return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+    //         return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
     //     }
     // }
 
     // [HttpPost("rooms/{chatRoomId}/participants/{participantId}/mute")]
-    // public async Task<ActionResult<ApiResponse<bool>>> MuteParticipant(Guid chatRoomId, Guid participantId, [FromQuery] DateTime? muteUntil = null, [FromQuery] string? reason = null)
+    // public async Task<ActionResult<JsonModel>bool>>> MuteParticipant(Guid chatRoomId, Guid participantId, [FromQuery] DateTime? muteUntil = null, [FromQuery] string? reason = null)
     // {
     //     try
     //     {
@@ -339,12 +344,12 @@ public class ChatController : ControllerBase
     //     catch (Exception ex)
     //     {
     //         _logger.LogError(ex, "Error muting participant in chat room {ChatRoomId}", chatRoomId);
-    //         return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+    //         return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
     //     }
     // }
 
     // [HttpPost("rooms/{chatRoomId}/participants/{participantId}/unmute")]
-    // public async Task<ActionResult<ApiResponse<bool>>> UnmuteParticipant(Guid chatRoomId, Guid participantId)
+    // public async Task<ActionResult<JsonModel>bool>>> UnmuteParticipant(Guid chatRoomId, Guid participantId)
     // {
     //     try
     //     {
@@ -358,20 +363,20 @@ public class ChatController : ControllerBase
     //     catch (Exception ex)
     //     {
     //         _logger.LogError(ex, "Error unmuting participant in chat room {ChatRoomId}", chatRoomId);
-    //         return StatusCode(500, ApiResponse<bool>.ErrorResponse("Internal server error", 500));
+    //         return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
     //     }
     // }
 
     [HttpPost("attachments/upload")]
-    public async Task<ActionResult<ApiResponse<string>>> UploadAttachment(IFormFile file)
+    public async Task<ActionResult<JsonModel>> UploadAttachment(IFormFile file)
     {
         try
         {
             if (file == null || file.Length == 0)
-                return BadRequest(ApiResponse<string>.ErrorResponse("No file provided", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "No file provided", StatusCode = 400 });
 
             if (file.Length > 10 * 1024 * 1024) // 10MB limit
-                return BadRequest(ApiResponse<string>.ErrorResponse("File size exceeds 10MB limit", 400));
+                return BadRequest(new JsonModel { data = new object(), Message = "File size exceeds 10MB limit", StatusCode = 400 });
 
             using var memoryStream = new MemoryStream();
             await file.CopyToAsync(memoryStream);
@@ -383,7 +388,7 @@ public class ChatController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading attachment {FileName}", file?.FileName);
-            return StatusCode(500, ApiResponse<string>.ErrorResponse("Internal server error", 500));
+            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
         }
     }
 
@@ -393,12 +398,15 @@ public class ChatController : ControllerBase
         try
         {
             var result = await _messagingService.DownloadMessageAttachmentAsync(filePath);
-            if (!result.Success)
+            if (result.StatusCode != 200)
                 return NotFound();
 
             // Extract filename from path
             var fileName = Path.GetFileName(filePath);
-            return File(result.Data, "application/octet-stream", fileName);
+            var fileData = result.data as byte[];
+            if (fileData == null)
+                return BadRequest(new JsonModel { data = new object(), Message = "Invalid file data", StatusCode = 400 });
+            return File(fileData, "application/octet-stream", fileName);
         }
         catch (Exception ex)
         {

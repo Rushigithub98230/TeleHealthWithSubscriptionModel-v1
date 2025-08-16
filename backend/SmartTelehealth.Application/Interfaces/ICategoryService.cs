@@ -6,6 +6,7 @@ public interface ICategoryService
 {
     Task<JsonModel> GetCategoryAsync(Guid id);
     Task<JsonModel> GetAllCategoriesAsync();
+    Task<JsonModel> GetAllCategoriesAsync(int page, int pageSize, string? searchTerm, bool? isActive);
     Task<JsonModel> GetActiveCategoriesAsync();
     Task<JsonModel> CreateCategoryAsync(CreateCategoryDto createDto);
     Task<JsonModel> UpdateCategoryAsync(Guid id, UpdateCategoryDto updateDto);

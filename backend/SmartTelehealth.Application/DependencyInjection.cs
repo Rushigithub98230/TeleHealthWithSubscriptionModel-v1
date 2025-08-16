@@ -57,7 +57,12 @@ public static class DependencyInjection
         // Register Automated Billing and Lifecycle Services
         services.AddScoped<IAutomatedBillingService, AutomatedBillingService>();
         services.AddScoped<ISubscriptionLifecycleService, SubscriptionLifecycleService>();
+        services.AddScoped<ISubscriptionAutomationService, SubscriptionAutomationService>();
         services.AddHostedService<Services.BackgroundServices.SubscriptionBackgroundService>();
+        
+        // Register Provider Payout Services
+        services.AddScoped<IProviderPayoutService, ProviderPayoutService>();
+        services.AddScoped<IPayoutPeriodService, PayoutPeriodService>();
         
 
         

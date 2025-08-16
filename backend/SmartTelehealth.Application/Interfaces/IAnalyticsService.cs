@@ -8,6 +8,7 @@ public interface IAnalyticsService
     Task<JsonModel> GetUserActivityAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null);
     Task<JsonModel> GetAppointmentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null);
     Task<JsonModel> GetSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null);
+    Task<JsonModel> GetSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null, string? planId = null);
     Task<JsonModel> GetSystemAnalyticsAsync();
     
     // Additional Analytics Methods
@@ -15,6 +16,12 @@ public interface IAnalyticsService
     Task<JsonModel> GetUserAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null);
     Task<JsonModel> GetProviderAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null);
     Task<JsonModel> GetSystemHealthAsync();
+    
+    // Subscription Analytics Methods
+    Task<JsonModel> GetSubscriptionDashboardAsync(DateTime? startDate = null, DateTime? endDate = null);
+    Task<JsonModel> GetChurnAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null);
+    Task<JsonModel> GetPlanAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null);
+    Task<JsonModel> GetUsageAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null);
     
     // Report Generation Methods
     Task<JsonModel> GenerateSubscriptionReportAsync(DateTime? startDate = null, DateTime? endDate = null);

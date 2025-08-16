@@ -14,7 +14,7 @@ namespace SmartTelehealth.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class QuestionnaireController : ControllerBase
+    public class QuestionnaireController : BaseController
     {
         private readonly IQuestionnaireService _questionnaireService;
         private readonly IFileStorageService _fileStorageService;

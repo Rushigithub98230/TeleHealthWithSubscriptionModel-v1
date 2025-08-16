@@ -9,276 +9,119 @@ namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
-public class MessageController : ControllerBase
+public class MessageController : BaseController
 {
     private readonly IMessagingService _messagingService;
-    private readonly ILogger<MessageController> _logger;
 
-    public MessageController(
-        IMessagingService messagingService,
-        ILogger<MessageController> logger)
+    public MessageController(IMessagingService messagingService)
     {
         _messagingService = messagingService;
-        _logger = logger;
     }
 
     [HttpGet("{messageId}")]
-    public async Task<ActionResult<JsonModel>> GetMessage(Guid messageId)
+    public async Task<JsonModel> GetMessage(Guid messageId)
     {
-        try
-        {
-            var result = await _messagingService.GetMessageAsync(messageId.ToString());
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting message {MessageId}", messageId);
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+        return await _messagingService.GetMessageAsync(messageId.ToString(), GetToken(HttpContext));
     }
 
     [HttpPost]
-    public async Task<ActionResult<JsonModel>> SendMessage([FromBody] CreateMessageDto createDto)
+    public async Task<JsonModel> SendMessage([FromBody] CreateMessageDto createDto)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == Guid.Empty)
-                return Unauthorized();
-
-            var result = await _messagingService.SendMessageAsync(createDto, userId.ToString());
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error sending message");
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+        var userId = GetCurrentUserId();
+        return await _messagingService.SendMessageAsync(createDto, userId.ToString(), GetToken(HttpContext));
     }
 
     [HttpPut("{messageId}")]
-    public async Task<ActionResult<JsonModel>> UpdateMessage(Guid messageId, [FromBody] UpdateMessageDto updateDto)
+    public async Task<JsonModel> UpdateMessage(Guid messageId, [FromBody] UpdateMessageDto updateDto)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == Guid.Empty)
-                return Unauthorized();
-
-            var result = await _messagingService.UpdateMessageAsync(messageId.ToString(), updateDto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating message {MessageId}", messageId);
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+        var userId = GetCurrentUserId();
+        return await _messagingService.UpdateMessageAsync(messageId.ToString(), updateDto, GetToken(HttpContext));
     }
 
     [HttpDelete("{messageId}")]
-    public async Task<ActionResult<JsonModel>> DeleteMessage(Guid messageId)
+    public async Task<JsonModel> DeleteMessage(Guid messageId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == Guid.Empty)
-                return Unauthorized();
-
-            var result = await _messagingService.DeleteMessageAsync(messageId.ToString());
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting message {MessageId}", messageId);
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+        var userId = GetCurrentUserId();
+        return await _messagingService.DeleteMessageAsync(messageId.ToString(), GetToken(HttpContext));
     }
 
     [HttpPost("{messageId}/read")]
-    public async Task<ActionResult<JsonModel>> MarkMessageAsRead(Guid messageId)
+    public async Task<JsonModel> MarkMessageAsRead(Guid messageId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == Guid.Empty)
-                return Unauthorized();
-
-            var result = await _messagingService.MarkMessageAsReadAsync(messageId.ToString(), userId.ToString());
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error marking message {MessageId} as read", messageId);
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+        var userId = GetCurrentUserId();
+        return await _messagingService.MarkMessageAsReadAsync(messageId.ToString(), userId.ToString(), GetToken(HttpContext));
     }
 
     [HttpPost("{messageId}/reactions")]
-    public async Task<ActionResult<JsonModel>> AddReaction(Guid messageId, [FromBody] AddReactionDto addReactionDto)
+    public async Task<JsonModel> AddReaction(Guid messageId, [FromQuery] string reactionType)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == Guid.Empty)
-                return Unauthorized();
-
-            var result = await _messagingService.AddReactionAsync(messageId.ToString(), userId.ToString(), addReactionDto.Emoji);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding reaction to message {MessageId}", messageId);
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+        var userId = GetCurrentUserId();
+        return await _messagingService.AddReactionAsync(messageId.ToString(), userId.ToString(), reactionType, GetToken(HttpContext));
     }
 
-    [HttpDelete("{messageId}/reactions/{emoji}")]
-    public async Task<ActionResult<JsonModel>> RemoveReaction(Guid messageId, string emoji)
+    [HttpDelete("{messageId}/reactions")]
+    public async Task<JsonModel> RemoveReaction(Guid messageId, [FromQuery] string reactionType)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == Guid.Empty)
-                return Unauthorized();
-
-            var result = await _messagingService.RemoveReactionAsync(messageId.ToString(), userId.ToString(), emoji);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing reaction from message {MessageId}", messageId);
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+        var userId = GetCurrentUserId();
+        return await _messagingService.RemoveReactionAsync(messageId.ToString(), userId.ToString(), reactionType, GetToken(HttpContext));
     }
 
     [HttpGet("{messageId}/reactions")]
-    public async Task<ActionResult<JsonModel>> GetMessageReactions(Guid messageId)
+    public async Task<JsonModel> GetMessageReactions(Guid messageId)
     {
-        try
-        {
-            var result = await _messagingService.GetMessageReactionsAsync(messageId.ToString());
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting reactions for message {MessageId}", messageId);
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+        return await _messagingService.GetMessageReactionsAsync(messageId.ToString(), GetToken(HttpContext));
     }
 
-    [HttpPost("encrypt")]
-    public async Task<ActionResult<JsonModel>> EncryptMessage([FromBody] EncryptMessageDto encryptDto)
+    [HttpPost("search")]
+    public async Task<JsonModel> SearchMessages([FromQuery] string chatRoomId, [FromQuery] string searchTerm)
     {
-        try
-        {
-            var result = await _messagingService.EncryptMessageAsync(encryptDto.Message, encryptDto.Key);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error encrypting message");
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
-    }
-
-    [HttpPost("decrypt")]
-    public async Task<ActionResult<JsonModel>> DecryptMessage([FromBody] DecryptMessageDto decryptDto)
-    {
-        try
-        {
-            var result = await _messagingService.DecryptMessageAsync(decryptDto.EncryptedMessage, decryptDto.Key);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error decrypting message");
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+        return await _messagingService.SearchMessagesAsync(chatRoomId, searchTerm, GetToken(HttpContext));
     }
 
     [HttpPost("attachments/upload")]
-    public async Task<ActionResult<JsonModel>> UploadAttachment(IFormFile file)
+    public async Task<JsonModel> UploadAttachment(IFormFile file)
     {
-        try
+        if (file == null || file.Length == 0)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest(new JsonModel { data = new object(), Message = "No file provided", StatusCode = 400 });
-
-            if (file.Length > 10 * 1024 * 1024) // 10MB limit
-                return BadRequest(new JsonModel { data = new object(), Message = "File size exceeds 10MB limit", StatusCode = 400 });
-
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream);
-            var fileData = memoryStream.ToArray();
-
-            var result = await _messagingService.UploadMessageAttachmentAsync(fileData, file.FileName, file.ContentType);
-            return Ok(result);
+            return new JsonModel { data = new object(), Message = "No file provided", StatusCode = 400 };
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error uploading attachment {FileName}", file?.FileName);
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+
+        using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream);
+        var fileData = memoryStream.ToArray();
+
+        return await _messagingService.UploadMessageAttachmentAsync(fileData, file.FileName, file.ContentType, GetToken(HttpContext));
     }
 
-    [HttpGet("attachments/download")]
-    public async Task<ActionResult> DownloadAttachment([FromQuery] string filePath)
+    [HttpGet("attachments/{attachmentId}")]
+    public async Task<JsonModel> DownloadAttachment(string attachmentId)
     {
-        try
-        {
-            var result = await _messagingService.DownloadMessageAttachmentAsync(filePath);
-            if (result.StatusCode != 200)
-                return NotFound();
-
-            // Extract filename from path
-            var fileName = Path.GetFileName(filePath);
-            var fileData = result.data as byte[];
-            if (fileData == null)
-                return BadRequest(new JsonModel { data = new object(), Message = "Invalid file data", StatusCode = 400 });
-            return File(fileData, "application/octet-stream", fileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error downloading attachment {FilePath}", filePath);
-            return StatusCode(500, "Internal server error");
-        }
+        return await _messagingService.DownloadMessageAttachmentAsync(attachmentId, GetToken(HttpContext));
     }
 
-    [HttpDelete("attachments")]
-    public async Task<ActionResult<JsonModel>> DeleteAttachment([FromQuery] string filePath)
+    [HttpDelete("attachments/{attachmentId}")]
+    public async Task<JsonModel> DeleteAttachment(string attachmentId)
     {
-        try
-        {
-            var result = await _messagingService.DeleteMessageAttachmentAsync(filePath);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting attachment {FilePath}", filePath);
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Internal server error", StatusCode = 500 });
-        }
+        return await _messagingService.DeleteMessageAttachmentAsync(attachmentId, GetToken(HttpContext));
+    }
+
+    [HttpPost("encrypt")]
+    public async Task<JsonModel> EncryptMessage([FromBody] EncryptMessageRequest request)
+    {
+        return await _messagingService.EncryptMessageAsync(request.Message, request.Key, GetToken(HttpContext));
+    }
+
+    [HttpPost("decrypt")]
+    public async Task<JsonModel> DecryptMessage([FromBody] DecryptMessageRequest request)
+    {
+        return await _messagingService.DecryptMessageAsync(request.EncryptedMessage, request.Key, GetToken(HttpContext));
     }
 
     private Guid GetCurrentUserId()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-            return Guid.Empty;
-
-        return userId;
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
     }
 }
 
-// Additional DTOs for encryption operations
-public class EncryptMessageDto
-{
-    public string Message { get; set; } = string.Empty;
-    public string Key { get; set; } = string.Empty;
-}
-
-public class DecryptMessageDto
-{
-    public string EncryptedMessage { get; set; } = string.Empty;
-    public string Key { get; set; } = string.Empty;
-} 
+ 

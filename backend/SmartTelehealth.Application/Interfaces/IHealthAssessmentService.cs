@@ -5,32 +5,32 @@ namespace SmartTelehealth.Application.Interfaces;
 public interface IHealthAssessmentService
 {
     // CRUD Operations
-    Task<JsonModel> CreateAssessmentAsync(CreateHealthAssessmentDto createDto);
-    Task<JsonModel> GetAssessmentByIdAsync(Guid id);
-    Task<JsonModel> GetUserAssessmentsAsync(int userId);
-    Task<JsonModel> GetPendingAssessmentsAsync();
-    Task<JsonModel> UpdateAssessmentAsync(Guid id, UpdateHealthAssessmentDto updateDto);
-    Task<JsonModel> DeleteAssessmentAsync(Guid id);
+    Task<JsonModel> CreateAssessmentAsync(CreateHealthAssessmentDto createDto, TokenModel tokenModel);
+    Task<JsonModel> GetAssessmentByIdAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> GetUserAssessmentsAsync(int userId, TokenModel tokenModel);
+    Task<JsonModel> GetPendingAssessmentsAsync(TokenModel tokenModel);
+    Task<JsonModel> UpdateAssessmentAsync(Guid id, UpdateHealthAssessmentDto updateDto, TokenModel tokenModel);
+    Task<JsonModel> DeleteAssessmentAsync(Guid id, TokenModel tokenModel);
     
     // Assessment Management
-            Task<JsonModel> ReviewAssessmentAsync(Guid id, int providerId, bool isEligible, string notes);
-    Task<JsonModel> CompleteAssessmentAsync(Guid id);
-    Task<JsonModel> CancelAssessmentAsync(Guid id, string reason);
+    Task<JsonModel> ReviewAssessmentAsync(Guid id, int providerId, bool isEligible, string notes, TokenModel tokenModel);
+    Task<JsonModel> CompleteAssessmentAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> CancelAssessmentAsync(Guid id, string reason, TokenModel tokenModel);
     
     // Assessment Templates
-    Task<JsonModel> CreateAssessmentTemplateAsync(CreateAssessmentTemplateDto createDto);
-    Task<JsonModel> GetAssessmentTemplateAsync(Guid id);
-    Task<JsonModel> GetAssessmentTemplatesByCategoryAsync(Guid categoryId);
-    Task<JsonModel> UpdateAssessmentTemplateAsync(Guid id, UpdateAssessmentTemplateDto updateDto);
-    Task<JsonModel> DeleteAssessmentTemplateAsync(Guid id);
+    Task<JsonModel> CreateAssessmentTemplateAsync(CreateAssessmentTemplateDto createDto, TokenModel tokenModel);
+    Task<JsonModel> GetAssessmentTemplateAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> GetAssessmentTemplatesByCategoryAsync(Guid categoryId, TokenModel tokenModel);
+    Task<JsonModel> UpdateAssessmentTemplateAsync(Guid id, UpdateAssessmentTemplateDto updateDto, TokenModel tokenModel);
+    Task<JsonModel> DeleteAssessmentTemplateAsync(Guid id, TokenModel tokenModel);
     
     // Assessment Reports
-    Task<JsonModel> GenerateAssessmentReportAsync(Guid assessmentId);
-    Task<JsonModel> ExportAssessmentReportAsync(Guid assessmentId, string format = "pdf");
-    Task<JsonModel> GetAssessmentReportsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null);
+    Task<JsonModel> GenerateAssessmentReportAsync(Guid assessmentId, TokenModel tokenModel);
+    Task<JsonModel> ExportAssessmentReportAsync(Guid assessmentId, string format, TokenModel tokenModel);
+    Task<JsonModel> GetAssessmentReportsAsync(int userId, DateTime? startDate, DateTime? endDate, TokenModel tokenModel);
     
     // Provider Workflow
-    Task<JsonModel> GetProviderPendingAssessmentsAsync(int providerId);
-    Task<JsonModel> GetProviderReviewedAssessmentsAsync(int providerId);
-            Task<JsonModel> AssignAssessmentToProviderAsync(Guid assessmentId, int providerId);
+    Task<JsonModel> GetProviderPendingAssessmentsAsync(int providerId, TokenModel tokenModel);
+    Task<JsonModel> GetProviderReviewedAssessmentsAsync(int providerId, TokenModel tokenModel);
+    Task<JsonModel> AssignAssessmentToProviderAsync(Guid assessmentId, int providerId, TokenModel tokenModel);
 } 

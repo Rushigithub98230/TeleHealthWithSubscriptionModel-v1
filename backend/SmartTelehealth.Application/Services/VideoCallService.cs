@@ -22,7 +22,7 @@ public class VideoCallService : IVideoCallService
         _logger = logger;
     }
 
-    public async Task<JsonModel> GetByIdAsync(Guid id)
+    public async Task<JsonModel> GetByIdAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -57,7 +57,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> GetByUserIdAsync(int userId)
+    public async Task<JsonModel> GetByUserIdAsync(int userId, TokenModel tokenModel)
     {
         try
         {
@@ -82,7 +82,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> CreateAsync(CreateVideoCallDto createDto)
+    public async Task<JsonModel> CreateAsync(CreateVideoCallDto createDto, TokenModel tokenModel)
     {
         try
         {
@@ -118,7 +118,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> UpdateAsync(Guid id, UpdateVideoCallDto updateDto)
+    public async Task<JsonModel> UpdateAsync(Guid id, UpdateVideoCallDto updateDto, TokenModel tokenModel)
     {
         try
         {
@@ -159,7 +159,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> DeleteAsync(Guid id)
+    public async Task<JsonModel> DeleteAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -183,7 +183,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> GetAllAsync()
+    public async Task<JsonModel> GetAllAsync(TokenModel tokenModel)
     {
         try
         {
@@ -209,18 +209,18 @@ public class VideoCallService : IVideoCallService
     }
 
     // Video Call Management
-    public async Task<JsonModel> InitiateVideoCallAsync(CreateVideoCallDto createDto)
+    public async Task<JsonModel> InitiateVideoCallAsync(CreateVideoCallDto createDto, TokenModel tokenModel)
     {
         try
         {
-            var result = await CreateAsync(createDto);
+            var result = await CreateAsync(createDto, tokenModel);
             if (result.StatusCode == 200)
             {
                 // Create OpenTok session
                 var dynamicData = result.data as dynamic;
                 if (dynamicData != null)
                 {
-                    var sessionResult = await _openTokService.CreateSessionAsync($"Call_{dynamicData.Id}", false);
+                    var sessionResult = await _openTokService.CreateSessionAsync($"Call_{dynamicData.Id}", false, tokenModel);
                     if (sessionResult.StatusCode == 200)
                     {
                         var sessionData = sessionResult.data as dynamic;
@@ -245,7 +245,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> JoinVideoCallAsync(Guid callId, int userId)
+    public async Task<JsonModel> JoinVideoCallAsync(Guid callId, int userId, TokenModel tokenModel)
     {
         try
         {
@@ -280,7 +280,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> LeaveVideoCallAsync(Guid callId, int userId)
+    public async Task<JsonModel> LeaveVideoCallAsync(Guid callId, int userId, TokenModel tokenModel)
     {
         try
         {
@@ -315,7 +315,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> EndVideoCallAsync(Guid callId, string? reason = null)
+    public async Task<JsonModel> EndVideoCallAsync(Guid callId, string? reason, TokenModel tokenModel)
     {
         try
         {
@@ -353,7 +353,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> RejectVideoCallAsync(Guid callId, string reason)
+    public async Task<JsonModel> RejectVideoCallAsync(Guid callId, string reason, TokenModel tokenModel)
     {
         try
         {
@@ -392,7 +392,7 @@ public class VideoCallService : IVideoCallService
     }
 
     // Video/Audio Controls
-    public async Task<JsonModel> ToggleVideoAsync(Guid callId, bool enabled)
+    public async Task<JsonModel> ToggleVideoAsync(Guid callId, bool enabled, TokenModel tokenModel)
     {
         try
         {
@@ -427,7 +427,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> ToggleAudioAsync(Guid callId, bool enabled)
+    public async Task<JsonModel> ToggleAudioAsync(Guid callId, bool enabled, TokenModel tokenModel)
     {
         try
         {
@@ -462,7 +462,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> StartScreenSharingAsync(Guid callId)
+    public async Task<JsonModel> StartScreenSharingAsync(Guid callId, TokenModel tokenModel)
     {
         try
         {
@@ -497,7 +497,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> StopScreenSharingAsync(Guid callId)
+    public async Task<JsonModel> StopScreenSharingAsync(Guid callId, TokenModel tokenModel)
     {
         try
         {
@@ -533,7 +533,7 @@ public class VideoCallService : IVideoCallService
     }
 
     // Call Quality and Participants
-    public async Task<JsonModel> UpdateCallQualityAsync(Guid callId, int audioQuality, int videoQuality, int networkQuality)
+    public async Task<JsonModel> UpdateCallQualityAsync(Guid callId, int audioQuality, int videoQuality, int networkQuality, TokenModel tokenModel)
     {
         try
         {
@@ -568,7 +568,7 @@ public class VideoCallService : IVideoCallService
         }
     }
 
-    public async Task<JsonModel> GetVideoCallParticipantsAsync(Guid callId)
+    public async Task<JsonModel> GetVideoCallParticipantsAsync(Guid callId, TokenModel tokenModel)
     {
         try
         {
@@ -605,7 +605,7 @@ public class VideoCallService : IVideoCallService
     }
 
     // Logging
-    public async Task<JsonModel> LogVideoCallEventAsync(Guid callId, LogVideoCallEventDto eventDto)
+    public async Task<JsonModel> LogVideoCallEventAsync(Guid callId, LogVideoCallEventDto eventDto, TokenModel tokenModel)
     {
         try
         {

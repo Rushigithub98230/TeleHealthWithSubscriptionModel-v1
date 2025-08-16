@@ -12,4 +12,13 @@ public class ChatNotificationDto
     public Guid UserId { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsRead { get; set; }
+}
+
+// Chat Room Invitation DTO
+public class InviteToChatRoomDto
+{
+    public Guid InviteeId { get; set; }
+    public string Role { get; set; } = string.Empty;
+    public string? Message { get; set; }
+    public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddDays(7);
 } 

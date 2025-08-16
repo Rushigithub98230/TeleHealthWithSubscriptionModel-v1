@@ -27,7 +27,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> UploadFileAsync(byte[] fileData, string fileName, string contentType)
+    public async Task<JsonModel> UploadFileAsync(byte[] fileData, string fileName, string contentType, TokenModel tokenModel)
     {
         try
         {
@@ -70,7 +70,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> DownloadFileAsync(string filePath)
+    public async Task<JsonModel> DownloadFileAsync(string filePath, TokenModel tokenModel)
     {
         try
         {
@@ -102,7 +102,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> DeleteFileAsync(string filePath)
+    public async Task<JsonModel> DeleteFileAsync(string filePath, TokenModel tokenModel)
     {
         try
         {
@@ -142,7 +142,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> FileExistsAsync(string filePath)
+    public async Task<JsonModel> FileExistsAsync(string filePath, TokenModel tokenModel)
     {
         try
         {
@@ -167,7 +167,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> GetFileSizeAsync(string filePath)
+    public async Task<JsonModel> GetFileSizeAsync(string filePath, TokenModel tokenModel)
     {
         try
         {
@@ -199,7 +199,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public Task<JsonModel> GetFileUrlAsync(string filePath)
+    public Task<JsonModel> GetFileUrlAsync(string filePath, TokenModel tokenModel)
     {
         var url = $"/uploads/{filePath}";
         return Task.FromResult(new JsonModel
@@ -210,7 +210,7 @@ public class LocalFileStorageService : IFileStorageService
         });
     }
 
-    public async Task<JsonModel> GetFileInfoAsync(string filePath)
+    public async Task<JsonModel> GetFileInfoAsync(string filePath, TokenModel tokenModel)
     {
         try
         {
@@ -276,7 +276,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public Task<JsonModel> GetSecureUrlAsync(string filePath, TimeSpan? expiration = null)
+    public Task<JsonModel> GetSecureUrlAsync(string filePath, TimeSpan? expiration, TokenModel tokenModel)
     {
         var url = $"/uploads/{filePath}";
         return Task.FromResult(new JsonModel
@@ -287,7 +287,7 @@ public class LocalFileStorageService : IFileStorageService
         });
     }
 
-    public async Task<JsonModel> CreateDirectoryAsync(string directoryPath)
+    public async Task<JsonModel> CreateDirectoryAsync(string directoryPath, TokenModel tokenModel)
     {
         try
         {
@@ -320,7 +320,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> DeleteDirectoryAsync(string directoryPath)
+    public async Task<JsonModel> DeleteDirectoryAsync(string directoryPath, TokenModel tokenModel)
     {
         try
         {
@@ -353,7 +353,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> ListFilesAsync(string directoryPath, string? searchPattern = null)
+    public async Task<JsonModel> ListFilesAsync(string directoryPath, string? searchPattern, TokenModel tokenModel)
     {
         try
         {
@@ -390,7 +390,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public Task<JsonModel> ValidateFileAccessAsync(string filePath, Guid userId)
+    public Task<JsonModel> ValidateFileAccessAsync(string filePath, Guid userId, TokenModel tokenModel)
     {
         // For now, implement basic access validation
         // In a real implementation, you would check user permissions, file ownership, etc.
@@ -428,7 +428,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public Task<JsonModel> SetFilePermissionsAsync(string filePath, FilePermissions permissions)
+    public Task<JsonModel> SetFilePermissionsAsync(string filePath, FilePermissions permissions, TokenModel tokenModel)
     {
         // For local storage, file permissions are handled by the file system
         // In production, you might implement additional permission tracking
@@ -440,7 +440,7 @@ public class LocalFileStorageService : IFileStorageService
         });
     }
 
-    public async Task<JsonModel> EncryptFileAsync(byte[] fileData, string encryptionKey)
+    public async Task<JsonModel> EncryptFileAsync(byte[] fileData, string encryptionKey, TokenModel tokenModel)
     {
         try
         {
@@ -482,7 +482,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> DecryptFileAsync(string encryptedFilePath, string encryptionKey)
+    public async Task<JsonModel> DecryptFileAsync(string encryptedFilePath, string encryptionKey, TokenModel tokenModel)
     {
         try
         {
@@ -536,7 +536,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> UploadMultipleFilesAsync(IEnumerable<FileUploadDto> files)
+    public async Task<JsonModel> UploadMultipleFilesAsync(IEnumerable<FileUploadDto> files, TokenModel tokenModel)
     {
         try
         {
@@ -589,7 +589,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> DeleteMultipleFilesAsync(IEnumerable<string> filePaths)
+    public async Task<JsonModel> DeleteMultipleFilesAsync(IEnumerable<string> filePaths, TokenModel tokenModel)
     {
         try
         {
@@ -597,7 +597,7 @@ public class LocalFileStorageService : IFileStorageService
             
             foreach (var filePath in filePaths)
             {
-                var result = await DeleteFileAsync(filePath);
+                var result = await DeleteFileAsync(filePath, tokenModel);
                 if (result.StatusCode != 200)
                 {
                     allDeleted = false;
@@ -624,7 +624,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<JsonModel> GetStorageInfoAsync()
+    public async Task<JsonModel> GetStorageInfoAsync(TokenModel tokenModel)
     {
         try
         {
@@ -669,7 +669,7 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public Task<JsonModel> CleanupExpiredFilesAsync()
+    public Task<JsonModel> CleanupExpiredFilesAsync(TokenModel tokenModel)
     {
         // For local storage, implement cleanup logic based on file age, size, etc.
         // For now, return success
@@ -681,7 +681,7 @@ public class LocalFileStorageService : IFileStorageService
         });
     }
 
-    public Task<JsonModel> ArchiveOldFilesAsync(string sourcePath, string archivePath, TimeSpan ageThreshold)
+    public Task<JsonModel> ArchiveOldFilesAsync(string sourcePath, string archivePath, TimeSpan ageThreshold, TokenModel tokenModel)
     {
         // For local storage, implement archiving logic
         // For now, return success

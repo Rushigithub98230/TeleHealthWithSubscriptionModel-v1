@@ -102,6 +102,14 @@ public class BillingSummaryDto
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public List<BillingRecordDto> RecentTransactions { get; set; } = new List<BillingRecordDto>();
+    
+    // Added missing properties to fix build errors
+    public int TotalBillingRecords { get; set; }
+    public decimal TotalAmount { get; set; }
+    public decimal PaidAmount { get; set; }
+    public decimal PendingAmount { get; set; }
+    public decimal FailedAmount { get; set; }
+    public decimal RefundedAmount { get; set; }
 }
 
 public class PaymentScheduleDto
@@ -119,6 +127,10 @@ public class PaymentScheduleDto
     public bool AutoRenew { get; set; }
     public List<PaymentScheduleItemDto> PaymentHistory { get; set; } = new List<PaymentScheduleItemDto>();
     public List<PaymentScheduleItemDto> Payments => PaymentHistory;
+    
+    // Added missing properties to fix build errors
+    public string Currency { get; set; } = "USD";
+    public string Status { get; set; } = string.Empty;
 }
 
 public class PaymentScheduleItemDto
@@ -170,4 +182,26 @@ public class BillingCycleDto
     public decimal TotalAmount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ProcessedAt { get; set; }
-} 
+    
+    // Added missing properties to fix build errors
+    public bool IsActive { get; set; }
+    public DateTime CreatedDate { get; set; }
+}
+
+// Added missing DTO to fix build errors
+public class BillingCancellationDto
+{
+    public Guid Id { get; set; }
+    public Guid BillingRecordId { get; set; }
+    public string CancellationReason { get; set; } = string.Empty;
+    public DateTime CancelledAt { get; set; }
+    public string CancelledBy { get; set; } = string.Empty;
+    public decimal RefundAmount { get; set; }
+    public string RefundReason { get; set; } = string.Empty;
+    public DateTime? RefundedAt { get; set; }
+    public string? Notes { get; set; }
+    
+    // Added missing properties to fix build errors
+    public Guid SubscriptionId { get; set; }
+    public string Status { get; set; } = string.Empty;
+}

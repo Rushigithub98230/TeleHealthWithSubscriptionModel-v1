@@ -22,24 +22,24 @@ public class FileStorageService : IFileStorageService
         }
     }
 
-    public Task<JsonModel> UploadFileAsync(byte[] fileData, string fileName, string contentType) => throw new NotImplementedException();
-    public Task<JsonModel> DownloadFileAsync(string filePath) => throw new NotImplementedException();
-    public Task<JsonModel> DeleteFileAsync(string filePath) => throw new NotImplementedException();
-    public Task<JsonModel> FileExistsAsync(string filePath) => throw new NotImplementedException();
-    public Task<JsonModel> GetFileSizeAsync(string filePath) => throw new NotImplementedException();
-    public Task<JsonModel> GetFileUrlAsync(string filePath) => throw new NotImplementedException();
-    public Task<JsonModel> GetFileInfoAsync(string filePath) => throw new NotImplementedException();
-    public Task<JsonModel> GetSecureUrlAsync(string filePath, TimeSpan? expiration = null) => throw new NotImplementedException();
-    public Task<JsonModel> CreateDirectoryAsync(string directoryPath) => throw new NotImplementedException();
-    public Task<JsonModel> DeleteDirectoryAsync(string directoryPath) => throw new NotImplementedException();
-    public Task<JsonModel> ListFilesAsync(string directoryPath, string? searchPattern = null) => throw new NotImplementedException();
-    public Task<JsonModel> ValidateFileAccessAsync(string filePath, Guid userId) => throw new NotImplementedException();
-    public Task<JsonModel> SetFilePermissionsAsync(string filePath, FilePermissions permissions) => throw new NotImplementedException();
-    public Task<JsonModel> EncryptFileAsync(byte[] fileData, string encryptionKey) => throw new NotImplementedException();
-    public Task<JsonModel> DecryptFileAsync(string encryptedFilePath, string encryptionKey) => throw new NotImplementedException();
-    public Task<JsonModel> UploadMultipleFilesAsync(IEnumerable<FileUploadDto> files) => throw new NotImplementedException();
-    public Task<JsonModel> DeleteMultipleFilesAsync(IEnumerable<string> filePaths) => throw new NotImplementedException();
-    public Task<JsonModel> GetStorageInfoAsync() => throw new NotImplementedException();
-    public Task<JsonModel> CleanupExpiredFilesAsync() => throw new NotImplementedException();
-    public Task<JsonModel> ArchiveOldFilesAsync(string sourcePath, string archivePath, TimeSpan ageThreshold) => throw new NotImplementedException();
+    public Task<JsonModel> UploadFileAsync(byte[] fileData, string fileName, string contentType, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> DownloadFileAsync(string filePath, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> DeleteFileAsync(string filePath, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> FileExistsAsync(string filePath, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetFileSizeAsync(string filePath, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetFileUrlAsync(string filePath, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetFileInfoAsync(string filePath, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetSecureUrlAsync(string filePath, TimeSpan? expiration, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> CreateDirectoryAsync(string directoryPath, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> DeleteDirectoryAsync(string directoryPath, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> ListFilesAsync(string directoryPath, string? searchPattern, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> ValidateFileAccessAsync(string filePath, Guid userId, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> SetFilePermissionsAsync(string filePath, FilePermissions permissions, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> EncryptFileAsync(byte[] fileData, string encryptionKey, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> DecryptFileAsync(string encryptedFilePath, string encryptionKey, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> UploadMultipleFilesAsync(IEnumerable<FileUploadDto> files, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> DeleteMultipleFilesAsync(IEnumerable<string> filePaths, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetStorageInfoAsync(TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> CleanupExpiredFilesAsync(TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> ArchiveOldFilesAsync(string sourcePath, string archivePath, TimeSpan ageThreshold, TokenModel tokenModel) => throw new NotImplementedException();
 } 

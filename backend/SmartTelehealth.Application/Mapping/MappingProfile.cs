@@ -95,7 +95,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Reason, opt => opt.MapFrom(src => src.Reason))
             .ForMember(dest => dest.ChangedByUserId, opt => opt.MapFrom(src => src.ChangedByUserId))
             .ForMember(dest => dest.ChangedAt, opt => opt.MapFrom(src => src.ChangedAt))
-            .ForMember(dest => dest.Metadata, opt => opt.MapFrom(src => src.Metadata));
+            .ForMember(dest => dest.Metadata, opt => opt.MapFrom(src => src.Metadata))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedDate))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedDate));
         CreateMap<SubscriptionPayment, SubscriptionPaymentDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => src.SubscriptionId.ToString()))

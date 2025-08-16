@@ -7,10 +7,10 @@ namespace SmartTelehealth.Application.Interfaces
 {
     public interface IProviderService
     {
-        Task<JsonModel> GetAllProvidersAsync();
-        Task<JsonModel> GetProviderByIdAsync(int id);
-        Task<JsonModel> CreateProviderAsync(CreateProviderDto createProviderDto);
-        Task<JsonModel> UpdateProviderAsync(int id, UpdateProviderDto updateProviderDto);
-        Task<JsonModel> DeleteProviderAsync(int id);
+        Task<JsonModel> GetAllProvidersAsync(TokenModel tokenModel);
+        Task<JsonModel> GetProviderByIdAsync(int id, TokenModel tokenModel);
+        Task<JsonModel> CreateProviderAsync(CreateProviderDto createProviderDto, TokenModel tokenModel);
+        Task<JsonModel> UpdateProviderAsync(int id, UpdateProviderDto updateProviderDto, TokenModel tokenModel);
+        Task<JsonModel> DeleteProviderAsync(int id, TokenModel tokenModel);
     }
 } 

@@ -34,7 +34,7 @@ namespace SmartTelehealth.Application.Services
             _mapper = mapper;
             _logger = logger;
         }
-        public async Task<JsonModel> GetPayoutByIdAsync(Guid id)
+        public async Task<JsonModel> GetPayoutByIdAsync(Guid id, TokenModel tokenModel)
         {
             try
             {
@@ -67,11 +67,11 @@ namespace SmartTelehealth.Application.Services
                 };
             }
         }
-        public async Task<JsonModel> GetPayoutAsync(Guid id) => throw new NotImplementedException();
-        public async Task<JsonModel> ProcessPayoutAsync(Guid id, ProcessPayoutDto processDto) => throw new NotImplementedException();
-        public async Task<JsonModel> GetPayoutsByProviderAsync(int providerId) => throw new NotImplementedException();
-        public async Task<JsonModel> GetPayoutsByPeriodAsync(Guid periodId) => throw new NotImplementedException();
-        public async Task<JsonModel> GetAllPayoutsAsync(string status = null, int page = 1, int pageSize = 50)
+        public async Task<JsonModel> GetPayoutAsync(Guid id, TokenModel tokenModel) => throw new NotImplementedException();
+        public async Task<JsonModel> ProcessPayoutAsync(Guid id, ProcessPayoutDto processDto, TokenModel tokenModel) => throw new NotImplementedException();
+        public async Task<JsonModel> GetPayoutsByProviderAsync(int providerId, TokenModel tokenModel) => throw new NotImplementedException();
+        public async Task<JsonModel> GetPayoutsByPeriodAsync(Guid periodId, TokenModel tokenModel) => throw new NotImplementedException();
+        public async Task<JsonModel> GetAllPayoutsAsync(string status, int page, int pageSize, TokenModel tokenModel)
         {
             try
             {
@@ -105,7 +105,7 @@ namespace SmartTelehealth.Application.Services
                 };
             }
         }
-        public async Task<JsonModel> GetPendingPayoutsAsync()
+        public async Task<JsonModel> GetPendingPayoutsAsync(TokenModel tokenModel)
         {
             try
             {
@@ -129,7 +129,7 @@ namespace SmartTelehealth.Application.Services
                 };
             }
         }
-        public async Task<JsonModel> GetPayoutsByStatusAsync(string status)
+        public async Task<JsonModel> GetPayoutsByStatusAsync(string status, TokenModel tokenModel)
         {
             try
             {
@@ -153,7 +153,7 @@ namespace SmartTelehealth.Application.Services
                 };
             }
         }
-        public async Task<JsonModel> GetProviderEarningsAsync(int providerId)
+        public async Task<JsonModel> GetProviderEarningsAsync(int providerId, TokenModel tokenModel)
         {
             try
             {
@@ -200,7 +200,7 @@ namespace SmartTelehealth.Application.Services
                 };
             }
         }
-        public async Task<JsonModel> GetPayoutStatisticsAsync()
+        public async Task<JsonModel> GetPayoutStatisticsAsync(TokenModel tokenModel)
         {
             try
             {
@@ -224,7 +224,7 @@ namespace SmartTelehealth.Application.Services
                 };
             }
         }
-        public async Task<JsonModel> ProcessAllPendingPayoutsAsync()
+        public async Task<JsonModel> ProcessAllPendingPayoutsAsync(TokenModel tokenModel)
         {
             try
             {
@@ -240,7 +240,7 @@ namespace SmartTelehealth.Application.Services
                             PaymentReference = $"PAY-{DateTime.UtcNow:yyyyMMdd}-{payout.Id}",
                             Notes = "Automatically processed"
                         };
-                        await ProcessPayoutAsync(payout.Id, processDto);
+                        await ProcessPayoutAsync(payout.Id, processDto, tokenModel);
                         processedCount++;
                     }
                     catch (Exception ex)
@@ -248,7 +248,7 @@ namespace SmartTelehealth.Application.Services
                         _logger.LogError(ex, $"Error processing payout {payout.Id}");
                     }
                 }
-                await _auditService.LogActionAsync("ProviderPayout", "ProcessAll", "System", $"Processed {processedCount} pending payouts");
+                await _auditService.LogActionAsync("ProviderPayout", "ProcessAll", "System", $"Processed {processedCount} pending payouts", tokenModel);
                 return new JsonModel
                 {
                     data = true,
@@ -267,8 +267,8 @@ namespace SmartTelehealth.Application.Services
                 };
             }
         }
-        public async Task<JsonModel> GeneratePayoutsForPeriodAsync(Guid periodId) => throw new NotImplementedException();
-        public async Task<JsonModel> CreatePeriodAsync(CreatePayoutPeriodDto createDto)
+        public async Task<JsonModel> GeneratePayoutsForPeriodAsync(Guid periodId, TokenModel tokenModel) => throw new NotImplementedException();
+        public async Task<JsonModel> CreatePeriodAsync(CreatePayoutPeriodDto createDto, TokenModel tokenModel)
         {
             try
             {
@@ -283,7 +283,7 @@ namespace SmartTelehealth.Application.Services
                 };
                 var createdPeriod = await _providerPayoutRepository.AddPeriodAsync();
                 var periodDto = _mapper.Map<PayoutPeriodDto>(createdPeriod);
-                await _auditService.LogActionAsync("PayoutPeriod", "Create", "System", $"Created payout period {createDto.Name}");
+                await _auditService.LogActionAsync("PayoutPeriod", "Create", "System", $"Created payout period {createDto.Name}", tokenModel);
                 return new JsonModel
                 {
                     data = periodDto,
@@ -302,7 +302,7 @@ namespace SmartTelehealth.Application.Services
                 };
             }
         }
-        public async Task<JsonModel> GetAllPeriodsAsync()
+        public async Task<JsonModel> GetAllPeriodsAsync(TokenModel tokenModel)
         {
             try
             {

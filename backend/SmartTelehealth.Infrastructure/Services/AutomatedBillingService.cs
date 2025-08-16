@@ -89,6 +89,13 @@ public class AutomatedBillingService : BackgroundService
     {
         try
         {
+            // Create system-level token for background service operations
+            var systemToken = new TokenModel
+            {
+                UserID = 0, // System user ID
+                RoleID = 1  // Admin role
+            };
+            
             var dueSubscriptions = await subscriptionRepository.GetSubscriptionsDueForBillingAsync(DateTime.UtcNow);
             _logger.LogInformation("Found {Count} subscriptions due for billing", dueSubscriptions.Count());
 
@@ -106,7 +113,8 @@ public class AutomatedBillingService : BackgroundService
                         "BillingError",
                         subscription.Id.ToString(),
                         "Error",
-                        ex.Message
+                        ex.Message,
+                        systemToken
                     );
                 }
             }
@@ -128,6 +136,13 @@ public class AutomatedBillingService : BackgroundService
     {
         try
         {
+            // Create system-level token for background service operations
+            var systemToken = new TokenModel
+            {
+                UserID = 0, // System user ID
+                RoleID = 1  // Admin role
+            };
+            
             // Create billing record
             var billingRecord = new CreateBillingRecordDto
             {
@@ -138,7 +153,7 @@ public class AutomatedBillingService : BackgroundService
                 DueDate = DateTime.UtcNow
             };
 
-            var billingResult = await billingService.CreateBillingRecordAsync(billingRecord);
+            var billingResult = await billingService.CreateBillingRecordAsync(billingRecord, systemToken);
             if (billingResult.StatusCode != 200)
             {
                 _logger.LogError("Failed to create billing record for subscription {SubscriptionId}", subscription.Id);
@@ -164,18 +179,19 @@ public class AutomatedBillingService : BackgroundService
                 await subscriptionRepository.UpdateAsync(subscription);
 
                 // Send success notification
-                var userResult = await userService.GetUserByIdAsync(subscription.UserId);
+                var userResult = await userService.GetUserByIdAsync(subscription.UserId, systemToken);
                 if (userResult.StatusCode == 200 && userResult.data != null)
                 {
                     var userData = userResult.data as dynamic;
                     var billingData = billingResult.data as dynamic;
                     if (userData?.Email != null && userData?.FullName != null)
                     {
-                        await notificationService.SendPaymentSuccessEmailAsync(
-                            userData.Email.ToString(),
-                            userData.FullName.ToString(),
-                            billingData
-                        );
+                                            await notificationService.SendPaymentSuccessEmailAsync(
+                        userData.Email.ToString(),
+                        userData.FullName.ToString(),
+                        billingData,
+                        systemToken
+                    );
                     }
                 }
 
@@ -183,7 +199,9 @@ public class AutomatedBillingService : BackgroundService
                     subscription.UserId.ToString(),
                     "PaymentSuccess",
                     subscription.Id.ToString(),
-                    "Success"
+                    "Success",
+                    null,
+                    systemToken
                 );
 
                 _logger.LogInformation("Successfully processed billing for subscription {SubscriptionId}", subscription.Id);
@@ -207,11 +225,18 @@ public class AutomatedBillingService : BackgroundService
         IBillingService billingService,
         IAuditService auditService)
     {
+        // Create system-level token for background service operations
+        var systemToken = new TokenModel
+        {
+            UserID = 0, // System user ID
+            RoleID = 1  // Admin role
+        };
+        
         for (int attempt = 1; attempt <= _maxRetryAttempts; attempt++)
         {
             try
             {
-                var paymentResult = await billingService.ProcessPaymentAsync(billingRecordId);
+                var paymentResult = await billingService.ProcessPaymentAsync(billingRecordId, systemToken);
                 
                 if (paymentResult.StatusCode == 200)
                 {
@@ -303,6 +328,13 @@ public class AutomatedBillingService : BackgroundService
     {
         try
         {
+            // Create system-level token for background service operations
+            var systemToken = new TokenModel
+            {
+                UserID = 0, // System user ID
+                RoleID = 1  // Admin role
+            };
+            
             var suspendedSubscriptions = await subscriptionRepository.GetSuspendedSubscriptionsAsync();
             _logger.LogInformation("Found {Count} suspended subscriptions", suspendedSubscriptions.Count());
 
@@ -341,7 +373,7 @@ public class AutomatedBillingService : BackgroundService
                         DueDate = DateTime.UtcNow
                     };
 
-                    var billingResult = await billingService.CreateBillingRecordAsync(billingRecord);
+                    var billingResult = await billingService.CreateBillingRecordAsync(billingRecord, systemToken);
                     if (billingResult.StatusCode != 200)
                     {
                         continue;
@@ -366,7 +398,7 @@ public class AutomatedBillingService : BackgroundService
                         await subscriptionRepository.UpdateAsync(subscription);
 
                         // Send reactivation notification
-                        var userResult = await userService.GetUserByIdAsync(userIdInt);
+                        var userResult = await userService.GetUserByIdAsync(userIdInt, systemToken);
                         if (userResult.StatusCode == 200 && userResult.data != null)
                         {
                             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
@@ -381,7 +413,9 @@ public class AutomatedBillingService : BackgroundService
                             userId,
                             "PaymentRetrySuccess",
                             subscriptionId,
-                            "Success"
+                            "Success",
+                            null,
+                            systemToken
                         );
 
                         _logger.LogInformation("Successfully retried payment and reactivated subscription");
@@ -400,7 +434,8 @@ public class AutomatedBillingService : BackgroundService
                             "PaymentRetryFailed",
                             subscriptionId,
                             "Failed",
-                            errorMessage
+                            errorMessage,
+                            systemToken
                         );
 
                         _logger.LogWarning("Payment retry failed for suspended subscription");
@@ -423,6 +458,13 @@ public class AutomatedBillingService : BackgroundService
     {
         try
         {
+            // Create system-level token for background service operations
+            var systemToken = new TokenModel
+            {
+                UserID = 0, // System user ID
+                RoleID = 1  // Admin role
+            };
+            
             var subscriptionsWithResetUsage = await subscriptionRepository.GetSubscriptionsWithResetUsageAsync();
             _logger.LogInformation("Found {Count} subscriptions with usage counters to reset", subscriptionsWithResetUsage.Count());
 
@@ -438,7 +480,8 @@ public class AutomatedBillingService : BackgroundService
                         "UsageReset",
                         "Subscription",
                         subscription.Id.ToString(),
-                        "Usage counters reset for new billing cycle"
+                        "Usage counters reset for new billing cycle",
+                        systemToken
                     );
 
                     _logger.LogInformation("Reset usage counters for subscription {SubscriptionId}", subscription.Id);
@@ -488,6 +531,13 @@ public class AutomatedBillingService : BackgroundService
             using var scope = _serviceProvider.CreateScope();
             var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
             var billingService = scope.ServiceProvider.GetRequiredService<IBillingService>();
+            
+            // Create system-level token for background service operations
+            var systemToken = new TokenModel
+            {
+                UserID = 0, // System user ID
+                RoleID = 1  // Admin role
+            };
 
             var start = startDate ?? DateTime.UtcNow.AddDays(-30);
             var end = endDate ?? DateTime.UtcNow;
@@ -506,7 +556,7 @@ public class AutomatedBillingService : BackgroundService
             };
 
             // Get billing statistics
-            var billingHistory = await billingService.GetPaymentAnalyticsAsync(start, end);
+            var billingHistory = await billingService.GetPaymentAnalyticsAsync(start, end, systemToken);
             var analyticsData = billingHistory.data as dynamic;
             if (analyticsData != null)
             {

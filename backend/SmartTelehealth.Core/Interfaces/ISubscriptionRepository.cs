@@ -45,4 +45,14 @@ public interface ISubscriptionRepository
     Task ResetUsageCountersAsync();
     Task<IEnumerable<Subscription>> GetSubscriptionsInDateRangeAsync(DateTime startDate, DateTime endDate);
     Task<IEnumerable<Subscription>> GetSubscriptionsWithFailedPaymentsAsync();
+    
+    // Added missing method for AnalyticsService
+    Task<int> GetCountAsync();
+    
+    // Added missing methods to fix build errors
+    Task<IEnumerable<Subscription>> GetByCategoryIdAsync(Guid categoryId);
+    Task<int> GetActiveSubscriptionsCountAsync();
+    Task<int> GetCancelledSubscriptionsCountAsync();
+    Task<IEnumerable<Subscription>> GetSubscriptionsCreatedInRangeAsync(DateTime startDate, DateTime endDate);
+    Task<IEnumerable<Subscription>> GetCancelledSubscriptionsInRangeAsync(DateTime startDate, DateTime endDate);
 } 

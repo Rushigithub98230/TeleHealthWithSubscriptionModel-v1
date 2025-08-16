@@ -10,7 +10,7 @@ namespace SmartTelehealth.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin,SuperAdmin")]
-public class AdminController : ControllerBase
+public class AdminController : BaseController
 {
     private readonly ISubscriptionService _subscriptionService;
     private readonly IBillingService _billingService;
@@ -42,71 +42,62 @@ public class AdminController : ControllerBase
     /// Get admin dashboard data
     /// </summary>
     [HttpGet("dashboard")]
-    public async Task<ActionResult<JsonModel>> GetDashboard()
+    public async Task<JsonModel> GetDashboard()
     {
-        try
+        var dashboard = new AdminDashboardDto
         {
-            var dashboard = new AdminDashboardDto
-            {
-                TotalSubscriptions = await GetTotalSubscriptions(),
-                ActiveSubscriptions = await GetActiveSubscriptions(),
-                TotalRevenue = await GetTotalRevenue(),
-                MonthlyRecurringRevenue = await GetMonthlyRecurringRevenue(),
-                TotalUsers = await GetTotalUsers(),
-                TotalProviders = await GetTotalProviders(),
-                RecentSubscriptions = await GetRecentSubscriptions(),
-                RecentBillingRecords = await GetRecentBillingRecords(),
-                SystemHealth = await GetSystemHealthData()
-            };
+            TotalSubscriptions = await GetTotalSubscriptions(),
+            ActiveSubscriptions = await GetActiveSubscriptions(),
+            TotalRevenue = await GetTotalRevenue(),
+            MonthlyRecurringRevenue = await GetMonthlyRecurringRevenue(),
+            TotalUsers = await GetTotalUsers(),
+            TotalProviders = await GetTotalProviders(),
+            RecentSubscriptions = await GetRecentSubscriptions(),
+            RecentBillingRecords = await GetRecentBillingRecords(),
+            SystemHealth = await GetSystemHealthData()
+        };
 
-            return Ok(new JsonModel { data = dashboard, Message = "Dashboard data retrieved successfully", StatusCode = 200 });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Error retrieving dashboard data", StatusCode = 500 });
-        }
+        return new JsonModel { data = dashboard, Message = "Dashboard data retrieved successfully", StatusCode = 200 };
     }
 
     /// <summary>
     /// Get all subscriptions
     /// </summary>
     [HttpGet("subscriptions")]
-    public async Task<ActionResult<JsonModel>> GetAllSubscriptions()
+    public async Task<JsonModel> GetAllSubscriptions()
     {
-        var response = await _subscriptionService.GetActiveSubscriptionsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _subscriptionService.GetActiveSubscriptionsAsync(GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get audit logs
     /// </summary>
     [HttpGet("audit-logs")]
-    public async Task<ActionResult<JsonModel>> GetAuditLogs([FromQuery] string? action = null, [FromQuery] string? userId = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+    public async Task<JsonModel> GetAuditLogs([FromQuery] string? action = null, [FromQuery] string? userId = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var response = await _auditService.GetAuditLogsAsync(action, userId, startDate, endDate, page, pageSize);
-        return StatusCode(200, response);
+        return await _auditService.GetAuditLogsAsync(action, userId, startDate, endDate, page, pageSize, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Export data
     /// </summary>
     [HttpGet("export/{dataType}")]
-    public async Task<ActionResult<JsonModel>> ExportData(string dataType, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> ExportData(string dataType, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         // TODO: Implement data export functionality in service
-        return Ok(new JsonModel { data = new object(), Message = $"Export of {dataType} data initiated", StatusCode = 200 });
+        return new JsonModel { data = new object(), Message = $"Export of {dataType} data initiated", StatusCode = 200 };
     }
 
     // Helper methods for dashboard
     private async Task<int> GetTotalSubscriptions()
     {
-        var response = await _subscriptionService.GetActiveSubscriptionsAsync();
+        var response = await _subscriptionService.GetActiveSubscriptionsAsync(GetToken(HttpContext));
         return ((IEnumerable<SubscriptionDto>)response.data)?.Count() ?? 0;
     }
 
     private async Task<int> GetActiveSubscriptions()
     {
-        var response = await _subscriptionService.GetActiveSubscriptionsAsync();
+        var response = await _subscriptionService.GetActiveSubscriptionsAsync(GetToken(HttpContext));
         return ((IEnumerable<SubscriptionDto>)response.data)?.Count(s => s.IsActive) ?? 0;
     }
 
@@ -136,7 +127,7 @@ public class AdminController : ControllerBase
 
     private async Task<IEnumerable<SubscriptionDto>> GetRecentSubscriptions()
     {
-        var response = await _subscriptionService.GetActiveSubscriptionsAsync();
+        var response = await _subscriptionService.GetActiveSubscriptionsAsync(GetToken(HttpContext));
         return ((IEnumerable<SubscriptionDto>)response.data)?.OrderByDescending(s => s.CreatedAt).Take(10) ?? new List<SubscriptionDto>();
     }
 

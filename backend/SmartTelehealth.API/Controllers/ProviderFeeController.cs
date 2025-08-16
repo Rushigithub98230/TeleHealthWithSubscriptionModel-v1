@@ -3,76 +3,67 @@ using Microsoft.AspNetCore.Mvc;
 using SmartTelehealth.Application.DTOs;
 using SmartTelehealth.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
-public class ProviderFeeController : ControllerBase
+public class ProviderFeeController : BaseController
 {
     private readonly IProviderFeeService _feeService;
     private readonly ICategoryFeeRangeService _feeRangeService;
-    private readonly ILogger<ProviderFeeController> _logger;
-
     public ProviderFeeController(
         IProviderFeeService feeService,
-        ICategoryFeeRangeService feeRangeService,
-        ILogger<ProviderFeeController> logger)
+        ICategoryFeeRangeService feeRangeService)
     {
         _feeService = feeService;
         _feeRangeService = feeRangeService;
-        _logger = logger;
     }
 
     /// <summary>
     /// Create a new provider fee proposal
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<JsonModel>> CreateFee([FromBody] CreateProviderFeeDto createDto)
+    public async Task<JsonModel> CreateFee([FromBody] CreateProviderFeeDto createDto)
     {
-        var result = await _feeService.CreateFeeAsync(createDto);
-        return StatusCode(result.StatusCode, result);
+        return await _feeService.CreateFeeAsync(createDto, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get fee by ID
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<JsonModel>> GetFee(Guid id)
+    public async Task<JsonModel> GetFee(Guid id)
     {
-        var result = await _feeService.GetFeeAsync(id);
-        return StatusCode(result.StatusCode, result);
+        return await _feeService.GetFeeAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get fee by provider and category
     /// </summary>
     [HttpGet("provider/{providerId}/category/{categoryId}")]
-    public async Task<ActionResult<JsonModel>> GetFeeByProviderAndCategory(int providerId, Guid categoryId)
+    public async Task<JsonModel> GetFeeByProviderAndCategory(int providerId, Guid categoryId)
     {
-        var response = await _feeService.GetFeeByProviderAndCategoryAsync(providerId, categoryId);
-        return StatusCode(response.StatusCode, response);
+        return await _feeService.GetFeeByProviderAndCategoryAsync(providerId, categoryId, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Update fee proposal
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<JsonModel>> UpdateFee(Guid id, [FromBody] UpdateProviderFeeDto updateDto)
+    public async Task<JsonModel> UpdateFee(Guid id, [FromBody] UpdateProviderFeeDto updateDto)
     {
-        var response = await _feeService.UpdateFeeAsync(id, updateDto);
-        return StatusCode(response.StatusCode, response);
+        return await _feeService.UpdateFeeAsync(id, updateDto, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Submit fee proposal for review
     /// </summary>
     [HttpPost("{id}/propose")]
-    public async Task<ActionResult<JsonModel>> ProposeFee(Guid id)
+    public async Task<JsonModel> ProposeFee(Guid id)
     {
-        var response = await _feeService.ProposeFeeAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _feeService.ProposeFeeAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -80,20 +71,18 @@ public class ProviderFeeController : ControllerBase
     /// </summary>
     [HttpPost("{id}/review")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> ReviewFee(Guid id, [FromBody] ReviewProviderFeeDto reviewDto)
+    public async Task<JsonModel> ReviewFee(Guid id, [FromBody] ReviewProviderFeeDto reviewDto)
     {
-        var response = await _feeService.ReviewFeeAsync(id, reviewDto);
-        return StatusCode(response.StatusCode, response);
+        return await _feeService.ReviewFeeAsync(id, reviewDto, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get fees by provider
     /// </summary>
     [HttpGet("provider/{providerId}")]
-    public async Task<ActionResult<JsonModel>> GetFeesByProvider(int providerId)
+    public async Task<JsonModel> GetFeesByProvider(int providerId)
     {
-        var result = await _feeService.GetFeesByProviderAsync(providerId);
-        return StatusCode(result.StatusCode, result);
+        return await _feeService.GetFeesByProviderAsync(providerId, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -102,7 +91,7 @@ public class ProviderFeeController : ControllerBase
     [HttpGet("category/{categoryId}")]
     public async Task<ActionResult<JsonModel>> GetFeesByCategory(Guid categoryId)
     {
-        var result = await _feeService.GetFeesByCategoryAsync(categoryId);
+        var result = await _feeService.GetFeesByCategoryAsync(categoryId, GetToken(HttpContext));
         return StatusCode(result.StatusCode, result);
     }
 
@@ -111,13 +100,12 @@ public class ProviderFeeController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GetAllFees(
+    public async Task<JsonModel> GetAllFees(
         [FromQuery] string? status = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50)
     {
-        var result = await _feeService.GetAllFeesAsync(status, page, pageSize);
-        return StatusCode(result.StatusCode, result);
+        return await _feeService.GetAllFeesAsync(status, page, pageSize, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -125,10 +113,9 @@ public class ProviderFeeController : ControllerBase
     /// </summary>
     [HttpGet("pending")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GetPendingFees()
+    public async Task<JsonModel> GetPendingFees()
     {
-        var result = await _feeService.GetPendingFeesAsync();
-        return StatusCode(result.StatusCode, result);
+        return await _feeService.GetPendingFeesAsync(GetToken(HttpContext));
     }
 
     /// <summary>
@@ -136,10 +123,9 @@ public class ProviderFeeController : ControllerBase
     /// </summary>
     [HttpGet("status/{status}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GetFeesByStatus(string status)
+    public async Task<JsonModel> GetFeesByStatus(string status)
     {
-        var result = await _feeService.GetFeesByStatusAsync(status);
-        return StatusCode(result.StatusCode, result);
+        return await _feeService.GetFeesByStatusAsync(status, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -147,10 +133,9 @@ public class ProviderFeeController : ControllerBase
     /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> DeleteFee(Guid id)
+    public async Task<JsonModel> DeleteFee(Guid id)
     {
-        var result = await _feeService.DeleteFeeAsync(id);
-        return StatusCode(result.StatusCode, result);
+        return await _feeService.DeleteFeeAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -158,10 +143,9 @@ public class ProviderFeeController : ControllerBase
     /// </summary>
     [HttpGet("statistics")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GetFeeStatistics()
+    public async Task<JsonModel> GetFeeStatistics()
     {
-        var result = await _feeService.GetFeeStatisticsAsync();
-        return StatusCode(result.StatusCode, result);
+        return await _feeService.GetFeeStatisticsAsync(GetToken(HttpContext));
     }
 
     // Category Fee Range endpoints
@@ -171,30 +155,27 @@ public class ProviderFeeController : ControllerBase
     /// </summary>
     [HttpPost("ranges")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> CreateFeeRange([FromBody] CreateCategoryFeeRangeDto createDto)
+    public async Task<JsonModel> CreateFeeRange([FromBody] CreateCategoryFeeRangeDto createDto)
     {
-        var result = await _feeRangeService.CreateFeeRangeAsync(createDto);
-        return StatusCode(result.StatusCode, result);
+        return await _feeRangeService.CreateFeeRangeAsync(createDto, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get fee range by ID
     /// </summary>
     [HttpGet("ranges/{id}")]
-    public async Task<ActionResult<JsonModel>> GetFeeRange(Guid id)
+    public async Task<JsonModel> GetFeeRange(Guid id)
     {
-        var result = await _feeRangeService.GetFeeRangeAsync(id);
-        return StatusCode(result.StatusCode, result);
+        return await _feeRangeService.GetFeeRangeAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get fee range by category
     /// </summary>
     [HttpGet("ranges/category/{categoryId}")]
-    public async Task<ActionResult<JsonModel>> GetFeeRangeByCategory(Guid categoryId)
+    public async Task<JsonModel> GetFeeRangeByCategory(Guid categoryId)
     {
-        var result = await _feeRangeService.GetFeeRangeByCategoryAsync(categoryId);
-        return StatusCode(result.StatusCode, result);
+        return await _feeRangeService.GetFeeRangeByCategoryAsync(categoryId, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -202,20 +183,18 @@ public class ProviderFeeController : ControllerBase
     /// </summary>
     [HttpPut("ranges/{id}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> UpdateFeeRange(Guid id, [FromBody] UpdateCategoryFeeRangeDto updateDto)
+    public async Task<JsonModel> UpdateFeeRange(Guid id, [FromBody] UpdateCategoryFeeRangeDto updateDto)
     {
-        var result = await _feeRangeService.UpdateFeeRangeAsync(id, updateDto);
-        return StatusCode(result.StatusCode, result);
+        return await _feeRangeService.UpdateFeeRangeAsync(id, updateDto, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get all fee ranges
     /// </summary>
     [HttpGet("ranges")]
-    public async Task<ActionResult<JsonModel>> GetAllFeeRanges()
+    public async Task<JsonModel> GetAllFeeRanges()
     {
-        var result = await _feeRangeService.GetAllFeeRangesAsync();
-        return StatusCode(result.StatusCode, result);
+        return await _feeRangeService.GetAllFeeRangesAsync(GetToken(HttpContext));
     }
 
     /// <summary>
@@ -223,10 +202,9 @@ public class ProviderFeeController : ControllerBase
     /// </summary>
     [HttpDelete("ranges/{id}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> DeleteFeeRange(Guid id)
+    public async Task<JsonModel> DeleteFeeRange(Guid id)
     {
-        var result = await _feeRangeService.DeleteFeeRangeAsync(id);
-        return StatusCode(result.StatusCode, result);
+        return await _feeRangeService.DeleteFeeRangeAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -234,9 +212,8 @@ public class ProviderFeeController : ControllerBase
     /// </summary>
     [HttpGet("ranges/statistics")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GetFeeRangeStatistics()
+    public async Task<JsonModel> GetFeeRangeStatistics()
     {
-        var result = await _feeRangeService.GetFeeRangeStatisticsAsync();
-        return StatusCode(result.StatusCode, result);
+        return await _feeRangeService.GetFeeRangeStatisticsAsync(GetToken(HttpContext));
     }
 } 

@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTelehealth.Application.DTOs;
 using SmartTelehealth.Application.Interfaces;
+using System.Security.Claims;
 
 namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
-public class AuditController : ControllerBase
+public class AuditController : BaseController
 {
     private readonly IAuditService _auditService;
 
@@ -18,16 +19,24 @@ public class AuditController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<JsonModel>> GetAllAuditLogs()
+    public async Task<JsonModel> GetAllAuditLogs(
+        [FromQuery] string? action = null,
+        [FromQuery] string? userId = null,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50)
     {
-        var response = await _auditService.GetAuditLogsAsync();
-        return StatusCode(response.StatusCode, response);
+        var tokenModel = GetToken(HttpContext);
+        var response = await _auditService.GetAuditLogsAsync(action, userId, startDate, endDate, page, pageSize, tokenModel);
+        return response;
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<JsonModel>> GetAuditLog(Guid id)
+    public async Task<JsonModel> GetAuditLog(Guid id)
     {
-        var response = await _auditService.GetAuditLogByIdAsync(id);
-        return StatusCode(response.StatusCode, response);
+        var tokenModel = GetToken(HttpContext);
+        var response = await _auditService.GetAuditLogByIdAsync(id, tokenModel);
+        return response;
     }
 } 

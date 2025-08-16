@@ -9,7 +9,7 @@ namespace SmartTelehealth.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ConsultationsController : ControllerBase
+public class ConsultationsController : BaseController
 {
     private readonly IConsultationService _consultationService;
 
@@ -19,53 +19,46 @@ public class ConsultationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<JsonModel>> GetUserConsultations()
+    public async Task<JsonModel> GetUserConsultations()
     {
         var userId = GetCurrentUserId();
-        var response = await _consultationService.GetUserConsultationsAsync(userId);
-        return StatusCode(response.StatusCode, response);
+        return await _consultationService.GetUserConsultationsAsync(userId, GetToken(HttpContext));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<JsonModel>> GetConsultation(Guid id)
+    public async Task<JsonModel> GetConsultation(Guid id)
     {
-        var response = await _consultationService.GetConsultationByIdAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _consultationService.GetConsultationByIdAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost]
-    public async Task<ActionResult<JsonModel>> CreateConsultation(CreateConsultationDto createDto)
+    public async Task<JsonModel> CreateConsultation(CreateConsultationDto createDto)
     {
-        var response = await _consultationService.CreateConsultationAsync(createDto);
-        return StatusCode(response.StatusCode, response);
+        return await _consultationService.CreateConsultationAsync(createDto, GetToken(HttpContext));
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<JsonModel>> UpdateConsultation(Guid id, UpdateConsultationDto updateDto)
+    public async Task<JsonModel> UpdateConsultation(Guid id, UpdateConsultationDto updateDto)
     {
-        var response = await _consultationService.UpdateConsultationAsync(id, updateDto);
-        return StatusCode(response.StatusCode, response);
+        return await _consultationService.UpdateConsultationAsync(id, updateDto, GetToken(HttpContext));
     }
 
     [HttpPost("{id}/cancel")]
-    public async Task<ActionResult<JsonModel>> CancelConsultation(Guid id, [FromBody] string reason)
+    public async Task<JsonModel> CancelConsultation(Guid id, [FromBody] string reason)
     {
-        var response = await _consultationService.CancelConsultationAsync(id, reason);
-        return StatusCode(response.StatusCode, response);
+        return await _consultationService.CancelConsultationAsync(id, reason, GetToken(HttpContext));
     }
 
     [HttpPost("{id}/start")]
-    public async Task<ActionResult<JsonModel>> StartConsultation(Guid id)
+    public async Task<JsonModel> StartConsultation(Guid id)
     {
-        var response = await _consultationService.StartConsultationAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _consultationService.StartConsultationAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost("{id}/complete")]
-    public async Task<ActionResult<JsonModel>> CompleteConsultation(Guid id, [FromBody] string notes)
+    public async Task<JsonModel> CompleteConsultation(Guid id, [FromBody] string notes)
     {
-        var response = await _consultationService.CompleteConsultationAsync(id, notes);
-        return StatusCode(response.StatusCode, response);
+        return await _consultationService.CompleteConsultationAsync(id, notes, GetToken(HttpContext));
     }
 
     private int GetCurrentUserId()

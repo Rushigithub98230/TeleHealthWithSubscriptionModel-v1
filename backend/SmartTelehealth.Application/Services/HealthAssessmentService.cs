@@ -23,7 +23,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         _logger = logger;
     }
     
-    public async Task<JsonModel> CreateAssessmentAsync(CreateHealthAssessmentDto createDto)
+    public async Task<JsonModel> CreateAssessmentAsync(CreateHealthAssessmentDto createDto, TokenModel tokenModel)
     {
         try
         {
@@ -43,7 +43,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> GetAssessmentByIdAsync(Guid id)
+    public async Task<JsonModel> GetAssessmentByIdAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -61,7 +61,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> GetUserAssessmentsAsync(int userId)
+    public async Task<JsonModel> GetUserAssessmentsAsync(int userId, TokenModel tokenModel)
     {
         try
         {
@@ -76,7 +76,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> GetPendingAssessmentsAsync()
+    public async Task<JsonModel> GetPendingAssessmentsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -91,7 +91,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> UpdateAssessmentAsync(Guid id, UpdateHealthAssessmentDto updateDto)
+    public async Task<JsonModel> UpdateAssessmentAsync(Guid id, UpdateHealthAssessmentDto updateDto, TokenModel tokenModel)
     {
         try
         {
@@ -113,7 +113,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> DeleteAssessmentAsync(Guid id)
+    public async Task<JsonModel> DeleteAssessmentAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -130,7 +130,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> ReviewAssessmentAsync(Guid id, int providerId, bool isEligible, string notes)
+    public async Task<JsonModel> ReviewAssessmentAsync(Guid id, int providerId, bool isEligible, string notes, TokenModel tokenModel)
     {
         try
         {
@@ -155,7 +155,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> CompleteAssessmentAsync(Guid id)
+    public async Task<JsonModel> CompleteAssessmentAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -177,7 +177,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> CancelAssessmentAsync(Guid id, string reason)
+    public async Task<JsonModel> CancelAssessmentAsync(Guid id, string reason, TokenModel tokenModel)
     {
         try
         {
@@ -200,7 +200,7 @@ public class HealthAssessmentService : IHealthAssessmentService
     }
     
     // Assessment Templates - Placeholder implementations
-    public async Task<JsonModel> CreateAssessmentTemplateAsync(CreateAssessmentTemplateDto createDto)
+    public async Task<JsonModel> CreateAssessmentTemplateAsync(CreateAssessmentTemplateDto createDto, TokenModel tokenModel)
     {
         try
         {
@@ -225,7 +225,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> GetAssessmentTemplateAsync(Guid id)
+    public async Task<JsonModel> GetAssessmentTemplateAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -239,7 +239,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> GetAssessmentTemplatesByCategoryAsync(Guid categoryId)
+    public async Task<JsonModel> GetAssessmentTemplatesByCategoryAsync(Guid categoryId, TokenModel tokenModel)
     {
         try
         {
@@ -254,7 +254,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> UpdateAssessmentTemplateAsync(Guid id, UpdateAssessmentTemplateDto updateDto)
+    public async Task<JsonModel> UpdateAssessmentTemplateAsync(Guid id, UpdateAssessmentTemplateDto updateDto, TokenModel tokenModel)
     {
         try
         {
@@ -268,7 +268,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> DeleteAssessmentTemplateAsync(Guid id)
+    public async Task<JsonModel> DeleteAssessmentTemplateAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -283,7 +283,7 @@ public class HealthAssessmentService : IHealthAssessmentService
     }
     
     // Assessment Reports - Placeholder implementations
-    public async Task<JsonModel> GenerateAssessmentReportAsync(Guid assessmentId)
+    public async Task<JsonModel> GenerateAssessmentReportAsync(Guid assessmentId, TokenModel tokenModel)
     {
         try
         {
@@ -305,7 +305,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> ExportAssessmentReportAsync(Guid assessmentId, string format = "pdf")
+    public async Task<JsonModel> ExportAssessmentReportAsync(Guid assessmentId, string format, TokenModel tokenModel)
     {
         try
         {
@@ -320,7 +320,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> GetAssessmentReportsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetAssessmentReportsAsync(int userId, DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
@@ -336,7 +336,7 @@ public class HealthAssessmentService : IHealthAssessmentService
     }
     
     // Provider Workflow - Placeholder implementations
-    public async Task<JsonModel> GetProviderPendingAssessmentsAsync(int providerId)
+    public async Task<JsonModel> GetProviderPendingAssessmentsAsync(int providerId, TokenModel tokenModel)
     {
         try
         {
@@ -351,7 +351,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
 
-    public async Task<JsonModel> GetProviderReviewedAssessmentsAsync(int providerId)
+    public async Task<JsonModel> GetProviderReviewedAssessmentsAsync(int providerId, TokenModel tokenModel)
     {
         try
         {
@@ -366,7 +366,7 @@ public class HealthAssessmentService : IHealthAssessmentService
         }
     }
     
-    public async Task<JsonModel> AssignAssessmentToProviderAsync(Guid assessmentId, int providerId)
+    public async Task<JsonModel> AssignAssessmentToProviderAsync(Guid assessmentId, int providerId, TokenModel tokenModel)
     {
         try
         {

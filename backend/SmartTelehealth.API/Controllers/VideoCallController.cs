@@ -8,341 +8,265 @@ namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
-public class VideoCallController : ControllerBase
+public class VideoCallController : BaseController
 {
     private readonly IOpenTokService _openTokService;
     private readonly IConsultationService _consultationService;
-    private readonly ILogger<VideoCallController> _logger;
+    private readonly IVideoCallService _videoCallService;
 
     public VideoCallController(
         IOpenTokService openTokService,
         IConsultationService consultationService,
-        ILogger<VideoCallController> logger)
+        IVideoCallService videoCallService)
     {
         _openTokService = openTokService;
         _consultationService = consultationService;
-        _logger = logger;
+        _videoCallService = videoCallService;
     }
 
     /// <summary>
     /// Create a new video call session
     /// </summary>
     [HttpPost("sessions")]
-    public async Task<ActionResult<JsonModel>> CreateSession([FromBody] CreateVideoSessionDto createDto)
+    public async Task<JsonModel> CreateSession([FromBody] CreateVideoSessionDto createDto)
     {
-        try
-        {
-            var sessionResult = await _openTokService.CreateSessionAsync(createDto.SessionName, createDto.IsArchived);
-            
-            if (sessionResult.StatusCode != 200)
-                return StatusCode(sessionResult.StatusCode, sessionResult);
-
-            // Update consultation with meeting URL if consultation ID is provided
-            if (createDto.ConsultationId.HasValue)
-            {
-                var meetingUrl = $"/video-call/{((OpenTokSessionDto)sessionResult.data).SessionId}";
-                // You would typically update the consultation with the meeting URL here
-                _logger.LogInformation("Created video session for consultation: {ConsultationId}", createDto.ConsultationId.Value);
-            }
-
-            return Ok(sessionResult);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating video session");
-            return StatusCode(500, new JsonModel
-            {
-                data = new object(),
-                Message = "Failed to create video session",
-                StatusCode = 500
-            });
-        }
+        return await _openTokService.CreateSessionAsync(createDto.SessionName, createDto.IsArchived, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Generate a token for joining a video session
     /// </summary>
     [HttpPost("sessions/{sessionId}/token")]
-    public async Task<ActionResult<JsonModel>> GenerateToken(
+    public async Task<JsonModel> GenerateToken(
         string sessionId, 
         [FromBody] GenerateTokenDto generateDto)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var userName = GetCurrentUserName();
+        var userId = GetCurrentUserId();
+        var userName = GetCurrentUserName();
 
-            var tokenResult = await _openTokService.GenerateTokenAsync(
-                sessionId, 
-                userId.ToString(), 
-                userName, 
-                generateDto.Role);
-
-            if (tokenResult.StatusCode != 200)
-                return StatusCode(tokenResult.StatusCode, tokenResult);
-
-            return Ok(tokenResult);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating token for session: {SessionId}", sessionId);
-            return StatusCode(500, new JsonModel
-            {
-                data = new object(),
-                Message = "Failed to generate token",
-                StatusCode = 500
-            });
-        }
+        return await _openTokService.GenerateTokenAsync(
+            sessionId, 
+            userId.ToString(), 
+            userName, 
+            DateTime.UtcNow.AddHours(24), 
+            generateDto.Role, 
+            GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get session information
     /// </summary>
     [HttpGet("sessions/{sessionId}")]
-    public async Task<ActionResult<JsonModel>> GetSession(string sessionId)
+    public async Task<JsonModel> GetSession(string sessionId)
     {
-        try
-        {
-            var sessionResult = await _openTokService.GetSessionAsync(sessionId);
-            
-            if (sessionResult.StatusCode != 200)
-                return StatusCode(sessionResult.StatusCode, sessionResult);
-
-            return Ok(sessionResult);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving session: {SessionId}", sessionId);
-            return StatusCode(500, new JsonModel
-            {
-                data = new object(),
-                Message = "Failed to retrieve session",
-                StatusCode = 500
-            });
-        }
+        return await _openTokService.GetSessionAsync(sessionId, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Start recording a video session
+    /// Archive a video session
     /// </summary>
-    [HttpPost("sessions/{sessionId}/recordings")]
-    public async Task<ActionResult<JsonModel>> StartRecording(
-        string sessionId, 
-        [FromBody] StartRecordingDto recordingDto)
+    [HttpPost("sessions/{sessionId}/archive")]
+    public async Task<JsonModel> ArchiveSession(string sessionId)
     {
-        try
-        {
-            var options = new OpenTokRecordingOptions
-            {
-                Name = recordingDto.Name,
-                HasAudio = recordingDto.HasAudio,
-                HasVideo = recordingDto.HasVideo,
-                OutputMode = recordingDto.OutputMode,
-                Resolution = recordingDto.Resolution,
-                Layout = recordingDto.Layout,
-                MaxDuration = recordingDto.MaxDuration
-            };
-
-            var recordingResult = await _openTokService.StartRecordingAsync(sessionId, options);
-            
-            if (recordingResult.StatusCode != 200)
-                return StatusCode(recordingResult.StatusCode, recordingResult);
-
-            return Ok(recordingResult);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error starting recording for session: {SessionId}", sessionId);
-            return StatusCode(500, new JsonModel
-            {
-                data = new object(),
-                Message = "Failed to start recording",
-                StatusCode = 500
-            });
-        }
+        return await _openTokService.ArchiveSessionAsync(sessionId, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Stop recording a video session
+    /// Delete a video session
     /// </summary>
-    [HttpPost("recordings/{recordingId}/stop")]
-    public async Task<ActionResult<JsonModel>> StopRecording(string recordingId)
+    [HttpDelete("sessions/{sessionId}")]
+    public async Task<JsonModel> DeleteSession(string sessionId)
     {
-        try
-        {
-            var stopResult = await _openTokService.StopRecordingAsync(recordingId);
-            
-            if (stopResult.StatusCode != 200)
-                return StatusCode(stopResult.StatusCode, stopResult);
+        return await _openTokService.DeleteSessionAsync(sessionId, GetToken(HttpContext));
+    }
 
-            return Ok(stopResult);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error stopping recording: {RecordingId}", recordingId);
-            return StatusCode(500, new JsonModel
-            {
-                data = new object(),
-                Message = "Failed to stop recording",
-                StatusCode = 500
-            });
-        }
+
+
+    /// <summary>
+    /// Create a new video call
+    /// </summary>
+    [HttpPost]
+    public async Task<JsonModel> CreateVideoCall([FromBody] CreateVideoCallDto createDto)
+    {
+        return await _videoCallService.CreateAsync(createDto, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Get session recordings
+    /// Get video call by ID
     /// </summary>
-    [HttpGet("sessions/{sessionId}/recordings")]
-    public async Task<ActionResult<JsonModel>> GetSessionRecordings(string sessionId)
+    [HttpGet("{id}")]
+    public async Task<JsonModel> GetVideoCall(Guid id)
     {
-        try
-        {
-            var recordingsResult = await _openTokService.GetSessionRecordingsAsync(sessionId);
-            
-            if (recordingsResult.StatusCode != 200)
-                return StatusCode(recordingsResult.StatusCode, recordingsResult);
-
-            return Ok(recordingsResult);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving recordings for session: {SessionId}", sessionId);
-            return StatusCode(500, new JsonModel
-            {
-                data = new object(),
-                Message = "Failed to retrieve recordings",
-                StatusCode = 500
-            });
-        }
+        return await _videoCallService.GetByIdAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Start broadcasting a video session
+    /// Get video calls by user ID
     /// </summary>
-    [HttpPost("sessions/{sessionId}/broadcasts")]
-    public async Task<ActionResult<JsonModel>> StartBroadcast(
-        string sessionId, 
-        [FromBody] StartBroadcastDto broadcastDto)
+    [HttpGet("user/{userId}")]
+    public async Task<JsonModel> GetVideoCallsByUser(int userId)
     {
-        try
-        {
-            var options = new OpenTokBroadcastOptions
-            {
-                Name = broadcastDto.Name,
-                HlsUrl = broadcastDto.HlsUrl,
-                RtmpUrl = broadcastDto.RtmpUrl,
-                MaxDuration = broadcastDto.MaxDuration,
-                Resolution = broadcastDto.Resolution,
-                Layout = broadcastDto.Layout
-            };
-
-            var broadcastResult = await _openTokService.StartBroadcastAsync(sessionId, options);
-            
-            if (broadcastResult.StatusCode != 200)
-                return StatusCode(broadcastResult.StatusCode, broadcastResult);
-
-            return Ok(broadcastResult);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error starting broadcast for session: {SessionId}", sessionId);
-            return StatusCode(500, new JsonModel
-            {
-                data = new object(),
-                Message = "Failed to start broadcast",
-                StatusCode = 500
-            });
-        }
+        return await _videoCallService.GetByUserIdAsync(userId, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Stop broadcasting a video session
+    /// Get all video calls
     /// </summary>
-    [HttpPost("broadcasts/{broadcastId}/stop")]
-    public async Task<ActionResult<JsonModel>> StopBroadcast(string broadcastId)
+    [HttpGet]
+    public async Task<JsonModel> GetAllVideoCalls()
     {
-        try
-        {
-            var stopResult = await _openTokService.StopBroadcastAsync(broadcastId);
-            
-            if (stopResult.StatusCode != 200)
-                return StatusCode(stopResult.StatusCode, stopResult);
-
-            return Ok(stopResult);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error stopping broadcast: {BroadcastId}", broadcastId);
-            return StatusCode(500, new JsonModel
-            {
-                data = new object(),
-                Message = "Failed to stop broadcast",
-                StatusCode = 500
-            });
-        }
+        return await _videoCallService.GetAllAsync(GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Get session analytics
+    /// Update video call
     /// </summary>
-    [HttpGet("sessions/{sessionId}/analytics")]
-    public async Task<ActionResult<JsonModel>> GetSessionAnalytics(string sessionId)
+    [HttpPut("{id}")]
+    public async Task<JsonModel> UpdateVideoCall(Guid id, [FromBody] UpdateVideoCallDto updateDto)
     {
-        try
-        {
-            var analyticsResult = await _openTokService.GetSessionAnalyticsAsync(sessionId);
-            
-            if (analyticsResult.StatusCode != 200)
-                return StatusCode(analyticsResult.StatusCode, analyticsResult);
-
-            return Ok(analyticsResult);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving analytics for session: {SessionId}", sessionId);
-            return StatusCode(500, new JsonModel
-            {
-                data = new object(),
-                Message = "Failed to retrieve analytics",
-                StatusCode = 500
-            });
-        }
+        return await _videoCallService.UpdateAsync(id, updateDto, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Health check for video service
+    /// Delete video call
     /// </summary>
-    [HttpGet("health")]
-    public async Task<ActionResult<JsonModel>> HealthCheck()
+    [HttpDelete("{id}")]
+    public async Task<JsonModel> DeleteVideoCall(Guid id)
     {
-        try
-        {
-            var healthResult = await _openTokService.IsServiceHealthyAsync();
-            return Ok(healthResult);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Video service health check failed");
-            return StatusCode(500, new JsonModel
-            {
-                data = new object(),
-                Message = "Video service is unhealthy",
-                StatusCode = 500
-            });
-        }
+        return await _videoCallService.DeleteAsync(id, GetToken(HttpContext));
     }
 
-    private Guid GetCurrentUserId()
+    /// <summary>
+    /// Initiate video call
+    /// </summary>
+    [HttpPost("initiate")]
+    public async Task<JsonModel> InitiateVideoCall([FromBody] CreateVideoCallDto createDto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
+        return await _videoCallService.InitiateVideoCallAsync(createDto, GetToken(HttpContext));
     }
 
+    /// <summary>
+    /// Join video call
+    /// </summary>
+    [HttpPost("{callId}/join")]
+    public async Task<JsonModel> JoinVideoCall(Guid callId)
+    {
+        var userId = GetCurrentUserId();
+        return await _videoCallService.JoinVideoCallAsync(callId, userId, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Leave video call
+    /// </summary>
+    [HttpPost("{callId}/leave")]
+    public async Task<JsonModel> LeaveVideoCall(Guid callId)
+    {
+        var userId = GetCurrentUserId();
+        return await _videoCallService.LeaveVideoCallAsync(callId, userId, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// End video call
+    /// </summary>
+    [HttpPost("{callId}/end")]
+    public async Task<JsonModel> EndVideoCall(Guid callId, [FromBody] EndVideoCallDto endDto)
+    {
+        return await _videoCallService.EndVideoCallAsync(callId, endDto.Reason, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Reject video call
+    /// </summary>
+    [HttpPost("{callId}/reject")]
+    public async Task<JsonModel> RejectVideoCall(Guid callId, [FromBody] RejectVideoCallDto rejectDto)
+    {
+        return await _videoCallService.RejectVideoCallAsync(callId, rejectDto.Reason, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Toggle video
+    /// </summary>
+    [HttpPost("{callId}/video")]
+    public async Task<JsonModel> ToggleVideo(Guid callId, [FromBody] ToggleVideoDto toggleDto)
+    {
+        return await _videoCallService.ToggleVideoAsync(callId, toggleDto.Enabled, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Toggle audio
+    /// </summary>
+    [HttpPost("{callId}/audio")]
+    public async Task<JsonModel> ToggleAudio(Guid callId, [FromBody] ToggleAudioDto toggleDto)
+    {
+        return await _videoCallService.ToggleAudioAsync(callId, toggleDto.Enabled, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Start screen sharing
+    /// </summary>
+    [HttpPost("{callId}/screen-sharing/start")]
+    public async Task<JsonModel> StartScreenSharing(Guid callId)
+    {
+        return await _videoCallService.StartScreenSharingAsync(callId, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Stop screen sharing
+    /// </summary>
+    [HttpPost("{callId}/screen-sharing/stop")]
+    public async Task<JsonModel> StopScreenSharing(Guid callId)
+    {
+        return await _videoCallService.StopScreenSharingAsync(callId, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Update call quality
+    /// </summary>
+    [HttpPost("{callId}/quality")]
+    public async Task<JsonModel> UpdateCallQuality(Guid callId, [FromBody] UpdateCallQualityDto qualityDto)
+    {
+        return await _videoCallService.UpdateCallQualityAsync(
+            callId, 
+            qualityDto.AudioQuality ?? 0, 
+            qualityDto.VideoQuality ?? 0, 
+            qualityDto.NetworkQuality ?? 0, 
+            GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get video call participants
+    /// </summary>
+    [HttpGet("{callId}/participants")]
+    public async Task<JsonModel> GetVideoCallParticipants(Guid callId)
+    {
+        return await _videoCallService.GetVideoCallParticipantsAsync(callId, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Log video call event
+    /// </summary>
+    [HttpPost("{callId}/events")]
+    public async Task<JsonModel> LogVideoCallEvent(Guid callId, [FromBody] LogVideoCallEventDto eventDto)
+    {
+        return await _videoCallService.LogVideoCallEventAsync(callId, eventDto, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get current user ID from claims
+    /// </summary>
+    private int GetCurrentUserId()
+    {
+        var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+        return userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId) ? userId : 0;
+    }
+
+    /// <summary>
+    /// Get current user name from claims
+    /// </summary>
     private string GetCurrentUserName()
     {
-        var nameClaim = User.FindFirst(ClaimTypes.Name)?.Value;
-        return nameClaim ?? "Unknown User";
+        var userNameClaim = HttpContext.User.FindFirst(ClaimTypes.Name);
+        return userNameClaim?.Value ?? "Unknown User";
     }
 }
 

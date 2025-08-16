@@ -8,7 +8,7 @@ namespace SmartTelehealth.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin,SuperAdmin")]
-public class AnalyticsController : ControllerBase
+public class AnalyticsController : BaseController
 {
     private readonly IAnalyticsService _analyticsService;
 
@@ -20,35 +20,7 @@ public class AnalyticsController : ControllerBase
     [HttpGet("dashboard")]
     public async Task<ActionResult<JsonModel>> GetDashboardAnalytics()
     {
-        try
-        {
-            // Get all analytics data for dashboard
-            var subscriptionAnalytics = await _analyticsService.GetSubscriptionAnalyticsAsync(null, null);
-            var billingAnalytics = await _analyticsService.GetBillingAnalyticsAsync();
-            var userAnalytics = await _analyticsService.GetUserAnalyticsAsync();
-            var systemAnalytics = await _analyticsService.GetSystemAnalyticsAsync();
-
-            var dashboardData = new
-            {
-                subscriptions = subscriptionAnalytics.data,
-                billing = billingAnalytics.data,
-                users = userAnalytics.data,
-                system = systemAnalytics.data,
-                charts = new
-                {
-                    revenueTrends = new[] { 12000, 19000, 15000, 25000, 22000, 30000 },
-                    subscriptionGrowth = new[] { 45, 12, 8, 5 },
-                    paymentSuccessRate = new[] { 85, 10, 5 },
-                    planDistribution = new[] { 30, 45, 25 }
-                }
-            };
-
-            return Ok(new JsonModel { data = dashboardData, Message = "Dashboard analytics retrieved successfully", StatusCode = 200 });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new JsonModel { data = new object(), Message = "An error occurred while retrieving dashboard analytics", StatusCode = 500 });
-        }
+        return await _analyticsService.GetSubscriptionAnalyticsAsync(null, null, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -57,8 +29,7 @@ public class AnalyticsController : ControllerBase
     [HttpGet("subscriptions")]
     public async Task<ActionResult<JsonModel>> GetSubscriptionAnalytics()
     {
-        var response = await _analyticsService.GetSubscriptionAnalyticsAsync(null, null);
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetSubscriptionAnalyticsAsync(null, null, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -67,8 +38,7 @@ public class AnalyticsController : ControllerBase
     [HttpGet("billing")]
     public async Task<ActionResult<JsonModel>> GetBillingAnalytics()
     {
-        var response = await _analyticsService.GetBillingAnalyticsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetBillingAnalyticsAsync(null, null, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -77,8 +47,7 @@ public class AnalyticsController : ControllerBase
     [HttpGet("users")]
     public async Task<ActionResult<JsonModel>> GetUserAnalytics()
     {
-        var response = await _analyticsService.GetUserAnalyticsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetUserAnalyticsAsync(null, null, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -87,8 +56,7 @@ public class AnalyticsController : ControllerBase
     [HttpGet("providers")]
     public async Task<ActionResult<JsonModel>> GetProviderAnalytics()
     {
-        var response = await _analyticsService.GetProviderAnalyticsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetProviderAnalyticsAsync(null, null, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -97,8 +65,7 @@ public class AnalyticsController : ControllerBase
     [HttpGet("system")]
     public async Task<ActionResult<JsonModel>> GetSystemAnalytics()
     {
-        var response = await _analyticsService.GetSystemAnalyticsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetSystemAnalyticsAsync(GetToken(HttpContext));
     }
 
     /// <summary>
@@ -107,90 +74,123 @@ public class AnalyticsController : ControllerBase
     [HttpGet("system/health")]
     public async Task<ActionResult<JsonModel>> GetSystemHealth()
     {
-        var response = await _analyticsService.GetSystemHealthAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetSystemHealthAsync(GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get revenue analytics
+    /// </summary>
+    [HttpGet("revenue")]
+    public async Task<ActionResult<JsonModel>> GetRevenueAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _analyticsService.GetRevenueAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get user activity analytics
+    /// </summary>
+    [HttpGet("user-activity")]
+    public async Task<ActionResult<JsonModel>> GetUserActivityAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _analyticsService.GetUserActivityAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get appointment analytics
+    /// </summary>
+    [HttpGet("appointments")]
+    public async Task<ActionResult<JsonModel>> GetAppointmentAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _analyticsService.GetAppointmentAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get subscription analytics with plan filter
+    /// </summary>
+    [HttpGet("subscriptions/plan/{planId}")]
+    public async Task<ActionResult<JsonModel>> GetSubscriptionAnalyticsByPlan(string planId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _analyticsService.GetSubscriptionAnalyticsAsync(startDate, endDate, planId, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get subscription dashboard
+    /// </summary>
+    [HttpGet("subscriptions/dashboard")]
+    public async Task<ActionResult<JsonModel>> GetSubscriptionDashboard([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _analyticsService.GetSubscriptionDashboardAsync(startDate, endDate, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get churn analytics
+    /// </summary>
+    [HttpGet("churn")]
+    public async Task<ActionResult<JsonModel>> GetChurnAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _analyticsService.GetChurnAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get plan analytics
+    /// </summary>
+    [HttpGet("plans")]
+    public async Task<ActionResult<JsonModel>> GetPlanAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _analyticsService.GetPlanAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get usage analytics
+    /// </summary>
+    [HttpGet("usage")]
+    public async Task<ActionResult<JsonModel>> GetUsageAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _analyticsService.GetUsageAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Generate subscription report
     /// </summary>
     [HttpGet("reports/subscriptions")]
-    public async Task<ActionResult<JsonModel>> GenerateSubscriptionReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "pdf")
+    public async Task<ActionResult<JsonModel>> GenerateSubscriptionReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var response = await _analyticsService.GenerateSubscriptionReportAsync(startDate, endDate);
-            var fileName = $"subscription-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            return Ok(new JsonModel { data = new { fileData = response.data, fileName = fileName, contentType = GetContentType(format) }, Message = "Subscription report generated successfully", StatusCode = 200 });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new JsonModel { data = new object(), Message = "Error generating subscription report", StatusCode = 400 });
-        }
+        return await _analyticsService.GenerateSubscriptionReportAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Generate billing report
     /// </summary>
     [HttpGet("reports/billing")]
-    public async Task<ActionResult<JsonModel>> GenerateBillingReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "pdf")
+    public async Task<ActionResult<JsonModel>> GenerateBillingReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var response = await _analyticsService.GenerateBillingReportAsync(startDate, endDate);
-            var fileName = $"billing-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            return Ok(new JsonModel { data = new { fileData = response.data, fileName = fileName, contentType = GetContentType(format) }, Message = "Billing report generated successfully", StatusCode = 200 });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new JsonModel { data = new object(), Message = "Error generating billing report", StatusCode = 400 });
-        }
+        return await _analyticsService.GenerateBillingReportAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Generate user report
     /// </summary>
     [HttpGet("reports/users")]
-    public async Task<ActionResult<JsonModel>> GenerateUserReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "pdf")
+    public async Task<ActionResult<JsonModel>> GenerateUserReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var response = await _analyticsService.GenerateUserReportAsync(startDate, endDate);
-            var fileName = $"user-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            return Ok(new JsonModel { data = new { fileData = response.data, fileName = fileName, contentType = GetContentType(format) }, Message = "User report generated successfully", StatusCode = 200 });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new JsonModel { data = new object(), Message = "Error generating user report", StatusCode = 400 });
-        }
+        return await _analyticsService.GenerateUserReportAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Generate provider report
     /// </summary>
     [HttpGet("reports/providers")]
-    public async Task<ActionResult<JsonModel>> GenerateProviderReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "pdf")
+    public async Task<ActionResult<JsonModel>> GenerateProviderReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var response = await _analyticsService.GenerateProviderReportAsync(startDate, endDate);
-            var fileName = $"provider-report-{startDate:yyyy-MM-dd}-{endDate:yyyy-MM-dd}.{format}";
-            return Ok(new JsonModel { data = new { fileData = response.data, fileName = fileName, contentType = GetContentType(format) }, Message = "Provider report generated successfully", StatusCode = 200 });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new JsonModel { data = new object(), Message = "Error generating provider report", StatusCode = 400 });
-        }
+        return await _analyticsService.GenerateProviderReportAsync(startDate, endDate, GetToken(HttpContext));
     }
 
-    private string GetContentType(string format)
+    /// <summary>
+    /// Export subscription analytics
+    /// </summary>
+    [HttpGet("export/subscriptions")]
+    public async Task<ActionResult<JsonModel>> ExportSubscriptionAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        return format.ToLower() switch
-        {
-            "pdf" => "application/pdf",
-            "csv" => "text/csv",
-            "json" => "application/json",
-            _ => "application/octet-stream"
-        };
+        return await _analyticsService.ExportSubscriptionAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
 } 

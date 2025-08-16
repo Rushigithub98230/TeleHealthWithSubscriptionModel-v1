@@ -22,7 +22,7 @@ namespace SmartTelehealth.Application.Services
             _auditService = auditService;
         }
 
-        public async Task<JsonModel> GetAllProvidersAsync()
+        public async Task<JsonModel> GetAllProvidersAsync(TokenModel tokenModel)
         {
             var providers = await _providerRepository.GetAllAsync();
             var dtos = _mapper.Map<List<ProviderDto>>(providers);
@@ -34,7 +34,7 @@ namespace SmartTelehealth.Application.Services
             };
         }
 
-        public async Task<JsonModel> GetProviderByIdAsync(int id)
+        public async Task<JsonModel> GetProviderByIdAsync(int id, TokenModel tokenModel)
         {
             var provider = await _providerRepository.GetByIdAsync(id);
             if (provider == null)
@@ -53,12 +53,12 @@ namespace SmartTelehealth.Application.Services
             };
         }
 
-        public async Task<JsonModel> CreateProviderAsync(CreateProviderDto createProviderDto)
+        public async Task<JsonModel> CreateProviderAsync(CreateProviderDto createProviderDto, TokenModel tokenModel)
         {
             var provider = _mapper.Map<Provider>(createProviderDto);
             var created = await _providerRepository.CreateAsync(provider);
             var dto = _mapper.Map<ProviderDto>(created);
-            await _auditService.LogUserActionAsync(dto.Id.ToString(), "ProviderCreated", "Provider", dto.Id.ToString(), $"Provider {dto.FullName} created");
+            await _auditService.LogUserActionAsync(dto.Id.ToString(), "ProviderCreated", "Provider", dto.Id.ToString(), $"Provider {dto.FullName} created", tokenModel);
             return new JsonModel
             {
                 data = dto,
@@ -67,7 +67,7 @@ namespace SmartTelehealth.Application.Services
             };
         }
 
-        public async Task<JsonModel> UpdateProviderAsync(int id, UpdateProviderDto updateProviderDto)
+        public async Task<JsonModel> UpdateProviderAsync(int id, UpdateProviderDto updateProviderDto, TokenModel tokenModel)
         {
             var existing = await _providerRepository.GetByIdAsync(id);
             if (existing == null)
@@ -80,7 +80,7 @@ namespace SmartTelehealth.Application.Services
             _mapper.Map(updateProviderDto, existing);
             var updated = await _providerRepository.UpdateAsync(existing);
             var dto = _mapper.Map<ProviderDto>(updated);
-            await _auditService.LogUserActionAsync(dto.Id.ToString(), "ProviderUpdated", "Provider", dto.Id.ToString(), $"Provider {dto.FullName} updated");
+            await _auditService.LogUserActionAsync(dto.Id.ToString(), "ProviderUpdated", "Provider", dto.Id.ToString(), $"Provider {dto.FullName} updated", tokenModel);
             return new JsonModel
             {
                 data = dto,
@@ -89,7 +89,7 @@ namespace SmartTelehealth.Application.Services
             };
         }
 
-        public async Task<JsonModel> DeleteProviderAsync(int id)
+        public async Task<JsonModel> DeleteProviderAsync(int id, TokenModel tokenModel)
         {
             var result = await _providerRepository.DeleteAsync(id);
             if (!result)
@@ -99,7 +99,7 @@ namespace SmartTelehealth.Application.Services
                     Message = "Provider not found",
                     StatusCode = 404
                 };
-            await _auditService.LogUserActionAsync(id.ToString(), "ProviderDeleted", "Provider", id.ToString(), $"Provider {id} deleted");
+            await _auditService.LogUserActionAsync(id.ToString(), "ProviderDeleted", "Provider", id.ToString(), $"Provider {id} deleted", tokenModel);
             return new JsonModel
             {
                 data = true,

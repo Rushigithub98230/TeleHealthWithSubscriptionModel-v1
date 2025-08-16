@@ -4,30 +4,30 @@ namespace SmartTelehealth.Application.Interfaces;
 
 public interface IProviderFeeService
 {
-    Task<JsonModel> CreateFeeAsync(CreateProviderFeeDto createDto);
-    Task<JsonModel> GetFeeAsync(Guid id);
-    Task<JsonModel> GetFeeByProviderAndCategoryAsync(int providerId, Guid categoryId);
-    Task<JsonModel> UpdateFeeAsync(Guid id, UpdateProviderFeeDto updateDto);
-    Task<JsonModel> ProposeFeeAsync(Guid id);
-    Task<JsonModel> ReviewFeeAsync(Guid id, ReviewProviderFeeDto reviewDto);
-    Task<JsonModel> GetFeesByProviderAsync(int providerId);
-    Task<JsonModel> GetFeesByCategoryAsync(Guid categoryId);
-    Task<JsonModel> GetAllFeesAsync(string? status = null, int page = 1, int pageSize = 50);
-    Task<JsonModel> GetPendingFeesAsync();
-    Task<JsonModel> GetFeesByStatusAsync(string status);
-    Task<JsonModel> DeleteFeeAsync(Guid id);
-    Task<JsonModel> GetFeeStatisticsAsync();
+    Task<JsonModel> CreateFeeAsync(CreateProviderFeeDto createDto, TokenModel tokenModel);
+    Task<JsonModel> GetFeeAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> GetFeeByProviderAndCategoryAsync(int providerId, Guid categoryId, TokenModel tokenModel);
+    Task<JsonModel> UpdateFeeAsync(Guid id, UpdateProviderFeeDto updateDto, TokenModel tokenModel);
+    Task<JsonModel> ProposeFeeAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> ReviewFeeAsync(Guid id, ReviewProviderFeeDto reviewDto, TokenModel tokenModel);
+    Task<JsonModel> GetFeesByProviderAsync(int providerId, TokenModel tokenModel);
+    Task<JsonModel> GetFeesByCategoryAsync(Guid categoryId, TokenModel tokenModel);
+    Task<JsonModel> GetAllFeesAsync(string? status = null, int page = 1, int pageSize = 50, TokenModel tokenModel = null);
+    Task<JsonModel> GetPendingFeesAsync(TokenModel tokenModel);
+    Task<JsonModel> GetFeesByStatusAsync(string status, TokenModel tokenModel);
+    Task<JsonModel> DeleteFeeAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> GetFeeStatisticsAsync(TokenModel tokenModel);
 }
 
 public interface ICategoryFeeRangeService
 {
-    Task<JsonModel> CreateFeeRangeAsync(CreateCategoryFeeRangeDto createDto);
-    Task<JsonModel> GetFeeRangeAsync(Guid id);
-    Task<JsonModel> GetFeeRangeByCategoryAsync(Guid categoryId);
-    Task<JsonModel> UpdateFeeRangeAsync(Guid id, UpdateCategoryFeeRangeDto updateDto);
-    Task<JsonModel> GetAllFeeRangesAsync();
-    Task<JsonModel> DeleteFeeRangeAsync(Guid id);
-    Task<JsonModel> GetFeeRangeStatisticsAsync();
+    Task<JsonModel> CreateFeeRangeAsync(CreateCategoryFeeRangeDto createDto, TokenModel tokenModel);
+    Task<JsonModel> GetFeeRangeAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> GetFeeRangeByCategoryAsync(Guid categoryId, TokenModel tokenModel);
+    Task<JsonModel> UpdateFeeRangeAsync(Guid id, UpdateCategoryFeeRangeDto updateDto, TokenModel tokenModel);
+    Task<JsonModel> GetAllFeeRangesAsync(TokenModel tokenModel);
+    Task<JsonModel> DeleteFeeRangeAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> GetFeeRangeStatisticsAsync(TokenModel tokenModel);
 }
 
 public class FeeStatisticsDto

@@ -5,43 +5,43 @@ namespace SmartTelehealth.Application.Interfaces;
 public interface IConsultationService
 {
     // CRUD Operations
-    Task<JsonModel> CreateConsultationAsync(CreateConsultationDto createDto);
-    Task<JsonModel> GetConsultationByIdAsync(Guid id);
-    Task<JsonModel> GetProviderConsultationsAsync(Guid providerId);
-    Task<JsonModel> GetUpcomingConsultationsAsync();
-    Task<JsonModel> UpdateConsultationAsync(Guid id, UpdateConsultationDto updateDto);
-    Task<JsonModel> DeleteConsultationAsync(Guid id);
+    Task<JsonModel> CreateConsultationAsync(CreateConsultationDto createDto, TokenModel tokenModel);
+    Task<JsonModel> GetConsultationByIdAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> GetProviderConsultationsAsync(Guid providerId, TokenModel tokenModel);
+    Task<JsonModel> GetUpcomingConsultationsAsync(TokenModel tokenModel);
+    Task<JsonModel> UpdateConsultationAsync(Guid id, UpdateConsultationDto updateDto, TokenModel tokenModel);
+    Task<JsonModel> DeleteConsultationAsync(Guid id, TokenModel tokenModel);
     
     // Consultation Management
-    Task<JsonModel> CancelConsultationAsync(Guid id, string reason);
-    Task<JsonModel> StartConsultationAsync(Guid id);
-    Task<JsonModel> CompleteConsultationAsync(Guid id, string notes);
-    Task<JsonModel> RescheduleConsultationAsync(Guid id, DateTime newScheduledAt);
-    Task<JsonModel> MarkNoShowAsync(Guid id);
+    Task<JsonModel> CancelConsultationAsync(Guid id, string reason, TokenModel tokenModel);
+    Task<JsonModel> StartConsultationAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> CompleteConsultationAsync(Guid id, string notes, TokenModel tokenModel);
+    Task<JsonModel> RescheduleConsultationAsync(Guid id, DateTime newScheduledAt, TokenModel tokenModel);
+    Task<JsonModel> MarkNoShowAsync(Guid id, TokenModel tokenModel);
     
     // OpenTok Integration
-    Task<JsonModel> GenerateMeetingUrlAsync(Guid consultationId);
-    Task<JsonModel> JoinMeetingAsync(Guid consultationId, string participantId, string role);
-    Task<JsonModel> LeaveMeetingAsync(Guid consultationId, string participantId);
-    Task<JsonModel> StartRecordingAsync(Guid consultationId);
-    Task<JsonModel> StopRecordingAsync(Guid consultationId);
-    Task<JsonModel> GetRecordingsAsync(Guid consultationId);
+    Task<JsonModel> GenerateMeetingUrlAsync(Guid consultationId, TokenModel tokenModel);
+    Task<JsonModel> JoinMeetingAsync(Guid consultationId, string participantId, string role, TokenModel tokenModel);
+    Task<JsonModel> LeaveMeetingAsync(Guid consultationId, string participantId, TokenModel tokenModel);
+    Task<JsonModel> StartRecordingAsync(Guid consultationId, TokenModel tokenModel);
+    Task<JsonModel> StopRecordingAsync(Guid consultationId, TokenModel tokenModel);
+    Task<JsonModel> GetRecordingsAsync(Guid consultationId, TokenModel tokenModel);
     
     // Consultation Analytics
-    Task<JsonModel> GetConsultationAnalyticsAsync(Guid providerId, DateTime? startDate = null, DateTime? endDate = null);
-    Task<JsonModel> GetConsultationsByDateRangeAsync(DateTime startDate, DateTime endDate);
-    Task<JsonModel> CalculateProviderRevenueAsync(Guid providerId, DateTime? startDate = null, DateTime? endDate = null);
+    Task<JsonModel> GetConsultationAnalyticsAsync(Guid providerId, DateTime? startDate, DateTime? endDate, TokenModel tokenModel);
+    Task<JsonModel> GetConsultationsByDateRangeAsync(DateTime startDate, DateTime endDate, TokenModel tokenModel);
+    Task<JsonModel> CalculateProviderRevenueAsync(Guid providerId, DateTime? startDate, DateTime? endDate, TokenModel tokenModel);
     
     // One-Time Consultations
-    Task<JsonModel> CreateOneTimeConsultationAsync(CreateOneTimeConsultationDto createDto);
-    Task<JsonModel> ProcessOneTimePaymentAsync(Guid consultationId, string paymentMethodId);
+    Task<JsonModel> CreateOneTimeConsultationAsync(CreateOneTimeConsultationDto createDto, TokenModel tokenModel);
+    Task<JsonModel> ProcessOneTimePaymentAsync(Guid consultationId, string paymentMethodId, TokenModel tokenModel);
     
     // Follow-up Management
-    Task<JsonModel> GetFollowUpConsultationsAsync(Guid userId);
-    Task<JsonModel> ScheduleFollowUpAsync(Guid consultationId, DateTime followUpDate);
-    Task<JsonModel> CancelFollowUpAsync(Guid consultationId);
-    Task<JsonModel> GetUserOneTimeConsultationsAsync(int userId);
+    Task<JsonModel> GetFollowUpConsultationsAsync(Guid userId, TokenModel tokenModel);
+    Task<JsonModel> ScheduleFollowUpAsync(Guid consultationId, DateTime followUpDate, TokenModel tokenModel);
+    Task<JsonModel> CancelFollowUpAsync(Guid consultationId, TokenModel tokenModel);
+    Task<JsonModel> GetUserOneTimeConsultationsAsync(int userId, TokenModel tokenModel);
     
     // User Consultations
-    Task<JsonModel> GetUserConsultationsAsync(int userId);
+    Task<JsonModel> GetUserConsultationsAsync(int userId, TokenModel tokenModel);
 } 

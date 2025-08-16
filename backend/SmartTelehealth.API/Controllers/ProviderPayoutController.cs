@@ -8,31 +8,26 @@ namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
-public class ProviderPayoutController : ControllerBase
+public class ProviderPayoutController : BaseController
 {
     private readonly IProviderPayoutService _providerPayoutService;
     private readonly IPayoutPeriodService _periodService;
-    private readonly ILogger<ProviderPayoutController> _logger;
 
     public ProviderPayoutController(
         IProviderPayoutService providerPayoutService,
-        IPayoutPeriodService periodService,
-        ILogger<ProviderPayoutController> logger)
+        IPayoutPeriodService periodService)
     {
         _providerPayoutService = providerPayoutService;
         _periodService = periodService;
-        _logger = logger;
     }
 
     /// <summary>
     /// Get payout by ID
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<JsonModel>> GetPayout(Guid id)
+    public async Task<JsonModel> GetPayout(Guid id)
     {
-        var response = await _providerPayoutService.GetPayoutAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.GetPayoutAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -40,30 +35,27 @@ public class ProviderPayoutController : ControllerBase
     /// </summary>
     [HttpPost("{id}/process")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> ProcessPayout(Guid id, [FromBody] ProcessPayoutDto processDto)
+    public async Task<JsonModel> ProcessPayout(Guid id, [FromBody] ProcessPayoutDto processDto)
     {
-        var response = await _providerPayoutService.ProcessPayoutAsync(id, processDto);
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.ProcessPayoutAsync(id, processDto, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get payouts by provider
     /// </summary>
     [HttpGet("provider/{providerId}")]
-    public async Task<ActionResult<JsonModel>> GetPayoutsByProvider(int providerId)
+    public async Task<JsonModel> GetPayoutsByProvider(int providerId)
     {
-        var response = await _providerPayoutService.GetPayoutsByProviderAsync(providerId);
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.GetPayoutsByProviderAsync(providerId, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get payouts by period
     /// </summary>
     [HttpGet("period/{periodId}")]
-    public async Task<ActionResult<JsonModel>> GetPayoutsByPeriod(Guid periodId)
+    public async Task<JsonModel> GetPayoutsByPeriod(Guid periodId)
     {
-        var response = await _providerPayoutService.GetPayoutsByPeriodAsync(periodId);
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.GetPayoutsByPeriodAsync(periodId, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -71,13 +63,12 @@ public class ProviderPayoutController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GetAllPayouts(
+    public async Task<JsonModel> GetAllPayouts(
         [FromQuery] string? status = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50)
     {
-        var response = await _providerPayoutService.GetAllPayoutsAsync(status, page, pageSize);
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.GetAllPayoutsAsync(status, page, pageSize, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -85,10 +76,9 @@ public class ProviderPayoutController : ControllerBase
     /// </summary>
     [HttpGet("pending")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GetPendingPayouts()
+    public async Task<JsonModel> GetPendingPayouts()
     {
-        var response = await _providerPayoutService.GetPendingPayoutsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.GetPendingPayoutsAsync(GetToken(HttpContext));
     }
 
     /// <summary>
@@ -96,20 +86,18 @@ public class ProviderPayoutController : ControllerBase
     /// </summary>
     [HttpGet("status/{status}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GetPayoutsByStatus(string status)
+    public async Task<JsonModel> GetPayoutsByStatus(string status)
     {
-        var response = await _providerPayoutService.GetPayoutsByStatusAsync(status);
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.GetPayoutsByStatusAsync(status, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get provider earnings
     /// </summary>
     [HttpGet("provider/{providerId}/earnings")]
-    public async Task<ActionResult<JsonModel>> GetProviderEarnings(int providerId)
+    public async Task<JsonModel> GetProviderEarnings(int providerId)
     {
-        var response = await _providerPayoutService.GetProviderEarningsAsync(providerId);
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.GetProviderEarningsAsync(providerId, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -117,21 +105,19 @@ public class ProviderPayoutController : ControllerBase
     /// </summary>
     [HttpGet("statistics")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GetPayoutStatistics()
+    public async Task<JsonModel> GetPayoutStatistics()
     {
-        var response = await _providerPayoutService.GetPayoutStatisticsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.GetPayoutStatisticsAsync(GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Generate payouts for period
+    /// Generate payouts for a period
     /// </summary>
     [HttpPost("period/{periodId}/generate")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GeneratePayoutsForPeriod(Guid periodId)
+    public async Task<JsonModel> GeneratePayoutsForPeriod(Guid periodId)
     {
-        var response = await _providerPayoutService.GeneratePayoutsForPeriodAsync(periodId);
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.GeneratePayoutsForPeriodAsync(periodId, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -139,96 +125,87 @@ public class ProviderPayoutController : ControllerBase
     /// </summary>
     [HttpPost("process-all-pending")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> ProcessAllPendingPayouts()
+    public async Task<JsonModel> ProcessAllPendingPayouts()
     {
-        var response = await _providerPayoutService.ProcessAllPendingPayoutsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _providerPayoutService.ProcessAllPendingPayoutsAsync(GetToken(HttpContext));
     }
 
-    // Payout Period endpoints
+    // Payout Period Management
 
     /// <summary>
     /// Create a new payout period
     /// </summary>
     [HttpPost("periods")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> CreatePeriod([FromBody] CreatePayoutPeriodDto createDto)
+    public async Task<JsonModel> CreatePayoutPeriod([FromBody] CreatePayoutPeriodDto createDto)
     {
-        var response = await _periodService.CreatePeriodAsync(createDto);
-        return StatusCode(response.StatusCode, response);
+        return await _periodService.CreatePeriodAsync(createDto, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Get period by ID
+    /// Get payout period by ID
     /// </summary>
     [HttpGet("periods/{id}")]
-    public async Task<ActionResult<JsonModel>> GetPeriod(Guid id)
+    public async Task<JsonModel> GetPayoutPeriod(Guid id)
     {
-        var response = await _periodService.GetPeriodAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _periodService.GetPeriodAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Update period
+    /// Update payout period
     /// </summary>
     [HttpPut("periods/{id}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> UpdatePeriod(Guid id, [FromBody] CreatePayoutPeriodDto updateDto)
+    public async Task<JsonModel> UpdatePayoutPeriod(Guid id, [FromBody] CreatePayoutPeriodDto updateDto)
     {
-        var response = await _periodService.UpdatePeriodAsync(id, updateDto);
-        return StatusCode(response.StatusCode, response);
+        return await _periodService.UpdatePeriodAsync(id, updateDto, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Get all periods
+    /// Get all payout periods
     /// </summary>
     [HttpGet("periods")]
-    public async Task<ActionResult<JsonModel>> GetAllPeriods()
+    public async Task<JsonModel> GetAllPayoutPeriods()
     {
-        var response = await _periodService.GetAllPeriodsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _periodService.GetAllPeriodsAsync(GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Get active periods
+    /// Get active payout periods
     /// </summary>
     [HttpGet("periods/active")]
-    public async Task<ActionResult<JsonModel>> GetActivePeriods()
+    public async Task<JsonModel> GetActivePayoutPeriods()
     {
-        var response = await _periodService.GetActivePeriodsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _periodService.GetActivePeriodsAsync(GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Delete period
+    /// Delete payout period
     /// </summary>
     [HttpDelete("periods/{id}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> DeletePeriod(Guid id)
+    public async Task<JsonModel> DeletePayoutPeriod(Guid id)
     {
-        var response = await _periodService.DeletePeriodAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _periodService.DeletePeriodAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Process period
+    /// Process payout period
     /// </summary>
     [HttpPost("periods/{id}/process")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> ProcessPeriod(Guid id)
+    public async Task<JsonModel> ProcessPayoutPeriod(Guid id)
     {
-        var response = await _periodService.ProcessPeriodAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _periodService.ProcessPeriodAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Get period statistics
+    /// Get payout period statistics
     /// </summary>
-    [HttpGet("periods/{id}/statistics")]
+    [HttpGet("periods/statistics")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<ActionResult<JsonModel>> GetPeriodStatistics()
+    public async Task<JsonModel> GetPayoutPeriodStatistics()
     {
-        var response = await _periodService.GetPeriodStatisticsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _periodService.GetPeriodStatisticsAsync(GetToken(HttpContext));
     }
 } 

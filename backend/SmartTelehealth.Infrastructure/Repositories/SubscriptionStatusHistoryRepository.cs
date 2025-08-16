@@ -50,7 +50,7 @@ public class SubscriptionStatusHistoryRepository : ISubscriptionStatusHistoryRep
 
     public async Task<SubscriptionStatusHistory> CreateAsync(SubscriptionStatusHistory history)
     {
-        history.CreatedAt = DateTime.UtcNow;
+        history.CreatedDate = DateTime.UtcNow;
         _context.SubscriptionStatusHistories.Add(history);
         await _context.SaveChangesAsync();
         return history;
@@ -58,7 +58,7 @@ public class SubscriptionStatusHistoryRepository : ISubscriptionStatusHistoryRep
 
     public async Task<SubscriptionStatusHistory> UpdateAsync(SubscriptionStatusHistory history)
     {
-        history.UpdatedAt = DateTime.UtcNow;
+        history.UpdatedDate = DateTime.UtcNow;
         _context.SubscriptionStatusHistories.Update(history);
         await _context.SaveChangesAsync();
         return history;
@@ -70,7 +70,7 @@ public class SubscriptionStatusHistoryRepository : ISubscriptionStatusHistoryRep
         if (history == null) return false;
 
         history.IsDeleted = true;
-        history.UpdatedAt = DateTime.UtcNow;
+        history.UpdatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }

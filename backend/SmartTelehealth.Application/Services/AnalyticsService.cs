@@ -38,57 +38,59 @@ public class AnalyticsService : IAnalyticsService
         _mapper = mapper;
     }
 
-    public async Task<JsonModel> GetRevenueAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetRevenueAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
             var analytics = new RevenueAnalyticsDto
             {
-                TotalRevenue = await GetTotalRevenueAsync(startDate, endDate),
-                MonthlyRevenue = await GetMonthlyRecurringRevenueAsync(),
-                AnnualRevenue = await GetAnnualRecurringRevenueAsync(),
-                TotalSubscriptions = await GetTotalSubscriptionsAsync(),
-                ActiveSubscriptions = await GetActiveSubscriptionsAsync(),
-                NewSubscriptionsThisMonth = await GetNewSubscriptionsThisMonthAsync(),
-                CancelledSubscriptionsThisMonth = await GetCancelledSubscriptionsAsync(),
-                AverageRevenuePerSubscription = await CalculateAverageSubscriptionValueAsync(),
-                TotalRefunds = await GetRefundsIssuedAsync(startDate, endDate)
+                TotalRevenue = await GetTotalRevenueAsync(startDate, endDate, tokenModel),
+                MonthlyRevenue = await GetMonthlyRecurringRevenueAsync(tokenModel),
+                AnnualRevenue = await GetAnnualRecurringRevenueAsync(tokenModel),
+                TotalSubscriptions = await GetTotalSubscriptionsAsync(tokenModel),
+                ActiveSubscriptions = await GetActiveSubscriptionsAsync(tokenModel),
+                NewSubscriptionsThisMonth = await GetNewSubscriptionsThisMonthAsync(tokenModel),
+                CancelledSubscriptionsThisMonth = await GetCancelledSubscriptionsAsync(tokenModel),
+                AverageRevenuePerSubscription = await CalculateAverageSubscriptionValueAsync(tokenModel),
+                TotalRefunds = await GetRefundsIssuedAsync(startDate, endDate, tokenModel)
             };
 
+            _logger.LogInformation("Revenue analytics retrieved by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = analytics, Message = "Revenue analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting revenue analytics");
+            _logger.LogError(ex, "Error getting revenue analytics by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error retrieving revenue analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> GetUserActivityAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetUserActivityAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
             var analytics = new UserActivityAnalyticsDto
             {
-                TotalUsers = await GetTotalUsersAsync(),
-                ActiveUsers = await GetActiveUsersAsync(),
-                NewUsersThisMonth = await GetNewUsersThisMonthAsync(),
-                UsersWithActiveSubscriptions = await GetActiveSubscriptionsAsync(),
+                TotalUsers = await GetTotalUsersAsync(tokenModel),
+                ActiveUsers = await GetActiveUsersAsync(tokenModel),
+                NewUsersThisMonth = await GetNewUsersThisMonthAsync(tokenModel),
+                UsersWithActiveSubscriptions = await GetActiveSubscriptionsAsync(tokenModel),
                 AverageConsultationsPerUser = 0, // TODO: Implement
                 AverageMessagesPerUser = 0, // TODO: Implement
                 TotalLogins = 0 // TODO: Implement
             };
 
+            _logger.LogInformation("User activity analytics retrieved by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = analytics, Message = "User activity analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting user activity analytics");
+            _logger.LogError(ex, "Error getting user activity analytics by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error retrieving user activity analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> GetAppointmentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetAppointmentAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
@@ -102,333 +104,366 @@ public class AnalyticsService : IAnalyticsService
                 AverageAppointmentDuration = 0 // TODO: Implement
             };
 
+            _logger.LogInformation("Appointment analytics retrieved by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = analytics, Message = "Appointment analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting appointment analytics");
+            _logger.LogError(ex, "Error getting appointment analytics by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error retrieving appointment analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
             var analytics = new SubscriptionAnalyticsDto
             {
-                TotalSubscriptions = await GetTotalSubscriptionsAsync(),
-                ActiveSubscriptions = await GetActiveSubscriptionsAsync(),
-                PausedSubscriptions = await GetPausedSubscriptionsAsync(),
-                CancelledSubscriptions = await GetCancelledSubscriptionsAsync(),
-                NewSubscriptionsThisMonth = await GetNewSubscriptionsThisMonthAsync(),
-                ChurnRate = await CalculateChurnRateAsync(),
-                AverageSubscriptionValue = await CalculateAverageSubscriptionValueAsync(),
-                TopCategories = await GetTopCategoriesAsync(),
-                MonthlyGrowth = await GetMonthlyGrowthAsync()
+                TotalSubscriptions = await GetTotalSubscriptionsAsync(tokenModel),
+                ActiveSubscriptions = await GetActiveSubscriptionsAsync(tokenModel),
+                PausedSubscriptions = await GetPausedSubscriptionsAsync(tokenModel),
+                CancelledSubscriptions = await GetCancelledSubscriptionsAsync(tokenModel),
+                NewSubscriptionsThisMonth = await GetNewSubscriptionsThisMonthAsync(tokenModel),
+                ChurnRate = await CalculateChurnRateAsync(startDate, endDate, tokenModel),
+                AverageSubscriptionValue = await CalculateAverageSubscriptionValueAsync(tokenModel),
+                MonthlyGrowth = await GetMonthlyGrowthAsync(tokenModel)
             };
 
+            _logger.LogInformation("Subscription analytics retrieved by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = analytics, Message = "Subscription analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting subscription analytics");
+            _logger.LogError(ex, "Error getting subscription analytics by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error retrieving subscription analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null, string? planId = null)
+    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(DateTime? startDate, DateTime? endDate, string? planId, TokenModel tokenModel)
     {
         try
         {
             var analytics = new SubscriptionAnalyticsDto
             {
-                TotalSubscriptions = await GetTotalSubscriptionsAsync(),
-                ActiveSubscriptions = await GetActiveSubscriptionsAsync(),
-                PausedSubscriptions = await GetPausedSubscriptionsAsync(),
-                CancelledSubscriptions = await GetCancelledSubscriptionsAsync(),
-                NewSubscriptionsThisMonth = await GetNewSubscriptionsThisMonthAsync(),
-                ChurnRate = await CalculateChurnRateAsync(),
-                AverageSubscriptionValue = await CalculateAverageSubscriptionValueAsync(),
-                TopCategories = await GetTopCategoriesAsync(),
-                MonthlyGrowth = await GetMonthlyGrowthAsync()
+                TotalSubscriptions = await GetTotalSubscriptionsAsync(tokenModel),
+                ActiveSubscriptions = await GetActiveSubscriptionsAsync(tokenModel),
+                PausedSubscriptions = await GetPausedSubscriptionsAsync(tokenModel),
+                CancelledSubscriptions = await GetCancelledSubscriptionsAsync(tokenModel),
+                NewSubscriptionsThisMonth = await GetNewSubscriptionsThisMonthAsync(tokenModel),
+                ChurnRate = await CalculateChurnRateAsync(startDate, endDate, tokenModel),
+                AverageSubscriptionValue = await CalculateAverageSubscriptionValueAsync(tokenModel),
+                MonthlyGrowth = await GetMonthlyGrowthAsync(tokenModel)
             };
 
+            _logger.LogInformation("Subscription analytics for plan {PlanId} retrieved by user {UserId}", planId, tokenModel?.UserID ?? 0);
             return new JsonModel { data = analytics, Message = "Subscription analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting subscription analytics");
+            _logger.LogError(ex, "Error getting subscription analytics for plan {PlanId} by user {UserId}", planId, tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error retrieving subscription analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> GetSubscriptionDashboardAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetSubscriptionDashboardAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
+            var subscriptionAnalyticsResult = await GetSubscriptionAnalyticsAsync(startDate, endDate, tokenModel);
+            var subscriptionAnalytics = subscriptionAnalyticsResult.data as SubscriptionAnalyticsDto ?? new SubscriptionAnalyticsDto();
+            
+            var revenueResult = await GetRevenueAnalyticsAsync(startDate, endDate, tokenModel);
+            var revenue = revenueResult.data as RevenueAnalyticsDto ?? new RevenueAnalyticsDto();
+            
             var dashboard = new SubscriptionDashboardDto
             {
-                Period = new DateRangeDto
-                {
-                    StartDate = startDate ?? DateTime.UtcNow.AddDays(-30),
-                    EndDate = endDate ?? DateTime.UtcNow
-                },
-                Overview = await GetOverviewMetricsAsync(startDate, endDate),
-                Revenue = await GetRevenueMetricsAsync(startDate, endDate),
-                Churn = await GetChurnMetricsAsync(startDate, endDate),
-                Plans = await GetPlanMetricsAsync(startDate, endDate),
-                Usage = await GetUsageMetricsAsync(startDate, endDate),
-                Trends = new TrendAnalyticsDto
-                {
-                    MonthlyTrends = new List<MonthlyTrendDto>(), // TODO: Implement monthly trends
-                    YearlyTrends = new List<YearlyTrendDto>(), // TODO: Implement yearly trends
-                    SeasonalTrends = new List<SeasonalTrendDto>() // TODO: Implement seasonal trends
-                }
+                Revenue = revenue,
+                SubscriptionAnalytics = subscriptionAnalytics,
+                TopCategories = await GetTopCategoriesAsync(startDate, endDate, tokenModel),
+                RevenueTrends = await GetRevenueTrendAsync(startDate, endDate, tokenModel),
+                CategoryRevenue = await GetRevenueByCategoryAsync(startDate, endDate, tokenModel)
             };
 
+            _logger.LogInformation("Subscription dashboard retrieved by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = dashboard, Message = "Subscription dashboard retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting subscription dashboard");
+            _logger.LogError(ex, "Error getting subscription dashboard by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error retrieving subscription dashboard", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> GetChurnAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+            public async Task<JsonModel> GetChurnAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
-            var churnAnalytics = await GetChurnMetricsAsync(startDate ?? DateTime.UtcNow.AddDays(-30), endDate ?? DateTime.UtcNow);
+            var churnAnalytics = await GetChurnMetricsAsync(startDate ?? DateTime.UtcNow.AddDays(-30), endDate ?? DateTime.UtcNow, tokenModel);
+            _logger.LogInformation("Churn analytics retrieved by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = churnAnalytics, Message = "Churn analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting churn analytics");
+            _logger.LogError(ex, "Error getting churn analytics by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error retrieving churn analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> GetPlanAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+            public async Task<JsonModel> GetPlanAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
             var planAnalytics = await GetPlanMetricsAsync(startDate ?? DateTime.UtcNow.AddDays(-30), endDate ?? DateTime.UtcNow);
+            _logger.LogInformation("Plan analytics retrieved by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = planAnalytics, Message = "Plan analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting plan analytics");
+            _logger.LogError(ex, "Error getting plan analytics by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error retrieving plan analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> GetUsageAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+            public async Task<JsonModel> GetUsageAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
-            var usageAnalytics = await GetUsageMetricsAsync(startDate ?? DateTime.UtcNow.AddDays(-30), endDate ?? DateTime.UtcNow);
+            var usageAnalytics = await GetUsageMetricsAsync(startDate ?? DateTime.UtcNow.AddDays(-30), endDate ?? DateTime.UtcNow, tokenModel);
+            _logger.LogInformation("Usage analytics retrieved by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = usageAnalytics, Message = "Usage analytics retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting usage analytics");
+            _logger.LogError(ex, "Error getting usage analytics by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error retrieving usage analytics", StatusCode = 500 };
         }
     }
 
-    public async Task<decimal> GetMonthlyRecurringRevenueAsync()
+            public async Task<decimal> GetMonthlyRecurringRevenueAsync(TokenModel tokenModel)
     {
         try
         {
             var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync();
-            return activeSubscriptions.Sum(s => s.CurrentPrice);
+            var mrr = activeSubscriptions.Sum(s => s.Amount);
+            
+            _logger.LogInformation("Monthly recurring revenue calculated by user {UserId}: {MRR}", tokenModel?.UserID ?? 0, mrr);
+            return mrr;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating monthly recurring revenue");
+            _logger.LogError(ex, "Error calculating monthly recurring revenue by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<decimal> GetAnnualRecurringRevenueAsync()
+            public async Task<decimal> GetAnnualRecurringRevenueAsync(TokenModel tokenModel)
     {
         try
         {
-            var mrr = await GetMonthlyRecurringRevenueAsync();
-            return mrr * 12;
+            var mrr = await GetMonthlyRecurringRevenueAsync(tokenModel);
+            var arr = mrr * 12;
+            
+            _logger.LogInformation("Annual recurring revenue calculated by user {UserId}: {ARR}", tokenModel?.UserID ?? 0, arr);
+            return arr;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating annual recurring revenue");
+            _logger.LogError(ex, "Error calculating annual recurring revenue by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<decimal> CalculateChurnRateAsync(DateTime? startDate = null, DateTime? endDate = null)
+            public async Task<decimal> CalculateChurnRateAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
-            var subscriptions = (await _subscriptionRepository.GetActiveSubscriptionsAsync()).ToList();
-            var cancelledSubscriptions = subscriptions.Count(s => s.IsCancelled);
-            var totalSubscriptions = subscriptions.Count;
-
-            if (totalSubscriptions == 0) return 0;
-
-            return (decimal)cancelledSubscriptions / totalSubscriptions * 100;
+            var start = startDate ?? DateTime.UtcNow.AddMonths(-1);
+            var end = endDate ?? DateTime.UtcNow;
+            
+            var totalSubscriptionsAtStart = await _subscriptionRepository.GetActiveSubscriptionsCountAsync();
+            var cancelledSubscriptions = await _subscriptionRepository.GetCancelledSubscriptionsCountAsync();
+            
+            var churnRate = totalSubscriptionsAtStart > 0 ? (decimal)cancelledSubscriptions / totalSubscriptionsAtStart * 100 : 0;
+            
+            _logger.LogInformation("Churn rate calculated by user {UserId}: {ChurnRate}%", tokenModel?.UserID ?? 0, churnRate);
+            return churnRate;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating churn rate");
+            _logger.LogError(ex, "Error calculating churn rate by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<decimal> CalculateAverageSubscriptionValueAsync()
+            public async Task<decimal> CalculateAverageSubscriptionValueAsync(TokenModel tokenModel)
     {
         try
         {
-            var subscriptions = (await _subscriptionRepository.GetActiveSubscriptionsAsync()).ToList();
-            if (!subscriptions.Any()) return 0;
-
-            return subscriptions.Average(s => s.CurrentPrice);
+            var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync();
+            var averageValue = activeSubscriptions.Any() ? activeSubscriptions.Average(s => s.Amount) : 0;
+            
+            _logger.LogInformation("Average subscription value calculated by user {UserId}: {AverageValue}", tokenModel?.UserID ?? 0, averageValue);
+            return averageValue;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating average subscription value");
+            _logger.LogError(ex, "Error calculating average subscription value by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<IEnumerable<CategoryAnalyticsDto>> GetTopCategoriesAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<IEnumerable<CategoryAnalyticsDto>> GetTopCategoriesAsync(DateTime? startDate = null, DateTime? endDate = null, TokenModel tokenModel = null)
     {
         try
         {
-            var subscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync();
+            var start = startDate ?? DateTime.UtcNow.AddMonths(-12);
+            var end = endDate ?? DateTime.UtcNow;
+            
             var categories = await _categoryRepository.GetAllActiveAsync();
-
-            var categoryAnalyticsList = new List<CategoryAnalyticsDto>();
+            var categoryAnalytics = new List<CategoryAnalyticsDto>();
             
             foreach (var category in categories)
             {
-                int subscriptionCount = 0;
-                decimal revenue = 0;
-                // For each plan in this category, count subscriptions
-                foreach (var plan in category.SubscriptionPlans)
+                var subscriptions = await _subscriptionRepository.GetByCategoryIdAsync(category.Id);
+                var subscriptionsInRange = subscriptions.Where(s => s.CreatedDate >= start && s.CreatedDate <= end);
+                
+                var analytics = new CategoryAnalyticsDto
                 {
-                    var planSubscriptions = subscriptions.Where(s => s.SubscriptionPlanId == plan.Id);
-                    subscriptionCount += planSubscriptions.Count();
-                    revenue += planSubscriptions.Sum(s => s.CurrentPrice);
-                }
-                categoryAnalyticsList.Add(new CategoryAnalyticsDto
-                {
+                    CategoryId = category.Id,
                     CategoryName = category.Name,
-                    SubscriptionCount = subscriptionCount,
-                    Revenue = revenue,
-                    GrowthRate = 0 // TODO: Calculate growth rate
-                });
+                    TotalSubscriptions = subscriptionsInRange.Count(),
+                    ActiveSubscriptions = subscriptionsInRange.Count(s => s.Status == "Active"),
+                    Revenue = subscriptionsInRange.Sum(s => s.Amount),
+                    GrowthRate = 0 // TODO: Implement growth rate calculation
+                };
+                
+                categoryAnalytics.Add(analytics);
             }
-            // Sort by revenue descending and take top 10
-            categoryAnalyticsList.Sort((a, b) => b.Revenue.CompareTo(a.Revenue));
-            if (categoryAnalyticsList.Count > 10)
-            {
-                return categoryAnalyticsList.Take(10);
-            }
-            return categoryAnalyticsList;
+            
+            var topCategories = categoryAnalytics
+                .OrderByDescending(ca => ca.Revenue)
+                .Take(10)
+                .ToList();
+            
+            _logger.LogInformation("Top categories analytics calculated by user {UserId}: {CategoryCount} categories", 
+                tokenModel?.UserID ?? 0, topCategories.Count);
+            return topCategories;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting top categories");
-            return new List<CategoryAnalyticsDto>();
+            _logger.LogError(ex, "Error calculating top categories analytics by user {UserId}", tokenModel?.UserID ?? 0);
+            return Enumerable.Empty<CategoryAnalyticsDto>();
         }
     }
 
-    public async Task<decimal> GetMonthlyGrowthAsync()
+            public async Task<decimal> GetMonthlyGrowthAsync(TokenModel tokenModel)
     {
         try
         {
-            // TODO: Implement monthly growth calculation
-            return 12.5m;
+            var currentMonth = await GetMonthlyRecurringRevenueAsync(tokenModel);
+            var lastMonth = await GetMonthlyRecurringRevenueAsync(tokenModel); // TODO: Implement last month calculation
+            
+            var growthRate = lastMonth > 0 ? ((currentMonth - lastMonth) / lastMonth) * 100 : 0;
+            
+            _logger.LogInformation("Monthly growth rate calculated by user {UserId}: {GrowthRate}%", tokenModel?.UserID ?? 0, growthRate);
+            return growthRate;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating monthly growth");
+            _logger.LogError(ex, "Error calculating monthly growth rate by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<int> GetNewSubscriptionsThisMonthAsync()
+            public async Task<int> GetNewSubscriptionsThisMonthAsync(TokenModel tokenModel)
     {
         try
         {
-            var subscriptions = (await _subscriptionRepository.GetActiveSubscriptionsAsync()).ToList();
             var startOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-            return subscriptions.Count(s => s.CreatedAt >= startOfMonth);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+            
+            var newSubscriptions = await _subscriptionRepository.GetSubscriptionsCreatedInRangeAsync(startOfMonth, endOfMonth);
+            var count = newSubscriptions.Count();
+            
+            _logger.LogInformation("New subscriptions this month calculated by user {UserId}: {Count}", tokenModel?.UserID ?? 0, count);
+            return count;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting new subscriptions this month");
+            _logger.LogError(ex, "Error calculating new subscriptions this month by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<int> GetActiveSubscriptionsAsync()
+            public async Task<int> GetActiveSubscriptionsAsync(TokenModel tokenModel)
     {
         try
         {
-            var subscriptions = (await _subscriptionRepository.GetActiveSubscriptionsAsync()).ToList();
-            return subscriptions.Count(s => s.IsActive);
+            var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync();
+            var count = activeSubscriptions.Count();
+            
+            _logger.LogInformation("Active subscriptions count calculated by user {UserId}: {Count}", tokenModel?.UserID ?? 0, count);
+            return count;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting active subscriptions");
+            _logger.LogError(ex, "Error calculating active subscriptions count by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<int> GetPausedSubscriptionsAsync()
+    public async Task<int> GetPausedSubscriptionsAsync(TokenModel tokenModel)
     {
         try
         {
-            var subscriptions = (await _subscriptionRepository.GetActiveSubscriptionsAsync()).ToList();
-            return subscriptions.Count(s => s.IsPaused);
+            var pausedSubscriptions = await _subscriptionRepository.GetPausedSubscriptionsAsync();
+            var count = pausedSubscriptions.Count();
+            
+            _logger.LogInformation("Paused subscriptions count calculated by user {UserId}: {Count}", tokenModel?.UserID ?? 0, count);
+            return count;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting paused subscriptions");
+            _logger.LogError(ex, "Error calculating paused subscriptions count by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<int> GetCancelledSubscriptionsAsync()
+    public async Task<int> GetCancelledSubscriptionsAsync(TokenModel tokenModel)
     {
         try
         {
-            var subscriptions = (await _subscriptionRepository.GetActiveSubscriptionsAsync()).ToList();
-            return subscriptions.Count(s => s.IsCancelled);
+            var startOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+            
+            var cancelledSubscriptions = await _subscriptionRepository.GetCancelledSubscriptionsInRangeAsync(startOfMonth, endOfMonth);
+            var count = cancelledSubscriptions.Count();
+            
+            _logger.LogInformation("Cancelled subscriptions this month calculated by user {UserId}: {Count}", tokenModel?.UserID ?? 0, count);
+            return count;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting cancelled subscriptions");
+            _logger.LogError(ex, "Error calculating cancelled subscriptions this month by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<JsonModel> GetBillingAnalyticsAsync()
+    public async Task<JsonModel> GetBillingAnalyticsAsync(TokenModel tokenModel)
     {
         try
         {
             var analytics = new BillingAnalyticsDto
             {
-                TotalRevenue = await GetTotalRevenueAsync(),
-                MonthlyRecurringRevenue = await GetMonthlyRecurringRevenueAsync(),
-                AverageRevenuePerUser = await CalculateAverageRevenuePerUserAsync(),
+                TotalRevenue = await GetTotalRevenueAsync(null, null, tokenModel),
+                MonthlyRecurringRevenue = await GetMonthlyRecurringRevenueAsync(tokenModel),
+                AverageRevenuePerUser = await CalculateAverageRevenuePerUserAsync(tokenModel),
                 FailedPayments = await GetFailedPaymentsAsync(),
-                RefundsIssued = await GetRefundsIssuedAsync(),
+                RefundsIssued = await GetRefundsIssuedAsync(null, null, tokenModel),
                 PaymentSuccessRate = await CalculatePaymentSuccessRateAsync(),
-                RevenueByCategory = await GetRevenueByCategoryAsync(),
-                RevenueTrend = await GetRevenueTrendAsync()
+                RevenueByCategory = await GetRevenueByCategoryAsync(null, null, tokenModel),
+                RevenueTrend = await GetRevenueTrendAsync(null, null, tokenModel)
             };
 
             return new JsonModel { data = analytics, Message = "Billing analytics retrieved successfully", StatusCode = 200 };
@@ -440,26 +475,35 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<decimal> GetTotalRevenueAsync(DateTime? startDate = null, DateTime? endDate = null)
+            public async Task<decimal> GetTotalRevenueAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
-            // TODO: Implement total revenue calculation from billing records
-            return 50000.00m;
+            var start = startDate ?? DateTime.UtcNow.AddMonths(-12);
+            var end = endDate ?? DateTime.UtcNow;
+            
+            var billingRecords = await _billingRepository.GetAllAsync();
+            var revenueInRange = billingRecords
+                .Where(br => br.CreatedDate >= start && br.CreatedDate <= end && br.Status == BillingRecord.BillingStatus.Paid)
+                .Sum(br => br.Amount);
+            
+            _logger.LogInformation("Total revenue calculated by user {UserId}: {Revenue} for period {StartDate} to {EndDate}", 
+                tokenModel?.UserID ?? 0, revenueInRange, start, end);
+            return revenueInRange;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating total revenue");
+            _logger.LogError(ex, "Error calculating total revenue by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<decimal> CalculateAverageRevenuePerUserAsync()
+    public async Task<decimal> CalculateAverageRevenuePerUserAsync(TokenModel tokenModel)
     {
         try
         {
-            var totalRevenue = await GetTotalRevenueAsync();
-            var totalUsers = await GetTotalUsersAsync();
+            var totalRevenue = await GetTotalRevenueAsync(null, null, tokenModel);
+            var totalUsers = await GetTotalUsersAsync(tokenModel);
 
             if (totalUsers == 0) return 0;
 
@@ -486,16 +530,25 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<int> GetRefundsIssuedAsync(DateTime? startDate = null, DateTime? endDate = null)
+            public async Task<int> GetRefundsIssuedAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
-            // TODO: Implement refunds count
-            return 8;
+            var start = startDate ?? DateTime.UtcNow.AddMonths(-12);
+            var end = endDate ?? DateTime.UtcNow;
+            
+            var billingRecords = await _billingRepository.GetAllAsync();
+            var refundsInRange = billingRecords
+                .Where(br => br.CreatedDate >= start && br.CreatedDate <= end && br.Status == BillingRecord.BillingStatus.Refunded)
+                .Count();
+            
+            _logger.LogInformation("Refunds issued calculated by user {UserId}: {RefundCount} for period {StartDate} to {EndDate}", 
+                tokenModel?.UserID ?? 0, refundsInRange, start, end);
+            return refundsInRange;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting refunds issued");
+            _logger.LogError(ex, "Error calculating refunds issued by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
@@ -514,43 +567,98 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<IEnumerable<CategoryRevenueDto>> GetRevenueByCategoryAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<IEnumerable<CategoryRevenueDto>> GetRevenueByCategoryAsync(DateTime? startDate = null, DateTime? endDate = null, TokenModel tokenModel = null)
     {
         try
         {
-            // TODO: Implement revenue by category
-            return new List<CategoryRevenueDto>();
+            var start = startDate ?? DateTime.UtcNow.AddMonths(-12);
+            var end = endDate ?? DateTime.UtcNow;
+            
+            var categories = await _categoryRepository.GetAllActiveAsync();
+            var categoryRevenue = new List<CategoryRevenueDto>();
+            
+            foreach (var category in categories)
+            {
+                var subscriptions = await _subscriptionRepository.GetByCategoryIdAsync(category.Id);
+                var subscriptionsInRange = subscriptions.Where(s => s.CreatedDate >= start && s.CreatedDate <= end);
+                
+                var revenue = subscriptionsInRange.Sum(s => s.Amount);
+                
+                categoryRevenue.Add(new CategoryRevenueDto
+                {
+                    CategoryId = category.Id,
+                    CategoryName = category.Name,
+                    Revenue = revenue,
+                    SubscriptionCount = subscriptionsInRange.Count()
+                });
+            }
+            
+            var sortedCategoryRevenue = categoryRevenue
+                .OrderByDescending(cr => cr.Revenue)
+                .ToList();
+            
+            _logger.LogInformation("Category revenue calculated by user {UserId}: {CategoryCount} categories", 
+                tokenModel?.UserID ?? 0, sortedCategoryRevenue.Count);
+            return sortedCategoryRevenue;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting revenue by category");
-            return new List<CategoryRevenueDto>();
+            _logger.LogError(ex, "Error calculating category revenue by user {UserId}", tokenModel?.UserID ?? 0);
+            return Enumerable.Empty<CategoryRevenueDto>();
         }
     }
 
-    public async Task<IEnumerable<RevenueTrendDto>> GetRevenueTrendAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<IEnumerable<RevenueTrendDto>> GetRevenueTrendAsync(DateTime? startDate = null, DateTime? endDate = null, TokenModel tokenModel = null)
     {
         try
         {
-            // TODO: Implement revenue trend
-            return new List<RevenueTrendDto>();
+            var start = startDate ?? DateTime.UtcNow.AddMonths(-12);
+            var end = endDate ?? DateTime.UtcNow;
+            
+            var billingRecords = await _billingRepository.GetAllAsync();
+            var revenueTrends = new List<RevenueTrendDto>();
+            
+            var currentDate = start;
+            while (currentDate <= end)
+            {
+                var monthStart = new DateTime(currentDate.Year, currentDate.Month, 1);
+                var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+                
+                var monthlyRevenue = billingRecords
+                    .Where(br => br.CreatedDate >= monthStart && br.CreatedDate <= monthEnd && br.Status == BillingRecord.BillingStatus.Paid)
+                    .Sum(br => br.Amount);
+                
+                revenueTrends.Add(new RevenueTrendDto
+                {
+                    Period = monthStart.ToString("yyyy-MM"),
+                    Revenue = monthlyRevenue,
+                    Month = monthStart.Month,
+                    Year = monthStart.Year
+                });
+                
+                currentDate = currentDate.AddMonths(1);
+            }
+            
+            _logger.LogInformation("Revenue trends calculated by user {UserId}: {TrendCount} periods", 
+                tokenModel?.UserID ?? 0, revenueTrends.Count);
+            return revenueTrends;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting revenue trend");
-            return new List<RevenueTrendDto>();
+            _logger.LogError(ex, "Error calculating revenue trends by user {UserId}", tokenModel?.UserID ?? 0);
+            return Enumerable.Empty<RevenueTrendDto>();
         }
     }
 
-    public async Task<JsonModel> GetUserAnalyticsAsync()
+    public async Task<JsonModel> GetUserAnalyticsAsync(TokenModel tokenModel)
     {
         try
         {
             var analytics = new UserAnalyticsDto
             {
-                TotalUsers = await GetTotalUsersAsync(),
-                ActiveUsers = await GetActiveUsersAsync(),
-                NewUsersThisMonth = await GetNewUsersThisMonthAsync(),
+                TotalUsers = await GetTotalUsersAsync(tokenModel),
+                ActiveUsers = await GetActiveUsersAsync(tokenModel),
+                NewUsersThisMonth = await GetNewUsersThisMonthAsync(tokenModel),
                 UserRetentionRate = await CalculateUserRetentionRateAsync(),
                 AverageUserLifetime = await CalculateAverageUserLifetimeAsync(),
                 TopUserCategories = await GetTopUserCategoriesAsync()
@@ -565,44 +673,56 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<int> GetTotalUsersAsync()
+            public async Task<int> GetTotalUsersAsync(TokenModel tokenModel)
     {
         try
         {
-            // TODO: Implement total users count
-            return 1250;
+            var users = await _userRepository.GetAllAsync();
+            var count = users.Count();
+            
+            _logger.LogInformation("Total users count calculated by user {UserId}: {Count}", tokenModel?.UserID ?? 0, count);
+            return count;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting total users");
+            _logger.LogError(ex, "Error calculating total users count by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<int> GetActiveUsersAsync()
+            public async Task<int> GetActiveUsersAsync(TokenModel tokenModel)
     {
         try
         {
-            // TODO: Implement active users count
-            return 890;
+            var users = await _userRepository.GetAllAsync();
+            var activeCount = users.Count(u => u.IsActive);
+            
+            _logger.LogInformation("Active users count calculated by user {UserId}: {Count}", tokenModel?.UserID ?? 0, activeCount);
+            return activeCount;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting active users");
+            _logger.LogError(ex, "Error calculating active users count by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
 
-    public async Task<int> GetNewUsersThisMonthAsync()
+            public async Task<int> GetNewUsersThisMonthAsync(TokenModel tokenModel)
     {
         try
         {
-            // TODO: Implement new users this month
-            return 156;
+            var startOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+            
+            var users = await _userRepository.GetAllAsync();
+            var newUsersCount = users.Count(u => u.CreatedDate >= startOfMonth && u.CreatedDate <= endOfMonth);
+            
+            _logger.LogInformation("New users this month calculated by user {UserId}: {Count}", tokenModel?.UserID ?? 0, newUsersCount);
+            return newUsersCount;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting new users this month");
+            _logger.LogError(ex, "Error calculating new users this month by user {UserId}", tokenModel?.UserID ?? 0);
             return 0;
         }
     }
@@ -649,14 +769,14 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<JsonModel> GetProviderAnalyticsAsync()
+    public async Task<JsonModel> GetProviderAnalyticsAsync(TokenModel tokenModel)
     {
         try
         {
             var analytics = new ProviderAnalyticsDto
             {
-                TotalProviders = await GetTotalProvidersAsync(),
-                ActiveProviders = await GetActiveProvidersAsync(),
+                TotalProviders = await GetTotalProvidersAsync(tokenModel),
+                ActiveProviders = await GetActiveProvidersAsync(tokenModel),
                 AverageProviderRating = await CalculateAverageProviderRatingAsync(),
                 // TotalConsultations = 0, // TODO: Implement
                 // Use privilege usage system for consultation analytics if needed
@@ -744,59 +864,9 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<JsonModel> GetSystemAnalyticsAsync()
-    {
-        try
-        {
-            var systemHealth = await GetSystemHealthAsync();
-            var analytics = new SystemAnalyticsDto
-            {
-                SystemHealth = (SystemHealthDto)systemHealth.data ?? new SystemHealthDto(),
-                TotalApiCalls = 0, // TODO: Implement
-                SuccessfulApiCalls = 0, // TODO: Implement
-                FailedApiCalls = 0, // TODO: Implement
-                AverageResponseTime = 0, // TODO: Implement
-                ActiveConnections = 150,
-                MemoryUsage = 65.5,
-                CpuUsage = 45.2,
-                ApiUsage = await GetApiUsageAsync(),
-                ErrorLogs = await GetErrorLogsAsync()
-            };
 
-            return new JsonModel { data = analytics, Message = "System analytics retrieved successfully", StatusCode = 200 };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting system analytics");
-            return new JsonModel { data = new object(), Message = "Error retrieving system analytics", StatusCode = 500 };
-        }
-    }
 
-    public async Task<JsonModel> GetSystemHealthAsync()
-    {
-        try
-        {
-            var health = new SystemHealthDto
-            {
-                DatabaseStatus = "Healthy",
-                ApiStatus = "Healthy",
-                PaymentGatewayStatus = "Healthy",
-                EmailServiceStatus = "Healthy",
-                LastBackup = DateTime.UtcNow.AddHours(-2),
-                SystemUptime = TimeSpan.FromDays(30),
-                ActiveConnections = 150,
-                MemoryUsage = 65.5,
-                CpuUsage = 45.2
-            };
 
-            return new JsonModel { data = health, Message = "System health retrieved successfully", StatusCode = 200 };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting system health");
-            return new JsonModel { data = new object(), Message = "Error retrieving system health", StatusCode = 500 };
-        }
-    }
 
     public async Task<IEnumerable<ApiUsageDto>> GetApiUsageAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
@@ -897,17 +967,17 @@ public class AnalyticsService : IAnalyticsService
     }
 
     // Additional interface methods with correct signatures
-    public async Task<JsonModel> GetBillingAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetBillingAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null, TokenModel tokenModel = null)
     {
         try
         {
             var analytics = new BillingAnalyticsDto
             {
-                TotalRevenue = await GetTotalRevenueAsync(startDate, endDate),
+                TotalRevenue = await GetTotalRevenueAsync(startDate, endDate, tokenModel),
                 FailedPayments = await GetFailedPaymentsAsync(startDate, endDate),
                 PaymentSuccessRate = await CalculatePaymentSuccessRateAsync(startDate, endDate),
-                AverageRevenuePerUser = await CalculateAverageRevenuePerUserAsync(),
-                RefundsIssued = await GetRefundsIssuedAsync(startDate, endDate)
+                AverageRevenuePerUser = await CalculateAverageRevenuePerUserAsync(tokenModel),
+                RefundsIssued = await GetRefundsIssuedAsync(startDate, endDate, tokenModel)
             };
 
             return new JsonModel { data = analytics, Message = "Billing analytics retrieved successfully", StatusCode = 200 };
@@ -919,15 +989,15 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<JsonModel> GetUserAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetUserAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null, TokenModel tokenModel = null)
     {
         try
         {
             var analytics = new UserAnalyticsDto
             {
-                TotalUsers = await GetTotalUsersAsync(),
-                ActiveUsers = await GetActiveUsersAsync(),
-                NewUsersThisMonth = await GetNewUsersThisMonthAsync(),
+                TotalUsers = await GetTotalUsersAsync(tokenModel),
+                ActiveUsers = await GetActiveUsersAsync(tokenModel),
+                NewUsersThisMonth = await GetNewUsersThisMonthAsync(tokenModel),
                 UserRetentionRate = await CalculateUserRetentionRateAsync(),
                 AverageUserLifetime = await CalculateAverageUserLifetimeAsync()
             };
@@ -941,14 +1011,14 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<JsonModel> GetProviderAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetProviderAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
             var analytics = new ProviderAnalyticsDto
             {
-                TotalProviders = await GetTotalProvidersAsync(),
-                ActiveProviders = await GetActiveProvidersAsync(),
+                TotalProviders = await GetTotalProvidersAsync(tokenModel),
+                ActiveProviders = await GetActiveProvidersAsync(tokenModel),
                 AverageProviderRating = await CalculateAverageProviderRatingAsync()
             };
 
@@ -963,45 +1033,61 @@ public class AnalyticsService : IAnalyticsService
 
 
 
-    public async Task<JsonModel> GenerateSubscriptionReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GenerateSubscriptionReportAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
-            var reportData = await GenerateSubscriptionReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
+            var start = startDate ?? DateTime.UtcNow.AddMonths(-1);
+            var end = endDate ?? DateTime.UtcNow;
+            
+            var reportData = new
+            {
+                Period = new { StartDate = start, EndDate = end },
+                SubscriptionAnalytics = await GetSubscriptionAnalyticsAsync(start, end, tokenModel),
+                RevenueAnalytics = await GetRevenueAnalyticsAsync(start, end, tokenModel),
+                TopCategories = await GetTopCategoriesAsync(start, end, tokenModel),
+                GeneratedAt = DateTime.UtcNow,
+                GeneratedBy = tokenModel?.UserID ?? 0
+            };
+            
+            _logger.LogInformation("Subscription report generated by user {UserId} for period {StartDate} to {EndDate}", 
+                tokenModel?.UserID ?? 0, start, end);
             return new JsonModel { data = reportData, Message = "Subscription report generated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating subscription report");
+            _logger.LogError(ex, "Error generating subscription report by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error generating subscription report", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> GenerateBillingReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+            public async Task<JsonModel> GenerateBillingReportAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
             var reportData = await GenerateBillingReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
+            _logger.LogInformation("Billing report generated by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = reportData, Message = "Billing report generated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating billing report");
+            _logger.LogError(ex, "Error generating billing report by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error generating billing report", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> GenerateUserReportAsync(DateTime? startDate = null, DateTime? endDate = null)
+            public async Task<JsonModel> GenerateUserReportAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
             var reportData = await GenerateUserReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "pdf");
+            _logger.LogInformation("User report generated by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = reportData, Message = "User report generated successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating user report");
-            return new JsonModel { data = new object(), Message = "Error generating user report", StatusCode = 500 };
+            _logger.LogError(ex, "Error generating user report by user {UserId}", tokenModel?.UserID ?? 0);
+            return new JsonModel { data = new object(), Message = "Error retrieving user report", StatusCode = 500 };
         }
     }
 
@@ -1019,32 +1105,50 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    public async Task<JsonModel> ExportSubscriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+            public async Task<JsonModel> ExportSubscriptionAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
-            var reportData = await GenerateSubscriptionReportAsync(startDate ?? DateTime.UtcNow.AddMonths(-1), endDate ?? DateTime.UtcNow, "csv");
-            return new JsonModel { data = reportData, Message = "Subscription analytics exported successfully", StatusCode = 200 };
+            var start = startDate ?? DateTime.UtcNow.AddMonths(-1);
+            var end = endDate ?? DateTime.UtcNow;
+            
+            var analytics = await GetSubscriptionAnalyticsAsync(start, end, tokenModel);
+            var categories = await GetTopCategoriesAsync(start, end, tokenModel);
+            var revenue = await GetRevenueAnalyticsAsync(start, end, tokenModel);
+            
+            var exportData = new
+            {
+                Period = new { StartDate = start, EndDate = end },
+                Analytics = analytics,
+                Categories = categories,
+                Revenue = revenue,
+                ExportedAt = DateTime.UtcNow,
+                ExportedBy = tokenModel?.UserID ?? 0
+            };
+            
+            _logger.LogInformation("Subscription analytics exported by user {UserId} for period {StartDate} to {EndDate}", 
+                tokenModel?.UserID ?? 0, start, end);
+            return new JsonModel { data = exportData, Message = "Subscription analytics exported successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error exporting subscription analytics");
+            _logger.LogError(ex, "Error exporting subscription analytics by user {UserId}", tokenModel?.UserID ?? 0);
             return new JsonModel { data = new object(), Message = "Error exporting subscription analytics", StatusCode = 500 };
         }
     }
 
     // Missing methods for subscription dashboard
-    private async Task<OverviewMetricsDto> GetOverviewMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    private async Task<OverviewMetricsDto> GetOverviewMetricsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
             var totalSubscriptions = await GetTotalSubscriptionsAsync();
-            var activeSubscriptions = await GetActiveSubscriptionsAsync();
-            var newSubscriptions = await GetNewSubscriptionsThisMonthAsync();
-            var cancelledSubscriptions = await GetCancelledSubscriptionsAsync();
-            var pausedSubscriptions = await GetPausedSubscriptionsAsync();
-            var averageValue = await CalculateAverageSubscriptionValueAsync();
-            var totalRevenue = await GetMonthlyRecurringRevenueAsync();
+            var activeSubscriptions = await GetActiveSubscriptionsAsync(tokenModel);
+            var newSubscriptions = await GetNewSubscriptionsThisMonthAsync(tokenModel);
+            var cancelledSubscriptions = await GetCancelledSubscriptionsAsync(tokenModel);
+            var pausedSubscriptions = await GetPausedSubscriptionsAsync(tokenModel);
+            var averageValue = await CalculateAverageSubscriptionValueAsync(tokenModel);
+            var totalRevenue = await GetMonthlyRecurringRevenueAsync(tokenModel);
 
             return new OverviewMetricsDto
             {
@@ -1066,14 +1170,14 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    private async Task<RevenueAnalyticsDto> GetRevenueMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    private async Task<RevenueAnalyticsDto> GetRevenueMetricsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
-            var mrr = await GetMonthlyRecurringRevenueAsync();
-            var arr = await GetAnnualRecurringRevenueAsync();
+            var mrr = await GetMonthlyRecurringRevenueAsync(tokenModel);
+            var arr = await GetAnnualRecurringRevenueAsync(tokenModel);
             var totalRevenue = mrr;
-            var averageValue = await CalculateAverageSubscriptionValueAsync();
+            var averageValue = await CalculateAverageSubscriptionValueAsync(tokenModel);
 
             return new RevenueAnalyticsDto
             {
@@ -1091,12 +1195,12 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    private async Task<ChurnAnalyticsDto> GetChurnMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    private async Task<ChurnAnalyticsDto> GetChurnMetricsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
-            var churnRate = await CalculateChurnRateAsync(startDate, endDate);
-            var cancelledSubscriptions = await GetCancelledSubscriptionsAsync();
+            var churnRate = await CalculateChurnRateAsync(startDate, endDate, tokenModel);
+            var cancelledSubscriptions = await GetCancelledSubscriptionsAsync(tokenModel);
             var retentionRate = 100 - churnRate;
 
             return new ChurnAnalyticsDto
@@ -1137,12 +1241,12 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    private async Task<UsageAnalyticsDto> GetUsageMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    private async Task<UsageAnalyticsDto> GetUsageMetricsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
-            var totalUsers = await GetTotalUsersAsync();
-            var activeUsers = await GetActiveUsersAsync();
+            var totalUsers = await GetTotalUsersAsync(tokenModel);
+            var activeUsers = await GetActiveUsersAsync(tokenModel);
             var averageUsage = await CalculateAverageUsageAsync();
 
             return new UsageAnalyticsDto
@@ -1190,4 +1294,159 @@ public class AnalyticsService : IAnalyticsService
             return 0;
         }
     }
+
+    // === MISSING INTERFACE METHODS ===
+    
+    public async Task<JsonModel> GetSystemAnalyticsAsync(TokenModel tokenModel)
+    {
+        try
+        {
+            _logger.LogInformation("Getting system analytics by user {UserId}", tokenModel?.UserID ?? 0);
+            
+            var analytics = new
+            {
+                SystemHealth = await GetSystemHealthAsync(tokenModel),
+                TotalUsers = await GetTotalUsersAsync(tokenModel),
+                TotalSubscriptions = await GetTotalSubscriptionsAsync(tokenModel),
+                TotalRevenue = await GetTotalRevenueAsync(null, null, tokenModel),
+                ActiveSubscriptions = await GetActiveSubscriptionsAsync(tokenModel)
+            };
+            
+            _logger.LogInformation("System analytics retrieved by user {UserId}", tokenModel?.UserID ?? 0);
+            return new JsonModel { data = analytics, Message = "System analytics retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting system analytics by user {UserId}", tokenModel?.UserID ?? 0);
+            return new JsonModel { data = new object(), Message = "Error retrieving system analytics", StatusCode = 500 };
+        }
+    }
+
+
+
+
+
+
+
+    public async Task<JsonModel> GetSystemHealthAsync(TokenModel tokenModel)
+    {
+        try
+        {
+            _logger.LogInformation("Getting system health by user {UserId}", tokenModel?.UserID ?? 0);
+            
+            var health = new
+            {
+                Status = "Healthy",
+                LastChecked = DateTime.UtcNow,
+                DatabaseConnection = "Connected",
+                ExternalServices = "All Operational"
+            };
+            
+            _logger.LogInformation("System health retrieved by user {UserId}", tokenModel?.UserID ?? 0);
+            return new JsonModel { data = health, Message = "System health retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting system health by user {UserId}", tokenModel?.UserID ?? 0);
+            return new JsonModel { data = new object(), Message = "Error retrieving system health", StatusCode = 500 };
+        }
+    }
+
+    // === END MISSING INTERFACE METHODS ===
+
+    public async Task<JsonModel> GenerateProviderReportAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
+    {
+        try
+        {
+            _logger.LogInformation("Generating provider report by user {UserId}", tokenModel?.UserID ?? 0);
+            
+            var report = new
+            {
+                TotalProviders = await GetTotalProvidersAsync(tokenModel),
+                ActiveProviders = await GetActiveProvidersAsync(tokenModel),
+                NewProvidersThisMonth = await GetNewProvidersThisMonthAsync(tokenModel),
+                GeneratedAt = DateTime.UtcNow
+            };
+            
+            _logger.LogInformation("Provider report generated by user {UserId}", tokenModel?.UserID ?? 0);
+            return new JsonModel { data = report, Message = "Provider report generated successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating provider report by user {UserId}", tokenModel?.UserID ?? 0);
+            return new JsonModel { data = new object(), Message = "Error generating provider report", StatusCode = 500 };
+        }
+    }
+
+    // === MISSING METHODS ===
+    
+    public async Task<int> GetTotalSubscriptionsAsync(TokenModel tokenModel)
+    {
+        try
+        {
+            _logger.LogInformation("Getting total subscriptions count by user {UserId}", tokenModel?.UserID ?? 0);
+            var count = await _subscriptionRepository.GetCountAsync();
+            _logger.LogInformation("Total subscriptions count: {Count} by user {UserId}", count, tokenModel?.UserID ?? 0);
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting total subscriptions count by user {UserId}", tokenModel?.UserID ?? 0);
+            return 0;
+        }
+    }
+    
+    public async Task<int> GetTotalProvidersAsync(TokenModel tokenModel)
+    {
+        try
+        {
+            _logger.LogInformation("Getting total providers count by user {UserId}", tokenModel?.UserID ?? 0);
+            var providers = await _userRepository.GetByUserTypeAsync("Provider");
+            var count = providers.Count();
+            _logger.LogInformation("Total providers count: {Count} by user {UserId}", count, tokenModel?.UserID ?? 0);
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting total providers count by user {UserId}", tokenModel?.UserID ?? 0);
+            return 0;
+        }
+    }
+    
+    public async Task<int> GetActiveProvidersAsync(TokenModel tokenModel)
+    {
+        try
+        {
+            _logger.LogInformation("Getting active providers count by user {UserId}", tokenModel?.UserID ?? 0);
+            var providers = await _userRepository.GetByUserTypeAsync("Provider");
+            var count = providers.Count(p => p.IsActive);
+            _logger.LogInformation("Active providers count: {Count} by user {UserId}", count, tokenModel?.UserID ?? 0);
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting active providers count by user {UserId}", tokenModel?.UserID ?? 0);
+            return 0;
+        }
+    }
+    
+    public async Task<int> GetNewProvidersThisMonthAsync(TokenModel tokenModel)
+    {
+        try
+        {
+            _logger.LogInformation("Getting new providers this month count by user {UserId}", tokenModel?.UserID ?? 0);
+            var startOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            var providers = await _userRepository.GetByUserTypeAsync("Provider");
+            var count = providers.Count(p => p.CreatedDate >= startOfMonth);
+            _logger.LogInformation("New providers this month: {Count} by user {UserId}", count, tokenModel?.UserID ?? 0);
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting new providers this month count by user {UserId}", tokenModel?.UserID ?? 0);
+            return 0;
+        }
+    }
+
+    // === END MISSING METHODS ===
 } 

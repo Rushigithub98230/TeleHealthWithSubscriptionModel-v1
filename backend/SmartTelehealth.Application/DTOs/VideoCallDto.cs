@@ -169,4 +169,33 @@ namespace SmartTelehealth.Application.DTOs
         public bool WasHIPAACompliant { get; set; }
         public DateTime CreatedAt { get; set; }
     }
+
+    // Video Call Control DTOs
+    public class EndVideoCallDto
+    {
+        public string? Reason { get; set; }
+        public string? Notes { get; set; }
+        public DateTime? EndTime { get; set; }
+    }
+
+    public class RejectVideoCallDto
+    {
+        [Required]
+        public string Reason { get; set; } = string.Empty;
+        public string? Notes { get; set; }
+    }
+
+    public class ToggleVideoDto
+    {
+        public bool Enabled { get; set; }
+        public bool IsVideoEnabled { get; set; }
+        public string? Reason { get; set; }
+    }
+
+    public class ToggleAudioDto
+    {
+        public bool Enabled { get; set; }
+        public bool IsAudioEnabled { get; set; }
+        public string? Reason { get; set; }
+    }
 } 

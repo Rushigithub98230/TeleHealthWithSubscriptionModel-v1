@@ -9,7 +9,7 @@ namespace SmartTelehealth.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class SubscriptionPlansController : ControllerBase
+public class SubscriptionPlansController : BaseController
 {
     private readonly ISubscriptionService _subscriptionService;
 
@@ -23,10 +23,9 @@ public class SubscriptionPlansController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> GetAllPlans()
+    public async Task<JsonModel> GetAllPlans()
     {
-        var response = await _subscriptionService.GetAllSubscriptionPlansAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _subscriptionService.GetAllSubscriptionPlansAsync(GetToken(HttpContext));
     }
 
     /// <summary>
@@ -34,10 +33,9 @@ public class SubscriptionPlansController : ControllerBase
     /// </summary>
     [HttpGet("active")]
     [AllowAnonymous]
-    public async Task<ActionResult<JsonModel>> GetActivePlans()
+    public async Task<JsonModel> GetActivePlans()
     {
-        var response = await _subscriptionService.GetActiveSubscriptionPlansAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _subscriptionService.GetActiveSubscriptionPlansAsync(GetToken(HttpContext));
     }
 
     /// <summary>
@@ -45,10 +43,9 @@ public class SubscriptionPlansController : ControllerBase
     /// </summary>
     [HttpGet("category/{categoryId}")]
     [AllowAnonymous]
-    public async Task<ActionResult<JsonModel>> GetPlansByCategory(string categoryId)
+    public async Task<JsonModel> GetPlansByCategory(string categoryId)
     {
-        var response = await _subscriptionService.GetSubscriptionPlansByCategoryAsync(categoryId);
-        return StatusCode(response.StatusCode, response);
+        return await _subscriptionService.GetSubscriptionPlansByCategoryAsync(categoryId, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -56,10 +53,9 @@ public class SubscriptionPlansController : ControllerBase
     /// </summary>
     [HttpGet("{id}")]
     [AllowAnonymous]
-    public async Task<ActionResult<JsonModel>> GetPlan(string id)
+    public async Task<JsonModel> GetPlan(string id)
     {
-        var response = await _subscriptionService.GetSubscriptionPlanAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _subscriptionService.GetSubscriptionPlanAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -67,10 +63,9 @@ public class SubscriptionPlansController : ControllerBase
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> CreatePlan([FromBody] CreateSubscriptionPlanDto createDto)
+    public async Task<JsonModel> CreatePlan([FromBody] CreateSubscriptionPlanDto createDto)
     {
-        var response = await _subscriptionService.CreateSubscriptionPlanAsync(createDto);
-        return StatusCode(response.StatusCode, response);
+        return await _subscriptionService.CreatePlanAsync(createDto, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -78,13 +73,12 @@ public class SubscriptionPlansController : ControllerBase
     /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> UpdatePlan(string id, [FromBody] UpdateSubscriptionPlanDto updateDto)
+    public async Task<JsonModel> UpdatePlan(string id, [FromBody] UpdateSubscriptionPlanDto updateDto)
     {
         if (id != updateDto.Id)
-            return BadRequest(new JsonModel { data = new object(), Message = "ID mismatch", StatusCode = 400 });
+            return new JsonModel { data = new object(), Message = "ID mismatch", StatusCode = 400 };
         updateDto.Id = id;
-        var response = await _subscriptionService.UpdateSubscriptionPlanAsync(id, updateDto);
-        return StatusCode(response.StatusCode, response);
+        return await _subscriptionService.UpdateSubscriptionPlanAsync(id, updateDto, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -92,9 +86,8 @@ public class SubscriptionPlansController : ControllerBase
     /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> DeletePlan(string id)
+    public async Task<JsonModel> DeletePlan(string id)
     {
-        var response = await _subscriptionService.DeleteSubscriptionPlanAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _subscriptionService.DeleteSubscriptionPlanAsync(id, GetToken(HttpContext));
     }
 } 

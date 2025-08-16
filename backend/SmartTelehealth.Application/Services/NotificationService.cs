@@ -13,7 +13,7 @@ namespace SmartTelehealth.Application.Services
             _logger = logger;
         }
 
-        public async Task<JsonModel> GetNotificationsAsync()
+        public async Task<JsonModel> GetNotificationsAsync(TokenModel tokenModel)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetNotificationAsync(Guid id)
+        public async Task<JsonModel> GetNotificationAsync(Guid id, TokenModel tokenModel)
         {
             try
             {
@@ -72,7 +72,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> CreateNotificationAsync(CreateNotificationDto createNotificationDto)
+        public async Task<JsonModel> CreateNotificationAsync(CreateNotificationDto createNotificationDto, TokenModel tokenModel)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> UpdateNotificationAsync(Guid id, object updateNotificationDto)
+        public async Task<JsonModel> UpdateNotificationAsync(Guid id, object updateNotificationDto, TokenModel tokenModel)
         {
             try
             {
@@ -141,7 +141,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> DeleteNotificationAsync(Guid id)
+        public async Task<JsonModel> DeleteNotificationAsync(Guid id, TokenModel tokenModel)
         {
             try
             {
@@ -166,7 +166,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task SendWelcomeEmailAsync(string email, string userName)
+        public async Task<JsonModel> SendWelcomeEmailAsync(string email, string userName, TokenModel tokenModel)
         {
             try
             {
@@ -180,14 +180,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent welcome email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Welcome email sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending welcome email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send welcome email: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendEmailVerificationAsync(string email, string userName, string verificationToken)
+        public async Task<JsonModel> SendEmailVerificationAsync(string email, string userName, string verificationToken, TokenModel tokenModel)
         {
             try
             {
@@ -203,14 +216,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent email verification to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Email verification sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending email verification to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send email verification: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendSubscriptionConfirmationAsync(string email, string userName, SubscriptionDto subscription)
+        public async Task<JsonModel> SendSubscriptionConfirmationAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
         {
             try
             {
@@ -226,14 +252,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent subscription confirmation to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Subscription confirmation sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending subscription confirmation to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription confirmation: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendSubscriptionWelcomeEmailAsync(string email, string userName, SubscriptionDto subscription)
+        public async Task<JsonModel> SendSubscriptionWelcomeEmailAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
         {
             try
             {
@@ -247,14 +286,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent subscription welcome email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Subscription welcome email sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending subscription welcome email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription welcome email: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendSubscriptionCancellationEmailAsync(string email, string userName, SubscriptionDto subscription)
+        public async Task<JsonModel> SendSubscriptionCancellationEmailAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
         {
             try
             {
@@ -268,14 +320,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent subscription cancellation email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Subscription cancellation email sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending subscription cancellation email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription cancellation email: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendPaymentReminderAsync(string email, string userName, BillingRecordDto billingRecord)
+        public async Task<JsonModel> SendPaymentReminderAsync(string email, string userName, BillingRecordDto billingRecord, TokenModel tokenModel)
         {
             try
             {
@@ -289,14 +354,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent payment reminder to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Payment reminder sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending payment reminder to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send payment reminder: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendConsultationReminderAsync(string email, string userName, ConsultationDto consultation)
+        public async Task<JsonModel> SendConsultationReminderAsync(string email, string userName, ConsultationDto consultation, TokenModel tokenModel)
         {
             try
             {
@@ -310,14 +388,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent consultation reminder to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Consultation reminder sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending consultation reminder to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send consultation reminder: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendPasswordResetEmailAsync(string email, string resetToken)
+        public async Task<JsonModel> SendPasswordResetEmailAsync(string email, string resetToken, TokenModel tokenModel)
         {
             try
             {
@@ -332,14 +423,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent password reset email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Password reset email sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending password reset email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send password reset email: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendDeliveryNotificationAsync(string email, string userName, MedicationDeliveryDto delivery)
+        public async Task<JsonModel> SendDeliveryNotificationAsync(string email, string userName, MedicationDeliveryDto delivery, TokenModel tokenModel)
         {
             try
             {
@@ -353,14 +457,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent delivery notification to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Delivery notification sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending delivery notification to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send delivery notification: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendSubscriptionPausedNotificationAsync(string email, string userName, SubscriptionDto subscription)
+        public async Task<JsonModel> SendSubscriptionPausedNotificationAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
         {
             try
             {
@@ -374,14 +491,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent subscription paused notification to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Subscription paused notification sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending subscription paused notification to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription paused notification: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendSubscriptionResumedNotificationAsync(string email, string userName, SubscriptionDto subscription)
+        public async Task<JsonModel> SendSubscriptionResumedNotificationAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
         {
             try
             {
@@ -395,14 +525,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent subscription resumed notification to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Subscription resumed notification sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending subscription resumed notification to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription resumed notification: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendSubscriptionCancelledNotificationAsync(string email, string userName, SubscriptionDto subscription)
+        public async Task<JsonModel> SendSubscriptionCancelledNotificationAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
         {
             try
             {
@@ -416,14 +559,96 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent subscription cancelled notification to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Subscription cancelled notification sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending subscription cancelled notification to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription cancelled notification: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendProviderMessageNotificationAsync(string email, string userName, MessageDto message)
+        public async Task<JsonModel> SendSubscriptionCancellationAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
+        {
+            try
+            {
+                var subject = "Subscription Cancellation";
+                var body = $@"
+                    <h2>Subscription Cancellation</h2>
+                    <p>Hi {userName},</p>
+                    <p>Your subscription to {subscription.PlanName} has been cancelled.</p>
+                    <p>Best regards,<br>The SmartTelehealth Team</p>";
+
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent subscription cancellation email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Subscription cancellation email sent successfully",
+                    StatusCode = 200
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending subscription cancellation email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription cancellation email: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
+        }
+
+        public async Task<JsonModel> SendSubscriptionSuspensionAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
+        {
+            try
+            {
+                var subject = "Subscription Suspension";
+                var body = $@"
+                    <h2>Subscription Suspension</h2>
+                    <p>Hi {userName},</p>
+                    <p>Your subscription to {subscription.PlanName} has been suspended due to payment issues.</p>
+                    <p>Please update your payment method to reactivate your subscription.</p>
+                    <p>Best regards,<br>The SmartTelehealth Team</p>";
+
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent subscription suspension email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Subscription suspension email sent successfully",
+                    StatusCode = 200
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending subscription suspension email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription suspension email: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
+        }
+
+        public async Task<JsonModel> SendProviderMessageNotificationAsync(string email, string userName, MessageDto message, TokenModel tokenModel)
         {
             try
             {
@@ -437,14 +662,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent provider message notification to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Provider message notification sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending provider message notification to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send provider message notification: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendPaymentSuccessEmailAsync(string email, string userName, BillingRecordDto billingRecord)
+        public async Task<JsonModel> SendPaymentSuccessEmailAsync(string email, string userName, BillingRecordDto billingRecord, TokenModel tokenModel)
         {
             try
             {
@@ -458,14 +696,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent payment success email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Payment success email sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending payment success email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send payment success email: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendPaymentFailedEmailAsync(string email, string userName, BillingRecordDto billingRecord)
+        public async Task<JsonModel> SendPaymentFailedEmailAsync(string email, string userName, BillingRecordDto billingRecord, TokenModel tokenModel)
         {
             try
             {
@@ -479,14 +730,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent payment failed email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Payment failed email sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending payment failed email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send payment failed email: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendRefundProcessedEmailAsync(string email, string userName, BillingRecordDto billingRecord, decimal refundAmount)
+        public async Task<JsonModel> SendRefundProcessedEmailAsync(string email, string userName, BillingRecordDto billingRecord, decimal refundAmount, TokenModel tokenModel)
         {
             try
             {
@@ -500,14 +764,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent refund processed email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Refund processed email sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending refund processed email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send refund processed email: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendOverduePaymentEmailAsync(string email, string userName, BillingRecordDto billingRecord)
+        public async Task<JsonModel> SendOverduePaymentEmailAsync(string email, string userName, BillingRecordDto billingRecord, TokenModel tokenModel)
         {
             try
             {
@@ -521,14 +798,27 @@ namespace SmartTelehealth.Application.Services
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await SendEmailAsync(email, subject, body);
                 _logger.LogInformation("Email sending disabled - would have sent overdue payment email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Overdue payment email sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending overdue payment email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send overdue payment email: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task<JsonModel> CreateInAppNotificationAsync(Guid userId, string title, string message)
+        public async Task<JsonModel> CreateInAppNotificationAsync(Guid userId, string title, string message, TokenModel tokenModel)
         {
             try
             {
@@ -561,7 +851,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetUserNotificationsAsync(Guid userId)
+        public async Task<JsonModel> GetUserNotificationsAsync(Guid userId, TokenModel tokenModel)
         {
             try
             {
@@ -586,7 +876,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> MarkNotificationAsReadAsync(Guid notificationId)
+        public async Task<JsonModel> MarkNotificationAsReadAsync(Guid notificationId, TokenModel tokenModel)
         {
             try
             {
@@ -611,7 +901,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetUnreadNotificationCountAsync(Guid userId)
+        public async Task<JsonModel> GetUnreadNotificationCountAsync(Guid userId, TokenModel tokenModel)
         {
             try
             {
@@ -635,63 +925,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> IsEmailValidAsync(string email)
-        {
-            try
-            {
-                // In a real implementation, this would validate email format and check if it exists
-                var isValid = !string.IsNullOrEmpty(email) && email.Contains("@");
-                return new JsonModel
-                {
-                    data = isValid,
-                    Message = "Email validation successful",
-                    StatusCode = 200
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error validating email {Email}", email);
-                return new JsonModel
-                {
-                    data = new object(),
-                    Message = $"Failed to validate email: {ex.Message}",
-                    StatusCode = 500
-                };
-            }
-        }
-
-        public async Task<JsonModel> SendSmsAsync(string phoneNumber, string message)
-        {
-            try
-            {
-                // In a real implementation, this would use an SMS service like Twilio, AWS SNS, etc.
-                _logger.LogInformation("Sending SMS to {PhoneNumber}: {Message}", phoneNumber, message);
-                
-                // Simulate SMS sending
-                await Task.Delay(100);
-                
-                return new JsonModel
-                {
-                    data = true,
-                    Message = "SMS sent successfully",
-                    StatusCode = 200
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending SMS to {PhoneNumber}", phoneNumber);
-                return new JsonModel
-                {
-                    data = new object(),
-                    Message = $"Failed to send SMS: {ex.Message}",
-                    StatusCode = 500
-                };
-            }
-        }
-
-        public Task SendNotificationAsync(string userId, string title, string message) => throw new NotImplementedException();
-
-        public async Task<JsonModel> CreateInAppNotificationAsync(int userId, string title, string message)
+        public async Task<JsonModel> CreateInAppNotificationAsync(int userId, string title, string message, TokenModel tokenModel)
         {
             try
             {
@@ -725,7 +959,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetUserNotificationsAsync(int userId)
+        public async Task<JsonModel> GetUserNotificationsAsync(int userId, TokenModel tokenModel)
         {
             try
             {
@@ -750,7 +984,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetUnreadNotificationCountAsync(int userId)
+        public async Task<JsonModel> GetUnreadNotificationCountAsync(int userId, TokenModel tokenModel)
         {
             try
             {
@@ -775,15 +1009,127 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task SendSubscriptionSuspensionEmailAsync(string email, string userName, SubscriptionDto subscription)
+        public async Task<JsonModel> IsEmailValidAsync(string email, TokenModel tokenModel)
         {
-            // If using dependency injection, call the infrastructure service or implement logic here
-            // For now, just a stub to match the interface and avoid build error
-            // You should call the actual email sending logic here if needed
-            await Task.CompletedTask;
+            try
+            {
+                // In a real implementation, this would validate email format and check if it exists
+                var isValid = !string.IsNullOrEmpty(email) && email.Contains("@");
+                return new JsonModel
+                {
+                    data = isValid,
+                    Message = "Email validation successful",
+                    StatusCode = 200
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating email {Email}", email);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = $"Failed to validate email: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
         }
 
-        public async Task SendSubscriptionSuspendedNotificationAsync(string userId, string subscriptionId)
+        public async Task<JsonModel> SendSmsAsync(string phoneNumber, string message, TokenModel tokenModel)
+        {
+            try
+            {
+                // In a real implementation, this would use an SMS service like Twilio, AWS SNS, etc.
+                _logger.LogInformation("Sending SMS to {PhoneNumber}: {Message}", phoneNumber, message);
+                
+                // Simulate SMS sending
+                await Task.Delay(100);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "SMS sent successfully",
+                    StatusCode = 200
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending SMS to {PhoneNumber}", phoneNumber);
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = $"Failed to send SMS: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
+        }
+
+        public async Task<JsonModel> SendNotificationAsync(string userId, string title, string message, TokenModel tokenModel)
+        {
+            try
+            {
+                // In a real implementation, this would send a notification through various channels
+                _logger.LogInformation("Sending notification to user {UserId}: {Title} - {Message}", userId, title, message);
+                
+                // Simulate notification sending
+                await Task.Delay(100);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Notification sent successfully",
+                    StatusCode = 200
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending notification to user {UserId}", userId);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send notification: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
+        }
+
+
+
+        public async Task<JsonModel> SendSubscriptionSuspensionEmailAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
+        {
+            try
+            {
+                var subject = "Subscription Suspended";
+                var body = $@"
+                    <h2>Subscription Suspended</h2>
+                    <p>Hi {userName},</p>
+                    <p>Your subscription to {subscription.PlanName} has been suspended due to payment issues.</p>
+                    <p>Please update your payment method to reactivate your subscription.</p>
+                    <p>Best regards,<br>The SmartTelehealth Team</p>";
+
+                // EMAIL FUNCTIONALITY DISABLED - Commented out for now
+                // await SendEmailAsync(email, subject, body);
+                _logger.LogInformation("Email sending disabled - would have sent subscription suspension email to {Email}", email);
+                
+                return new JsonModel
+                {
+                    data = true,
+                    Message = "Subscription suspension email sent successfully",
+                    StatusCode = 200
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending subscription suspension email to {Email}", email);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription suspension email: {ex.Message}",
+                    StatusCode = 500
+                };
+            }
+        }
+
+        public async Task<JsonModel> SendSubscriptionSuspendedNotificationAsync(string userId, string subscriptionId, TokenModel tokenModel)
         {
             try
             {
@@ -795,16 +1141,29 @@ namespace SmartTelehealth.Application.Services
                     Type = "Warning"
                 };
 
-                await CreateNotificationAsync(notification);
+                var result = await CreateNotificationAsync(notification, tokenModel);
                 _logger.LogInformation("Sent subscription suspended notification to user {UserId}", userId);
+                
+                return new JsonModel
+                {
+                    data = result.data,
+                    Message = "Subscription suspended notification sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending subscription suspended notification to user {UserId}", userId);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription suspended notification: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendRefundNotificationAsync(string userId, decimal amount, string billingRecordId)
+        public async Task<JsonModel> SendRefundNotificationAsync(string userId, decimal amount, string billingRecordId, TokenModel tokenModel)
         {
             try
             {
@@ -816,16 +1175,29 @@ namespace SmartTelehealth.Application.Services
                     Type = "Success"
                 };
 
-                await CreateNotificationAsync(notification);
+                var result = await CreateNotificationAsync(notification, tokenModel);
                 _logger.LogInformation("Sent refund notification to user {UserId} for amount {Amount}", userId, amount);
+                
+                return new JsonModel
+                {
+                    data = result.data,
+                    Message = "Refund notification sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending refund notification to user {UserId}", userId);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send refund notification: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 
-        public async Task SendSubscriptionReactivatedNotificationAsync(string userId, string subscriptionId)
+        public async Task<JsonModel> SendSubscriptionReactivatedNotificationAsync(string userId, string subscriptionId, TokenModel tokenModel)
         {
             try
             {
@@ -837,12 +1209,25 @@ namespace SmartTelehealth.Application.Services
                     Type = "Success"
                 };
 
-                await CreateNotificationAsync(notification);
+                var result = await CreateNotificationAsync(notification, tokenModel);
                 _logger.LogInformation("Sent subscription reactivated notification to user {UserId}", userId);
+                
+                return new JsonModel
+                {
+                    data = result.data,
+                    Message = "Subscription reactivated notification sent successfully",
+                    StatusCode = 200
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending subscription reactivated notification to user {UserId}", userId);
+                return new JsonModel
+                {
+                    data = false,
+                    Message = $"Failed to send subscription reactivated notification: {ex.Message}",
+                    StatusCode = 500
+                };
             }
         }
 

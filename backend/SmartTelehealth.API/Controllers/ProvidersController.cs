@@ -12,7 +12,7 @@ namespace SmartTelehealth.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ProvidersController : ControllerBase
+public class ProvidersController : BaseController
 {
     private readonly IProviderService _providerService;
 
@@ -22,39 +22,34 @@ public class ProvidersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<JsonModel>> GetAllProviders()
+    public async Task<JsonModel> GetAllProviders()
     {
-        var response = await _providerService.GetAllProvidersAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _providerService.GetAllProvidersAsync(GetToken(HttpContext));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<JsonModel>> GetProvider(int id)
+    public async Task<JsonModel> GetProvider(int id)
     {
-        var response = await _providerService.GetProviderByIdAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _providerService.GetProviderByIdAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost]
-    public async Task<ActionResult<JsonModel>> CreateProvider([FromBody] CreateProviderDto createProviderDto)
+    public async Task<JsonModel> CreateProvider([FromBody] CreateProviderDto createProviderDto)
     {
-        var response = await _providerService.CreateProviderAsync(createProviderDto);
-        return StatusCode(response.StatusCode, response);
+        return await _providerService.CreateProviderAsync(createProviderDto, GetToken(HttpContext));
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<JsonModel>> UpdateProvider(int id, [FromBody] UpdateProviderDto updateProviderDto)
+    public async Task<JsonModel> UpdateProvider(int id, [FromBody] UpdateProviderDto updateProviderDto)
     {
         if (id != updateProviderDto.Id)
-            return BadRequest(new JsonModel { data = new object(), Message = "ID mismatch", StatusCode = 400 });
-        var response = await _providerService.UpdateProviderAsync(id, updateProviderDto);
-        return StatusCode(response.StatusCode, response);
+            return new JsonModel { data = new object(), Message = "ID mismatch", StatusCode = 400 };
+        return await _providerService.UpdateProviderAsync(id, updateProviderDto, GetToken(HttpContext));
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<JsonModel>> DeleteProvider(int id)
+    public async Task<JsonModel> DeleteProvider(int id)
     {
-        var response = await _providerService.DeleteProviderAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _providerService.DeleteProviderAsync(id, GetToken(HttpContext));
     }
 } 

@@ -32,7 +32,7 @@ public class DocumentService : IDocumentService
         _documentTypeService = documentTypeService;
     }
 
-    public async Task<JsonModel> UploadDocumentAsync(UploadDocumentRequest request)
+    public async Task<JsonModel> UploadDocumentAsync(UploadDocumentRequest request, TokenModel tokenModel)
     {
         try
         {
@@ -80,7 +80,7 @@ public class DocumentService : IDocumentService
             }
 
             // 3. Upload file to storage
-            var uploadResult = await _fileStorageService.UploadFileAsync(request.FileData, request.FileName, request.ContentType);
+            var uploadResult = await _fileStorageService.UploadFileAsync(request.FileData, request.FileName, request.ContentType, tokenModel);
             if (uploadResult.StatusCode != 200)
             {
                 return new JsonModel
@@ -179,8 +179,8 @@ public class DocumentService : IDocumentService
                 DeletedAt = document.DeletedDate,
                 IsActive = document.IsActive,
                 IsDeleted = document.IsDeleted,
-                DownloadUrl = (await _fileStorageService.GetFileUrlAsync(document.FilePath)).data?.ToString() ?? "",
-                SecureUrl = (await _fileStorageService.GetSecureUrlAsync(document.FilePath)).data?.ToString() ?? "",
+                DownloadUrl = (await _fileStorageService.GetFileUrlAsync(document.FilePath, tokenModel)).data?.ToString() ?? "",
+                SecureUrl = (await _fileStorageService.GetSecureUrlAsync(document.FilePath, null, tokenModel)).data?.ToString() ?? "",
                 References = new List<DocumentReferenceDto> { new DocumentReferenceDto { DocumentId = reference.DocumentId, EntityType = reference.EntityType, EntityId = reference.EntityId, ReferenceType = reference.ReferenceType } }
             },
             Message = "Document uploaded successfully",
@@ -199,7 +199,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> GetDocumentAsync(Guid documentId, int? userId = null)
+    public async Task<JsonModel> GetDocumentAsync(Guid documentId, int? userId, TokenModel tokenModel)
     {
         try
         {
@@ -218,7 +218,7 @@ public class DocumentService : IDocumentService
             // 2. Check access permissions
             if (!document.IsPublic && userId.HasValue)
             {
-                var hasAccess = await ValidateDocumentAccessAsync(documentId, userId.Value);
+                var hasAccess = await ValidateDocumentAccessAsync(documentId, userId.Value, tokenModel);
                 if (hasAccess.StatusCode != 200 || !(hasAccess.data is bool accessGranted && accessGranted))
                 {
                     return new JsonModel
@@ -301,12 +301,12 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> GetDocumentWithContentAsync(Guid documentId, int? userId = null)
+    public async Task<JsonModel> GetDocumentWithContentAsync(Guid documentId, int? userId, TokenModel tokenModel)
     {
         try
         {
             // 1. Get document metadata
-            var documentResult = await GetDocumentAsync(documentId, userId);
+            var documentResult = await GetDocumentAsync(documentId, userId, tokenModel);
             if (documentResult.StatusCode != 200)
             {
                 return documentResult;
@@ -324,7 +324,7 @@ public class DocumentService : IDocumentService
                 };
             }
 
-            var fileBytes = await _fileStorageService.DownloadFileAsync(documentDto.FilePath);
+            var fileBytes = await _fileStorageService.DownloadFileAsync(documentDto.FilePath, tokenModel);
             if (fileBytes.StatusCode != 200)
             {
                 return new JsonModel
@@ -351,7 +351,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> DeleteDocumentAsync(Guid documentId, int userId)
+    public async Task<JsonModel> DeleteDocumentAsync(Guid documentId, int userId, TokenModel tokenModel)
     {
         try
         {
@@ -368,7 +368,7 @@ public class DocumentService : IDocumentService
             }
 
             // 2. Check access permissions
-            var hasAccess = await ValidateDocumentAccessAsync(documentId, userId);
+            var hasAccess = await ValidateDocumentAccessAsync(documentId, userId, tokenModel);
             if (hasAccess.StatusCode != 200 || !(hasAccess.data is bool accessGranted && accessGranted))
             {
                 return new JsonModel
@@ -380,7 +380,7 @@ public class DocumentService : IDocumentService
             }
 
             // 3. Delete from storage
-            var deleteResult = await _fileStorageService.DeleteFileAsync(document.FilePath);
+            var deleteResult = await _fileStorageService.DeleteFileAsync(document.FilePath, tokenModel);
             if (deleteResult.StatusCode != 200)
             {
                 _logger.LogWarning("Failed to delete file from storage: {FilePath}", document.FilePath);
@@ -418,7 +418,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> SoftDeleteDocumentAsync(Guid documentId, int userId)
+    public async Task<JsonModel> SoftDeleteDocumentAsync(Guid documentId, int userId, TokenModel tokenModel)
     {
         try
         {
@@ -435,7 +435,7 @@ public class DocumentService : IDocumentService
             }
 
             // 2. Check access permissions
-            var hasAccess = await ValidateDocumentAccessAsync(documentId, userId);
+            var hasAccess = await ValidateDocumentAccessAsync(documentId, userId, tokenModel);
             if (hasAccess.StatusCode != 200 || !(hasAccess.data is bool accessGranted && accessGranted))
             {
                 return new JsonModel
@@ -473,7 +473,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> GetDocumentsByEntityAsync(string entityType, Guid entityId, int? userId = null)
+    public async Task<JsonModel> GetDocumentsByEntityAsync(string entityType, Guid entityId, int? userId, TokenModel tokenModel)
     {
         try
         {
@@ -485,7 +485,7 @@ public class DocumentService : IDocumentService
             var documents = new List<DocumentDto>();
             foreach (var reference in references)
             {
-                var documentResult = await GetDocumentAsync(reference.DocumentId, userId);
+                var documentResult = await GetDocumentAsync(reference.DocumentId, userId, tokenModel);
                 if (documentResult.StatusCode == 200)
                 {
                     documents.Add((DocumentDto)documentResult.data);
@@ -511,7 +511,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> GetDocumentsByReferenceTypeAsync(string entityType, Guid entityId, string referenceType, int? userId = null)
+    public async Task<JsonModel> GetDocumentsByReferenceTypeAsync(string entityType, Guid entityId, string referenceType, int? userId, TokenModel tokenModel)
     {
         try
         {
@@ -524,7 +524,7 @@ public class DocumentService : IDocumentService
             var documents = new List<DocumentDto>();
             foreach (var reference in references)
             {
-                var documentResult = await GetDocumentAsync(reference.DocumentId, userId);
+                var documentResult = await GetDocumentAsync(reference.DocumentId, userId, tokenModel);
                 if (documentResult.StatusCode == 200)
                 {
                     documents.Add((DocumentDto)documentResult.data);
@@ -550,7 +550,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> SearchDocumentsAsync(DocumentSearchRequest request, int? userId = null)
+    public async Task<JsonModel> SearchDocumentsAsync(DocumentSearchRequest request, int? userId, TokenModel tokenModel)
     {
         try
         {
@@ -597,7 +597,7 @@ public class DocumentService : IDocumentService
 
             foreach (var document in documents)
             {
-                var documentResult = await GetDocumentAsync(document.Id, userId);
+                var documentResult = await GetDocumentAsync(document.Id, userId, tokenModel);
                 if (documentResult.StatusCode == 200)
                 {
                     documentDtos.Add((DocumentDto)documentResult.data);
@@ -629,7 +629,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> AddDocumentReferenceAsync(Guid documentId, string entityType, Guid entityId, string? referenceType = null, int? createdById = null)
+    public async Task<JsonModel> AddDocumentReferenceAsync(Guid documentId, string entityType, Guid entityId, string? referenceType, int? createdById, TokenModel tokenModel)
     {
         try
         {
@@ -677,7 +677,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> RemoveDocumentReferenceAsync(Guid documentId, string entityType, Guid entityId)
+    public async Task<JsonModel> RemoveDocumentReferenceAsync(Guid documentId, string entityType, Guid entityId, TokenModel tokenModel)
     {
         try
         {
@@ -722,7 +722,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> GetDocumentReferencesAsync(Guid documentId)
+    public async Task<JsonModel> GetDocumentReferencesAsync(Guid documentId, TokenModel tokenModel)
     {
         try
         {
@@ -761,7 +761,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> ValidateDocumentAccessAsync(Guid documentId, int userId)
+    public async Task<JsonModel> ValidateDocumentAccessAsync(Guid documentId, int userId, TokenModel tokenModel)
     {
         try
         {
@@ -835,7 +835,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> UpdateDocumentAccessAsync(Guid documentId, bool isPublic, int userId)
+    public async Task<JsonModel> UpdateDocumentAccessAsync(Guid documentId, bool isPublic, int userId, TokenModel tokenModel)
     {
         try
         {
@@ -851,7 +851,7 @@ public class DocumentService : IDocumentService
             }
 
             // Check if user has permission to update
-            var hasAccess = await ValidateDocumentAccessAsync(documentId, userId);
+            var hasAccess = await ValidateDocumentAccessAsync(documentId, userId, tokenModel);
             if (hasAccess.StatusCode != 200 || !(hasAccess.data is bool accessGranted && accessGranted))
             {
                 return new JsonModel
@@ -886,7 +886,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> UploadMultipleDocumentsAsync(List<UploadDocumentRequest> requests)
+    public async Task<JsonModel> UploadMultipleDocumentsAsync(List<UploadDocumentRequest> requests, TokenModel tokenModel)
     {
         try
         {
@@ -894,7 +894,7 @@ public class DocumentService : IDocumentService
 
             foreach (var request in requests)
             {
-                var result = await UploadDocumentAsync(request);
+                var result = await UploadDocumentAsync(request, tokenModel);
                 if (result.StatusCode == 200)
                 {
                     var documentDto = result.data as DocumentDto;
@@ -924,13 +924,13 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> DeleteMultipleDocumentsAsync(List<Guid> documentIds, int userId)
+    public async Task<JsonModel> DeleteMultipleDocumentsAsync(List<Guid> documentIds, int userId, TokenModel tokenModel)
     {
         try
         {
             foreach (var documentId in documentIds)
             {
-                await DeleteDocumentAsync(documentId, userId);
+                await DeleteDocumentAsync(documentId, userId, tokenModel);
             }
 
             return new JsonModel
@@ -952,7 +952,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> UpdateDocumentMetadataAsync(Guid documentId, string? description, bool? isPublic, int userId)
+    public async Task<JsonModel> UpdateDocumentMetadataAsync(Guid documentId, string? description, bool? isPublic, int userId, TokenModel tokenModel)
     {
         try
         {
@@ -968,7 +968,7 @@ public class DocumentService : IDocumentService
             }
 
             // Check if user has permission to update
-            var hasAccess = await ValidateDocumentAccessAsync(documentId, userId);
+            var hasAccess = await ValidateDocumentAccessAsync(documentId, userId, tokenModel);
             if (hasAccess.StatusCode != 200 || !(hasAccess.data is bool accessGranted && accessGranted))
             {
                 return new JsonModel
@@ -993,7 +993,7 @@ public class DocumentService : IDocumentService
 
             await _documentRepository.SaveChangesAsync();
 
-            var result = await GetDocumentAsync(documentId, userId);
+            var result = await GetDocumentAsync(documentId, userId, tokenModel);
             if (result.StatusCode == 200)
             {
                 return new JsonModel
@@ -1025,7 +1025,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> SetDocumentExpirationAsync(Guid documentId, DateTime? expiresAt, int userId)
+    public async Task<JsonModel> SetDocumentExpirationAsync(Guid documentId, DateTime? expiresAt, int userId, TokenModel tokenModel)
     {
         try
         {
@@ -1043,7 +1043,7 @@ public class DocumentService : IDocumentService
             }
 
             // Check if user has permission to update
-            var hasAccess = await ValidateDocumentAccessAsync(documentId, userId);
+            var hasAccess = await ValidateDocumentAccessAsync(documentId, userId, tokenModel);
             if (hasAccess.StatusCode != 200 || !(hasAccess.data is bool accessGranted && accessGranted))
             {
                 return new JsonModel
@@ -1078,7 +1078,7 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<JsonModel> UploadUserDocumentAsync(UploadUserDocumentRequest request)
+    public async Task<JsonModel> UploadUserDocumentAsync(UploadUserDocumentRequest request, TokenModel tokenModel)
     {
         try
         {
@@ -1097,7 +1097,7 @@ public class DocumentService : IDocumentService
                 CreatedById = request.CreatedById
             };
 
-            var result = await UploadDocumentAsync(uploadRequest);
+            var result = await UploadDocumentAsync(uploadRequest, tokenModel);
             if (result.StatusCode == 200)
             {
                 return new JsonModel
@@ -1141,7 +1141,7 @@ public class DocumentService : IDocumentService
 
 
 
-    public async Task<JsonModel> GetUserDocumentsAsync(int userId, string? referenceType = null)
+    public async Task<JsonModel> GetUserDocumentsAsync(int userId, string? referenceType, TokenModel tokenModel)
     {
         try
         {
@@ -1213,6 +1213,66 @@ public class DocumentService : IDocumentService
                 return true; // Placeholder
             default:
                 return false;
+        }
+    }
+
+    public async Task<JsonModel> DeleteUserDocumentAsync(Guid documentId, int userId, TokenModel tokenModel)
+    {
+        try
+        {
+            // Validate that the user owns this document
+            var document = await _documentRepository.GetByIdAsync(documentId);
+            if (document == null)
+            {
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Document not found",
+                    StatusCode = 404
+                };
+            }
+
+            // Check if user has access to this document
+            var hasAccess = await ValidateEntityAccessAsync("User", documentId, userId);
+            if (!hasAccess)
+            {
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Access denied",
+                    StatusCode = 403
+                };
+            }
+
+            // Soft delete the document
+            document.IsDeleted = true;
+            document.DeletedDate = DateTime.UtcNow;
+            await _documentRepository.UpdateAsync(document);
+
+            // Also soft delete any references
+            var references = await _referenceRepository.FindAsync(r => r.DocumentId == documentId);
+            foreach (var reference in references)
+            {
+                reference.IsDeleted = true;
+                await _referenceRepository.UpdateAsync(reference);
+            }
+
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Document deleted successfully",
+                StatusCode = 200
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting user document {DocumentId} for user {UserId}", documentId, userId);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Internal server error",
+                StatusCode = 500
+            };
         }
     }
 

@@ -13,6 +13,9 @@ namespace SmartTelehealth.Application.DTOs
         public string PlanName { get; set; } = string.Empty;
         public string PlanDescription { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public string? CustomerId { get; set; }
+        public DateTime? CurrentPeriodStart { get; set; }
+        public DateTime? CurrentPeriodEnd { get; set; }
         public string? StatusReason { get; set; }
         public decimal CurrentPrice { get; set; }
         public bool AutoRenew { get; set; }
@@ -133,6 +136,23 @@ namespace SmartTelehealth.Application.DTOs
         public string PaymentMethodId { get; set; } = string.Empty;
         public bool IsDefault { get; set; } = false;
         public bool SetAsDefault { get; set; } = false;
+        
+        // Added missing properties to fix build errors
+        public string Type { get; set; } = string.Empty;
+        public string Last4 { get; set; } = string.Empty;
+        public int ExpiryMonth { get; set; }
+        public int ExpiryYear { get; set; }
+    }
+
+    public class ProcessPaymentRequestDto
+    {
+        public Guid BillingRecordId { get; set; }
+        public string? PaymentMethodId { get; set; }
+    }
+
+    public class ValidatePaymentMethodDto
+    {
+        public string PaymentMethodId { get; set; } = string.Empty;
     }
 
     public class SubscriptionBenefitDto
@@ -203,6 +223,10 @@ namespace SmartTelehealth.Application.DTOs
         public string? ChangedByUserId { get; set; }
         public DateTime ChangedAt { get; set; }
         public string? Metadata { get; set; }
+        
+        // Backward compatibility properties
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
     public class SubscriptionPaymentDto
     {

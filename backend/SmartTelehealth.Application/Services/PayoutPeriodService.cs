@@ -14,7 +14,7 @@ public class PayoutPeriodService : IPayoutPeriodService
         _logger = logger;
     }
 
-    public async Task<JsonModel> CreatePeriodAsync(CreatePayoutPeriodDto createDto)
+    public async Task<JsonModel> CreatePeriodAsync(CreatePayoutPeriodDto createDto, TokenModel tokenModel)
     {
         try
         {
@@ -38,7 +38,7 @@ public class PayoutPeriodService : IPayoutPeriodService
         }
     }
 
-    public async Task<JsonModel> GetPeriodAsync(Guid id)
+    public async Task<JsonModel> GetPeriodAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -62,7 +62,7 @@ public class PayoutPeriodService : IPayoutPeriodService
         }
     }
 
-    public async Task<JsonModel> UpdatePeriodAsync(Guid id, CreatePayoutPeriodDto updateDto)
+    public async Task<JsonModel> UpdatePeriodAsync(Guid id, CreatePayoutPeriodDto updateDto, TokenModel tokenModel)
     {
         try
         {
@@ -86,7 +86,7 @@ public class PayoutPeriodService : IPayoutPeriodService
         }
     }
 
-    public async Task<JsonModel> GetAllPeriodsAsync()
+    public async Task<JsonModel> GetAllPeriodsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -110,7 +110,7 @@ public class PayoutPeriodService : IPayoutPeriodService
         }
     }
 
-    public async Task<JsonModel> GetActivePeriodsAsync()
+    public async Task<JsonModel> GetActivePeriodsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -134,7 +134,7 @@ public class PayoutPeriodService : IPayoutPeriodService
         }
     }
 
-    public async Task<JsonModel> DeletePeriodAsync(Guid id)
+    public async Task<JsonModel> DeletePeriodAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -158,7 +158,7 @@ public class PayoutPeriodService : IPayoutPeriodService
         }
     }
 
-    public async Task<JsonModel> ProcessPeriodAsync(Guid id)
+    public async Task<JsonModel> ProcessPeriodAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -182,7 +182,7 @@ public class PayoutPeriodService : IPayoutPeriodService
         }
     }
 
-    public async Task<JsonModel> GetPeriodStatisticsAsync()
+    public async Task<JsonModel> GetPeriodStatisticsAsync(TokenModel tokenModel)
     {
         try
         {

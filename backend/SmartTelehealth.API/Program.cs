@@ -15,6 +15,7 @@ using SmartTelehealth.API.Hubs;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
+using SmartTelehealth.API.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +37,10 @@ builder.Host.UseSerilog();
 // builder.Logging.AddConsole();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<JsonModelActionFilter>();
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

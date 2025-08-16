@@ -322,6 +322,14 @@ public class SubscriptionRepository : ISubscriptionRepository
             .Where(s => s.Status == Subscription.SubscriptionStatuses.PaymentFailed && !s.IsDeleted)
             .ToListAsync();
     }
+    
+    // Added missing method for AnalyticsService
+    public async Task<int> GetCountAsync()
+    {
+        return await _context.Subscriptions
+            .Where(s => !s.IsDeleted)
+            .CountAsync();
+    }
 
     // Additional missing methods for comprehensive subscription management
     public async Task<IEnumerable<Subscription>> GetSubscriptionsByBillingCycleAsync(string billingCycle)
@@ -580,6 +588,53 @@ public class SubscriptionRepository : ISubscriptionRepository
             .Include(s => s.BillingCycle)
             .Where(s => s.TotalUsageCount >= minUsageCount && !s.IsDeleted)
             .OrderByDescending(s => s.TotalUsageCount)
+            .ToListAsync();
+    }
+    
+    // Added missing methods to fix build errors
+    public async Task<IEnumerable<Subscription>> GetByCategoryIdAsync(Guid categoryId)
+    {
+        // Get subscription plans that belong to the category
+        var planIds = await _context.Categories
+            .Where(c => c.Id == categoryId)
+            .SelectMany(c => c.SubscriptionPlans)
+            .Where(sp => sp.IsActive && !sp.IsDeleted)
+            .Select(sp => sp.Id)
+            .ToListAsync();
+
+        // Get subscriptions for those plans
+        return await _context.Subscriptions
+            .Where(s => !s.IsDeleted && planIds.Contains(s.SubscriptionPlanId))
+            .Include(s => s.SubscriptionPlan)
+            .ToListAsync();
+    }
+    
+    public async Task<int> GetActiveSubscriptionsCountAsync()
+    {
+        return await _context.Subscriptions
+            .Where(s => !s.IsDeleted && s.Status == Subscription.SubscriptionStatuses.Active)
+            .CountAsync();
+    }
+    
+    public async Task<int> GetCancelledSubscriptionsCountAsync()
+    {
+        return await _context.Subscriptions
+            .Where(s => !s.IsDeleted && s.Status == Subscription.SubscriptionStatuses.Cancelled)
+            .CountAsync();
+    }
+    
+    public async Task<IEnumerable<Subscription>> GetSubscriptionsCreatedInRangeAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Where(s => !s.IsDeleted && s.CreatedDate >= startDate && s.CreatedDate <= endDate)
+            .ToListAsync();
+    }
+    
+    public async Task<IEnumerable<Subscription>> GetCancelledSubscriptionsInRangeAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Subscriptions
+            .Where(s => !s.IsDeleted && s.Status == Subscription.SubscriptionStatuses.Cancelled && 
+                       s.CancelledDate >= startDate && s.CancelledDate <= endDate)
             .ToListAsync();
     }
 } 

@@ -11,7 +11,7 @@ namespace SmartTelehealth.API.Controllers;
 [ApiController]
 [Route("api/provider/user")]
 [Authorize(Roles = "Admin,Provider")]
-public class ProviderPrivilegesController : ControllerBase
+public class ProviderPrivilegesController : BaseController
 {
     private readonly ISubscriptionRepository _subscriptionRepo;
     private readonly PrivilegeService _privilegeService;
@@ -25,16 +25,16 @@ public class ProviderPrivilegesController : ControllerBase
     }
 
     [HttpGet("{userId}/privileges")]
-    public async Task<ActionResult<IEnumerable<UserPrivilegeUsageDto>>> GetUserPrivileges(int userId)
+    public async Task<JsonModel> GetUserPrivileges(int userId)
     {
         var subs = await _subscriptionRepo.GetByUserIdAsync(userId);
         var usageList = new List<UserPrivilegeUsageDto>();
         foreach (var sub in subs)
         {
-            var planPrivileges = await _privilegeService.GetPrivilegesForPlanAsync(sub.SubscriptionPlanId);
+            var planPrivileges = await _privilegeService.GetPrivilegesForPlanAsync(sub.SubscriptionPlanId, GetToken(HttpContext));
             foreach (var priv in planPrivileges)
             {
-                var remaining = await _privilegeService.GetRemainingPrivilegeAsync(sub.Id, priv.Name);
+                var remaining = await _privilegeService.GetRemainingPrivilegeAsync(sub.Id, priv.Name, GetToken(HttpContext));
                 usageList.Add(new UserPrivilegeUsageDto
                 {
                     SubscriptionId = sub.Id,
@@ -43,26 +43,30 @@ public class ProviderPrivilegesController : ControllerBase
                 });
             }
         }
-        return Ok(usageList);
+        return new JsonModel { data = usageList, Message = "User privileges retrieved successfully", StatusCode = 200 };
     }
 
     [HttpGet("{userId}/privileges/{privilegeName}")]
-    public async Task<ActionResult<UserPrivilegeUsageDto>> CheckUserPrivilege(int userId, string privilegeName)
+    public async Task<JsonModel> CheckUserPrivilege(int userId, string privilegeName)
     {
         var subs = await _subscriptionRepo.GetByUserIdAsync(userId);
         foreach (var sub in subs)
         {
-            var remaining = await _privilegeService.GetRemainingPrivilegeAsync(sub.Id, privilegeName);
+            var remaining = await _privilegeService.GetRemainingPrivilegeAsync(sub.Id, privilegeName, GetToken(HttpContext));
             if (remaining > 0)
             {
-                return Ok(new UserPrivilegeUsageDto
-                {
-                    SubscriptionId = sub.Id,
-                    PrivilegeName = privilegeName,
-                    Remaining = remaining
-                });
+                return new JsonModel { 
+                    data = new UserPrivilegeUsageDto
+                    {
+                        SubscriptionId = sub.Id,
+                        PrivilegeName = privilegeName,
+                        Remaining = remaining
+                    }, 
+                    Message = "User privilege found", 
+                    StatusCode = 200 
+                };
             }
         }
-        return NotFound($"User does not have privilege: {privilegeName}");
+        return new JsonModel { data = new object(), Message = $"User does not have privilege: {privilegeName}", StatusCode = 404 };
     }
 } 

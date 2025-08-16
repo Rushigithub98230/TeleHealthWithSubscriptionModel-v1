@@ -23,7 +23,7 @@ public class ConsultationService : IConsultationService
         _logger = logger;
     }
 
-    public async Task<JsonModel> GetUserOneTimeConsultationsAsync(int userId)
+    public async Task<JsonModel> GetUserOneTimeConsultationsAsync(int userId, TokenModel tokenModel)
     {
         try
         {
@@ -39,7 +39,7 @@ public class ConsultationService : IConsultationService
         }
     }
 
-    public async Task<JsonModel> GetUserConsultationsAsync(int userId)
+    public async Task<JsonModel> GetUserConsultationsAsync(int userId, TokenModel tokenModel)
     {
         try
         {
@@ -54,29 +54,29 @@ public class ConsultationService : IConsultationService
         }
     }
 
-    public Task<JsonModel> CreateConsultationAsync(CreateConsultationDto createDto) => throw new NotImplementedException();
-    public Task<JsonModel> GetConsultationByIdAsync(Guid id) => throw new NotImplementedException();
-    public Task<JsonModel> GetProviderConsultationsAsync(Guid providerId) => throw new NotImplementedException();
-    public Task<JsonModel> GetUpcomingConsultationsAsync() => throw new NotImplementedException();
-    public Task<JsonModel> UpdateConsultationAsync(Guid id, UpdateConsultationDto updateDto) => throw new NotImplementedException();
-    public Task<JsonModel> DeleteConsultationAsync(Guid id) => throw new NotImplementedException();
-    public Task<JsonModel> CancelConsultationAsync(Guid id, string reason) => throw new NotImplementedException();
-    public Task<JsonModel> StartConsultationAsync(Guid id) => throw new NotImplementedException();
-    public Task<JsonModel> CompleteConsultationAsync(Guid id, string notes) => throw new NotImplementedException();
-    public Task<JsonModel> RescheduleConsultationAsync(Guid id, DateTime newScheduledAt) => throw new NotImplementedException();
-    public Task<JsonModel> MarkNoShowAsync(Guid id) => throw new NotImplementedException();
-    public Task<JsonModel> GenerateMeetingUrlAsync(Guid consultationId) => throw new NotImplementedException();
-    public Task<JsonModel> JoinMeetingAsync(Guid consultationId, string participantId, string role) => throw new NotImplementedException();
-    public Task<JsonModel> LeaveMeetingAsync(Guid consultationId, string participantId) => throw new NotImplementedException();
-    public Task<JsonModel> StartRecordingAsync(Guid consultationId) => throw new NotImplementedException();
-    public Task<JsonModel> StopRecordingAsync(Guid consultationId) => throw new NotImplementedException();
-    public Task<JsonModel> GetRecordingsAsync(Guid consultationId) => throw new NotImplementedException();
-    public Task<JsonModel> GetConsultationAnalyticsAsync(Guid providerId, DateTime? startDate = null, DateTime? endDate = null) => throw new NotImplementedException();
-    public Task<JsonModel> GetConsultationsByDateRangeAsync(DateTime startDate, DateTime endDate) => throw new NotImplementedException();
-    public Task<JsonModel> CalculateProviderRevenueAsync(Guid providerId, DateTime? startDate = null, DateTime? endDate = null) => throw new NotImplementedException();
-    public Task<JsonModel> CreateOneTimeConsultationAsync(CreateOneTimeConsultationDto createDto) => throw new NotImplementedException();
-    public Task<JsonModel> ProcessOneTimePaymentAsync(Guid consultationId, string paymentMethodId) => throw new NotImplementedException();
-    public Task<JsonModel> GetFollowUpConsultationsAsync(Guid userId) => throw new NotImplementedException();
-    public Task<JsonModel> ScheduleFollowUpAsync(Guid consultationId, DateTime followUpDate) => throw new NotImplementedException();
-    public Task<JsonModel> CancelFollowUpAsync(Guid consultationId) => throw new NotImplementedException();
+    public Task<JsonModel> CreateConsultationAsync(CreateConsultationDto createDto, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetConsultationByIdAsync(Guid id, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetProviderConsultationsAsync(Guid providerId, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetUpcomingConsultationsAsync(TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> UpdateConsultationAsync(Guid id, UpdateConsultationDto updateDto, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> DeleteConsultationAsync(Guid id, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> CancelConsultationAsync(Guid id, string reason, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> StartConsultationAsync(Guid id, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> CompleteConsultationAsync(Guid id, string notes, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> RescheduleConsultationAsync(Guid id, DateTime newScheduledAt, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> MarkNoShowAsync(Guid id, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GenerateMeetingUrlAsync(Guid consultationId, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> JoinMeetingAsync(Guid consultationId, string participantId, string role, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> LeaveMeetingAsync(Guid consultationId, string participantId, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> StartRecordingAsync(Guid consultationId, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> StopRecordingAsync(Guid consultationId, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetRecordingsAsync(Guid consultationId, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetConsultationAnalyticsAsync(Guid providerId, DateTime? startDate, DateTime? endDate, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetConsultationsByDateRangeAsync(DateTime startDate, DateTime endDate, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> CalculateProviderRevenueAsync(Guid providerId, DateTime? startDate, DateTime? endDate, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> CreateOneTimeConsultationAsync(CreateOneTimeConsultationDto createDto, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> ProcessOneTimePaymentAsync(Guid consultationId, string paymentMethodId, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> GetFollowUpConsultationsAsync(Guid userId, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> ScheduleFollowUpAsync(Guid consultationId, DateTime followUpDate, TokenModel tokenModel) => throw new NotImplementedException();
+    public Task<JsonModel> CancelFollowUpAsync(Guid consultationId, TokenModel tokenModel) => throw new NotImplementedException();
 } 

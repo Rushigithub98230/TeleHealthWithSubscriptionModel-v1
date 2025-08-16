@@ -12,7 +12,7 @@ namespace SmartTelehealth.API.Controllers;
 [ApiController]
 [Route("api/user/[controller]")]
 [Authorize]
-public class UserSubscriptionsController : ControllerBase
+public class UserSubscriptionsController : BaseController
 {
     private readonly ISubscriptionRepository _subscriptionRepo;
     private readonly ISubscriptionPlanRepository _planRepo;
@@ -34,15 +34,14 @@ public class UserSubscriptionsController : ControllerBase
     private int GetCurrentUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpGet("subscriptions")]
-    public async Task<ActionResult<JsonModel>> GetUserSubscriptions()
+    public async Task<JsonModel> GetUserSubscriptions()
     {
         var userId = GetCurrentUserId();
-        var response = await _subscriptionService.GetUserSubscriptionsAsync(userId);
-        return StatusCode(response.StatusCode, response);
+        return await _subscriptionService.GetUserSubscriptionsAsync(userId, GetToken(HttpContext));
     }
 
     [HttpPost("subscriptions")]
-    public async Task<ActionResult> PurchaseSubscription([FromBody] PurchaseSubscriptionDto dto)
+    public async Task<JsonModel> PurchaseSubscription([FromBody] PurchaseSubscriptionDto dto)
     {
         var userId = GetCurrentUserId();
         var createDto = new CreateSubscriptionDto
@@ -50,42 +49,44 @@ public class UserSubscriptionsController : ControllerBase
             UserId = userId,
             PlanId = dto.PlanId.ToString()
         };
-        var result = await _subscriptionService.CreateSubscriptionAsync(createDto);
-        if (result.StatusCode != 200) return BadRequest(result.Message);
-        return Ok(result);
+        var result = await _subscriptionService.CreateSubscriptionAsync(createDto, GetToken(HttpContext));
+        if (result.StatusCode != 200) 
+            return new JsonModel { data = new object(), Message = result.Message, StatusCode = result.StatusCode };
+        return result;
     }
 
     [HttpPost("subscriptions/cancel")]
-    public async Task<ActionResult> CancelSubscription([FromBody] CancelSubscriptionDto dto)
+    public async Task<JsonModel> CancelSubscription([FromBody] CancelSubscriptionDto dto)
     {
         var userId = GetCurrentUserId();
-        var result = await _subscriptionService.CancelSubscriptionAsync(dto.SubscriptionId.ToString());
-        if (result.StatusCode != 200) return BadRequest(result.Message);
-        return Ok(result);
+        var result = await _subscriptionService.CancelSubscriptionAsync(dto.SubscriptionId.ToString(), null, GetToken(HttpContext));
+        if (result.StatusCode != 200) 
+            return new JsonModel { data = new object(), Message = result.Message, StatusCode = result.StatusCode };
+        return result;
     }
 
     [HttpGet("privilege-usage")]
-    public async Task<ActionResult<JsonModel>> GetPrivilegeUsage()
+    public async Task<JsonModel> GetPrivilegeUsage()
     {
         var userId = GetCurrentUserId();
-        var subscriptions = await _subscriptionService.GetUserSubscriptionsAsync(userId);
+        var subscriptions = await _subscriptionService.GetUserSubscriptionsAsync(userId, GetToken(HttpContext));
         
         if (subscriptions.StatusCode != 200)
-            return StatusCode(subscriptions.StatusCode, subscriptions);
+            return subscriptions;
             
         var subscriptionList = subscriptions.data as IEnumerable<SubscriptionDto>;
         if (subscriptionList == null || !subscriptionList.Any())
-            return Ok(new JsonModel { data = new List<object>(), Message = "No subscriptions found", StatusCode = 200 });
+            return new JsonModel { data = new List<object>(), Message = "No subscriptions found", StatusCode = 200 };
             
         var privilegeUsageList = new List<object>();
         foreach (var subscription in subscriptionList)
         {
             var subscriptionId = Guid.Parse(subscription.Id);
             var planId = Guid.Parse(subscription.PlanId);
-            var planPrivileges = await _privilegeService.GetPrivilegesForPlanAsync(planId);
+            var planPrivileges = await _privilegeService.GetPrivilegesForPlanAsync(planId, GetToken(HttpContext));
             foreach (var privilege in planPrivileges)
             {
-                var remaining = await _privilegeService.GetRemainingPrivilegeAsync(subscriptionId, privilege.Name);
+                var remaining = await _privilegeService.GetRemainingPrivilegeAsync(subscriptionId, privilege.Name, GetToken(HttpContext));
                 privilegeUsageList.Add(new
                 {
                     SubscriptionId = subscription.Id,
@@ -96,16 +97,17 @@ public class UserSubscriptionsController : ControllerBase
             }
         }
         
-        return Ok(new JsonModel { data = privilegeUsageList, Message = "Privilege usage retrieved successfully", StatusCode = 200 });
+        return new JsonModel { data = privilegeUsageList, Message = "Privilege usage retrieved successfully", StatusCode = 200 };
     }
 
     [HttpPost("privileges/use")]
-    public async Task<ActionResult> UsePrivilege([FromBody] UsePrivilegeDto dto)
+    public async Task<JsonModel> UsePrivilege([FromBody] UsePrivilegeDto dto)
     {
         var userId = GetCurrentUserId();
-        var used = await _privilegeService.UsePrivilegeAsync(dto.SubscriptionId, dto.PrivilegeName, dto.Amount);
-        if (!used) return BadRequest("Privilege could not be used or limit reached.");
-        return Ok();
+        var used = await _privilegeService.UsePrivilegeAsync(dto.SubscriptionId, dto.PrivilegeName, dto.Amount, GetToken(HttpContext));
+        if (!used) 
+            return new JsonModel { data = new object(), Message = "Privilege could not be used or limit reached.", StatusCode = 400 };
+        return new JsonModel { data = true, Message = "Privilege used successfully", StatusCode = 200 };
     }
 }
 

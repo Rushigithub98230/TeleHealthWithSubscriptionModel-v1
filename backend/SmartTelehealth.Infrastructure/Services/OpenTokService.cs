@@ -29,7 +29,7 @@ public class OpenTokService : IOpenTokService
         _logger.LogInformation("OpenTok service initialized with API key: {ApiKey}", apiKey);
     }
 
-    public async Task<JsonModel> CreateSessionAsync(string sessionName, bool isArchived = false)
+    public async Task<JsonModel> CreateSessionAsync(string sessionName, bool isArchived, TokenModel tokenModel)
     {
         try
         {
@@ -67,7 +67,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> GetSessionAsync(string sessionId)
+    public async Task<JsonModel> GetSessionAsync(string sessionId, TokenModel tokenModel)
     {
         try
         {
@@ -100,7 +100,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> ArchiveSessionAsync(string sessionId)
+    public async Task<JsonModel> ArchiveSessionAsync(string sessionId, TokenModel tokenModel)
     {
         try
         {
@@ -126,7 +126,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> DeleteSessionAsync(string sessionId)
+    public async Task<JsonModel> DeleteSessionAsync(string sessionId, TokenModel tokenModel)
     {
         try
         {
@@ -152,7 +152,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> GenerateTokenAsync(string sessionId, string userId, string userName, OpenTokRole role = OpenTokRole.Publisher)
+    public async Task<JsonModel> GenerateTokenAsync(string sessionId, string userId, string userName, OpenTokRole role, TokenModel tokenModel)
     {
         try
         {
@@ -179,7 +179,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> GenerateTokenAsync(string sessionId, string userId, string userName, DateTime expireTime, OpenTokRole role = OpenTokRole.Publisher)
+    public async Task<JsonModel> GenerateTokenAsync(string sessionId, string userId, string userName, DateTime expireTime, OpenTokRole role, TokenModel tokenModel)
     {
         try
         {
@@ -206,7 +206,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> GetSessionStreamsAsync(string sessionId)
+    public async Task<JsonModel> GetSessionStreamsAsync(string sessionId, TokenModel tokenModel)
     {
         try
         {
@@ -234,7 +234,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> ForceDisconnectAsync(string sessionId, string connectionId)
+    public async Task<JsonModel> ForceDisconnectAsync(string sessionId, string connectionId, TokenModel tokenModel)
     {
         try
         {
@@ -260,7 +260,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> MuteStreamAsync(string sessionId, string streamId, bool mute)
+    public async Task<JsonModel> MuteStreamAsync(string sessionId, string streamId, bool mute, TokenModel tokenModel)
     {
         try
         {
@@ -286,7 +286,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> StartRecordingAsync(string sessionId, OpenTokRecordingOptions options)
+    public async Task<JsonModel> StartRecordingAsync(string sessionId, OpenTokRecordingOptions options, TokenModel tokenModel)
     {
         try
         {
@@ -324,7 +324,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> StopRecordingAsync(string recordingId)
+    public async Task<JsonModel> StopRecordingAsync(string recordingId, TokenModel tokenModel)
     {
         try
         {
@@ -350,7 +350,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> GetRecordingAsync(string recordingId)
+    public async Task<JsonModel> GetRecordingAsync(string recordingId, TokenModel tokenModel)
     {
         try
         {
@@ -388,7 +388,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> GetSessionRecordingsAsync(string sessionId)
+    public async Task<JsonModel> GetSessionRecordingsAsync(string sessionId, TokenModel tokenModel)
     {
         try
         {
@@ -416,7 +416,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> GetRecordingUrlAsync(string recordingId)
+    public async Task<JsonModel> GetRecordingUrlAsync(string recordingId, TokenModel tokenModel)
     {
         try
         {
@@ -443,7 +443,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> StartBroadcastAsync(string sessionId, OpenTokBroadcastOptions options)
+    public async Task<JsonModel> StartBroadcastAsync(string sessionId, OpenTokBroadcastOptions options, TokenModel tokenModel)
     {
         try
         {
@@ -480,7 +480,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> StopBroadcastAsync(string broadcastId)
+    public async Task<JsonModel> StopBroadcastAsync(string broadcastId, TokenModel tokenModel)
     {
         try
         {
@@ -506,7 +506,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> GetBroadcastAsync(string broadcastId)
+    public async Task<JsonModel> GetBroadcastAsync(string broadcastId, TokenModel tokenModel)
     {
         try
         {
@@ -544,7 +544,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> HandleWebhookAsync(OpenTokWebhookDto webhook)
+    public async Task<JsonModel> HandleWebhookAsync(OpenTokWebhookDto webhook, TokenModel tokenModel)
     {
         try
         {
@@ -554,22 +554,22 @@ public class OpenTokService : IOpenTokService
             switch (webhook.EventType.ToLower())
             {
                 case "connectioncreated":
-                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.ConnectionCreated, webhook.ConnectionId ?? "");
+                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.ConnectionCreated, webhook.ConnectionId ?? "", null, new TokenModel());
                     break;
                 case "connectiondestroyed":
-                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.ConnectionDestroyed, webhook.ConnectionId ?? "");
+                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.ConnectionDestroyed, webhook.ConnectionId ?? "", null, new TokenModel());
                     break;
                 case "streamcreated":
-                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.StreamCreated, webhook.ConnectionId ?? "", webhook.StreamId);
+                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.StreamCreated, webhook.ConnectionId ?? "", webhook.StreamId, new TokenModel());
                     break;
                 case "streamdestroyed":
-                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.StreamDestroyed, webhook.ConnectionId ?? "", webhook.StreamId);
+                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.StreamDestroyed, webhook.ConnectionId ?? "", webhook.StreamId, new TokenModel());
                     break;
                 case "recordingstarted":
-                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.RecordingStarted, webhook.ConnectionId ?? "");
+                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.RecordingStarted, webhook.ConnectionId ?? "", null, new TokenModel());
                     break;
                 case "recordingstopped":
-                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.RecordingStopped, webhook.ConnectionId ?? "");
+                    await LogSessionEventAsync(webhook.SessionId, OpenTokEventType.RecordingStopped, webhook.ConnectionId ?? "", null, new TokenModel());
                     break;
             }
 
@@ -592,7 +592,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> LogSessionEventAsync(string sessionId, OpenTokEventType eventType, string connectionId, string? streamId = null)
+    public async Task<JsonModel> LogSessionEventAsync(string sessionId, OpenTokEventType eventType, string connectionId, string? streamId, TokenModel tokenModel)
     {
         try
         {
@@ -621,7 +621,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> GetSessionAnalyticsAsync(string sessionId)
+    public async Task<JsonModel> GetSessionAnalyticsAsync(string sessionId, TokenModel tokenModel)
     {
         try
         {
@@ -660,7 +660,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> GetConnectionQualityAsync(string sessionId, string connectionId)
+    public async Task<JsonModel> GetConnectionQualityAsync(string sessionId, string connectionId, TokenModel tokenModel)
     {
         try
         {
@@ -697,7 +697,7 @@ public class OpenTokService : IOpenTokService
         }
     }
 
-    public async Task<JsonModel> IsServiceHealthyAsync()
+    public async Task<JsonModel> IsServiceHealthyAsync(TokenModel tokenModel)
     {
         try
         {

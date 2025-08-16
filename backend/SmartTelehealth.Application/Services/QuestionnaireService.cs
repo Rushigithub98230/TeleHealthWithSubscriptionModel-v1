@@ -357,7 +357,7 @@ namespace SmartTelehealth.Application.Services
             using var memoryStream = new MemoryStream();
             await file.CopyToAsync(memoryStream);
             var fileData = memoryStream.ToArray();
-            var result = await _fileStorageService.UploadFileAsync(fileData, file.FileName, file.ContentType);
+            var result = await _fileStorageService.UploadFileAsync(fileData, file.FileName, file.ContentType, new TokenModel());
             if (result.StatusCode != 200) throw new Exception("File upload failed");
             return (string)result.data;
         }

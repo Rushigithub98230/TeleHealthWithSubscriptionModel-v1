@@ -39,57 +39,97 @@ public class PrivilegeService : IPrivilegeService
     }
 
     // Check if a user has a privilege and how much is left
-    public async Task<int> GetRemainingPrivilegeAsync(Guid subscriptionId, string privilegeName)
+    public async Task<int> GetRemainingPrivilegeAsync(Guid subscriptionId, string privilegeName, TokenModel tokenModel)
     {
-        var planPrivilege = await GetPlanPrivilegeAsync(subscriptionId, privilegeName);
-        if (planPrivilege == null) return 0;
-        var allowed = planPrivilege.Value;
-        var usage = (await _usageRepo.GetBySubscriptionIdAsync(subscriptionId))
-            .FirstOrDefault(u => u.SubscriptionPlanPrivilegeId == planPrivilege.Id);
-        var used = usage?.UsedValue ?? 0;
-        return allowed - used;
+        try
+        {
+            var planPrivilege = await GetPlanPrivilegeAsync(subscriptionId, privilegeName);
+            if (planPrivilege == null) return 0;
+            var allowed = planPrivilege.Value;
+            var usage = (await _usageRepo.GetBySubscriptionIdAsync(subscriptionId))
+                .FirstOrDefault(u => u.SubscriptionPlanPrivilegeId == planPrivilege.Id);
+            var used = usage?.UsedValue ?? 0;
+            var remaining = allowed - used;
+            
+            _logger.LogInformation("Remaining privilege '{PrivilegeName}' for subscription {SubscriptionId} by user {UserId}: {Remaining}", 
+                privilegeName, subscriptionId, tokenModel.UserID, remaining);
+            return remaining;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting remaining privilege '{PrivilegeName}' for subscription {SubscriptionId} by user {UserId}", 
+                privilegeName, subscriptionId, tokenModel.UserID);
+            return 0;
+        }
     }
 
     // Use a privilege (e.g., book a consult)
-    public async Task<bool> UsePrivilegeAsync(Guid subscriptionId, string privilegeName, int amount = 1)
+    public async Task<bool> UsePrivilegeAsync(Guid subscriptionId, string privilegeName, int amount, TokenModel tokenModel)
     {
-        var planPrivilege = await GetPlanPrivilegeAsync(subscriptionId, privilegeName);
-        if (planPrivilege == null) return false;
-        var remaining = await GetRemainingPrivilegeAsync(subscriptionId, privilegeName);
-        if (remaining < amount) return false;
-        var usage = (await _usageRepo.GetBySubscriptionIdAsync(subscriptionId))
-            .FirstOrDefault(u => u.SubscriptionPlanPrivilegeId == planPrivilege.Id);
-        if (usage == null)
+        try
         {
-            usage = new UserSubscriptionPrivilegeUsage
+            var planPrivilege = await GetPlanPrivilegeAsync(subscriptionId, privilegeName);
+            if (planPrivilege == null) return false;
+            var remaining = await GetRemainingPrivilegeAsync(subscriptionId, privilegeName, tokenModel);
+            if (remaining < amount) return false;
+            var usage = (await _usageRepo.GetBySubscriptionIdAsync(subscriptionId))
+                .FirstOrDefault(u => u.SubscriptionPlanPrivilegeId == planPrivilege.Id);
+            if (usage == null)
             {
-                SubscriptionId = subscriptionId,
-                SubscriptionPlanPrivilegeId = planPrivilege.Id,
-                UsedValue = amount
-            };
-            await _usageRepo.AddAsync(usage);
+                usage = new UserSubscriptionPrivilegeUsage
+                {
+                    SubscriptionId = subscriptionId,
+                    SubscriptionPlanPrivilegeId = planPrivilege.Id,
+                    UsedValue = amount
+                };
+                await _usageRepo.AddAsync(usage);
+            }
+            else
+            {
+                usage.UsedValue += amount;
+                await _usageRepo.UpdateAsync(usage);
+            }
+            
+            _logger.LogInformation("Privilege '{PrivilegeName}' used for subscription {SubscriptionId} by user {UserId}: amount {Amount}", 
+                privilegeName, subscriptionId, tokenModel.UserID, amount);
+            return true;
         }
-        else
+        catch (Exception ex)
         {
-            usage.UsedValue += amount;
-            await _usageRepo.UpdateAsync(usage);
+            _logger.LogError(ex, "Error using privilege '{PrivilegeName}' for subscription {SubscriptionId} by user {UserId}", 
+                privilegeName, subscriptionId, tokenModel.UserID);
+            return false;
         }
-        return true;
     }
 
     // Get all privileges for a plan
-    public async Task<IEnumerable<Privilege>> GetPrivilegesForPlanAsync(Guid planId)
+    public async Task<IEnumerable<Privilege>> GetPrivilegesForPlanAsync(Guid planId, TokenModel tokenModel)
     {
-        var planPrivileges = await _planPrivilegeRepo.GetByPlanIdAsync(planId);
-        return planPrivileges.Select(pp => pp.Privilege);
+        try
+        {
+            var planPrivileges = await _planPrivilegeRepo.GetByPlanIdAsync(planId);
+            var privileges = planPrivileges.Select(pp => pp.Privilege);
+            
+            _logger.LogInformation("Privileges retrieved for plan {PlanId} by user {UserId}: {PrivilegeCount} privileges", 
+                planId, tokenModel.UserID, privileges.Count());
+            return privileges;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting privileges for plan {PlanId} by user {UserId}", planId, tokenModel.UserID);
+            return Enumerable.Empty<Privilege>();
+        }
     }
 
     // Get all privileges
-    public async Task<JsonModel> GetAllPrivilegesAsync()
+    public async Task<JsonModel> GetAllPrivilegesAsync(TokenModel tokenModel)
     {
         try
         {
             var privileges = await _privilegeRepo.GetAllAsync();
+            
+            _logger.LogInformation("All privileges retrieved by user {UserId}: {PrivilegeCount} privileges", 
+                tokenModel.UserID, privileges.Count());
             return new JsonModel 
             { 
                 data = privileges, 
@@ -99,7 +139,7 @@ public class PrivilegeService : IPrivilegeService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving all privileges");
+            _logger.LogError(ex, "Error retrieving all privileges by user {UserId}", tokenModel.UserID);
             return new JsonModel 
             { 
                 data = new object(), 

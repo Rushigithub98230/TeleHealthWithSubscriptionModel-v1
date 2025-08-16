@@ -18,6 +18,16 @@ public class ChatHub : Hub
     private static readonly Dictionary<string, HashSet<string>> _chatRoomGroups = new();
     private static readonly Dictionary<string, DateTime> _userLastSeen = new();
 
+    private TokenModel GetTokenModel()
+    {
+        var userId = GetUserId();
+        return new TokenModel
+        {
+            UserID = userId != Guid.Empty ? int.Parse(userId.ToString()) : 0,
+            RoleID = 0 // Default role
+        };
+    }
+
     public ChatHub(
         IMessagingService messagingService,
         ChatService chatService,
@@ -67,7 +77,7 @@ public class ChatHub : Hub
         try
         {
             // Validate access to chat room
-            var accessValidation = await _messagingService.ValidateChatRoomAccessAsync(chatRoomId, userId.ToString());
+            var accessValidation = await _messagingService.ValidateChatRoomAccessAsync(chatRoomId, userId.ToString(), GetTokenModel());
             if (accessValidation.StatusCode != 200)
             {
                 await Clients.Caller.SendAsync("AccessDenied", "You don't have access to this chat room");
@@ -133,12 +143,12 @@ public class ChatHub : Hub
                 FilePath = filePath
             };
 
-            var result = await _messagingService.SendMessageAsync(createMessageDto, userId.ToString());
+            var result = await _messagingService.SendMessageAsync(createMessageDto, userId.ToString(), GetTokenModel());
             
             if (result.StatusCode == 200)
             {
                 // Get the actual message data
-                var messages = await _messagingService.GetChatRoomMessagesAsync(chatRoomId, 0, 1);
+                var messages = await _messagingService.GetChatRoomMessagesAsync(chatRoomId, 0, 1, GetTokenModel());
                 if (messages.StatusCode == 200 && ((IEnumerable<object>)messages.data).Any())
                 {
                     var message = ((IEnumerable<object>)messages.data).First();
@@ -178,7 +188,7 @@ public class ChatHub : Hub
             await Clients.OthersInGroup(chatRoomId).SendAsync("TypingIndicator", typingIndicator);
             
             // Also send to messaging service for persistence if needed
-            await _messagingService.SendTypingIndicatorAsync(chatRoomId, userId.ToString(), isTyping);
+            await _messagingService.SendTypingIndicatorAsync(chatRoomId, userId.ToString(), isTyping, GetTokenModel());
         }
         catch (Exception ex)
         {
@@ -194,10 +204,10 @@ public class ChatHub : Hub
 
         try
         {
-            var result = await _messagingService.MarkMessageAsReadAsync(messageId, userId.ToString());
+            var result = await _messagingService.MarkMessageAsReadAsync(messageId, userId.ToString(), GetTokenModel());
             if (result.StatusCode == 200)
             {
-                var message = await _messagingService.GetMessageAsync(messageId);
+                var message = await _messagingService.GetMessageAsync(messageId, GetTokenModel());
                 if (message.StatusCode == 200 && message.data != null)
                 {
                     var chatRoomId = message.data.GetType().GetProperty("ChatRoomId")?.GetValue(message.data)?.ToString() ?? "";
@@ -220,11 +230,11 @@ public class ChatHub : Hub
         try
         {
             var addReactionDto = new AddReactionDto { Emoji = emoji };
-            var result = await _messagingService.AddReactionAsync(messageId, emoji, userId.ToString());
+            var result = await _messagingService.AddReactionAsync(messageId, emoji, userId.ToString(), GetTokenModel());
             
             if (result.StatusCode == 200 && result.data != null)
             {
-                var message = await _messagingService.GetMessageAsync(messageId);
+                var message = await _messagingService.GetMessageAsync(messageId, GetTokenModel());
                 if (message.StatusCode == 200 && message.data != null)
                 {
                     var chatRoomId = message.data.GetType().GetProperty("ChatRoomId")?.GetValue(message.data)?.ToString() ?? "";
@@ -246,10 +256,10 @@ public class ChatHub : Hub
 
         try
         {
-            var result = await _messagingService.RemoveReactionAsync(messageId, emoji, userId.ToString());
+            var result = await _messagingService.RemoveReactionAsync(messageId, emoji, userId.ToString(), GetTokenModel());
             if (result.StatusCode == 200)
             {
-                var message = await _messagingService.GetMessageAsync(messageId);
+                var message = await _messagingService.GetMessageAsync(messageId, GetTokenModel());
                 if (message.StatusCode == 200 && message.data != null)
                 {
                     await Clients.Group(((dynamic)message.data).ChatRoomId.ToString()).SendAsync("ReactionRemoved", messageId, userId, emoji);
@@ -394,12 +404,24 @@ public class ChatHub : Hub
         try
         {
             // Get all chat rooms where user is a participant
-            var chatRooms = await _messagingService.GetUserChatRoomsAsync(userId.ToString());
-            if (chatRooms != null)
+            var chatRooms = await _messagingService.GetUserChatRoomsAsync(userId.ToString(), GetTokenModel());
+            if (chatRooms != null && chatRooms.data != null)
             {
-                foreach (var chatRoom in chatRooms)
+                var chatRoomsList = chatRooms.data as IEnumerable<object>;
+                if (chatRoomsList != null)
                 {
-                    await Clients.Group(chatRoom.Id.ToString()).SendAsync("UserOnlineStatusChanged", userId, isOnline);
+                    foreach (var chatRoom in chatRoomsList)
+                    {
+                        var idProperty = chatRoom.GetType().GetProperty("Id");
+                        if (idProperty != null)
+                        {
+                            var id = idProperty.GetValue(chatRoom);
+                            if (id != null)
+                            {
+                                await Clients.Group(id.ToString()).SendAsync("UserOnlineStatusChanged", userId, isOnline);
+                            }
+                        }
+                    }
                 }
             }
         }

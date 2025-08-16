@@ -4,29 +4,29 @@ namespace SmartTelehealth.Application.Interfaces;
 
 public interface IProviderPayoutService
 {
-    Task<JsonModel> GetPayoutAsync(Guid id);
-    Task<JsonModel> ProcessPayoutAsync(Guid id, ProcessPayoutDto processDto);
-    Task<JsonModel> GetPayoutsByProviderAsync(int providerId);
-    Task<JsonModel> GetPayoutsByPeriodAsync(Guid periodId);
-    Task<JsonModel> GetAllPayoutsAsync(string? status = null, int page = 1, int pageSize = 50);
-    Task<JsonModel> GetPendingPayoutsAsync();
-    Task<JsonModel> GetPayoutsByStatusAsync(string status);
-    Task<JsonModel> GetProviderEarningsAsync(int providerId);
-    Task<JsonModel> GetPayoutStatisticsAsync();
-    Task<JsonModel> GeneratePayoutsForPeriodAsync(Guid periodId);
-    Task<JsonModel> ProcessAllPendingPayoutsAsync();
+    Task<JsonModel> GetPayoutAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> ProcessPayoutAsync(Guid id, ProcessPayoutDto processDto, TokenModel tokenModel);
+    Task<JsonModel> GetPayoutsByProviderAsync(int providerId, TokenModel tokenModel);
+    Task<JsonModel> GetPayoutsByPeriodAsync(Guid periodId, TokenModel tokenModel);
+    Task<JsonModel> GetAllPayoutsAsync(string? status, int page, int pageSize, TokenModel tokenModel);
+    Task<JsonModel> GetPendingPayoutsAsync(TokenModel tokenModel);
+    Task<JsonModel> GetPayoutsByStatusAsync(string status, TokenModel tokenModel);
+    Task<JsonModel> GetProviderEarningsAsync(int providerId, TokenModel tokenModel);
+    Task<JsonModel> GetPayoutStatisticsAsync(TokenModel tokenModel);
+    Task<JsonModel> GeneratePayoutsForPeriodAsync(Guid periodId, TokenModel tokenModel);
+    Task<JsonModel> ProcessAllPendingPayoutsAsync(TokenModel tokenModel);
 }
 
 public interface IPayoutPeriodService
 {
-    Task<JsonModel> CreatePeriodAsync(CreatePayoutPeriodDto createDto);
-    Task<JsonModel> GetPeriodAsync(Guid id);
-    Task<JsonModel> UpdatePeriodAsync(Guid id, CreatePayoutPeriodDto updateDto);
-    Task<JsonModel> GetAllPeriodsAsync();
-    Task<JsonModel> GetActivePeriodsAsync();
-    Task<JsonModel> DeletePeriodAsync(Guid id);
-    Task<JsonModel> ProcessPeriodAsync(Guid id);
-    Task<JsonModel> GetPeriodStatisticsAsync();
+    Task<JsonModel> CreatePeriodAsync(CreatePayoutPeriodDto createDto, TokenModel tokenModel);
+    Task<JsonModel> GetPeriodAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> UpdatePeriodAsync(Guid id, CreatePayoutPeriodDto updateDto, TokenModel tokenModel);
+    Task<JsonModel> GetAllPeriodsAsync(TokenModel tokenModel);
+    Task<JsonModel> GetActivePeriodsAsync(TokenModel tokenModel);
+    Task<JsonModel> DeletePeriodAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> ProcessPeriodAsync(Guid id, TokenModel tokenModel);
+    Task<JsonModel> GetPeriodStatisticsAsync(TokenModel tokenModel);
 }
 
 public class PayoutStatisticsDto

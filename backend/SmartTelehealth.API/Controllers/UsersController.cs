@@ -9,15 +9,13 @@ namespace SmartTelehealth.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    public class UsersController : BaseController
     {
         private readonly IUserService _userService;
-        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(IUserService userService, ILogger<UsersController> logger)
+        public UsersController(IUserService userService)
         {
             _userService = userService;
-            _logger = logger;
         }
 
         /// <summary>
@@ -27,42 +25,18 @@ namespace SmartTelehealth.API.Controllers
         [Authorize]
         public async Task<ActionResult<JsonModel>> GetCurrentUserProfile()
         {
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "User not authenticated",
-                        StatusCode = 401
-                    });
-                }
-
-                if (!int.TryParse(userId, out int userIdInt))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-
-                var result = await _userService.GetUserByIdAsync(userIdInt);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting current user profile");
-                return StatusCode(500, new JsonModel 
+                return Unauthorized(new JsonModel 
                 { 
                     data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
+                    Message = "User not authenticated",
+                    StatusCode = 401
                 });
             }
+
+            return await _userService.GetUserByIdAsync(userIdInt, GetToken(HttpContext));
         }
 
         /// <summary>
@@ -72,303 +46,211 @@ namespace SmartTelehealth.API.Controllers
         [Authorize]
         public async Task<ActionResult<JsonModel>> UpdateProfile([FromBody] UpdateUserDto updateDto)
         {
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "User not authenticated",
-                        StatusCode = 401
-                    });
-                }
-
-                if (!int.TryParse(userId, out int userIdInt))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-
-                updateDto.Id = userId;
-                var result = await _userService.UpdateUserAsync(userIdInt, updateDto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating user profile");
-                return StatusCode(500, new JsonModel 
+                return Unauthorized(new JsonModel 
                 { 
                     data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
+                    Message = "User not authenticated",
+                    StatusCode = 401
                 });
             }
+
+            updateDto.Id = userIdInt.ToString();
+            return await _userService.UpdateUserAsync(userIdInt, updateDto, GetToken(HttpContext));
         }
 
         /// <summary>
-        /// Get user by ID (admin only)
+        /// Get user by ID
         /// </summary>
-        [HttpGet("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<JsonModel>> GetUserById(string id)
+        [HttpGet("{userId}")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetUser(int userId)
         {
-            try
-            {
-                if (!int.TryParse(id, out int userId))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-
-                var result = await _userService.GetUserByIdAsync(userId);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting user by ID: {UserId}", id);
-                return StatusCode(500, new JsonModel 
-                { 
-                    data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
-                });
-            }
+            return await _userService.GetUserByIdAsync(userId, GetToken(HttpContext));
         }
 
         /// <summary>
-        /// Get all users with pagination (admin only)
+        /// Get all users
         /// </summary>
         [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<JsonModel>> GetAllUsers(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string? searchTerm = null,
-            [FromQuery] string? userType = null)
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetAllUsers()
         {
-            try
-            {
-                var result = await _userService.GetAllUsersAsync();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all users");
-                return StatusCode(500, new JsonModel 
-                { 
-                    data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
-                });
-            }
+            return await _userService.GetAllUsersAsync(GetToken(HttpContext));
         }
 
         /// <summary>
-        /// Create new user (admin only)
+        /// Create new user
         /// </summary>
         [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<JsonModel>> CreateUser([FromBody] CreateUserDto createDto)
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> CreateUser([FromBody] CreateUserDto createUserDto)
         {
-            try
-            {
-                var result = await _userService.CreateUserAsync(createDto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating user");
-                return StatusCode(500, new JsonModel 
-                { 
-                    data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
-                });
-            }
+            return await _userService.CreateUserAsync(createUserDto, GetToken(HttpContext));
         }
 
         /// <summary>
-        /// Update user (admin only)
+        /// Update user
         /// </summary>
-        [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<JsonModel>> UpdateUser(string id, [FromBody] UpdateUserDto updateDto)
+        [HttpPut("{userId}")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> UpdateUser(int userId, [FromBody] UpdateUserDto updateDto)
         {
-            try
-            {
-                if (!int.TryParse(id, out int userId))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-
-                updateDto.Id = id;
-                var result = await _userService.UpdateUserAsync(userId, updateDto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating user: {UserId}", id);
-                return StatusCode(500, new JsonModel 
-                { 
-                    data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
-                });
-            }
+            return await _userService.UpdateUserAsync(userId, updateDto, GetToken(HttpContext));
         }
 
         /// <summary>
-        /// Delete user (admin only)
+        /// Delete user
         /// </summary>
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<JsonModel>> DeleteUser(string id)
+        [HttpDelete("{userId}")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> DeleteUser(int userId)
         {
-            try
-            {
-                if (!int.TryParse(id, out int userId))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-
-                var result = await _userService.DeleteUserAsync(userId);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting user: {UserId}", id);
-                return StatusCode(500, new JsonModel 
-                { 
-                    data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
-                });
-            }
+            return await _userService.DeleteUserAsync(userId, GetToken(HttpContext));
         }
 
         /// <summary>
-        /// Get all providers
+        /// Get users by role
         /// </summary>
-        [HttpGet("providers")]
-        public async Task<ActionResult<JsonModel>> GetAllProviders()
+        [HttpGet("role/{role}")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetUsersByRole(string role)
         {
-            try
-            {
-                var result = await _userService.GetAllProvidersAsync();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all providers");
-                return StatusCode(500, new JsonModel 
-                { 
-                    data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
-                });
-            }
+            return await _userService.GetUsersByRoleAsync(role, GetToken(HttpContext));
         }
 
         /// <summary>
-        /// Get provider by ID
+        /// Change password
         /// </summary>
-        [HttpGet("providers/{id}")]
-        public async Task<ActionResult<JsonModel>> GetProviderById(string id)
+        [HttpPost("change-password")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                if (!int.TryParse(id, out int providerId))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid provider ID format",
-                        StatusCode = 400
-                    });
-                }
-                var result = await _userService.GetProviderByIdAsync(providerId);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting provider by ID: {ProviderId}", id);
-                return StatusCode(500, new JsonModel 
+                return Unauthorized(new JsonModel 
                 { 
                     data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
+                    Message = "User not authenticated",
+                    StatusCode = 401
                 });
             }
+
+            return await _userService.ChangePasswordAsync(userIdInt, changePasswordDto, GetToken(HttpContext));
         }
 
         /// <summary>
-        /// Update provider profile
+        /// Request password reset
         /// </summary>
-        [HttpPut("providers/{id}")]
-        [Authorize(Roles = "Provider")]
-        public async Task<ActionResult<JsonModel>> UpdateProviderProfile(string id, [FromBody] UpdateProviderDto updateDto)
+        [HttpPost("request-password-reset")]
+        public async Task<ActionResult<JsonModel>> RequestPasswordReset([FromBody] string email)
         {
-            try
-            {
-                if (!int.TryParse(id, out int providerId))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid provider ID format",
-                        StatusCode = 400
-                    });
-                }
+            return await _userService.ResetPasswordAsync(email, GetToken(HttpContext));
+        }
 
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (userId != id)
-                {
-                    return Forbid();
-                }
+        /// <summary>
+        /// Reset password
+        /// </summary>
+        [HttpPost("reset-password")]
+        public async Task<ActionResult<JsonModel>> ResetPassword([FromBody] ResetPasswordDto resetDto)
+        {
+            return await _userService.ResetPasswordAsync(resetDto, GetToken(HttpContext));
+        }
 
-                if (!int.TryParse(id, out int idInt))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid ID format",
-                        StatusCode = 400
-                    });
-                }
-                updateDto.Id = idInt;
-                var result = await _userService.UpdateProviderAsync(providerId, updateDto);
-                return Ok(result);
-            }
-            catch (Exception ex)
+        /// <summary>
+        /// Confirm password reset
+        /// </summary>
+        [HttpPost("confirm-password-reset")]
+        public async Task<ActionResult<JsonModel>> ConfirmPasswordReset([FromBody] ConfirmPasswordResetDto confirmDto)
+        {
+            return await _userService.ConfirmPasswordResetAsync(confirmDto.Email, confirmDto.ResetToken, confirmDto.NewPassword, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Upload profile picture
+        /// </summary>
+        [HttpPost("profile-picture")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> UploadProfilePicture(IFormFile file)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                _logger.LogError(ex, "Error updating provider profile: {ProviderId}", id);
-                return StatusCode(500, new JsonModel 
+                return Unauthorized(new JsonModel 
                 { 
                     data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
+                    Message = "User not authenticated",
+                    StatusCode = 401
                 });
             }
+
+            return await _userService.UploadProfilePictureAsync(userIdInt, file, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Get user documents
+        /// </summary>
+        [HttpGet("documents")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetUserDocuments([FromQuery] string? referenceType = null)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.GetUserDocumentsAsync(userIdInt, referenceType, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Upload user document
+        /// </summary>
+        [HttpPost("documents")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> UploadUserDocument([FromBody] UploadUserDocumentRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.UploadUserDocumentAsync(userIdInt, request, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Delete user document
+        /// </summary>
+        [HttpDelete("documents/{documentId}")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> DeleteUserDocument(Guid documentId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.DeleteUserDocumentAsync(documentId, userIdInt, GetToken(HttpContext));
         }
 
         /// <summary>
@@ -378,41 +260,18 @@ namespace SmartTelehealth.API.Controllers
         [Authorize]
         public async Task<ActionResult<JsonModel>> GetMedicalHistory()
         {
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "User not authenticated",
-                        StatusCode = 401
-                    });
-                }
-
-                if (!int.TryParse(userId, out int userIdInt))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-                var result = await _userService.GetMedicalHistoryAsync(userIdInt);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting medical history");
-                return StatusCode(500, new JsonModel 
+                return Unauthorized(new JsonModel 
                 { 
                     data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
+                    Message = "User not authenticated",
+                    StatusCode = 401
                 });
             }
+
+            return await _userService.GetMedicalHistoryAsync(userIdInt, GetToken(HttpContext));
         }
 
         /// <summary>
@@ -420,88 +279,186 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("medical-history")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> UpdateMedicalHistory([FromBody] UpdateMedicalHistoryDto updateDto)
+        public async Task<ActionResult<JsonModel>> UpdateMedicalHistory([FromBody] UpdateMedicalHistoryDto medicalHistoryDto)
         {
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "User not authenticated",
-                        StatusCode = 401
-                    });
-                }
-
-                if (!int.TryParse(userId, out int userIdInt))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-                updateDto.UserId = userIdInt;
-                var result = await _userService.UpdateMedicalHistoryAsync(userIdInt, updateDto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating medical history");
-                return StatusCode(500, new JsonModel 
+                return Unauthorized(new JsonModel 
                 { 
                     data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
+                    Message = "User not authenticated",
+                    StatusCode = 401
                 });
             }
+
+            return await _userService.UpdateMedicalHistoryAsync(userIdInt, medicalHistoryDto, GetToken(HttpContext));
         }
 
         /// <summary>
-        /// Get user payment methods
+        /// Get user preferences
+        /// </summary>
+        [HttpGet("preferences")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetUserPreferences()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.GetUserPreferencesAsync(userIdInt, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Update user preferences
+        /// </summary>
+        [HttpPut("preferences")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> UpdateUserPreferences([FromBody] UpdateUserPreferencesDto preferencesDto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.UpdateUserPreferencesAsync(userIdInt, preferencesDto, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Get user notifications
+        /// </summary>
+        [HttpGet("notifications")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetUserNotifications()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.GetUserNotificationsAsync(userIdInt, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Mark notification as read
+        /// </summary>
+        [HttpPut("notifications/{notificationId}/read")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> MarkNotificationAsRead(Guid notificationId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+            return await _userService.MarkNotificationAsReadAsync(userIdInt, notificationId, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Mark all notifications as read
+        /// </summary>
+        [HttpPut("notifications/read-all")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> MarkAllNotificationsAsRead()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.MarkAllNotificationsAsReadAsync(userIdInt, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Delete notification
+        /// </summary>
+        [HttpDelete("notifications/{notificationId}")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> DeleteNotification(Guid notificationId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+            return await _userService.DeleteNotificationAsync(userIdInt, notificationId, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Get user stats
+        /// </summary>
+        [HttpGet("stats")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetUserStats()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.GetUserStatsAsync(userIdInt, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Get payment methods
         /// </summary>
         [HttpGet("payment-methods")]
         [Authorize]
         public async Task<ActionResult<JsonModel>> GetPaymentMethods()
         {
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "User not authenticated",
-                        StatusCode = 401
-                    });
-                }
-
-                                if (!int.TryParse(userId, out int userIdInt))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-        var result = await _userService.GetPaymentMethodsAsync(userIdInt);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting payment methods");
-                return StatusCode(500, new JsonModel 
+                return Unauthorized(new JsonModel 
                 { 
                     data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
+                    Message = "User not authenticated",
+                    StatusCode = 401
                 });
             }
+
+            return await _userService.GetPaymentMethodsAsync(userIdInt, GetToken(HttpContext));
         }
 
         /// <summary>
@@ -509,135 +466,309 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost("payment-methods")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> AddPaymentMethod([FromBody] CreatePaymentMethodDto createDto)
+        public async Task<ActionResult<JsonModel>> AddPaymentMethod([FromBody] AddPaymentMethodDto addPaymentMethodDto)
         {
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "User not authenticated",
-                        StatusCode = 401
-                    });
-                }
-
-                if (!int.TryParse(userId, out int userIdInt))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-                var addPaymentMethodDto = new SmartTelehealth.Application.DTOs.AddPaymentMethodDto
-                {
-                    PaymentMethodId = createDto.Token
-                };
-                var result = await _userService.AddPaymentMethodAsync(userIdInt, addPaymentMethodDto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding payment method");
-                return StatusCode(500, new JsonModel 
+                return Unauthorized(new JsonModel 
                 { 
                     data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
+                    Message = "User not authenticated",
+                    StatusCode = 401
                 });
             }
+
+            return await _userService.AddPaymentMethodAsync(userIdInt, addPaymentMethodDto, GetToken(HttpContext));
         }
 
         /// <summary>
         /// Delete payment method
         /// </summary>
-        [HttpDelete("payment-methods/{id}")]
+        [HttpDelete("payment-methods/{paymentMethodId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> DeletePaymentMethod(string id)
+        public async Task<ActionResult<JsonModel>> DeletePaymentMethod(string paymentMethodId)
         {
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "User not authenticated",
-                        StatusCode = 401
-                    });
-                }
-
-                if (!int.TryParse(userId, out int userIdInt))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-                var result = await _userService.DeletePaymentMethodAsync(userIdInt, id);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting payment method");
-                return StatusCode(500, new JsonModel 
+                return Unauthorized(new JsonModel 
                 { 
                     data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
+                    Message = "User not authenticated",
+                    StatusCode = 401
                 });
             }
+
+            return await _userService.DeletePaymentMethodAsync(userIdInt, paymentMethodId, GetToken(HttpContext));
         }
 
         /// <summary>
         /// Set default payment method
         /// </summary>
-        [HttpPut("payment-methods/{id}/default")]
+        [HttpPut("payment-methods/{paymentMethodId}/default")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> SetDefaultPaymentMethod(string id)
+        public async Task<ActionResult<JsonModel>> SetDefaultPaymentMethod(string paymentMethodId)
         {
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "User not authenticated",
-                        StatusCode = 401
-                    });
-                }
-
-                if (!int.TryParse(userId, out int userIdInt))
-                {
-                    return BadRequest(new JsonModel 
-                    { 
-                        data = new object(), 
-                        Message = "Invalid user ID format",
-                        StatusCode = 400
-                    });
-                }
-                var result = await _userService.SetDefaultPaymentMethodAsync(userIdInt, id);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error setting default payment method");
-                return StatusCode(500, new JsonModel 
+                return Unauthorized(new JsonModel 
                 { 
                     data = new object(), 
-                    Message = "Internal server error",
-                    StatusCode = 500
+                    Message = "User not authenticated",
+                    StatusCode = 401
                 });
             }
+
+            return await _userService.SetDefaultPaymentMethodAsync(userIdInt, paymentMethodId, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Send email verification
+        /// </summary>
+        [HttpPost("send-email-verification")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> SendEmailVerification()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.SendEmailVerificationAsync(userIdInt, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Resend email verification
+        /// </summary>
+        [HttpPost("resend-email-verification")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> ResendEmailVerification()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.ResendEmailVerificationAsync(userIdInt, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Verify email
+        /// </summary>
+        [HttpPost("verify-email")]
+        public async Task<ActionResult<JsonModel>> VerifyEmail([FromBody] string token)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+            return await _userService.VerifyEmailAsync(userIdInt, token, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Delete account
+        /// </summary>
+        [HttpDelete("account")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> DeleteAccount([FromBody] string reason)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.DeleteAccountAsync(userIdInt, GetToken(HttpContext));
+        }
+
+        // === PROVIDER OPERATIONS ===
+
+        /// <summary>
+        /// Get provider by ID
+        /// </summary>
+        [HttpGet("providers/{providerId}")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetProvider(int providerId)
+        {
+            return await _userService.GetProviderByIdAsync(providerId, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Get all providers
+        /// </summary>
+        [HttpGet("providers")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetAllProviders()
+        {
+            return await _userService.GetAllProvidersAsync(GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Create provider
+        /// </summary>
+        [HttpPost("providers")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> CreateProvider([FromBody] CreateProviderDto createDto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+            return await _userService.CreateProviderAsync(userIdInt, createDto, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Update provider
+        /// </summary>
+        [HttpPut("providers/{providerId}")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> UpdateProvider(int providerId, [FromBody] UpdateProviderDto updateDto)
+        {
+            return await _userService.UpdateProviderAsync(providerId, updateDto, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Delete provider
+        /// </summary>
+        [HttpDelete("providers/{providerId}")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> DeleteProvider(int providerId)
+        {
+            return await _userService.DeleteProviderAsync(providerId, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Verify provider
+        /// </summary>
+        [HttpPut("providers/{providerId}/verify")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> VerifyProvider(int providerId)
+        {
+            return await _userService.VerifyProviderAsync(providerId, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Get provider schedule
+        /// </summary>
+        [HttpGet("providers/{providerId}/schedule")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetProviderSchedule(int providerId)
+        {
+            return await _userService.GetProviderScheduleAsync(providerId, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Update provider schedule
+        /// </summary>
+        [HttpPut("providers/{providerId}/schedule")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> UpdateProviderSchedule(int providerId, [FromBody] UpdateProviderScheduleDto scheduleDto)
+        {
+            return await _userService.UpdateProviderScheduleAsync(providerId, scheduleDto, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Get provider reviews
+        /// </summary>
+        [HttpGet("providers/{providerId}/reviews")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetProviderReviews(int providerId)
+        {
+            return await _userService.GetProviderReviewsAsync(providerId, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Add provider review
+        /// </summary>
+        [HttpPost("providers/{providerId}/reviews")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> AddProviderReview(int providerId, [FromBody] AddReviewDto reviewDto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized(new JsonModel 
+                { 
+                    data = new object(), 
+                    Message = "User not authenticated",
+                    StatusCode = 401
+                });
+            }
+
+            return await _userService.AddProviderReviewAsync(userIdInt, reviewDto, GetToken(HttpContext));
+        }
+
+        // === PATIENT OPERATIONS ===
+
+        /// <summary>
+        /// Get patient by ID
+        /// </summary>
+        [HttpGet("patients/{patientId}")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetPatient(int patientId)
+        {
+            return await _userService.GetPatientByIdAsync(patientId, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Get all patients
+        /// </summary>
+        [HttpGet("patients")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetAllPatients()
+        {
+            return await _userService.GetAllPatientsAsync(GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Get patient medical history
+        /// </summary>
+        [HttpGet("patients/{patientId}/medical-history")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> GetPatientMedicalHistory(int patientId)
+        {
+            return await _userService.GetPatientMedicalHistoryAsync(patientId, GetToken(HttpContext));
+        }
+
+        /// <summary>
+        /// Update patient medical history
+        /// </summary>
+        [HttpPut("patients/{patientId}/medical-history")]
+        [Authorize]
+        public async Task<ActionResult<JsonModel>> UpdatePatientMedicalHistory(int patientId, [FromBody] UpdateMedicalHistoryDto medicalHistoryDto)
+        {
+            return await _userService.UpdatePatientMedicalHistoryAsync(patientId, medicalHistoryDto, GetToken(HttpContext));
         }
     }
 } 

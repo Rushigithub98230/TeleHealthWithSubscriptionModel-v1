@@ -48,10 +48,16 @@ public class SubscriptionService : ISubscriptionService
         _billingService = billingService;
     }
 
-    public async Task<JsonModel> GetSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> GetSubscriptionAsync(string subscriptionId, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -64,10 +70,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetUserSubscriptionsAsync(int userId)
+    public async Task<JsonModel> GetUserSubscriptionsAsync(int userId, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions - user can only access their own subscriptions unless admin
+            if (tokenModel.RoleID != 1 && tokenModel.UserID != userId)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var entities = await _subscriptionRepository.GetByUserIdAsync(userId);
             var dtos = _mapper.Map<IEnumerable<SubscriptionDto>>(entities);
             return new JsonModel { data = dtos, Message = "User subscriptions retrieved successfully", StatusCode = 200 };
@@ -79,7 +91,7 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> CreateSubscriptionAsync(CreateSubscriptionDto createDto)
+    public async Task<JsonModel> CreateSubscriptionAsync(CreateSubscriptionDto createDto, TokenModel tokenModel)
     {
         try
         {
@@ -127,8 +139,14 @@ public class SubscriptionService : ISubscriptionService
             var dto = _mapper.Map<SubscriptionDto>(created);
             
             // Send confirmation and welcome emails
-            var userResult = await _userService.GetUserByIdAsync(createDto.UserId);
-            if (userResult.StatusCode == 200 && userResult.data != null)
+            var userResult = await _userService.GetUserByIdAsync(createDto.UserId, tokenModel);
+            if (userResult.StatusCode != 200)
+            {
+                _logger.LogWarning("Failed to get user {UserId} for subscription creation by user {TokenUserId}", 
+                    createDto.UserId, tokenModel?.UserID ?? 0);
+                return new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 };
+            }
+            if (userResult.data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await _notificationService.SendSubscriptionConfirmationAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, dto);
@@ -137,7 +155,7 @@ public class SubscriptionService : ISubscriptionService
             }
             
             // Audit log
-            await _auditService.LogUserActionAsync(createDto.UserId.ToString(), "CreateSubscription", "Subscription", created.Id.ToString(), "Subscription created successfully");
+                            await _auditService.LogUserActionAsync(createDto.UserId.ToString(), "CreateSubscription", "Subscription", created.Id.ToString(), "Subscription created successfully", tokenModel);
             
             return new JsonModel { data = dto, Message = "Subscription created", StatusCode = 201 };
         }
@@ -148,10 +166,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> CancelSubscriptionAsync(string subscriptionId, string? reason = null)
+    public async Task<JsonModel> CancelSubscriptionAsync(string subscriptionId, string? reason, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -184,7 +208,7 @@ public class SubscriptionService : ISubscriptionService
             var dto = _mapper.Map<SubscriptionDto>(updated);
             
             // Send cancellation email
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId, tokenModel);
             if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
@@ -193,7 +217,7 @@ public class SubscriptionService : ISubscriptionService
             }
             
             // Audit log
-            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "CancelSubscription", "Subscription", subscriptionId, reason ?? "Subscription cancelled");
+            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "CancelSubscription", "Subscription", subscriptionId, reason ?? "Subscription cancelled", tokenModel);
             
             return new JsonModel { data = dto, Message = "Subscription cancelled", StatusCode = 200 };
         }
@@ -204,10 +228,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> PauseSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> PauseSubscriptionAsync(string subscriptionId, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -240,7 +270,7 @@ public class SubscriptionService : ISubscriptionService
             var dto = _mapper.Map<SubscriptionDto>(updated);
             
             // Send pause notification email
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId, tokenModel);
             if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
@@ -249,7 +279,7 @@ public class SubscriptionService : ISubscriptionService
             }
             
             // Audit log
-            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "PauseSubscription", "Subscription", subscriptionId, "Subscription paused");
+            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "PauseSubscription", "Subscription", subscriptionId, "Subscription paused", tokenModel);
             
             return new JsonModel { data = dto, Message = "Subscription paused", StatusCode = 200 };
         }
@@ -260,10 +290,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> ResumeSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> ResumeSubscriptionAsync(string subscriptionId, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -293,7 +329,7 @@ public class SubscriptionService : ISubscriptionService
             var dto = _mapper.Map<SubscriptionDto>(updated);
             
             // Send resume email
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId, tokenModel);
             if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
@@ -302,7 +338,7 @@ public class SubscriptionService : ISubscriptionService
             }
             
             // Audit log
-            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "ResumeSubscription", "Subscription", subscriptionId, "Subscription resumed");
+            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "ResumeSubscription", "Subscription", subscriptionId, "Subscription resumed", tokenModel);
             
             return new JsonModel { data = dto, Message = "Subscription resumed", StatusCode = 200 };
         }
@@ -313,10 +349,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> UpgradeSubscriptionAsync(string subscriptionId, string newPlanId)
+    public async Task<JsonModel> UpgradeSubscriptionAsync(string subscriptionId, string newPlanId, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -332,7 +374,7 @@ public class SubscriptionService : ISubscriptionService
             var updated = await _subscriptionRepository.UpdateAsync(entity);
             
             // Audit log
-            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "UpgradeSubscription", "Subscription", subscriptionId, $"Upgraded from plan {oldPlanId} to {newPlanId}");
+            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "UpgradeSubscription", "Subscription", subscriptionId, $"Upgraded from plan {oldPlanId} to {newPlanId}", tokenModel);
             
             return new JsonModel { data = _mapper.Map<SubscriptionDto>(updated), Message = "Subscription upgraded", StatusCode = 200 };
         }
@@ -343,10 +385,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> ReactivateSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> ReactivateSubscriptionAsync(string subscriptionId, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -371,7 +419,7 @@ public class SubscriptionService : ISubscriptionService
             });
             
             // Audit log
-            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "ReactivateSubscription", "Subscription", subscriptionId, "Subscription reactivated");
+            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "ReactivateSubscription", "Subscription", subscriptionId, "Subscription reactivated", tokenModel);
             
             return new JsonModel { data = _mapper.Map<SubscriptionDto>(updated), Message = "Subscription reactivated", StatusCode = 200 };
         }
@@ -382,7 +430,7 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetAllPlansAsync()
+    public async Task<JsonModel> GetAllPlansAsync(TokenModel tokenModel)
     {
         try
         {
@@ -397,7 +445,7 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetAllPlansAsync(int page, int pageSize, string? searchTerm, string? categoryId, bool? isActive)
+    public async Task<JsonModel> GetAllPlansAsync(int page, int pageSize, string? searchTerm, string? categoryId, bool? isActive, TokenModel tokenModel)
     {
         try
         {
@@ -440,7 +488,7 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetPlanByIdAsync(string planId)
+    public async Task<JsonModel> GetPlanByIdAsync(string planId, TokenModel tokenModel)
     {
         var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
         if (plan == null)
@@ -448,7 +496,7 @@ public class SubscriptionService : ISubscriptionService
         return new JsonModel { data = _mapper.Map<SubscriptionPlanDto>(plan), Message = "Plan retrieved successfully", StatusCode = 200 };
     }
 
-    public async Task<JsonModel> GetBillingHistoryAsync(string subscriptionId)
+    public async Task<JsonModel> GetBillingHistoryAsync(string subscriptionId, TokenModel tokenModel)
     {
         try
         {
@@ -457,7 +505,7 @@ public class SubscriptionService : ISubscriptionService
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
 
             // Get billing records for this subscription
-            var billingRecords = await _billingService.GetSubscriptionBillingHistoryAsync(subscription.Id);
+            var billingRecords = await _billingService.GetSubscriptionBillingHistoryAsync(subscription.Id, tokenModel);
             
             if (billingRecords.StatusCode != 200)
                 return new JsonModel { data = new object(), Message = "Failed to retrieve billing history", StatusCode = 500 };
@@ -483,23 +531,41 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-            public async Task<JsonModel> GetPaymentMethodsAsync(int userId)
+            public async Task<JsonModel> GetPaymentMethodsAsync(int userId, TokenModel tokenModel)
     {
-        var methods = await _stripeService.GetCustomerPaymentMethodsAsync(userId.ToString());
+        // Validate token permissions - user can only access their own payment methods unless admin
+        if (tokenModel.RoleID != 1 && tokenModel.UserID != userId)
+        {
+            return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+        }
+
+        var methods = await _stripeService.GetCustomerPaymentMethodsAsync(userId.ToString(), tokenModel);
         return new JsonModel { data = methods, Message = "Payment methods retrieved successfully", StatusCode = 200 };
     }
 
-    public async Task<JsonModel> AddPaymentMethodAsync(int userId, string paymentMethodId)
+    public async Task<JsonModel> AddPaymentMethodAsync(int userId, string paymentMethodId, TokenModel tokenModel)
     {
-        var methodId = await _stripeService.AddPaymentMethodAsync(userId.ToString(), paymentMethodId);
+        // Validate token permissions - user can only add payment methods to their own account unless admin
+        if (tokenModel.RoleID != 1 && tokenModel.UserID != userId)
+        {
+            return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+        }
+
+        var methodId = await _stripeService.AddPaymentMethodAsync(userId.ToString(), paymentMethodId, tokenModel);
         var method = new PaymentMethodDto { Id = methodId };
         return new JsonModel { data = method, Message = "Payment method added", StatusCode = 200 };
     }
 
-    public async Task<JsonModel> GetSubscriptionByPlanIdAsync(string planId)
+    public async Task<JsonModel> GetSubscriptionByPlanIdAsync(string planId, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByPlanIdAsync(Guid.Parse(planId));
             if (subscription == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found for this plan", StatusCode = 404 };
@@ -512,10 +578,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetActiveSubscriptionsAsync()
+    public async Task<JsonModel> GetActiveSubscriptionsAsync(TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync();
             var dtos = _mapper.Map<IEnumerable<SubscriptionDto>>(activeSubscriptions);
             return new JsonModel { data = dtos, Message = "Active subscriptions retrieved successfully", StatusCode = 200 };
@@ -527,15 +599,21 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetSubscriptionByIdAsync(string subscriptionId)
+    public async Task<JsonModel> GetSubscriptionByIdAsync(string subscriptionId, TokenModel tokenModel)
     {
-        return await GetSubscriptionAsync(subscriptionId);
+        return await GetSubscriptionAsync(subscriptionId, tokenModel);
     }
 
-    public async Task<JsonModel> UpdateSubscriptionAsync(string subscriptionId, UpdateSubscriptionDto updateDto)
+    public async Task<JsonModel> UpdateSubscriptionAsync(string subscriptionId, UpdateSubscriptionDto updateDto, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -555,7 +633,7 @@ public class SubscriptionService : ISubscriptionService
             var updatedSubscription = await _subscriptionRepository.UpdateAsync(subscription);
             
             // Audit log
-            await _auditService.LogUserActionAsync(subscription.UserId.ToString(), "UpdateSubscription", "Subscription", subscriptionId, "Subscription updated");
+                            await _auditService.LogUserActionAsync(subscription.UserId.ToString(), "UpdateSubscription", "Subscription", subscriptionId, "Subscription updated", tokenModel);
             
             return new JsonModel { data = _mapper.Map<SubscriptionDto>(updatedSubscription), Message = "Subscription updated successfully", StatusCode = 200 };
         }
@@ -566,10 +644,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> ProcessPaymentAsync(string subscriptionId, PaymentRequestDto paymentRequest)
+    public async Task<JsonModel> ProcessPaymentAsync(string subscriptionId, PaymentRequestDto paymentRequest, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -578,7 +662,8 @@ public class SubscriptionService : ISubscriptionService
             var paymentResult = await _stripeService.ProcessPaymentAsync(
                 paymentRequest.PaymentMethodId,
                 paymentRequest.Amount,
-                paymentRequest.Currency ?? "usd"
+                paymentRequest.Currency ?? "usd",
+                tokenModel
             );
 
             if (paymentResult.Status == "succeeded")
@@ -604,10 +689,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetUsageStatisticsAsync(string subscriptionId)
+    public async Task<JsonModel> GetUsageStatisticsAsync(string subscriptionId, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -651,10 +742,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetAllSubscriptionsAsync()
+    public async Task<JsonModel> GetAllSubscriptionsAsync(TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var allSubscriptions = await _subscriptionRepository.GetAllSubscriptionsAsync();
             var dtos = _mapper.Map<IEnumerable<SubscriptionDto>>(allSubscriptions);
             return new JsonModel { data = dtos, Message = "All subscriptions retrieved successfully", StatusCode = 200 };
@@ -666,21 +763,27 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(string subscriptionId)
+    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(string subscriptionId, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
 
             // Get usage statistics
-            var usageStats = await GetUsageStatisticsAsync(subscriptionId);
+            var usageStats = await GetUsageStatisticsAsync(subscriptionId, tokenModel);
             if (usageStats.StatusCode != 200)
                 return new JsonModel { data = new object(), Message = "Failed to get usage statistics", StatusCode = 500 };
 
             // Get billing history
-            var billingHistory = await _billingService.GetPaymentHistoryAsync(subscription.UserId);
+            var billingHistory = await _billingService.GetPaymentHistoryAsync(subscription.UserId, null, null, tokenModel);
 
             var analytics = new SubscriptionAnalyticsDto
             {
@@ -721,10 +824,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> CreatePlanAsync(CreateSubscriptionPlanDto createPlanDto)
+    public async Task<JsonModel> CreatePlanAsync(CreateSubscriptionPlanDto createPlanDto, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var plan = new SubscriptionPlan
             {
                 Name = createPlanDto.Name,
@@ -745,10 +854,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> UpdatePlanAsync(string planId, UpdateSubscriptionPlanDto updatePlanDto)
+    public async Task<JsonModel> UpdatePlanAsync(string planId, UpdateSubscriptionPlanDto updatePlanDto, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
                 return new JsonModel { data = new object(), Message = "Plan not found", StatusCode = 404 };
@@ -765,10 +880,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> ActivatePlanAsync(string planId)
+    public async Task<JsonModel> ActivatePlanAsync(string planId, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
                 return new JsonModel { data = new object(), Message = "Plan not found", StatusCode = 404 };
@@ -782,10 +903,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> DeactivatePlanAsync(string planId)
+    public async Task<JsonModel> DeactivatePlanAsync(string planId, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
                 return new JsonModel { data = new object(), Message = "Plan not found", StatusCode = 404 };
@@ -799,10 +926,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> DeletePlanAsync(string planId)
+    public async Task<JsonModel> DeletePlanAsync(string planId, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var result = await _subscriptionRepository.DeleteSubscriptionPlanAsync(Guid.Parse(planId));
             if (!result)
                 return new JsonModel { data = new object(), Message = "Plan not found or could not be deleted", StatusCode = 404 };
@@ -814,10 +947,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetByStripeSubscriptionIdAsync(string stripeSubscriptionId)
+    public async Task<JsonModel> GetByStripeSubscriptionIdAsync(string stripeSubscriptionId, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByStripeSubscriptionIdAsync(stripeSubscriptionId);
             if (subscription == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found for this Stripe ID", StatusCode = 404 };
@@ -831,10 +970,16 @@ public class SubscriptionService : ISubscriptionService
     }
 
     // Admin management methods
-    public async Task<JsonModel> GetAllUserSubscriptionsAsync(int page, int pageSize, string? userId, string? planId, string? status, DateTime? startDate, DateTime? endDate)
+    public async Task<JsonModel> GetAllUserSubscriptionsAsync(int page, int pageSize, string? userId, string? planId, string? status, DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var allSubscriptions = await _subscriptionRepository.GetAllSubscriptionsAsync();
             var filteredSubscriptions = allSubscriptions.AsQueryable();
             
@@ -879,7 +1024,7 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> CancelUserSubscriptionAsync(string subscriptionId, string? reason)
+    public async Task<JsonModel> CancelUserSubscriptionAsync(string subscriptionId, string? reason, TokenModel tokenModel)
     {
         try
         {
@@ -902,10 +1047,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> PauseUserSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> PauseUserSubscriptionAsync(string subscriptionId, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -924,10 +1075,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> ResumeUserSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> ResumeUserSubscriptionAsync(string subscriptionId, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -946,10 +1103,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> ExtendUserSubscriptionAsync(string subscriptionId, int additionalDays)
+    public async Task<JsonModel> ExtendUserSubscriptionAsync(string subscriptionId, int additionalDays, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -970,10 +1133,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> PerformBulkActionAsync(List<BulkActionRequestDto> actions)
+    public async Task<JsonModel> PerformBulkActionAsync(List<BulkActionRequestDto> actions, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var results = new List<BulkActionResultDto>();
             
             foreach (var action in actions)
@@ -982,10 +1151,10 @@ public class SubscriptionService : ISubscriptionService
                 {
                     JsonModel result = action.Action.ToLower() switch
                     {
-                        "cancel" => await CancelUserSubscriptionAsync(action.SubscriptionId, action.Reason),
-                        "pause" => await PauseUserSubscriptionAsync(action.SubscriptionId),
-                        "resume" => await ResumeUserSubscriptionAsync(action.SubscriptionId),
-                        "extend" => await ExtendUserSubscriptionAsync(action.SubscriptionId, action.AdditionalDays ?? 30),
+                        "cancel" => await CancelUserSubscriptionAsync(action.SubscriptionId, action.Reason, tokenModel),
+                        "pause" => await PauseUserSubscriptionAsync(action.SubscriptionId, tokenModel),
+                        "resume" => await ResumeUserSubscriptionAsync(action.SubscriptionId, tokenModel),
+                        "extend" => await ExtendUserSubscriptionAsync(action.SubscriptionId, action.AdditionalDays ?? 30, tokenModel),
                         _ => new JsonModel { data = new object(), Message = $"Unknown action: {action.Action}", StatusCode = 400 }
                     };
                     
@@ -1019,10 +1188,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetAllSubscriptionPlansAsync()
+    public async Task<JsonModel> GetAllSubscriptionPlansAsync(TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var plans = await _subscriptionRepository.GetAllSubscriptionPlansAsync();
             var dtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(plans);
             return new JsonModel { data = dtos, Message = "All subscription plans retrieved successfully", StatusCode = 200 };
@@ -1034,10 +1209,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetActiveSubscriptionPlansAsync()
+    public async Task<JsonModel> GetActiveSubscriptionPlansAsync(TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var plans = await _subscriptionRepository.GetActiveSubscriptionPlansAsync();
             var dtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(plans);
             return new JsonModel { data = dtos, Message = "Active subscription plans retrieved successfully", StatusCode = 200 };
@@ -1049,10 +1230,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetSubscriptionPlansByCategoryAsync(string category)
+    public async Task<JsonModel> GetSubscriptionPlansByCategoryAsync(string category, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             // First get the category by name
             var categoryEntity = await _subscriptionRepository.GetCategoryByNameAsync(category);
             if (categoryEntity == null)
@@ -1069,10 +1256,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetAllCategoriesAsync(int page, int pageSize, string? searchTerm, bool? isActive)
+    public async Task<JsonModel> GetAllCategoriesAsync(int page, int pageSize, string? searchTerm, bool? isActive, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             // This method should be implemented in the CategoryService, not here
             // For now, return a placeholder response
             return new JsonModel { data = new object(), Message = "Categories service not implemented", StatusCode = 501 };
@@ -1084,10 +1277,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetSubscriptionPlanAsync(string planId)
+    public async Task<JsonModel> GetSubscriptionPlanAsync(string planId, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
                 return new JsonModel { data = new object(), Message = "Subscription plan not found", StatusCode = 404 };
@@ -1100,10 +1299,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> CreateSubscriptionPlanAsync(CreateSubscriptionPlanDto createDto)
+    public async Task<JsonModel> CreateSubscriptionPlanAsync(CreateSubscriptionDto createDto, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var plan = _mapper.Map<SubscriptionPlan>(createDto);
             plan.CreatedAt = DateTime.UtcNow;
             plan.IsActive = true;
@@ -1115,7 +1320,8 @@ public class SubscriptionService : ISubscriptionService
                 "SubscriptionPlan",
                 "SubscriptionPlanCreated",
                 createdPlan.Id.ToString(),
-                $"Created plan: {createdPlan.Name}"
+                $"Created plan: {createdPlan.Name}",
+                tokenModel
             );
 
             return new JsonModel { data = dto, Message = "Subscription plan created successfully", StatusCode = 201 };
@@ -1127,10 +1333,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> UpdateSubscriptionPlanAsync(string planId, UpdateSubscriptionPlanDto updateDto)
+    public async Task<JsonModel> UpdateSubscriptionPlanAsync(string planId, UpdateSubscriptionPlanDto updateDto, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
                 return new JsonModel { data = new object(), Message = "Subscription plan not found", StatusCode = 404 };
@@ -1157,7 +1369,8 @@ public class SubscriptionService : ISubscriptionService
                 "SubscriptionPlan",
                 "SubscriptionPlanUpdated",
                 planId,
-                $"Updated plan: {updatedPlan.Name}"
+                $"Updated plan: {updatedPlan.Name}",
+                tokenModel
             );
 
             return new JsonModel { data = dto, Message = "Subscription plan updated successfully", StatusCode = 200 };
@@ -1169,10 +1382,16 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> DeleteSubscriptionPlanAsync(string planId)
+    public async Task<JsonModel> DeleteSubscriptionPlanAsync(string planId, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
             if (plan == null)
                 return new JsonModel { data = new object(), Message = "Subscription plan not found", StatusCode = 404 };
@@ -1190,7 +1409,8 @@ public class SubscriptionService : ISubscriptionService
                 "SubscriptionPlan",
                 "SubscriptionPlanDeleted",
                 planId,
-                $"Deleted plan: {plan.Name}"
+                $"Deleted plan: {plan.Name}",
+                tokenModel
             );
 
             return new JsonModel { data = true, Message = "Subscription plan deleted successfully", StatusCode = 200 };
@@ -1203,13 +1423,13 @@ public class SubscriptionService : ISubscriptionService
     }
 
     // Example: Booking a consultation using privilege system
-    public async Task<JsonModel> BookConsultationAsync(Guid userId, Guid subscriptionId)
+    public async Task<JsonModel> BookConsultationAsync(Guid userId, Guid subscriptionId, TokenModel tokenModel)
     {
         // Check if user has remaining consult privileges
-        var remaining = await _privilegeService.GetRemainingPrivilegeAsync(subscriptionId, "Teleconsultation");
+        var remaining = await _privilegeService.GetRemainingPrivilegeAsync(subscriptionId, "Teleconsultation", tokenModel);
         if (remaining <= 0)
             return new JsonModel { data = new object(), Message = "No teleconsultations remaining in your plan.", StatusCode = 400 };
-        var used = await _privilegeService.UsePrivilegeAsync(subscriptionId, "Teleconsultation");
+        var used = await _privilegeService.UsePrivilegeAsync(subscriptionId, "Teleconsultation", 1, tokenModel);
         if (!used)
             return new JsonModel { data = new object(), Message = "Failed to use teleconsultation privilege.", StatusCode = 500 };
         // Proceed with booking logic (not shown)
@@ -1217,12 +1437,12 @@ public class SubscriptionService : ISubscriptionService
     }
 
     // Example: Medication supply using privilege system
-    public async Task<JsonModel> RequestMedicationSupplyAsync(Guid userId, Guid subscriptionId)
+    public async Task<JsonModel> RequestMedicationSupplyAsync(Guid userId, Guid subscriptionId, TokenModel tokenModel)
     {
-        var remaining = await _privilegeService.GetRemainingPrivilegeAsync(subscriptionId, "MedicationSupply");
+        var remaining = await _privilegeService.GetRemainingPrivilegeAsync(subscriptionId, "MedicationSupply", tokenModel);
         if (remaining <= 0)
             return new JsonModel { data = new object(), Message = "No medication supply privilege remaining in your plan.", StatusCode = 400 };
-        var used = await _privilegeService.UsePrivilegeAsync(subscriptionId, "MedicationSupply");
+        var used = await _privilegeService.UsePrivilegeAsync(subscriptionId, "MedicationSupply", 1, tokenModel);
         if (!used)
             return new JsonModel { data = new object(), Message = "Failed to use medication supply privilege.", StatusCode = 500 };
         // Proceed with medication supply logic (not shown)
@@ -1232,10 +1452,16 @@ public class SubscriptionService : ISubscriptionService
     // --- PAYMENT & BILLING EDGE CASES ---
 
     // 1. Handle failed payment and update subscription status
-    public async Task<JsonModel> HandleFailedPaymentAsync(string subscriptionId, string reason)
+    public async Task<JsonModel> HandleFailedPaymentAsync(string subscriptionId, string reason, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (entity == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
@@ -1258,15 +1484,15 @@ public class SubscriptionService : ISubscriptionService
             });
 
             // Send payment failed notification
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId, tokenModel);
             if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 var billingRecord = new BillingRecordDto { Amount = entity.CurrentPrice, DueDate = DateTime.UtcNow, Description = reason };
-                await _notificationService.SendPaymentFailedEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord);
+                await _notificationService.SendPaymentFailedEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord, tokenModel);
             }
 
             // Audit log
-            await _auditService.LogPaymentEventAsync(entity.UserId.ToString(), "PaymentFailed", subscriptionId, "Failed", reason);
+            await _auditService.LogPaymentEventAsync(entity.UserId.ToString(), "PaymentFailed", subscriptionId, "Failed", reason, tokenModel);
 
             return new JsonModel { data = new object(), Message = $"Payment failed: {reason}", StatusCode = 400 };
         }
@@ -1278,21 +1504,21 @@ public class SubscriptionService : ISubscriptionService
     }
 
     // 2. Retry payment and reactivate subscription if successful
-    public async Task<JsonModel> RetryPaymentAsync(string subscriptionId, PaymentRequestDto paymentRequest)
+    public async Task<JsonModel> RetryPaymentAsync(string subscriptionId, PaymentRequestDto paymentRequest, TokenModel tokenModel)
     {
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
             return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
         // Simulate payment retry logic
-        var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), paymentRequest.Amount, "USD");
+        var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), paymentRequest.Amount, "USD", tokenModel);
         if (paymentResult.Status == "succeeded")
         {
             // Send payment success email
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId, tokenModel);
             if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 var billingRecord = new BillingRecordDto { Amount = paymentRequest.Amount, PaidDate = DateTime.UtcNow, Description = "Retry Payment" };
-                await _notificationService.SendPaymentSuccessEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord);
+                await _notificationService.SendPaymentSuccessEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord, tokenModel);
             }
             entity.Status = Subscription.SubscriptionStatuses.Active;
             entity.UpdatedAt = DateTime.UtcNow;
@@ -1307,7 +1533,7 @@ public class SubscriptionService : ISubscriptionService
     }
 
     // 3. Auto-renewal logic (to be called by a scheduler/cron job)
-    public async Task<JsonModel> AutoRenewSubscriptionAsync(string subscriptionId)
+    public async Task<JsonModel> AutoRenewSubscriptionAsync(string subscriptionId, TokenModel tokenModel)
     {
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
@@ -1315,15 +1541,15 @@ public class SubscriptionService : ISubscriptionService
         if (entity.Status != Subscription.SubscriptionStatuses.Active)
             return new JsonModel { data = new object(), Message = "Only active subscriptions can be auto-renewed", StatusCode = 400 };
         // Simulate payment
-        var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), entity.CurrentPrice, "USD");
+        var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), entity.CurrentPrice, "USD", tokenModel);
         if (paymentResult.Status == "succeeded")
         {
             // Send renewal confirmation email
-            var userResult = await _userService.GetUserByIdAsync(entity.UserId);
+            var userResult = await _userService.GetUserByIdAsync(entity.UserId, tokenModel);
             if (userResult.StatusCode == 200 && userResult.data != null)
             {
                 var billingRecord = new BillingRecordDto { Amount = entity.CurrentPrice, PaidDate = DateTime.UtcNow, Description = "Auto-Renewal" };
-                await _notificationService.SendPaymentSuccessEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord);
+                await _notificationService.SendPaymentSuccessEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord, tokenModel);
             }
             entity.NextBillingDate = entity.NextBillingDate.AddMonths(1);
             entity.UpdatedAt = DateTime.UtcNow;
@@ -1333,13 +1559,13 @@ public class SubscriptionService : ISubscriptionService
         }
         else
         {
-            await HandleFailedPaymentAsync(subscriptionId, paymentResult.ErrorMessage ?? "Auto-renewal payment failed");
+                            await HandleFailedPaymentAsync(subscriptionId, paymentResult.ErrorMessage ?? "Auto-renewal payment failed", tokenModel);
             return new JsonModel { data = new object(), Message = $"Auto-renewal payment failed: {paymentResult.ErrorMessage}", StatusCode = 400 };
         }
     }
 
     // 4. Prorated upgrades/downgrades
-    public async Task<JsonModel> ProrateUpgradeAsync(string subscriptionId, string newPlanId)
+    public async Task<JsonModel> ProrateUpgradeAsync(string subscriptionId, string newPlanId, TokenModel tokenModel)
     {
         var entity = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
         if (entity == null)
@@ -1356,7 +1582,7 @@ public class SubscriptionService : ISubscriptionService
         var credit = (decimal)(daysLeft / 30.0) * oldPlan.Price; // Assuming Price is the monthly price
         var charge = newPlan.Price - credit;
         // Simulate payment for the difference
-        var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), charge, "USD");
+        var paymentResult = await _stripeService.ProcessPaymentAsync(entity.UserId.ToString(), charge, "USD", tokenModel);
         if (paymentResult.Status == "succeeded")
         {
             entity.SubscriptionPlanId = newPlan.Id;
@@ -1374,10 +1600,16 @@ public class SubscriptionService : ISubscriptionService
     // --- USAGE & LIMITS ---
 
     // Check if user can use a privilege (e.g., book a consult)
-    public async Task<JsonModel> CanUsePrivilegeAsync(string subscriptionId, string privilegeName)
+    public async Task<JsonModel> CanUsePrivilegeAsync(string subscriptionId, string privilegeName, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null || subscription.Status != Subscription.SubscriptionStatuses.Active)
                 return new JsonModel { data = new object(), Message = "Subscription not active", StatusCode = 400 };
@@ -1467,8 +1699,14 @@ public class SubscriptionService : ISubscriptionService
     // --- ADMIN OPERATIONS ---
 
     // Deactivate a plan (admin action)
-    public async Task<JsonModel> DeactivatePlanAsync(string planId, string adminUserId)
+    public async Task<JsonModel> DeactivatePlanAsync(string planId, string adminUserId, TokenModel tokenModel)
     {
+        // Admin only method - validate admin role
+        if (tokenModel.RoleID != 1)
+        {
+            return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+        }
+
         // Example: deactivate plan and notify/pause all subscribers
         var plan = await _subscriptionRepository.GetSubscriptionPlanByIdAsync(Guid.Parse(planId));
         if (plan == null)
@@ -1480,7 +1718,7 @@ public class SubscriptionService : ISubscriptionService
     }
 
     // Bulk cancel subscriptions (admin action)
-    public async Task<JsonModel> BulkCancelSubscriptionsAsync(IEnumerable<string> subscriptionIds, string adminUserId, string? reason = null)
+    public async Task<JsonModel> BulkCancelSubscriptionsAsync(IEnumerable<string> subscriptionIds, string adminUserId, TokenModel tokenModel, string? reason = null)
     {
         int cancelled = 0;
         foreach (var id in subscriptionIds)
@@ -1492,14 +1730,14 @@ public class SubscriptionService : ISubscriptionService
                 sub.CancellationReason = reason ?? "Bulk admin cancel";
                 sub.CancelledDate = DateTime.UtcNow;
                 await _subscriptionRepository.UpdateAsync(sub);
-                var userResult = await _userService.GetUserByIdAsync(sub.UserId);
+                var userResult = await _userService.GetUserByIdAsync(sub.UserId, tokenModel);
                 if (userResult.StatusCode == 200 && userResult.data != null)
                 {
                     // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                                     // await _notificationService.SendSubscriptionCancelledNotificationAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, _mapper.Map<SubscriptionDto>(sub));
                 _logger.LogInformation("Email notifications disabled - would have sent cancellation notification to {Email}", ((UserDto)userResult.data).Email);
                 }
-                await _auditService.LogUserActionAsync(adminUserId, "BulkCancelSubscription", "Subscription", id, "Cancelled by admin");
+                await _auditService.LogUserActionAsync(adminUserId, "BulkCancelSubscription", "Subscription", id, "Cancelled by admin", tokenModel);
                 cancelled++;
             }
         }
@@ -1507,7 +1745,7 @@ public class SubscriptionService : ISubscriptionService
     }
 
     // Bulk upgrade subscriptions (admin action)
-    public async Task<JsonModel> BulkUpgradeSubscriptionsAsync(IEnumerable<string> subscriptionIds, string newPlanId, string adminUserId)
+    public async Task<JsonModel> BulkUpgradeSubscriptionsAsync(IEnumerable<string> subscriptionIds, string newPlanId, string adminUserId, TokenModel tokenModel)
     {
         int upgraded = 0;
         foreach (var id in subscriptionIds)
@@ -1518,27 +1756,33 @@ public class SubscriptionService : ISubscriptionService
                 sub.SubscriptionPlanId = Guid.Parse(newPlanId);
                 sub.UpdatedAt = DateTime.UtcNow;
                 await _subscriptionRepository.UpdateAsync(sub);
-                var userResult = await _userService.GetUserByIdAsync(sub.UserId);
+                var userResult = await _userService.GetUserByIdAsync(sub.UserId, tokenModel);
                 if (userResult.StatusCode == 200 && userResult.data != null)
                 {
                     // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                                     // await _notificationService.SendSubscriptionConfirmationAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, _mapper.Map<SubscriptionDto>(sub));
                 _logger.LogInformation("Email notifications disabled - would have sent confirmation email to {Email}", ((UserDto)userResult.data).Email);
                 }
-                await _auditService.LogUserActionAsync(adminUserId, "BulkUpgradeSubscription", "Subscription", id, $"Upgraded to plan {newPlanId}");
+                await _auditService.LogUserActionAsync(adminUserId, "BulkUpgradeSubscription", "Subscription", id, $"Upgraded to plan {newPlanId}", tokenModel);
                 upgraded++;
             }
         }
         return new JsonModel { data = upgraded, Message = $"{upgraded} subscriptions upgraded.", StatusCode = 200 };
     }
 
-    public async Task<JsonModel> HandlePaymentProviderWebhookAsync(string eventType, string subscriptionId, string? errorMessage = null)
+    public async Task<JsonModel> HandlePaymentProviderWebhookAsync(string eventType, string subscriptionId, string? errorMessage, TokenModel tokenModel)
     {
         try
         {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
             if (eventType == "payment_failed")
             {
-                await HandleFailedPaymentAsync(subscriptionId, errorMessage ?? "Unknown error");
+                await HandleFailedPaymentAsync(subscriptionId, errorMessage ?? "Unknown error", tokenModel);
                 return new JsonModel { data = true, Message = "Payment failure handled", StatusCode = 200 };
             }
             if (eventType == "payment_succeeded")
@@ -1549,7 +1793,7 @@ public class SubscriptionService : ISubscriptionService
                     sub.Status = Subscription.SubscriptionStatuses.Active;
                     await _subscriptionRepository.UpdateAsync(sub);
                     
-                    var userResult = await _userService.GetUserByIdAsync(sub.UserId);
+                    var userResult = await _userService.GetUserByIdAsync(sub.UserId, tokenModel);
                     if (userResult.StatusCode == 200 && userResult.data != null)
                     {
                         var billingRecord = new BillingRecordDto { Amount = sub.CurrentPrice, PaidDate = DateTime.UtcNow, Description = "Webhook Payment Success" };
@@ -1557,7 +1801,7 @@ public class SubscriptionService : ISubscriptionService
                         // await _notificationService.SendPaymentSuccessEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord);
                         _logger.LogInformation("Email notifications disabled - would have sent payment success email to {Email}", ((UserDto)userResult.data).Email);
                     }
-                    await _auditService.LogPaymentEventAsync(sub.UserId.ToString(), "PaymentSucceeded", subscriptionId, "Succeeded");
+                    await _auditService.LogPaymentEventAsync(sub.UserId.ToString(), "PaymentSucceeded", subscriptionId, "Succeeded", null, tokenModel);
                 }
                 return new JsonModel { data = true, Message = "Payment success handled", StatusCode = 200 };
             }
@@ -1572,21 +1816,27 @@ public class SubscriptionService : ISubscriptionService
     }
 
     // Additional methods for comprehensive subscription management
-    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(string subscriptionId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(string subscriptionId, DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
+            // Validate token permissions
+            if (tokenModel.RoleID != 1 && !await HasAccessToSubscription(tokenModel.UserID, subscriptionId))
+            {
+                return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
+            }
+
             var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
             if (subscription == null)
                 return new JsonModel { data = new object(), Message = "Subscription not found", StatusCode = 404 };
 
             // Get usage statistics
-            var usageStats = await GetUsageStatisticsAsync(subscriptionId);
+            var usageStats = await GetUsageStatisticsAsync(subscriptionId, tokenModel);
             if (usageStats.StatusCode != 200)
                 return new JsonModel { data = new object(), Message = "Failed to get usage statistics", StatusCode = 500 };
 
             // Get billing history with date range
-            var billingHistory = await _billingService.GetPaymentHistoryAsync(subscription.UserId, startDate, endDate);
+            var billingHistory = await _billingService.GetPaymentHistoryAsync(subscription.UserId, startDate, endDate, tokenModel);
 
             var analytics = new SubscriptionAnalyticsDto
             {
@@ -1624,6 +1874,20 @@ public class SubscriptionService : ISubscriptionService
         {
             _logger.LogError(ex, "Error getting subscription analytics for subscription {SubscriptionId}", subscriptionId);
             return new JsonModel { data = new object(), Message = "Failed to retrieve subscription analytics", StatusCode = 500 };
+        }
+    }
+
+    // Helper method to check if user has access to subscription
+    private async Task<bool> HasAccessToSubscription(int userId, string subscriptionId)
+    {
+        try
+        {
+            var subscription = await _subscriptionRepository.GetByIdAsync(Guid.Parse(subscriptionId));
+            return subscription != null && subscription.UserId == userId;
+        }
+        catch
+        {
+            return false;
         }
     }
 } 

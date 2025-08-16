@@ -38,7 +38,7 @@ public class BillingService : IBillingService
         _auditService = auditService;
     }
     
-    public async Task<JsonModel> CreateBillingRecordAsync(CreateBillingRecordDto createDto)
+    public async Task<JsonModel> CreateBillingRecordAsync(CreateBillingRecordDto createDto, TokenModel tokenModel)
     {
         try
         {
@@ -60,7 +60,9 @@ public class BillingService : IBillingService
                 createDto.UserId,
                 "BillingRecordCreated",
                 createdRecord.Id.ToString(),
-                "Success"
+                "Success",
+                null,
+                tokenModel
             );
             
             return new JsonModel
@@ -77,7 +79,9 @@ public class BillingService : IBillingService
                 createDto.UserId,
                 "BillingRecordCreationFailed",
                 "N/A",
-                ex.Message
+                "Failed",
+                ex.Message,
+                tokenModel
             );
             return new JsonModel
             {
@@ -88,12 +92,12 @@ public class BillingService : IBillingService
         }
     }
     
-    public async Task<JsonModel> ProcessPaymentAsync(Guid billingRecordId)
+    public async Task<JsonModel> ProcessPaymentAsync(Guid billingRecordId, TokenModel tokenModel)
     {
-        return await ProcessPaymentWithRetryAsync(billingRecordId, 0);
+        return await ProcessPaymentWithRetryAsync(billingRecordId, 0, tokenModel);
     }
 
-    private async Task<JsonModel> ProcessPaymentWithRetryAsync(Guid billingRecordId, int attempt)
+    private async Task<JsonModel> ProcessPaymentWithRetryAsync(Guid billingRecordId, int attempt, TokenModel tokenModel)
     {
         try
         {
@@ -124,7 +128,7 @@ public class BillingService : IBillingService
                     StatusCode = 404
                 };
 
-            var paymentMethods = await _stripeService.GetCustomerPaymentMethodsAsync(billingRecord.UserId.ToString());
+            var paymentMethods = await _stripeService.GetCustomerPaymentMethodsAsync(billingRecord.UserId.ToString(), tokenModel);
             var defaultPaymentMethod = paymentMethods.FirstOrDefault(pm => pm.IsDefault);
             
             if (defaultPaymentMethod == null)
@@ -135,8 +139,8 @@ public class BillingService : IBillingService
                 billingRecord.UpdatedAt = DateTime.UtcNow;
                 await _billingRepository.UpdateAsync(billingRecord);
                 
-                await SendPaymentNotificationsAsync(MapToDto(billingRecord), false);
-                await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "PaymentFailed", billingRecord.Id.ToString(), "Failed", "No default payment method");
+                await SendPaymentNotificationsAsync(MapToDto(billingRecord), false, tokenModel);
+                await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "PaymentFailed", billingRecord.Id.ToString(), "Failed", "No default payment method", tokenModel);
                 
                 return new JsonModel
                 {
@@ -150,7 +154,8 @@ public class BillingService : IBillingService
             var paymentResult = await _stripeService.ProcessPaymentAsync(
                 defaultPaymentMethod.Id,
                 billingRecord.Amount,
-                "usd"
+                "usd",
+                tokenModel
             );
 
             if (paymentResult.Status == "succeeded")
@@ -166,7 +171,7 @@ public class BillingService : IBillingService
                 var billingRecordDto = MapToDto(updatedRecord);
 
                 // Send success notifications
-                await SendPaymentNotificationsAsync(billingRecordDto, true);
+                await SendPaymentNotificationsAsync(billingRecordDto, true, tokenModel);
 
                 // AUDIT LOG: Payment success
                 await _auditService.LogPaymentEventAsync(
@@ -174,7 +179,8 @@ public class BillingService : IBillingService
                     "PaymentSuccess",
                     billingRecord.Id.ToString(),
                     "Success",
-                    null
+                    null,
+                    tokenModel
                 );
 
                 return new JsonModel
@@ -187,7 +193,7 @@ public class BillingService : IBillingService
             else
             {
                 // Handle failed payment with retry logic
-                return await HandleFailedPaymentWithRetryAsync(billingRecord, paymentResult, attempt);
+                return await HandleFailedPaymentWithRetryAsync(billingRecord, paymentResult, attempt, tokenModel);
             }
         }
         catch (Exception ex)
@@ -201,7 +207,7 @@ public class BillingService : IBillingService
                 await Task.Delay(delay);
                 
                 _logger.LogInformation("Retrying payment for billing record {BillingRecordId} (attempt {Attempt})", billingRecordId, attempt + 2);
-                return await ProcessPaymentWithRetryAsync(billingRecordId, attempt + 1);
+                return await ProcessPaymentWithRetryAsync(billingRecordId, attempt + 1, tokenModel);
             }
             
             // Final failure - update billing record
@@ -216,14 +222,15 @@ public class BillingService : IBillingService
                     await _billingRepository.UpdateAsync(billingRecord);
                     
                     var billingRecordDto = MapToDto(billingRecord);
-                    await SendPaymentNotificationsAsync(billingRecordDto, false);
+                    await SendPaymentNotificationsAsync(billingRecordDto, false, tokenModel);
                     
                     await _auditService.LogPaymentEventAsync(
                         billingRecord.UserId.ToString(),
                         "PaymentFailed",
                         billingRecord.Id.ToString(),
                         "Failed",
-                        ex.Message
+                        ex.Message,
+                        tokenModel
                     );
                 }
             }
@@ -241,7 +248,7 @@ public class BillingService : IBillingService
         }
     }
 
-    private async Task<JsonModel> HandleFailedPaymentWithRetryAsync(BillingRecord billingRecord, PaymentResultDto paymentResult, int attempt)
+    private async Task<JsonModel> HandleFailedPaymentWithRetryAsync(BillingRecord billingRecord, PaymentResultDto paymentResult, int attempt, TokenModel tokenModel)
     {
         // Update billing record as failed
         billingRecord.Status = BillingRecord.BillingStatus.Failed;
@@ -253,7 +260,7 @@ public class BillingService : IBillingService
         var billingRecordDto = MapToDto(updatedRecord);
 
         // Send failure notifications
-        await SendPaymentNotificationsAsync(billingRecordDto, false);
+        await SendPaymentNotificationsAsync(billingRecordDto, false, tokenModel);
 
         // AUDIT LOG: Payment failure
         await _auditService.LogPaymentEventAsync(
@@ -261,7 +268,8 @@ public class BillingService : IBillingService
             "PaymentFailed",
             billingRecord.Id.ToString(),
             "Failed",
-            paymentResult.ErrorMessage
+            paymentResult.ErrorMessage,
+            tokenModel
         );
 
         // Check if we should retry
@@ -272,11 +280,11 @@ public class BillingService : IBillingService
             await Task.Delay(delay);
             
             _logger.LogInformation("Retrying payment for billing record {BillingRecordId} (attempt {Attempt})", billingRecord.Id, attempt + 2);
-            return await ProcessPaymentWithRetryAsync(billingRecord.Id, attempt + 1);
+            return await ProcessPaymentWithRetryAsync(billingRecord.Id, attempt + 1, tokenModel);
         }
 
         // Final failure - handle immediate suspension
-        await HandleImmediateSuspensionAsync(billingRecord);
+        await HandleImmediateSuspensionAsync(billingRecord, tokenModel);
         
         return new JsonModel
         {
@@ -286,7 +294,7 @@ public class BillingService : IBillingService
         };
     }
 
-    private async Task HandleImmediateSuspensionAsync(BillingRecord billingRecord)
+    private async Task HandleImmediateSuspensionAsync(BillingRecord billingRecord, TokenModel tokenModel)
     {
         try
         {
@@ -306,7 +314,7 @@ public class BillingService : IBillingService
                     await _subscriptionRepository.UpdateAsync(subscription);
                     
                     // Send immediate suspension notification
-                    await SendImmediateSuspensionNotificationAsync(billingRecord, subscription);
+                    await SendImmediateSuspensionNotificationAsync(billingRecord, subscription, tokenModel);
                 }
             }
         }
@@ -316,7 +324,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> RetryPaymentAsync(Guid billingRecordId)
+    public async Task<JsonModel> RetryPaymentAsync(Guid billingRecordId, TokenModel tokenModel)
     {
         try
         {
@@ -344,7 +352,7 @@ public class BillingService : IBillingService
             await _billingRepository.UpdateAsync(billingRecord);
 
             // Process payment with retry
-            var result = await ProcessPaymentWithRetryAsync(billingRecordId, 0);
+            var result = await ProcessPaymentWithRetryAsync(billingRecordId, 0, tokenModel);
             
             if (result.StatusCode == 200)
             {
@@ -383,7 +391,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> ProcessRefundAsync(Guid billingRecordId, decimal amount, string reason)
+    public async Task<JsonModel> ProcessRefundAsync(Guid billingRecordId, decimal amount, string reason, TokenModel tokenModel)
     {
         try
         {
@@ -413,7 +421,7 @@ public class BillingService : IBillingService
                 };
 
             // Process refund through Stripe
-            var refundResult = await _stripeService.ProcessRefundAsync(billingRecord.PaymentIntentId, amount);
+            var refundResult = await _stripeService.ProcessRefundAsync(billingRecord.PaymentIntentId, amount, tokenModel);
             
             if (refundResult)
             {
@@ -439,7 +447,7 @@ public class BillingService : IBillingService
                 await _billingRepository.UpdateAsync(billingRecord);
 
                 // Send refund notification
-                await SendRefundNotificationAsync(billingRecord, amount, reason);
+                await SendRefundNotificationAsync(billingRecord, amount, reason, tokenModel);
 
                 // Audit log
                 await _auditService.LogPaymentEventAsync(
@@ -447,7 +455,8 @@ public class BillingService : IBillingService
                     "RefundProcessed",
                     billingRecord.Id.ToString(),
                     "Success",
-                    reason
+                    reason,
+                    tokenModel
                 );
 
                 return new JsonModel
@@ -484,7 +493,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> GetBillingRecordAsync(Guid billingRecordId)
+    public async Task<JsonModel> GetBillingRecordAsync(Guid billingRecordId, TokenModel tokenModel)
     {
         try
         {
@@ -545,7 +554,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> GetPaymentAnalyticsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetPaymentAnalyticsAsync(int userId, DateTime? startDate = null, DateTime? endDate = null, TokenModel tokenModel = null)
     {
         try
         {
@@ -602,7 +611,7 @@ public class BillingService : IBillingService
     }
 
     // Private helper methods
-    private async Task SendPaymentNotificationsAsync(BillingRecordDto billingRecord, bool isSuccess)
+    private async Task SendPaymentNotificationsAsync(BillingRecordDto billingRecord, bool isSuccess, TokenModel tokenModel)
     {
         try
         {
@@ -616,14 +625,15 @@ public class BillingService : IBillingService
                 // Send email notification
                 if (!string.IsNullOrEmpty(user.Email))
                 {
-                    await _notificationService.SendPaymentSuccessEmailAsync(user.Email, userName, billingRecord);
+                    await _notificationService.SendPaymentSuccessEmailAsync(user.Email, userName, billingRecord, tokenModel);
                 }
                 
                 // Send in-app notification
                 await _notificationService.CreateInAppNotificationAsync(
                     int.Parse(billingRecord.UserId),
                     "Payment Successful",
-                    $"Your payment of ${billingRecord.Amount} has been processed successfully."
+                    $"Your payment of ${billingRecord.Amount} has been processed successfully.",
+                    tokenModel
                 );
             }
             else
@@ -631,14 +641,15 @@ public class BillingService : IBillingService
                 // Send email notification
                 if (!string.IsNullOrEmpty(user.Email))
                 {
-                    await _notificationService.SendPaymentFailedEmailAsync(user.Email, userName, billingRecord);
+                    await _notificationService.SendPaymentFailedEmailAsync(user.Email, userName, billingRecord, tokenModel);
                 }
                 
                 // Send in-app notification
                 await _notificationService.CreateInAppNotificationAsync(
                     int.Parse(billingRecord.UserId),
                     "Payment Failed",
-                    $"We were unable to process your payment of ${billingRecord.Amount}. Please check your payment method."
+                    $"We were unable to process your payment of ${billingRecord.Amount}. Please check your payment method.",
+                    tokenModel
                 );
             }
         }
@@ -648,7 +659,7 @@ public class BillingService : IBillingService
         }
     }
 
-    private async Task SendImmediateSuspensionNotificationAsync(BillingRecord billingRecord, Subscription subscription)
+    private async Task SendImmediateSuspensionNotificationAsync(BillingRecord billingRecord, Subscription subscription, TokenModel tokenModel)
     {
         try
         {
@@ -669,7 +680,8 @@ public class BillingService : IBillingService
             await _notificationService.CreateInAppNotificationAsync(
                 billingRecord.UserId,
                 "Subscription Suspended",
-                message
+                message,
+                tokenModel
             );
         }
         catch (Exception ex)
@@ -678,7 +690,7 @@ public class BillingService : IBillingService
         }
     }
 
-    private async Task SendRefundNotificationAsync(BillingRecord billingRecord, decimal amount, string reason)
+    private async Task SendRefundNotificationAsync(BillingRecord billingRecord, decimal amount, string reason, TokenModel tokenModel)
     {
         try
         {
@@ -690,14 +702,15 @@ public class BillingService : IBillingService
             // Send email notification
             if (!string.IsNullOrEmpty(user.Email))
             {
-                await _notificationService.SendRefundNotificationAsync(billingRecord.UserId.ToString(), amount, billingRecord.Id.ToString());
+                await _notificationService.SendRefundNotificationAsync(billingRecord.UserId.ToString(), amount, billingRecord.Id.ToString(), tokenModel);
             }
             
             // Send in-app notification
             await _notificationService.CreateInAppNotificationAsync(
                 billingRecord.UserId,
                 "Refund Processed",
-                message
+                message,
+                tokenModel
             );
         }
         catch (Exception ex)
@@ -744,7 +757,7 @@ public class BillingService : IBillingService
     /// <summary>
     /// Aggregate accrued and cash revenue for admin reporting
     /// </summary>
-    public async Task<JsonModel> GetRevenueSummaryAsync(DateTime? from = null, DateTime? to = null, string? planId = null)
+    public async Task<JsonModel> GetRevenueSummaryAsync(DateTime? from = null, DateTime? to = null, string? planId = null, TokenModel tokenModel = null)
     {
         // TODO: Implement filtering by planId, type, status
         var allRecords = await _billingRepository.GetAllAsync();
@@ -776,7 +789,7 @@ public class BillingService : IBillingService
     }
 
     // PHASE 2 STUBS
-    public async Task<JsonModel> CreateRecurringBillingAsync(CreateRecurringBillingDto createDto)
+    public async Task<JsonModel> CreateRecurringBillingAsync(CreateRecurringBillingDto createDto, TokenModel tokenModel)
     {
         var billingRecord = new BillingRecord
         {
@@ -790,7 +803,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "RecurringBillingCreated", createdRecord.Id.ToString(), "Success");
+        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "RecurringBillingCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -798,7 +811,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> ProcessRecurringPaymentAsync(Guid subscriptionId)
+    public async Task<JsonModel> ProcessRecurringPaymentAsync(Guid subscriptionId, TokenModel tokenModel)
     {
         // Example: process payment for the next due billing record for the subscription
         var records = await _billingRepository.GetBySubscriptionIdAsync(subscriptionId);
@@ -810,9 +823,9 @@ public class BillingService : IBillingService
                 Message = "No pending recurring payment found",
                 StatusCode = 404
             };
-        return await ProcessPaymentAsync(nextDue.Id);
+                    return await ProcessPaymentAsync(nextDue.Id, tokenModel);
     }
-    public async Task<JsonModel> CancelRecurringBillingAsync(Guid subscriptionId)
+    public async Task<JsonModel> CancelRecurringBillingAsync(Guid subscriptionId, TokenModel tokenModel)
     {
         // Example: mark all future recurring billing records as cancelled
         var records = await _billingRepository.GetBySubscriptionIdAsync(subscriptionId);
@@ -828,7 +841,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> CreateUpfrontPaymentAsync(CreateUpfrontPaymentDto createDto)
+    public async Task<JsonModel> CreateUpfrontPaymentAsync(CreateUpfrontPaymentDto createDto, TokenModel tokenModel)
     {
         var billingRecord = new BillingRecord
         {
@@ -842,7 +855,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "UpfrontPaymentCreated", createdRecord.Id.ToString(), "Success");
+        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "UpfrontPaymentCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -850,7 +863,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> ProcessBundlePaymentAsync(CreateBundlePaymentDto createDto)
+    public async Task<JsonModel> ProcessBundlePaymentAsync(CreateBundlePaymentDto createDto, TokenModel tokenModel)
     {
         decimal total = createDto.Items.Sum(i => i.Amount);
         var billingRecord = new BillingRecord
@@ -865,7 +878,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "BundlePaymentProcessed", createdRecord.Id.ToString(), "Success");
+        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "BundlePaymentProcessed", createdRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -873,7 +886,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> ApplyBillingAdjustmentAsync(Guid billingRecordId, CreateBillingAdjustmentDto adjustmentDto)
+    public async Task<JsonModel> ApplyBillingAdjustmentAsync(Guid billingRecordId, CreateBillingAdjustmentDto adjustmentDto, TokenModel tokenModel)
     {
         // Example: apply an adjustment (discount, credit, etc.)
         var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
@@ -888,7 +901,7 @@ public class BillingService : IBillingService
         billingRecord.UpdatedAt = DateTime.UtcNow;
         await _billingRepository.UpdateAsync(billingRecord);
         var billingRecordDto = MapToDto(billingRecord);
-        await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "BillingAdjustmentApplied", billingRecord.Id.ToString(), "Success");
+        await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "BillingAdjustmentApplied", billingRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -896,7 +909,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> GetBillingAdjustmentsAsync(Guid billingRecordId)
+    public async Task<JsonModel> GetBillingAdjustmentsAsync(Guid billingRecordId, TokenModel tokenModel)
     {
         var adjustments = await _billingRepository.GetAdjustmentsByBillingRecordIdAsync(billingRecordId);
         var dtos = adjustments.Select(a => new BillingAdjustmentDto
@@ -917,7 +930,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> RetryFailedPaymentAsync(Guid billingRecordId)
+    public async Task<JsonModel> RetryFailedPaymentAsync(Guid billingRecordId, TokenModel tokenModel)
     {
         // Example: retry payment for a failed billing record
         var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
@@ -935,9 +948,9 @@ public class BillingService : IBillingService
                 Message = "Billing record is not in failed status",
                 StatusCode = 400
             };
-        return await ProcessPaymentAsync(billingRecordId);
+                    return await ProcessPaymentAsync(billingRecordId, tokenModel);
     }
-    public async Task<JsonModel> ProcessPartialPaymentAsync(Guid billingRecordId, decimal amount)
+    public async Task<JsonModel> ProcessPartialPaymentAsync(Guid billingRecordId, decimal amount, TokenModel tokenModel)
     {
         // Example: process a partial payment
         var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
@@ -960,7 +973,7 @@ public class BillingService : IBillingService
         billingRecord.UpdatedDate = DateTime.UtcNow;
         await _billingRepository.UpdateAsync(billingRecord);
         var billingRecordDto = MapToDto(billingRecord);
-        await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "PartialPaymentProcessed", billingRecord.Id.ToString(), "Success");
+        await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "PartialPaymentProcessed", billingRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -968,7 +981,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> CreateInvoiceAsync(CreateInvoiceDto createDto)
+    public async Task<JsonModel> CreateInvoiceAsync(CreateInvoiceDto createDto, TokenModel tokenModel)
     {
         var billingRecord = new BillingRecord
         {
@@ -981,7 +994,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "InvoiceCreated", createdRecord.Id.ToString(), "Success");
+        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "InvoiceCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -989,7 +1002,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> GenerateInvoicePdfAsync(Guid billingRecordId)
+    public async Task<JsonModel> GenerateInvoicePdfAsync(Guid billingRecordId, TokenModel tokenModel)
     {
         // Example: generate a PDF (stubbed as byte array)
         var billingRecord = await _billingRepository.GetByIdAsync(billingRecordId);
@@ -1008,7 +1021,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> GenerateBillingReportAsync(DateTime startDate, DateTime endDate, string format = "pdf")
+    public async Task<JsonModel> GenerateBillingReportAsync(DateTime startDate, DateTime endDate, string format = "pdf", TokenModel tokenModel = null)
     {
         // Example: generate a report (stubbed as byte array)
         var records = await _billingRepository.GetAllAsync();
@@ -1020,7 +1033,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> GetBillingSummaryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetBillingSummaryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null, TokenModel tokenModel = null)
     {
         // Example: summarize billing for a user
         var records = await _billingRepository.GetByUserIdAsync(userId);
@@ -1033,7 +1046,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> GetPaymentScheduleAsync(Guid subscriptionId)
+    public async Task<JsonModel> GetPaymentScheduleAsync(Guid subscriptionId, TokenModel tokenModel)
     {
         // Example: return a payment schedule for a subscription
         var records = await _billingRepository.GetBySubscriptionIdAsync(subscriptionId);
@@ -1059,7 +1072,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> UpdatePaymentMethodAsync(Guid billingRecordId, string paymentMethodId)
+    public async Task<JsonModel> UpdatePaymentMethodAsync(Guid billingRecordId, string paymentMethodId, TokenModel tokenModel)
     {
         // Not implemented in infrastructure layer
         return await Task.FromResult(new JsonModel
@@ -1074,7 +1087,7 @@ public class BillingService : IBillingService
     /// </summary>
     /// <param name="createDto">The billing cycle creation DTO.</param>
     /// <returns>API response with the created billing record DTO.</returns>
-    public async Task<JsonModel> CreateBillingCycleAsync(CreateBillingCycleDto createDto)
+    public async Task<JsonModel> CreateBillingCycleAsync(CreateBillingCycleDto createDto, TokenModel tokenModel)
     {
         var userId = createDto.UserId;
         var billingRecord = new BillingRecord
@@ -1088,7 +1101,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(userId.ToString(), "BillingCycleCreated", createdRecord.Id.ToString(), "Success");
+        await _auditService.LogPaymentEventAsync(userId.ToString(), "BillingCycleCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -1096,7 +1109,7 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> GetBillingCycleRecordsAsync(Guid billingCycleId)
+    public async Task<JsonModel> GetBillingCycleRecordsAsync(Guid billingCycleId, TokenModel tokenModel)
     {
         // Example: fetch all records for a billing cycle
         var records = await _billingRepository.GetByBillingCycleIdAsync(billingCycleId);
@@ -1108,13 +1121,13 @@ public class BillingService : IBillingService
             StatusCode = 200
         };
     }
-    public async Task<JsonModel> ProcessBillingCycleAsync(Guid billingCycleId)
+    public async Task<JsonModel> ProcessBillingCycleAsync(Guid billingCycleId, TokenModel tokenModel)
     {
         // Example: process all pending payments in a billing cycle
         var records = await _billingRepository.GetByBillingCycleIdAsync(billingCycleId);
         foreach (var record in records.Where(r => r.Status == BillingRecord.BillingStatus.Pending))
         {
-            await ProcessPaymentAsync(record.Id);
+            await ProcessPaymentAsync(record.Id, tokenModel);
         }
         var dtos = records.Select(MapToDto);
         return new JsonModel
@@ -1125,7 +1138,7 @@ public class BillingService : IBillingService
         };
     }
 
-    public async Task<JsonModel> ExportRevenueAsync(DateTime? from = null, DateTime? to = null, string? planId = null, string format = "csv")
+    public async Task<JsonModel> ExportRevenueAsync(DateTime? from = null, DateTime? to = null, string? planId = null, string format = "csv", TokenModel tokenModel = null)
     {
         try
         {
@@ -1175,7 +1188,7 @@ public class BillingService : IBillingService
     }
 
     // Missing interface methods
-    public async Task<JsonModel> GetUserBillingHistoryAsync(int userId)
+    public async Task<JsonModel> GetUserBillingHistoryAsync(int userId, TokenModel tokenModel)
     {
         try
         {
@@ -1200,7 +1213,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> GetAllBillingRecordsAsync()
+    public async Task<JsonModel> GetAllBillingRecordsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -1225,7 +1238,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> GetSubscriptionBillingHistoryAsync(Guid subscriptionId)
+    public async Task<JsonModel> GetSubscriptionBillingHistoryAsync(Guid subscriptionId, TokenModel tokenModel)
     {
         try
         {
@@ -1250,7 +1263,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> ProcessRefundAsync(Guid billingRecordId, decimal amount)
+    public async Task<JsonModel> ProcessRefundAsync(Guid billingRecordId, decimal amount, TokenModel tokenModel)
     {
         try
         {
@@ -1271,7 +1284,7 @@ public class BillingService : IBillingService
                     StatusCode = 400
                 };
 
-            var refundResult = await _stripeService.ProcessRefundAsync(billingRecord.StripePaymentIntentId, amount);
+            var refundResult = await _stripeService.ProcessRefundAsync(billingRecord.StripePaymentIntentId, amount, tokenModel);
             
             if (refundResult)
             {
@@ -1282,7 +1295,9 @@ public class BillingService : IBillingService
                     billingRecord.UserId.ToString(),
                     "RefundProcessed",
                     billingRecordId.ToString(),
-                    "Success"
+                    "Success",
+                    null,
+                    tokenModel
                 );
 
                 return new JsonModel
@@ -1312,7 +1327,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> GetOverdueBillingRecordsAsync()
+    public async Task<JsonModel> GetOverdueBillingRecordsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -1337,7 +1352,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> GetPendingPaymentsAsync()
+    public async Task<JsonModel> GetPendingPaymentsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -1362,7 +1377,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> CalculateTotalAmountAsync(decimal subtotal, decimal tax, decimal shipping)
+    public async Task<JsonModel> CalculateTotalAmountAsync(decimal subtotal, decimal tax, decimal shipping, TokenModel tokenModel)
     {
         try
         {
@@ -1386,7 +1401,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> CalculateTaxAmountAsync(decimal amount, string taxRate)
+    public async Task<JsonModel> CalculateTaxAmountAsync(decimal amount, string taxRate, TokenModel tokenModel)
     {
         try
         {
@@ -1419,7 +1434,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> CalculateShippingAmountAsync(string shippingMethod, bool isExpress)
+    public async Task<JsonModel> CalculateShippingAmountAsync(string shippingMethod, bool isExpress, TokenModel tokenModel)
     {
         try
         {
@@ -1451,7 +1466,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> IsPaymentOverdueAsync(Guid billingRecordId)
+    public async Task<JsonModel> IsPaymentOverdueAsync(Guid billingRecordId, TokenModel tokenModel)
     {
         try
         {
@@ -1486,7 +1501,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> CalculateDueDateAsync(DateTime startDate, int daysToAdd)
+    public async Task<JsonModel> CalculateDueDateAsync(DateTime startDate, int daysToAdd, TokenModel tokenModel)
     {
         try
         {
@@ -1510,7 +1525,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> GetBillingAnalyticsAsync()
+    public async Task<JsonModel> GetBillingAnalyticsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -1546,7 +1561,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> GetPaymentHistoryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetPaymentHistoryAsync(int userId, DateTime? startDate = null, DateTime? endDate = null, TokenModel tokenModel = null)
     {
         try
         {
@@ -1592,7 +1607,7 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> GetPaymentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetPaymentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null, TokenModel tokenModel = null)
     {
         try
         {

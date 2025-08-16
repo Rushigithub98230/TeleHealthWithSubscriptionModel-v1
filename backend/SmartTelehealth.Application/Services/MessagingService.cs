@@ -20,7 +20,7 @@ public class MessagingService : IMessagingService
         _logger = logger;
     }
 
-    public async Task<JsonModel> SendMessageAsync(CreateMessageDto createDto, string senderId)
+    public async Task<JsonModel> SendMessageAsync(CreateMessageDto createDto, string senderId, TokenModel tokenModel)
     {
         try
         {
@@ -34,7 +34,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> GetMessageAsync(string messageId)
+    public async Task<JsonModel> GetMessageAsync(string messageId, TokenModel tokenModel)
     {
         try
         {
@@ -51,7 +51,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> GetChatRoomMessagesAsync(string chatRoomId, int page = 1, int pageSize = 50)
+    public async Task<JsonModel> GetChatRoomMessagesAsync(string chatRoomId, int page, int pageSize, TokenModel tokenModel)
     {
         try
         {
@@ -65,7 +65,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> UpdateMessageAsync(string messageId, UpdateMessageDto updateDto)
+    public async Task<JsonModel> UpdateMessageAsync(string messageId, UpdateMessageDto updateDto, TokenModel tokenModel)
     {
         try
         {
@@ -79,7 +79,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> DeleteMessageAsync(string messageId)
+    public async Task<JsonModel> DeleteMessageAsync(string messageId, TokenModel tokenModel)
     {
         try
         {
@@ -93,7 +93,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> CreateChatRoomAsync(CreateChatRoomDto createDto)
+    public async Task<JsonModel> CreateChatRoomAsync(CreateChatRoomDto createDto, TokenModel tokenModel)
     {
         try
         {
@@ -107,7 +107,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> GetChatRoomAsync(string chatRoomId)
+    public async Task<JsonModel> GetChatRoomAsync(string chatRoomId, TokenModel tokenModel)
     {
         try
         {
@@ -124,20 +124,21 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<IEnumerable<ChatRoomDto>> GetUserChatRoomsAsync(string userId)
+    public async Task<JsonModel> GetUserChatRoomsAsync(string userId, TokenModel tokenModel)
     {
         try
         {
-            return await _chatStorageService.GetUserChatRoomsAsync(userId);
+            var chatRooms = await _chatStorageService.GetUserChatRoomsAsync(userId);
+            return new JsonModel { data = chatRooms, Message = "User chat rooms retrieved successfully", StatusCode = 200 };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user chat rooms {UserId}", userId);
-            return new List<ChatRoomDto>();
+            return new JsonModel { data = new object(), Message = "Failed to get user chat rooms", StatusCode = 500 };
         }
     }
 
-    public async Task<JsonModel> UpdateChatRoomAsync(string chatRoomId, UpdateChatRoomDto updateDto)
+    public async Task<JsonModel> UpdateChatRoomAsync(string chatRoomId, UpdateChatRoomDto updateDto, TokenModel tokenModel)
     {
         try
         {
@@ -154,7 +155,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> DeleteChatRoomAsync(string chatRoomId)
+    public async Task<JsonModel> DeleteChatRoomAsync(string chatRoomId, TokenModel tokenModel)
     {
         try
         {
@@ -168,7 +169,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> AddParticipantAsync(string chatRoomId, string userId, string role = "Member")
+    public async Task<JsonModel> AddParticipantAsync(string chatRoomId, string userId, string role, TokenModel tokenModel)
     {
         try
         {
@@ -182,7 +183,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> RemoveParticipantAsync(string chatRoomId, string userId)
+    public async Task<JsonModel> RemoveParticipantAsync(string chatRoomId, string userId, TokenModel tokenModel)
     {
         try
         {
@@ -196,7 +197,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> GetChatRoomParticipantsAsync(string chatRoomId)
+    public async Task<JsonModel> GetChatRoomParticipantsAsync(string chatRoomId, TokenModel tokenModel)
     {
         try
         {
@@ -210,7 +211,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> UpdateParticipantRoleAsync(string chatRoomId, string userId, string newRole)
+    public async Task<JsonModel> UpdateParticipantRoleAsync(string chatRoomId, string userId, string newRole, TokenModel tokenModel)
     {
         try
         {
@@ -224,7 +225,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> MarkMessageAsReadAsync(string messageId, string userId)
+    public async Task<JsonModel> MarkMessageAsReadAsync(string messageId, string userId, TokenModel tokenModel)
     {
         try
         {
@@ -238,7 +239,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> AddReactionAsync(string messageId, string userId, string reactionType)
+    public async Task<JsonModel> AddReactionAsync(string messageId, string userId, string reactionType, TokenModel tokenModel)
     {
         try
         {
@@ -252,7 +253,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> RemoveReactionAsync(string messageId, string userId, string reactionType)
+    public async Task<JsonModel> RemoveReactionAsync(string messageId, string userId, string reactionType, TokenModel tokenModel)
     {
         try
         {
@@ -266,7 +267,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> GetMessageReactionsAsync(string messageId)
+    public async Task<JsonModel> GetMessageReactionsAsync(string messageId, TokenModel tokenModel)
     {
         try
         {
@@ -280,7 +281,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> SearchMessagesAsync(string chatRoomId, string searchTerm)
+    public async Task<JsonModel> SearchMessagesAsync(string chatRoomId, string searchTerm, TokenModel tokenModel)
     {
         try
         {
@@ -296,7 +297,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> ValidateChatRoomAccessAsync(string chatRoomId, string userId)
+    public async Task<JsonModel> ValidateChatRoomAccessAsync(string chatRoomId, string userId, TokenModel tokenModel)
     {
         try
         {
@@ -310,7 +311,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> GetUnreadMessagesAsync(string chatRoomId, string userId)
+    public async Task<JsonModel> GetUnreadMessagesAsync(string chatRoomId, string userId, TokenModel tokenModel)
     {
         try
         {
@@ -324,7 +325,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> SendNotificationToUserAsync(string userId, string title, string message, string? data = null)
+    public async Task<JsonModel> SendNotificationToUserAsync(string userId, string title, string message, string? data, TokenModel tokenModel)
     {
         try
         {
@@ -338,7 +339,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> SendNotificationToChatRoomAsync(string chatRoomId, string title, string message)
+    public async Task<JsonModel> SendNotificationToChatRoomAsync(string chatRoomId, string title, string message, TokenModel tokenModel)
     {
         try
         {
@@ -352,7 +353,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> SendTypingIndicatorAsync(string chatRoomId, string userId, bool isTyping)
+    public async Task<JsonModel> SendTypingIndicatorAsync(string chatRoomId, string userId, bool isTyping, TokenModel tokenModel)
     {
         try
         {
@@ -366,7 +367,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> UploadMessageAttachmentAsync(byte[] fileData, string fileName, string contentType)
+    public async Task<JsonModel> UploadMessageAttachmentAsync(byte[] fileData, string fileName, string contentType, TokenModel tokenModel)
     {
         try
         {
@@ -381,7 +382,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> EncryptMessageAsync(string message, string key)
+    public async Task<JsonModel> EncryptMessageAsync(string message, string key, TokenModel tokenModel)
     {
         try
         {
@@ -395,7 +396,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> DecryptMessageAsync(string encryptedMessage, string key)
+    public async Task<JsonModel> DecryptMessageAsync(string encryptedMessage, string key, TokenModel tokenModel)
     {
         try
         {
@@ -409,7 +410,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> DownloadMessageAttachmentAsync(string attachmentId)
+    public async Task<JsonModel> DownloadMessageAttachmentAsync(string attachmentId, TokenModel tokenModel)
     {
         try
         {
@@ -425,7 +426,7 @@ public class MessagingService : IMessagingService
         }
     }
 
-    public async Task<JsonModel> DeleteMessageAttachmentAsync(string attachmentId)
+    public async Task<JsonModel> DeleteMessageAttachmentAsync(string attachmentId, TokenModel tokenModel)
     {
         try
         {

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using SmartTelehealth.Application.DTOs;
 using SmartTelehealth.Application.Interfaces;
 using SmartTelehealth.Infrastructure.Services;
@@ -10,13 +9,12 @@ namespace SmartTelehealth.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 //[Authorize(Roles = "Admin")]
-public class SubscriptionAnalyticsController : ControllerBase
+public class SubscriptionAnalyticsController : BaseController
 {
     private readonly ISubscriptionService _subscriptionService;
     private readonly IBillingService _billingService;
     private readonly IAnalyticsService _analyticsService;
     // private readonly SmartTelehealth.Application.Services.AutomatedBillingService _automatedBillingService;
-    private readonly ILogger<SubscriptionAnalyticsController> _logger;
     private readonly IAuditService _auditService;
 
     public SubscriptionAnalyticsController(
@@ -24,14 +22,12 @@ public class SubscriptionAnalyticsController : ControllerBase
         IBillingService billingService,
         IAnalyticsService analyticsService,
         // SmartTelehealth.Application.Services.AutomatedBillingService automatedBillingService,
-        ILogger<SubscriptionAnalyticsController> logger,
         IAuditService auditService)
     {
         _subscriptionService = subscriptionService;
         _billingService = billingService;
         _analyticsService = analyticsService;
         // _automatedBillingService = automatedBillingService;
-        _logger = logger;
         _auditService = auditService;
     }
 
@@ -39,133 +35,96 @@ public class SubscriptionAnalyticsController : ControllerBase
     /// Get comprehensive subscription analytics dashboard
     /// </summary>
     [HttpGet("dashboard")]
-    public async Task<ActionResult<JsonModel>> GetDashboard([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetDashboard([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        var response = await _analyticsService.GetSubscriptionDashboardAsync(startDate, endDate);
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetSubscriptionDashboardAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get revenue analytics with detailed breakdown
     /// </summary>
     [HttpGet("revenue")]
-    public async Task<ActionResult<JsonModel>> GetRevenueAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetRevenueAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        var response = await _analyticsService.GetRevenueAnalyticsAsync(startDate, endDate);
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetRevenueAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get churn analysis and retention metrics
     /// </summary>
     [HttpGet("churn")]
-    public async Task<ActionResult<JsonModel>> GetChurnAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetChurnAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        var response = await _analyticsService.GetChurnAnalyticsAsync(startDate, endDate);
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetChurnAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get plan performance analytics
     /// </summary>
     [HttpGet("plans")]
-    public async Task<ActionResult<JsonModel>> GetPlanAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetPlanAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        var response = await _analyticsService.GetPlanAnalyticsAsync(startDate, endDate);
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetPlanAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get usage analytics and patterns
     /// </summary>
     [HttpGet("usage")]
-    public async Task<ActionResult<JsonModel>> GetUsageAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetUsageAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        var response = await _analyticsService.GetUsageAnalyticsAsync(startDate, endDate);
-        return StatusCode(response.StatusCode, response);
+        return await _analyticsService.GetUsageAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Get trend analysis and forecasting
     /// </summary>
     [HttpGet("trends")]
-    public async Task<ActionResult<JsonModel>> GetTrendAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetTrendAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var start = startDate ?? DateTime.UtcNow.AddDays(-30);
-            var end = endDate ?? DateTime.UtcNow;
+        var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
 
-            var trends = await GetTrendMetricsAsync(start, end);
-            
-            return Ok(new JsonModel { data = trends, Message = "Trend analytics retrieved successfully", StatusCode = 200 });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting trend analytics");
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to retrieve trend analytics", StatusCode = 500 });
-        }
+        var trends = await GetTrendMetricsAsync(start, end);
+        
+        return new JsonModel { data = trends, Message = "Trend analytics retrieved successfully", StatusCode = 200 };
     }
 
     /// <summary>
     /// Get billing cycle report
     /// </summary>
     [HttpGet("billing-cycle")]
-    public async Task<ActionResult<JsonModel>> GetBillingCycleReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetBillingCycleReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            // var report = await _automatedBillingService.GetBillingCycleReportAsync(startDate, endDate);
-            
-            // return Ok(report);
-            return StatusCode(501, new JsonModel { data = new object(), Message = "Billing cycle report not implemented", StatusCode = 501 });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting billing cycle report");
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to retrieve billing cycle report", StatusCode = 500 });
-        }
+        // var report = await _automatedBillingService.GetBillingCycleReportAsync(startDate, endDate);
+        
+        // return Ok(report);
+        return new JsonModel { data = new object(), Message = "Billing cycle report not implemented", StatusCode = 501 };
     }
 
     /// <summary>
     /// Trigger manual billing cycle
     /// </summary>
     [HttpPost("trigger-billing-cycle")]
-    public async Task<ActionResult<JsonModel>> TriggerBillingCycle()
+    public async Task<JsonModel> TriggerBillingCycle()
     {
-        try
-        {
-            // var result = await _automatedBillingService.TriggerManualBillingCycleAsync();
-            
-            // await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "TriggerBillingCycle", "Analytics", "Manual", "Manual billing cycle triggered");
-            
-            // return Ok(result);
-            return StatusCode(501, new JsonModel { data = new object(), Message = "Manual billing cycle not implemented", StatusCode = 501 });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error triggering billing cycle");
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to trigger billing cycle", StatusCode = 500 });
-        }
+        // var result = await _automatedBillingService.TriggerManualBillingCycleAsync();
+        
+        // await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "TriggerBillingCycle", "Analytics", "Manual", "Manual billing cycle triggered", GetToken(HttpContext));
+        
+        // return Ok(result);
+        return new JsonModel { data = new object(), Message = "Manual billing cycle not implemented", StatusCode = 501 };
     }
 
     /// <summary>
     /// Get subscription analytics for specific subscription
     /// </summary>
     [HttpGet("subscription/{subscriptionId}")]
-    public async Task<ActionResult<JsonModel>> GetSubscriptionAnalytics(string subscriptionId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetSubscriptionAnalytics(string subscriptionId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var analytics = await _subscriptionService.GetSubscriptionAnalyticsAsync(subscriptionId);
-            
-            return Ok(analytics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting subscription analytics for {SubscriptionId}", subscriptionId);
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to retrieve subscription analytics", StatusCode = 500 });
-        }
+        var analytics = await _subscriptionService.GetSubscriptionAnalyticsAsync(subscriptionId, null, null, GetToken(HttpContext));
+        
+        return analytics;
     }
 
     /// <summary>
@@ -174,36 +133,28 @@ public class SubscriptionAnalyticsController : ControllerBase
     [HttpGet("export")]
     public async Task<ActionResult> ExportAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "csv")
     {
-        try
+        var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
+
+        var exportData = await _analyticsService.ExportSubscriptionAnalyticsAsync(start, end, GetToken(HttpContext));
+        
+        await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "ExportAnalytics", "Analytics", "Export", $"Analytics exported in {format} format", GetToken(HttpContext));
+
+        // Cast the data to byte array for file download
+        if (exportData.data is byte[] fileData)
         {
-            var start = startDate ?? DateTime.UtcNow.AddDays(-30);
-            var end = endDate ?? DateTime.UtcNow;
-
-            var exportData = await _analyticsService.ExportSubscriptionAnalyticsAsync(start, end);
-            
-            await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "ExportAnalytics", "Analytics", "Export", $"Analytics exported in {format} format");
-
-            // Cast the data to byte array for file download
-            if (exportData.data is byte[] fileData)
-            {
-                return File(fileData, "text/csv", $"subscription-analytics-{start:yyyy-MM-dd}-{end:yyyy-MM-dd}.csv");
-            }
-            else
-            {
-                return BadRequest(new JsonModel { data = new object(), Message = "Export data is not in the expected format", StatusCode = 400 });
-            }
+            return File(fileData, "text/csv", $"subscription-analytics-{start:yyyy-MM-dd}-{end:yyyy-MM-dd}.csv");
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Error exporting analytics");
-            return StatusCode(500, new JsonModel { data = new object(), Message = "Failed to export analytics", StatusCode = 500 });
+            return BadRequest(new JsonModel { data = new object(), Message = "Export data is not in the expected format", StatusCode = 400 });
         }
     }
 
     // Private helper methods for analytics calculations
     private async Task<OverviewMetricsDto> GetOverviewMetricsAsync(DateTime startDate, DateTime endDate)
     {
-        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
+        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync(GetToken(HttpContext));
         var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
         var activeSubscriptions = subscriptions.Where(s => s.Status == "Active");
         var cancelledSubscriptions = subscriptions.Where(s => s.Status == "Cancelled");
@@ -225,7 +176,7 @@ public class SubscriptionAnalyticsController : ControllerBase
 
     private async Task<RevenueAnalyticsDto> GetRevenueMetricsAsync(DateTime startDate, DateTime endDate)
     {
-        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
+        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync(GetToken(HttpContext));
         var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
         
         // Create a mock billing history since we can't call GetPaymentHistoryAsync with "all"
@@ -269,7 +220,7 @@ public class SubscriptionAnalyticsController : ControllerBase
 
     private async Task<ChurnAnalyticsDto> GetChurnMetricsAsync(DateTime startDate, DateTime endDate)
     {
-        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
+        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync(GetToken(HttpContext));
         var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
         var cancelledSubscriptions = subscriptions.Where(s => s.Status == "Cancelled" && s.CancelledDate >= startDate && s.CancelledDate <= endDate);
 
@@ -298,8 +249,8 @@ public class SubscriptionAnalyticsController : ControllerBase
 
     private async Task<PlanAnalyticsDto> GetPlanMetricsAsync(DateTime startDate, DateTime endDate)
     {
-                var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
-        var allPlans = await _subscriptionService.GetAllPlansAsync();
+        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync(GetToken(HttpContext));
+        var allPlans = await _subscriptionService.GetAllPlansAsync(GetToken(HttpContext));
         var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
         var plans = (IEnumerable<SubscriptionPlanDto>)allPlans.data;
 
@@ -327,7 +278,7 @@ public class SubscriptionAnalyticsController : ControllerBase
 
     private async Task<UsageAnalyticsDto> GetUsageMetricsAsync(DateTime startDate, DateTime endDate)
     {
-        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
+        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync(GetToken(HttpContext));
         var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
         var activeSubscriptions = subscriptions.Where(s => s.Status == "Active");
 
@@ -344,7 +295,7 @@ public class SubscriptionAnalyticsController : ControllerBase
 
     private async Task<TrendAnalyticsDto> GetTrendMetricsAsync(DateTime startDate, DateTime endDate)
     {
-        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync();
+        var allSubscriptions = await _subscriptionService.GetAllSubscriptionsAsync(GetToken(HttpContext));
         var subscriptions = (IEnumerable<SubscriptionDto>)allSubscriptions.data;
         
         // Create a mock billing history since we can't call GetPaymentHistoryAsync with "all"

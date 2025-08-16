@@ -34,7 +34,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         _logger = logger;
     }
 
-    public async Task<JsonModel> CreateOnboardingAsync(CreateProviderOnboardingDto createDto)
+    public async Task<JsonModel> CreateOnboardingAsync(CreateProviderOnboardingDto createDto, TokenModel tokenModel)
     {
         try
         {
@@ -94,7 +94,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<JsonModel> GetOnboardingAsync(Guid id)
+    public async Task<JsonModel> GetOnboardingAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -129,7 +129,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<JsonModel> GetOnboardingByUserIdAsync(int userId)
+    public async Task<JsonModel> GetOnboardingByUserIdAsync(int userId, TokenModel tokenModel)
     {
         try
         {
@@ -164,7 +164,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<JsonModel> UpdateOnboardingAsync(Guid id, UpdateProviderOnboardingDto updateDto)
+    public async Task<JsonModel> UpdateOnboardingAsync(Guid id, UpdateProviderOnboardingDto updateDto, TokenModel tokenModel)
     {
         try
         {
@@ -244,7 +244,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<JsonModel> SubmitOnboardingAsync(Guid id)
+    public async Task<JsonModel> SubmitOnboardingAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -306,7 +306,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<JsonModel> ReviewOnboardingAsync(Guid id, ReviewProviderOnboardingDto reviewDto)
+    public async Task<JsonModel> ReviewOnboardingAsync(Guid id, ReviewProviderOnboardingDto reviewDto, TokenModel tokenModel)
     {
         try
         {
@@ -375,7 +375,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<JsonModel> GetAllOnboardingsAsync(string? status = null, int page = 1, int pageSize = 50)
+    public async Task<JsonModel> GetAllOnboardingsAsync(string? status, int page, int pageSize, TokenModel tokenModel)
     {
         try
         {
@@ -410,7 +410,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<JsonModel> GetPendingOnboardingsAsync()
+    public async Task<JsonModel> GetPendingOnboardingsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -435,7 +435,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<JsonModel> GetOnboardingsByStatusAsync(string status)
+    public async Task<JsonModel> GetOnboardingsByStatusAsync(string status, TokenModel tokenModel)
     {
         try
         {
@@ -460,7 +460,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<JsonModel> DeleteOnboardingAsync(Guid id)
+    public async Task<JsonModel> DeleteOnboardingAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -498,7 +498,7 @@ public class ProviderOnboardingService : IProviderOnboardingService
         }
     }
 
-    public async Task<JsonModel> GetOnboardingStatisticsAsync()
+    public async Task<JsonModel> GetOnboardingStatisticsAsync(TokenModel tokenModel)
     {
         try
         {

@@ -35,7 +35,7 @@ public class SubscriptionStatusHistory : BaseEntity
     [NotMapped]
     public bool IsStatusChange => !string.IsNullOrEmpty(FromStatus) && FromStatus != ToStatus;
 
-    // Alias properties for backward compatibility
+    // Alias properties for backward compatibility - now using BaseEntity properties
     public DateTime? CreatedAt { get => CreatedDate; set => CreatedDate = value; }
     public DateTime? UpdatedAt { get => UpdatedDate; set => UpdatedDate = value; }
     

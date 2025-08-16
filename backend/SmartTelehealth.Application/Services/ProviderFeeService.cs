@@ -39,7 +39,7 @@ namespace SmartTelehealth.Application.Services
             _logger = logger;
         }
 
-        public async Task<JsonModel> CreateFeeAsync(CreateProviderFeeDto createDto)
+        public async Task<JsonModel> CreateFeeAsync(CreateProviderFeeDto createDto, TokenModel tokenModel)
         {
             try
             {
@@ -94,7 +94,7 @@ namespace SmartTelehealth.Application.Services
                 var feeDto = _mapper.Map<ProviderFeeDto>(createdFee);
 
                 // Log audit
-                await _auditService.LogActionAsync("ProviderFee", "Create", createDto.ProviderId.ToString(), $"Created fee proposal for category {category.Name}");
+                await _auditService.LogActionAsync("ProviderFee", "Create", createDto.ProviderId.ToString(), $"Created fee proposal for category {category.Name}", tokenModel);
 
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
                 // await _notificationService.SendNotificationAsync("Admin", "New Fee Proposal",
@@ -120,7 +120,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetFeeByIdAsync(Guid id)
+        public async Task<JsonModel> GetFeeByIdAsync(Guid id, TokenModel tokenModel)
         {
             try
             {
@@ -155,7 +155,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetFeesByProviderAsync(int providerId)
+        public async Task<JsonModel> GetFeesByProviderAsync(int providerId, TokenModel tokenModel)
         {
             try
             {
@@ -181,7 +181,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetFeesByCategoryAsync(Guid categoryId)
+        public async Task<JsonModel> GetFeesByCategoryAsync(Guid categoryId, TokenModel tokenModel)
         {
             try
             {
@@ -207,7 +207,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetAllFeesAsync(string? status = null, int page = 1, int pageSize = 50)
+        public async Task<JsonModel> GetAllFeesAsync(string? status = null, int page = 1, int pageSize = 50, TokenModel tokenModel = null)
         {
             try
             {
@@ -242,7 +242,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> UpdateFeeAsync(Guid id, UpdateProviderFeeDto updateDto)
+        public async Task<JsonModel> UpdateFeeAsync(Guid id, UpdateProviderFeeDto updateDto, TokenModel tokenModel)
         {
             try
             {
@@ -276,7 +276,7 @@ namespace SmartTelehealth.Application.Services
                 var feeDto = _mapper.Map<ProviderFeeDto>(updatedFee);
 
                 // Log audit
-                await _auditService.LogActionAsync("ProviderFee", "Update", fee.ProviderId.ToString(), $"Updated fee proposal {id}");
+                await _auditService.LogActionAsync("ProviderFee", "Update", fee.ProviderId.ToString(), $"Updated fee proposal {id}", tokenModel);
 
                 return new JsonModel
                 {
@@ -297,7 +297,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> ReviewFeeAsync(Guid id, ReviewProviderFeeDto reviewDto)
+        public async Task<JsonModel> ReviewFeeAsync(Guid id, ReviewProviderFeeDto reviewDto, TokenModel tokenModel)
         {
             try
             {
@@ -334,7 +334,7 @@ namespace SmartTelehealth.Application.Services
                 var feeDto = _mapper.Map<ProviderFeeDto>(updatedFee);
 
                 // Log audit
-                await _auditService.LogActionAsync("ProviderFee", "Review", fee.ProviderId.ToString(), $"Reviewed fee proposal {id} with status {reviewDto.Status}");
+                await _auditService.LogActionAsync("ProviderFee", "Review", fee.ProviderId.ToString(), $"Reviewed fee proposal {id} with status {reviewDto.Status}", tokenModel);
 
                 // Send notification to provider
                 // EMAIL FUNCTIONALITY DISABLED - Commented out for now
@@ -361,7 +361,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> DeleteFeeAsync(Guid id)
+        public async Task<JsonModel> DeleteFeeAsync(Guid id, TokenModel tokenModel)
         {
             try
             {
@@ -399,7 +399,7 @@ namespace SmartTelehealth.Application.Services
                 }
 
                 // Log audit
-                await _auditService.LogActionAsync("ProviderFee", "Delete", fee.ProviderId.ToString(), $"Deleted fee proposal {id}");
+                await _auditService.LogActionAsync("ProviderFee", "Delete", fee.ProviderId.ToString(), $"Deleted fee proposal {id}", tokenModel);
 
                 return new JsonModel
                 {
@@ -420,7 +420,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetFeeStatisticsAsync()
+        public async Task<JsonModel> GetFeeStatisticsAsync(TokenModel tokenModel)
         {
             try
             {
@@ -446,7 +446,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetPendingFeesAsync()
+        public async Task<JsonModel> GetPendingFeesAsync(TokenModel tokenModel)
         {
             try
             {
@@ -472,7 +472,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetFeesByStatusAsync(string status)
+        public async Task<JsonModel> GetFeesByStatusAsync(string status, TokenModel tokenModel)
         {
             try
             {
@@ -498,8 +498,8 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public Task<JsonModel> GetFeeAsync(Guid id) => throw new NotImplementedException();
-        public Task<JsonModel> GetFeeByProviderAndCategoryAsync(int providerId, Guid categoryId) => throw new NotImplementedException();
-        public Task<JsonModel> ProposeFeeAsync(Guid id) => throw new NotImplementedException();
+        public Task<JsonModel> GetFeeAsync(Guid id, TokenModel tokenModel) => throw new NotImplementedException();
+        public Task<JsonModel> GetFeeByProviderAndCategoryAsync(int providerId, Guid categoryId, TokenModel tokenModel) => throw new NotImplementedException();
+        public Task<JsonModel> ProposeFeeAsync(Guid id, TokenModel tokenModel) => throw new NotImplementedException();
     }
 } 

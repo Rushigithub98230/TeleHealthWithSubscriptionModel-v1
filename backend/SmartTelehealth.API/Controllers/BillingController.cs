@@ -2,15 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTelehealth.Application.DTOs;
 using SmartTelehealth.Application.Interfaces;
-using SmartTelehealth.Core.Entities;
-using SmartTelehealth.Core.Interfaces;
 
 namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class BillingController : ControllerBase
+public class BillingController : BaseController
 {
     private readonly IBillingService _billingService;
     private readonly IPdfService _pdfService;
@@ -33,25 +31,7 @@ public class BillingController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<JsonModel>> GetAllBillingRecords()
     {
-        try
-        {
-            // For admin users, get all records; for regular users, get only their records
-            if (User.IsInRole("Admin") || User.IsInRole("Superadmin"))
-            {
-                var allRecords = await _billingService.GetAllBillingRecordsAsync();
-                return Ok(new JsonModel { data = allRecords.data, Message = "All billing records retrieved successfully", StatusCode = 200 });
-            }
-            else
-            {
-                var userId = GetCurrentUserId();
-                var userRecords = await _billingService.GetUserBillingHistoryAsync(userId);
-                return Ok(new JsonModel { data = userRecords.data, Message = "User billing records retrieved successfully", StatusCode = 200 });
-            }
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new JsonModel { data = new List<BillingRecordDto>(), Message = "Failed to retrieve billing records", StatusCode = 500 });
-        }
+        return await _billingService.GetAllBillingRecordsAsync(GetToken(HttpContext));
     }
 
     /// <summary>
@@ -60,142 +40,25 @@ public class BillingController : ControllerBase
     [HttpGet("{id}/invoice-pdf")]
     public async Task<ActionResult<JsonModel>> DownloadInvoicePdf(Guid id)
     {
-        try
-        {
-            var billingRecordResponse = await _billingService.GetBillingRecordAsync(id);
-            var billingRecord = (BillingRecordDto)billingRecordResponse.data;
-            if (billingRecord == null)
-                return NotFound(billingRecordResponse);
-            var userId = GetCurrentUserId();
-            if (billingRecord.UserId != userId.ToString() && !User.IsInRole("Admin"))
-            {
-                return Forbid();
-            }
-            var userResponse = await _userService.GetUserAsync(userId);
-            if (userResponse.StatusCode != 200 || userResponse.data == null)
-            {
-                return NotFound(new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 });
-            }
-            SubscriptionDto? subscription = null;
-            if (!string.IsNullOrEmpty(billingRecord.SubscriptionId))
-            {
-                try
-                {
-                    var subscriptionResponse = await _subscriptionService.GetSubscriptionAsync(billingRecord.SubscriptionId);
-                    subscription = (SubscriptionDto)subscriptionResponse.data;
-                }
-                catch
-                {
-                    // Subscription not found, continue without it
-                }
-            }
-            var pdfBytes = await _pdfService.GenerateInvoicePdfAsync(billingRecord, (UserDto)userResponse.data, subscription);
-            return Ok(new JsonModel { data = new { fileData = pdfBytes, fileName = $"invoice-{billingRecord.Id}.pdf", contentType = "application/pdf" }, Message = "Invoice PDF generated successfully", StatusCode = 200 });
-        }
-        catch (ArgumentException ex)
-        {
-            return NotFound(new JsonModel
-            {
-                data = new object(),
-                Message = ex.Message,
-                StatusCode = 404
-            });
-        }
+        return await _billingService.GenerateInvoicePdfAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Download billing history PDF
-    /// </summary>
-    [HttpGet("history-pdf")]
-    public async Task<ActionResult<JsonModel>> DownloadBillingHistoryPdf()
-    {
-        var userId = GetCurrentUserId();
-        var billingHistoryResponse = await _billingService.GetUserBillingHistoryAsync(userId);
-        var billingHistory = (IEnumerable<BillingRecordDto>)(billingHistoryResponse.data ?? new List<BillingRecordDto>());
-        var userResponse = await _userService.GetUserAsync(userId);
-        if (userResponse.StatusCode != 200 || userResponse.data == null)
-        {
-            return NotFound(new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 });
-        }
-        var pdfBytes = await _pdfService.GenerateBillingHistoryPdfAsync(billingHistory, (UserDto)userResponse.data);
-        return Ok(new JsonModel { data = new { fileData = pdfBytes, fileName = $"billing-history-{userId}-{DateTime.Now:yyyyMMdd}.pdf", contentType = "application/pdf" }, Message = "Billing history PDF generated successfully", StatusCode = 200 });
-    }
-
-    /// <summary>
-    /// Download subscription summary PDF
-    /// </summary>
-    [HttpGet("subscription/{subscriptionId}/summary-pdf")]
-    public async Task<ActionResult<JsonModel>> DownloadSubscriptionSummaryPdf(Guid subscriptionId)
-    {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var subscriptionResponse = await _subscriptionService.GetSubscriptionAsync(subscriptionId.ToString());
-            var subscription = (SubscriptionDto)subscriptionResponse.data;
-            if (subscription == null)
-                return NotFound(subscriptionResponse);
-            if (subscription.UserId != userId.ToString() && !User.IsInRole("Admin"))
-            {
-                return Forbid();
-            }
-            var userResponse = await _userService.GetUserAsync(userId);
-            if (userResponse.StatusCode != 200 || userResponse.data == null)
-            {
-                return NotFound(new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 });
-            }
-            var pdfBytes = await _pdfService.GenerateSubscriptionSummaryPdfAsync(subscription, (UserDto)userResponse.data);
-            return Ok(new JsonModel { data = new { fileData = pdfBytes, fileName = $"subscription-summary-{subscriptionId}-{DateTime.Now:yyyyMMdd}.pdf", contentType = "application/pdf" }, Message = "Subscription summary PDF generated successfully", StatusCode = 200 });
-        }
-        catch (ArgumentException ex)
-        {
-            return NotFound(new JsonModel
-            {
-                data = new object(),
-                Message = ex.Message,
-                StatusCode = 404
-            });
-        }
-    }
-
-    /// <summary>
-    /// Get user's billing history
-    /// </summary>
-    [HttpGet("history")]
-    public async Task<ActionResult<JsonModel>> GetBillingHistory()
-    {
-        var userId = GetCurrentUserId();
-        var response = await _billingService.GetUserBillingHistoryAsync(userId);
-        return StatusCode(response.StatusCode, response);
-    }
-
-    /// <summary>
-    /// Get specific billing record
+    /// Get billing record by ID
     /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<JsonModel>> GetBillingRecord(Guid id)
     {
-        var response = await _billingService.GetBillingRecordAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _billingService.GetBillingRecordAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Process payment for a billing record
+    /// Get user billing history
     /// </summary>
-    [HttpPost("{id}/process-payment")]
-    public async Task<ActionResult<JsonModel>> ProcessPayment(Guid id)
+    [HttpGet("user/{userId}")]
+    public async Task<ActionResult<JsonModel>> GetUserBillingHistory(int userId)
     {
-        var response = await _billingService.ProcessPaymentAsync(id);
-        return StatusCode(response.StatusCode, response);
-    }
-
-    /// <summary>
-    /// Process refund for a billing record
-    /// </summary>
-    [HttpPost("{id}/refund")]
-    public async Task<ActionResult<JsonModel>> ProcessRefund(Guid id, [FromBody] RefundRequestDto refundRequest)
-    {
-        var response = await _billingService.ProcessRefundAsync(id, refundRequest.Amount);
-        return StatusCode(response.StatusCode, response);
+        return await _billingService.GetUserBillingHistoryAsync(userId, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -204,74 +67,260 @@ public class BillingController : ControllerBase
     [HttpGet("subscription/{subscriptionId}")]
     public async Task<ActionResult<JsonModel>> GetSubscriptionBillingHistory(Guid subscriptionId)
     {
-        var response = await _billingService.GetSubscriptionBillingHistoryAsync(subscriptionId);
-        return StatusCode(response.StatusCode, response);
+        return await _billingService.GetSubscriptionBillingHistoryAsync(subscriptionId, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Calculate total amount with tax and shipping
+    /// Create a new billing record
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> CreateBillingRecord([FromBody] CreateBillingRecordDto createDto)
+    {
+        return await _billingService.CreateBillingRecordAsync(createDto, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Process payment for a billing record
+    /// </summary>
+    [HttpPost("{id}/process-payment")]
+    public async Task<ActionResult<JsonModel>> ProcessPayment(Guid id)
+    {
+        return await _billingService.ProcessPaymentAsync(id, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Process refund for a billing record
+    /// </summary>
+    [HttpPost("{id}/process-refund")]
+    public async Task<ActionResult<JsonModel>> ProcessRefund(Guid id, [FromBody] RefundRequestDto refundRequest)
+    {
+        return await _billingService.ProcessRefundAsync(id, refundRequest.Amount, refundRequest.Reason, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Calculate total amount including tax and shipping
     /// </summary>
     [HttpPost("calculate-total")]
     public async Task<ActionResult<JsonModel>> CalculateTotal([FromBody] BillingCalculationRequestDto request)
     {
-        var taxAmountResponse = await _billingService.CalculateTaxAmountAsync(request.BaseAmount, request.State);
-        var taxAmount = (decimal)taxAmountResponse.data;
-        var shippingAmountResponse = await _billingService.CalculateShippingAmountAsync(request.DeliveryAddress, request.IsExpress);
-        var shippingAmount = (decimal)shippingAmountResponse.data;
-        var totalAmountResponse = await _billingService.CalculateTotalAmountAsync(request.BaseAmount, taxAmount, shippingAmount);
-        var totalAmount = (decimal)totalAmountResponse.data;
-        var result = new BillingCalculationDto
-        {
-            BaseAmount = request.BaseAmount,
-            TaxAmount = taxAmount,
-            ShippingAmount = shippingAmount,
-            TotalAmount = totalAmount
-        };
-                    return Ok(new JsonModel
-            {
-                data = result,
-                Message = "Total calculated successfully",
-                StatusCode = 200
-            });
+        return await _billingService.CalculateTotalAmountAsync(request.BaseAmount, 0, 0, GetToken(HttpContext));
     }
 
     /// <summary>
-    /// Check if a billing record is overdue
+    /// Calculate tax amount for a given base amount and state
+    /// </summary>
+    [HttpPost("calculate-tax")]
+    public async Task<ActionResult<JsonModel>> CalculateTax([FromBody] TaxCalculationRequestDto request)
+    {
+        return await _billingService.CalculateTaxAmountAsync(request.BaseAmount, request.State, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Calculate shipping amount
+    /// </summary>
+    [HttpPost("calculate-shipping")]
+    public async Task<ActionResult<JsonModel>> CalculateShipping([FromBody] ShippingCalculationRequestDto request)
+    {
+        return await _billingService.CalculateShippingAmountAsync(request.DeliveryAddress, request.IsExpress, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Check if payment is overdue
     /// </summary>
     [HttpGet("{id}/overdue-status")]
     public async Task<ActionResult<JsonModel>> CheckOverdueStatus(Guid id)
     {
-        try
-        {
-            var isOverdueResponse = await _billingService.IsPaymentOverdueAsync(id);
-            var isOverdue = (bool)isOverdueResponse.data;
-            var billingRecordResponse = await _billingService.GetBillingRecordAsync(id);
-            var billingRecord = (BillingRecordDto)billingRecordResponse.data;
-            if (billingRecord == null)
-                return NotFound(billingRecordResponse);
-            var overdueStatus = new OverdueStatusDto
-            {
-                BillingRecordId = id,
-                IsOverdue = isOverdue,
-                DueDate = billingRecord.DueDate,
-                DaysOverdue = Math.Max(0, (int)((billingRecord.DueDate.HasValue ? (DateTime.UtcNow - billingRecord.DueDate.Value) : TimeSpan.Zero).TotalDays))
-            };
-            return Ok(new JsonModel
-            {
-                data = overdueStatus,
-                Message = "Overdue status checked successfully",
-                StatusCode = 200
-            });
-        }
-        catch (ArgumentException ex)
-        {
-            return NotFound(new JsonModel
-            {
-                data = new object(),
-                Message = ex.Message,
-                StatusCode = 404
-            });
-        }
+        return await _billingService.IsPaymentOverdueAsync(id, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Calculate due date based on billing date and grace period
+    /// </summary>
+    [HttpPost("calculate-due-date")]
+    public async Task<ActionResult<JsonModel>> CalculateDueDate([FromBody] DueDateCalculationRequestDto request)
+    {
+        return await _billingService.CalculateDueDateAsync(request.BillingDate, request.GracePeriodDays, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get billing analytics
+    /// </summary>
+    [HttpGet("analytics")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> GetBillingAnalytics()
+    {
+        return await _billingService.GetBillingAnalyticsAsync(GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Create recurring billing
+    /// </summary>
+    [HttpPost("recurring")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> CreateRecurringBilling([FromBody] CreateRecurringBillingDto createDto)
+    {
+        return await _billingService.CreateRecurringBillingAsync(createDto, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Process recurring payment
+    /// </summary>
+    [HttpPost("recurring/{subscriptionId}/process")]
+    public async Task<ActionResult<JsonModel>> ProcessRecurringPayment(Guid subscriptionId)
+    {
+        return await _billingService.ProcessRecurringPaymentAsync(subscriptionId, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Cancel recurring billing
+    /// </summary>
+    [HttpPost("recurring/{subscriptionId}/cancel")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> CancelRecurringBilling(Guid subscriptionId)
+    {
+        return await _billingService.CancelRecurringBillingAsync(subscriptionId, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Create upfront payment
+    /// </summary>
+    [HttpPost("upfront")]
+    public async Task<ActionResult<JsonModel>> CreateUpfrontPayment([FromBody] CreateUpfrontPaymentDto createDto)
+    {
+        return await _billingService.CreateUpfrontPaymentAsync(createDto, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Process bundle payment
+    /// </summary>
+    [HttpPost("bundle")]
+    public async Task<ActionResult<JsonModel>> ProcessBundlePayment([FromBody] CreateBundlePaymentDto createDto)
+    {
+        return await _billingService.ProcessBundlePaymentAsync(createDto, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Apply billing adjustment
+    /// </summary>
+    [HttpPost("{id}/adjustments")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> ApplyBillingAdjustment(Guid id, [FromBody] CreateBillingAdjustmentDto adjustmentDto)
+    {
+        return await _billingService.ApplyBillingAdjustmentAsync(id, adjustmentDto, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get billing adjustments
+    /// </summary>
+    [HttpGet("{id}/adjustments")]
+    public async Task<ActionResult<JsonModel>> GetBillingAdjustments(Guid id)
+    {
+        return await _billingService.GetBillingAdjustmentsAsync(id, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Retry failed payment
+    /// </summary>
+    [HttpPost("{id}/retry-failed")]
+    public async Task<ActionResult<JsonModel>> RetryFailedPayment(Guid id)
+    {
+        return await _billingService.RetryFailedPaymentAsync(id, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Retry payment
+    /// </summary>
+    [HttpPost("{id}/retry")]
+    public async Task<ActionResult<JsonModel>> RetryPayment(Guid id)
+    {
+        return await _billingService.RetryPaymentAsync(id, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Process partial payment
+    /// </summary>
+    [HttpPost("{id}/partial-payment")]
+    public async Task<ActionResult<JsonModel>> ProcessPartialPayment(Guid id, [FromBody] PartialPaymentRequestDto request)
+    {
+        return await _billingService.ProcessPartialPaymentAsync(id, request.Amount, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Create invoice
+    /// </summary>
+    [HttpPost("invoice")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> CreateInvoice([FromBody] CreateInvoiceDto createDto)
+    {
+        return await _billingService.CreateInvoiceAsync(createDto, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Generate billing report
+    /// </summary>
+    [HttpGet("report")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> GenerateBillingReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
+    {
+        return await _billingService.GenerateBillingReportAsync(startDate, endDate, format, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get billing summary
+    /// </summary>
+    [HttpGet("summary")]
+    public async Task<ActionResult<JsonModel>> GetBillingSummary([FromQuery] int userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _billingService.GetBillingSummaryAsync(userId, startDate, endDate, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get payment schedule
+    /// </summary>
+    [HttpGet("schedule/{subscriptionId}")]
+    public async Task<ActionResult<JsonModel>> GetPaymentSchedule(Guid subscriptionId)
+    {
+        return await _billingService.GetPaymentScheduleAsync(subscriptionId, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Update payment method
+    /// </summary>
+    [HttpPut("{id}/payment-method")]
+    public async Task<ActionResult<JsonModel>> UpdatePaymentMethod(Guid id, [FromBody] UpdatePaymentMethodRequestDto request)
+    {
+        return await _billingService.UpdatePaymentMethodAsync(id, request.PaymentMethodId, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Create billing cycle
+    /// </summary>
+    [HttpPost("cycle")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> CreateBillingCycle([FromBody] CreateBillingCycleDto createDto)
+    {
+        return await _billingService.CreateBillingCycleAsync(createDto, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Process billing cycle
+    /// </summary>
+    [HttpPost("cycle/{id}/process")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> ProcessBillingCycle(Guid id)
+    {
+        return await _billingService.ProcessBillingCycleAsync(id, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get billing cycle records
+    /// </summary>
+    [HttpGet("cycle/{id}/records")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> GetBillingCycleRecords(Guid id)
+    {
+        return await _billingService.GetBillingCycleRecordsAsync(id, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -281,8 +330,7 @@ public class BillingController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<JsonModel>> GetPendingPayments()
     {
-        var response = await _billingService.GetPendingPaymentsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _billingService.GetPendingPaymentsAsync(GetToken(HttpContext));
     }
 
     /// <summary>
@@ -292,8 +340,7 @@ public class BillingController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<JsonModel>> GetOverdueBillingRecords()
     {
-        var response = await _billingService.GetOverdueBillingRecordsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _billingService.GetOverdueBillingRecordsAsync(GetToken(HttpContext));
     }
 
     /// <summary>
@@ -303,8 +350,7 @@ public class BillingController : ControllerBase
     [Authorize(Roles = "Admin,Superadmin")]
     public async Task<ActionResult<JsonModel>> GetRevenueSummary([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null)
     {
-        var result = await _billingService.GetRevenueSummaryAsync(from, to, planId);
-        return Ok(result);
+        return await _billingService.GetRevenueSummaryAsync(from, to, planId, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -314,20 +360,72 @@ public class BillingController : ControllerBase
     [Authorize(Roles = "Admin,Superadmin")]
     public async Task<ActionResult<JsonModel>> ExportRevenue([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null, [FromQuery] string format = "csv")
     {
-        var result = await _billingService.ExportRevenueAsync(from, to, planId, format);
-        var fileName = $"revenue-export-{DateTime.UtcNow:yyyyMMddHHmmss}.{format}";
-        return Ok(new JsonModel { data = new { fileData = result.data, fileName = fileName, contentType = "text/csv" }, Message = "Revenue export generated successfully", StatusCode = 200 });
+        return await _billingService.ExportRevenueAsync(from, to, planId, format, GetToken(HttpContext));
     }
 
-    private int GetCurrentUserId()
+    /// <summary>
+    /// Get payment history
+    /// </summary>
+    [HttpGet("payment-history")]
+    public async Task<ActionResult<JsonModel>> GetPaymentHistory([FromQuery] int userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-        {
-            throw new InvalidOperationException("User ID not found in claims");
-        }
-        return userId;
+        return await _billingService.GetPaymentHistoryAsync(userId, startDate, endDate, GetToken(HttpContext));
     }
+
+    /// <summary>
+    /// Get payment analytics
+    /// </summary>
+    [HttpGet("payment-analytics")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> GetPaymentAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _billingService.GetPaymentAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get user payment analytics
+    /// </summary>
+    [HttpGet("payment-analytics/{userId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<JsonModel>> GetUserPaymentAnalytics(int userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        return await _billingService.GetPaymentAnalyticsAsync(userId, startDate, endDate, GetToken(HttpContext));
+    }
+}
+
+// DTOs for the controller
+public class RefundRequestDto
+{
+    public decimal Amount { get; set; }
+    public string Reason { get; set; } = string.Empty;
+}
+
+public class PartialPaymentRequestDto
+{
+    public decimal Amount { get; set; }
+}
+
+public class TaxCalculationRequestDto
+{
+    public decimal BaseAmount { get; set; }
+    public string State { get; set; } = string.Empty;
+}
+
+public class ShippingCalculationRequestDto
+{
+    public string DeliveryAddress { get; set; } = string.Empty;
+    public bool IsExpress { get; set; }
+}
+
+public class DueDateCalculationRequestDto
+{
+    public DateTime BillingDate { get; set; }
+    public int GracePeriodDays { get; set; }
+}
+
+public class UpdatePaymentMethodRequestDto
+{
+    public string PaymentMethodId { get; set; } = string.Empty;
 }
 
 public class BillingCalculationRequestDto

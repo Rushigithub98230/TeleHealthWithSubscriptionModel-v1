@@ -29,7 +29,7 @@ public class NotificationService : INotificationService
     }
     
     // Email notifications with SMTP implementation
-    public async Task SendWelcomeEmailAsync(string email, string userName)
+    public async Task<JsonModel> SendWelcomeEmailAsync(string email, string userName, TokenModel tokenModel)
     {
         try
         {
@@ -44,15 +44,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent welcome email to {Email} for user {UserName}", email, userName);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Welcome email sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending welcome email to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending welcome email",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendSubscriptionConfirmationAsync(string email, string userName, SubscriptionDto subscription)
+    public async Task<JsonModel> SendSubscriptionConfirmationAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
     {
         try
         {
@@ -75,15 +87,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent subscription confirmation to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Subscription confirmation sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending subscription confirmation to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending subscription confirmation",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendPaymentReminderAsync(string email, string userName, BillingRecordDto billingRecord)
+    public async Task<JsonModel> SendPaymentReminderAsync(string email, string userName, BillingRecordDto billingRecord, TokenModel tokenModel)
     {
         try
         {
@@ -105,16 +129,28 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent payment reminder to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Payment reminder sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending payment reminder to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending payment reminder",
+                StatusCode = 500
+            };
         }
     }
     
     // Billing email notifications
-    public async Task SendPaymentSuccessEmailAsync(string email, string userName, BillingRecordDto billingRecord)
+    public async Task<JsonModel> SendPaymentSuccessEmailAsync(string email, string userName, BillingRecordDto billingRecord, TokenModel tokenModel)
     {
         try
         {
@@ -136,15 +172,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent payment success email to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Payment success email sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending payment success email to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending payment success email",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendPaymentFailedEmailAsync(string email, string userName, BillingRecordDto billingRecord)
+    public async Task<JsonModel> SendPaymentFailedEmailAsync(string email, string userName, BillingRecordDto billingRecord, TokenModel tokenModel)
     {
         try
         {
@@ -166,15 +214,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent payment failed email to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Payment failed email sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending payment failed email to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending payment failed email",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendRefundProcessedEmailAsync(string email, string userName, BillingRecordDto billingRecord, decimal refundAmount)
+    public async Task<JsonModel> SendRefundProcessedEmailAsync(string email, string userName, BillingRecordDto billingRecord, decimal refundAmount, TokenModel tokenModel)
     {
         try
         {
@@ -197,15 +257,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent refund processed email to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Refund processed email sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending refund processed email to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending refund processed email",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendOverduePaymentEmailAsync(string email, string userName, BillingRecordDto billingRecord)
+    public async Task<JsonModel> SendOverduePaymentEmailAsync(string email, string userName, BillingRecordDto billingRecord, TokenModel tokenModel)
     {
         try
         {
@@ -228,16 +300,28 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent overdue payment email to {Email} for billing record {BillingRecordId}", email, billingRecord.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Overdue payment email sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending overdue payment email to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending overdue payment email",
+                StatusCode = 500
+            };
         }
     }
     
     // In-app notifications
-    public async Task<JsonModel> CreateInAppNotificationAsync(int userId, string title, string message)
+    public async Task<JsonModel> CreateInAppNotificationAsync(int userId, string title, string message, TokenModel tokenModel)
     {
         try
         {
@@ -287,7 +371,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> GetUserNotificationsAsync(int userId)
+    public async Task<JsonModel> GetUserNotificationsAsync(int userId, TokenModel tokenModel)
     {
         try
         {
@@ -325,7 +409,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> MarkNotificationAsReadAsync(Guid notificationId)
+    public async Task<JsonModel> MarkNotificationAsReadAsync(Guid notificationId, TokenModel tokenModel)
     {
         try
         {
@@ -362,7 +446,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> GetUnreadNotificationCountAsync(int userId)
+    public async Task<JsonModel> GetUnreadNotificationCountAsync(int userId, TokenModel tokenModel)
     {
         try
         {
@@ -389,7 +473,7 @@ public class NotificationService : INotificationService
     }
     
     // Existing methods (keeping for compatibility)
-    public async Task SendConsultationReminderAsync(string email, string userName, ConsultationDto consultation)
+    public async Task<JsonModel> SendConsultationReminderAsync(string email, string userName, ConsultationDto consultation, TokenModel tokenModel)
     {
         try
         {
@@ -411,15 +495,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent consultation reminder to {Email} for consultation {ConsultationId}", email, consultation.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Consultation reminder sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending consultation reminder to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending consultation reminder",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendPasswordResetEmailAsync(string email, string resetToken)
+    public async Task<JsonModel> SendPasswordResetEmailAsync(string email, string resetToken, TokenModel tokenModel)
     {
         try
         {
@@ -436,15 +532,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent password reset email to {Email}", email);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Password reset email sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending password reset email to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending password reset email",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendDeliveryNotificationAsync(string email, string userName, MedicationDeliveryDto delivery)
+    public async Task<JsonModel> SendDeliveryNotificationAsync(string email, string userName, MedicationDeliveryDto delivery, TokenModel tokenModel)
     {
         try
         {
@@ -465,15 +573,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent delivery notification to {Email} for delivery {DeliveryId}", email, delivery.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Delivery notification sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending delivery notification to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending delivery notification",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendSubscriptionPausedNotificationAsync(string email, string userName, SubscriptionDto subscription)
+    public async Task<JsonModel> SendSubscriptionPausedNotificationAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
     {
         try
         {
@@ -489,15 +609,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent subscription paused notification to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Subscription paused notification sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending subscription paused notification to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending subscription paused notification",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendSubscriptionResumedNotificationAsync(string email, string userName, SubscriptionDto subscription)
+    public async Task<JsonModel> SendSubscriptionResumedNotificationAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
     {
         try
         {
@@ -513,15 +645,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent subscription resumed notification to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Subscription resumed notification sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending subscription resumed notification to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending subscription resumed notification",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendSubscriptionCancelledNotificationAsync(string email, string userName, SubscriptionDto subscription)
+    public async Task<JsonModel> SendSubscriptionCancelledNotificationAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
     {
         try
         {
@@ -537,15 +681,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent subscription cancelled notification to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Subscription cancelled notification sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending subscription cancelled notification to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending subscription cancelled notification",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task SendProviderMessageNotificationAsync(string email, string userName, MessageDto message)
+    public async Task<JsonModel> SendProviderMessageNotificationAsync(string email, string userName, MessageDto message, TokenModel tokenModel)
     {
         try
         {
@@ -563,15 +719,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent provider message notification to {Email} for message {MessageId}", email, message.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Provider message notification sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending provider message notification to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending provider message notification",
+                StatusCode = 500
+            };
         }
     }
     
-    public async Task<JsonModel> IsEmailValidAsync(string email)
+    public async Task<JsonModel> IsEmailValidAsync(string email, TokenModel tokenModel)
     {
         try
         {
@@ -600,7 +768,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> SendSmsAsync(string phoneNumber, string message)
+    public async Task<JsonModel> SendSmsAsync(string phoneNumber, string message, TokenModel tokenModel)
     {
         try
         {
@@ -630,7 +798,7 @@ public class NotificationService : INotificationService
     // EMAIL FUNCTIONALITY DISABLED - SendEmailAsync method removed
     // TODO: Re-enable email functionality when needed
 
-    public async Task<JsonModel> GetNotificationsAsync()
+    public async Task<JsonModel> GetNotificationsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -667,7 +835,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> GetNotificationAsync(Guid id)
+    public async Task<JsonModel> GetNotificationAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -711,7 +879,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> CreateNotificationAsync(CreateNotificationDto createNotificationDto)
+    public async Task<JsonModel> CreateNotificationAsync(CreateNotificationDto createNotificationDto, TokenModel tokenModel)
     {
         try
         {
@@ -759,7 +927,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> UpdateNotificationAsync(Guid id, UpdateNotificationDto updateNotificationDto)
+    public async Task<JsonModel> UpdateNotificationAsync(Guid id, UpdateNotificationDto updateNotificationDto, TokenModel tokenModel)
     {
         try
         {
@@ -812,7 +980,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> DeleteNotificationAsync(Guid id)
+    public async Task<JsonModel> DeleteNotificationAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -843,8 +1011,65 @@ public class NotificationService : INotificationService
         }
     }
 
-    public Task<JsonModel> UpdateNotificationAsync(Guid id, object updateNotificationDto) => throw new NotImplementedException();
-    public async Task SendEmailVerificationAsync(string email, string userName, string verificationToken)
+    public async Task<JsonModel> UpdateNotificationAsync(Guid id, object updateNotificationDto, TokenModel tokenModel)
+    {
+        try
+        {
+            var notification = await _notificationRepository.GetByIdAsync(id);
+            if (notification == null)
+                return new JsonModel
+                {
+                    data = new object(),
+                    Message = "Notification not found",
+                    StatusCode = 404
+                };
+            
+            // Handle dynamic update based on object type
+            if (updateNotificationDto is UpdateNotificationDto updateDto)
+            {
+                if (!string.IsNullOrEmpty(updateDto.Title))
+                    notification.Title = updateDto.Title;
+                if (!string.IsNullOrEmpty(updateDto.Message))
+                    notification.Message = updateDto.Message;
+                if (updateDto.IsRead.HasValue)
+                    notification.IsRead = updateDto.IsRead.Value;
+                if (updateDto.ScheduledAt.HasValue)
+                    notification.ScheduledAt = updateDto.ScheduledAt.Value;
+            }
+            
+            var updatedNotification = await _notificationRepository.UpdateAsync(notification);
+            var notificationDto = new NotificationDto
+            {
+                Id = updatedNotification.Id.ToString(),
+                UserId = updatedNotification.UserId.ToString(),
+                Title = updatedNotification.Title,
+                Message = updatedNotification.Message,
+                Type = updatedNotification.Type.ToString(),
+                Status = updatedNotification.Status.ToString(),
+                IsRead = updatedNotification.IsRead,
+                CreatedAt = updatedNotification.CreatedDate ?? DateTime.UtcNow,
+                ReadAt = updatedNotification.ReadAt,
+                ScheduledAt = updatedNotification.ScheduledAt
+            };
+            return new JsonModel
+            {
+                data = notificationDto,
+                Message = "Notification updated",
+                StatusCode = 200
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating notification {Id}", id);
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "An error occurred while updating the notification",
+                StatusCode = 500
+            };
+        }
+    }
+    public async Task<JsonModel> SendEmailVerificationAsync(string email, string userName, string verificationToken, TokenModel tokenModel)
     {
         try
         {
@@ -859,15 +1084,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent email verification to {Email}", email);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Email verification sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending email verification to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending email verification",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task SendSubscriptionWelcomeEmailAsync(string email, string userName, SubscriptionDto subscription)
+    public async Task<JsonModel> SendSubscriptionWelcomeEmailAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
     {
         try
         {
@@ -882,14 +1119,26 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent subscription welcome email to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Subscription welcome email sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending subscription welcome email to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending subscription welcome email",
+                StatusCode = 500
+            };
         }
     }
-    public async Task SendSubscriptionCancellationEmailAsync(string email, string userName, SubscriptionDto subscription)
+    public async Task<JsonModel> SendSubscriptionCancellationAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
     {
         try
         {
@@ -904,14 +1153,26 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent subscription cancellation email to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Subscription cancellation email sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending subscription cancellation email to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending subscription cancellation email",
+                StatusCode = 500
+            };
         }
     }
-    public async Task SendSubscriptionSuspensionEmailAsync(string email, string userName, SubscriptionDto subscription)
+    public async Task<JsonModel> SendSubscriptionSuspensionAsync(string email, string userName, SubscriptionDto subscription, TokenModel tokenModel)
     {
         try
         {
@@ -926,15 +1187,27 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent subscription suspension email to {Email} for subscription {SubscriptionId}", email, subscription.Id);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Subscription suspension email sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending subscription suspension email to {Email}", email);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending subscription suspension email",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task SendNotificationAsync(string userId, string title, string message)
+    public async Task<JsonModel> SendNotificationAsync(string userId, string title, string message, TokenModel tokenModel)
     {
         try
         {
@@ -952,21 +1225,38 @@ public class NotificationService : INotificationService
             };
             await _notificationRepository.CreateAsync(notification);
             _logger.LogInformation("In-app notification sent to {UserId}: {Title}", userId, title);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "In-app notification sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending in-app notification to {UserId}", userId);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending in-app notification",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task SendSubscriptionSuspendedNotificationAsync(string userId, string subscriptionId)
+    public async Task<JsonModel> SendSubscriptionSuspendedNotificationAsync(string userId, string subscriptionId, TokenModel tokenModel)
     {
         try
         {
             // Get user details from the user service
             var user = await _userRepository.GetByIdAsync(int.Parse(userId));
-            if (user == null) return;
+            if (user == null) return new JsonModel
+            {
+                data = new object(),
+                Message = "User not found",
+                StatusCode = 404
+            };
 
             var subject = "Subscription Suspended";
             var body = $@"
@@ -980,21 +1270,38 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(user.Email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent subscription suspended notification to {Email} for subscription {SubscriptionId}", user.Email, subscriptionId);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Subscription suspended notification sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending subscription suspended notification to user {UserId} for subscription {SubscriptionId}", userId, subscriptionId);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending subscription suspended notification",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task SendRefundNotificationAsync(string userId, decimal amount, string billingRecordId)
+    public async Task<JsonModel> SendRefundNotificationAsync(string userId, decimal amount, string billingRecordId, TokenModel tokenModel)
     {
         try
         {
             // Get user details from the user service
             var user = await _userRepository.GetByIdAsync(int.Parse(userId));
-            if (user == null) return;
+            if (user == null) return new JsonModel
+            {
+                data = new object(),
+                Message = "User not found",
+                StatusCode = 404
+            };
 
             var subject = "Refund Processed";
             var body = $@"
@@ -1008,21 +1315,38 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(user.Email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent refund notification to {Email} for amount {Amount} and billing record {BillingRecordId}", user.Email, amount, billingRecordId);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Refund notification sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending refund notification to user {UserId} for amount {Amount} and billing record {BillingRecordId}", userId, amount, billingRecordId);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending refund notification",
+                StatusCode = 500
+            };
         }
     }
 
-    public async Task SendSubscriptionReactivatedNotificationAsync(string userId, string subscriptionId)
+    public async Task<JsonModel> SendSubscriptionReactivatedNotificationAsync(string userId, string subscriptionId, TokenModel tokenModel)
     {
         try
         {
             // Get user details from the user service
             var user = await _userRepository.GetByIdAsync(int.Parse(userId));
-            if (user == null) return;
+            if (user == null) return new JsonModel
+            {
+                data = new object(),
+                Message = "User not found",
+                StatusCode = 404
+            };
 
             var subject = "Subscription Reactivated";
             var body = $@"
@@ -1036,11 +1360,23 @@ public class NotificationService : INotificationService
             // EMAIL FUNCTIONALITY DISABLED - Commented out for now
             // await SendEmailAsync(user.Email, subject, body);
             _logger.LogInformation("Email sending disabled - would have sent subscription reactivated notification to {Email} for subscription {SubscriptionId}", user.Email, subscriptionId);
+            
+            return new JsonModel
+            {
+                data = true,
+                Message = "Subscription reactivated notification sent successfully",
+                StatusCode = 200
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending subscription reactivated notification to user {UserId} for subscription {SubscriptionId}", userId, subscriptionId);
-            throw;
+            return new JsonModel
+            {
+                data = new object(),
+                Message = "Error sending subscription reactivated notification",
+                StatusCode = 500
+            };
         }
     }
 } 

@@ -16,6 +16,16 @@ public class MessagingHub : Hub
     private static readonly Dictionary<string, string> _userConnections = new();
     private static readonly Dictionary<string, HashSet<string>> _notificationGroups = new();
 
+    private TokenModel GetTokenModel()
+    {
+        var userId = GetUserId();
+        return new TokenModel
+        {
+            UserID = userId != Guid.Empty ? int.Parse(userId.ToString()) : 0,
+            RoleID = 0 // Default role
+        };
+    }
+
     public MessagingHub(
         IMessagingService messagingService,
         ChatService chatService,
@@ -114,7 +124,7 @@ public class MessagingHub : Hub
             };
 
             // Send via messaging service
-            var result = await _messagingService.SendNotificationToUserAsync(targetUserId, title, message, chatRoomId);
+            var result = await _messagingService.SendNotificationToUserAsync(targetUserId, title, message, chatRoomId, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -158,7 +168,7 @@ public class MessagingHub : Hub
             };
 
             // Send via messaging service
-            var result = await _messagingService.SendNotificationToChatRoomAsync(chatRoomId, title, message);
+            var result = await _messagingService.SendNotificationToChatRoomAsync(chatRoomId, title, message, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -235,7 +245,7 @@ public class MessagingHub : Hub
             await Clients.OthersInGroup(chatRoomId).SendAsync("TypingIndicator", typingIndicator);
             
             // Also send to messaging service for persistence if needed
-            await _messagingService.SendTypingIndicatorAsync(chatRoomId, userId.ToString(), isTyping);
+            await _messagingService.SendTypingIndicatorAsync(chatRoomId, userId.ToString(), isTyping, GetTokenModel());
         }
         catch (Exception ex)
         {
@@ -251,7 +261,7 @@ public class MessagingHub : Hub
 
         try
         {
-            var message = await _messagingService.GetMessageAsync(messageId); // was Guid.Parse(messageId)
+            var message = await _messagingService.GetMessageAsync(messageId, GetTokenModel()); // was Guid.Parse(messageId)
                     if (message.StatusCode == 200 && message.data != null)
         {
             await Clients.Group(((dynamic)message.data).ChatRoomId.ToString()).SendAsync("MessageStatusUpdated", messageId, status);

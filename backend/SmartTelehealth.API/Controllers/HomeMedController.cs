@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTelehealth.Application.DTOs;
 using SmartTelehealth.Application.Interfaces;
@@ -6,311 +7,268 @@ namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class HomeMedController : ControllerBase
+public class HomeMedController : BaseController
 {
     private readonly IHomeMedService _homeMedService;
-    private readonly ILogger<HomeMedController> _logger;
 
-    public HomeMedController(IHomeMedService homeMedService, ILogger<HomeMedController> logger)
+    public HomeMedController(IHomeMedService homeMedService)
     {
         _homeMedService = homeMedService;
-        _logger = logger;
     }
 
     // Prescription Management
     [HttpPost("prescriptions")]
-    public async Task<ActionResult<JsonModel>> CreatePrescription([FromBody] CreatePrescriptionDto createDto)
+    public async Task<JsonModel> CreatePrescription([FromBody] CreatePrescriptionDto createDto)
     {
-        var response = await _homeMedService.CreatePrescriptionAsync(createDto);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.CreatePrescriptionAsync(createDto, GetToken(HttpContext));
     }
 
     [HttpGet("prescriptions/{id}")]
-    public async Task<ActionResult<JsonModel>> GetPrescription(Guid id)
+    public async Task<JsonModel> GetPrescription(Guid id)
     {
-        var response = await _homeMedService.GetPrescriptionAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetPrescriptionAsync(id, GetToken(HttpContext));
     }
 
     [HttpGet("users/{userId}/prescriptions")]
-    public async Task<ActionResult<JsonModel>> GetUserPrescriptions(Guid userId)
+    public async Task<JsonModel> GetUserPrescriptions(Guid userId)
     {
-        var response = await _homeMedService.GetUserPrescriptionsAsync(userId);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetUserPrescriptionsAsync(userId, GetToken(HttpContext));
     }
 
     [HttpGet("providers/{providerId}/prescriptions")]
-    public async Task<ActionResult<JsonModel>> GetProviderPrescriptions(Guid providerId)
+    public async Task<JsonModel> GetProviderPrescriptions(Guid providerId)
     {
-        var response = await _homeMedService.GetProviderPrescriptionsAsync(providerId);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetProviderPrescriptionsAsync(providerId, GetToken(HttpContext));
     }
 
     [HttpPut("prescriptions/{id}")]
-    public async Task<ActionResult<JsonModel>> UpdatePrescription(Guid id, [FromBody] UpdatePrescriptionDto updateDto)
+    public async Task<JsonModel> UpdatePrescription(Guid id, [FromBody] UpdatePrescriptionDto updateDto)
     {
-        var response = await _homeMedService.UpdatePrescriptionAsync(id, updateDto);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.UpdatePrescriptionAsync(id, updateDto, GetToken(HttpContext));
     }
 
     [HttpDelete("prescriptions/{id}")]
-    public async Task<ActionResult<JsonModel>> DeletePrescription(Guid id)
+    public async Task<JsonModel> DeletePrescription(Guid id)
     {
-        var response = await _homeMedService.DeletePrescriptionAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.DeletePrescriptionAsync(id, GetToken(HttpContext));
     }
 
     // Prescription Workflow
     [HttpPost("prescriptions/{id}/send-to-pharmacy")]
-    public async Task<ActionResult<JsonModel>> SendPrescriptionToPharmacy(Guid id)
+    public async Task<JsonModel> SendPrescriptionToPharmacy(Guid id)
     {
-        var response = await _homeMedService.SendPrescriptionToPharmacyAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.SendPrescriptionToPharmacyAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost("prescriptions/{id}/confirm")]
-    public async Task<ActionResult<JsonModel>> ConfirmPrescription(Guid id, [FromQuery] string pharmacyReference)
+    public async Task<JsonModel> ConfirmPrescription(Guid id, [FromQuery] string pharmacyReference)
     {
-        var response = await _homeMedService.ConfirmPrescriptionAsync(id, pharmacyReference);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.ConfirmPrescriptionAsync(id, pharmacyReference, GetToken(HttpContext));
     }
 
     [HttpPost("prescriptions/{id}/dispense")]
-    public async Task<ActionResult<JsonModel>> DispensePrescription(Guid id)
+    public async Task<JsonModel> DispensePrescription(Guid id)
     {
-        var response = await _homeMedService.DispensePrescriptionAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.DispensePrescriptionAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost("prescriptions/{id}/ship")]
-    public async Task<ActionResult<JsonModel>> ShipPrescription(Guid id, [FromQuery] string trackingNumber)
+    public async Task<JsonModel> ShipPrescription(Guid id, [FromQuery] string trackingNumber)
     {
-        var response = await _homeMedService.ShipPrescriptionAsync(id, trackingNumber);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.ShipPrescriptionAsync(id, trackingNumber, GetToken(HttpContext));
     }
 
     [HttpPost("prescriptions/{id}/deliver")]
-    public async Task<ActionResult<JsonModel>> DeliverPrescription(Guid id)
+    public async Task<JsonModel> DeliverPrescription(Guid id)
     {
-        var response = await _homeMedService.DeliverPrescriptionAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.DeliverPrescriptionAsync(id, GetToken(HttpContext));
     }
 
     // Medication Shipment Management
     [HttpPost("shipments")]
-    public async Task<ActionResult<JsonModel>> CreateShipment([FromBody] CreateMedicationShipmentDto createDto)
+    public async Task<JsonModel> CreateShipment([FromBody] CreateMedicationShipmentDto createDto)
     {
-        var response = await _homeMedService.CreateShipmentAsync(createDto);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.CreateShipmentAsync(createDto, GetToken(HttpContext));
     }
 
     [HttpGet("shipments/{id}")]
-    public async Task<ActionResult<JsonModel>> GetShipment(Guid id)
+    public async Task<JsonModel> GetShipment(Guid id)
     {
-        var response = await _homeMedService.GetShipmentAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetShipmentAsync(id, GetToken(HttpContext));
     }
 
     [HttpGet("users/{userId}/shipments")]
-    public async Task<ActionResult<JsonModel>> GetUserShipments(Guid userId)
+    public async Task<JsonModel> GetUserShipments(Guid userId)
     {
-        var response = await _homeMedService.GetUserShipmentsAsync(userId);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetUserShipmentsAsync(userId, GetToken(HttpContext));
     }
 
     [HttpPut("shipments/{id}")]
-    public async Task<ActionResult<JsonModel>> UpdateShipment(Guid id, [FromBody] UpdateMedicationShipmentDto updateDto)
+    public async Task<JsonModel> UpdateShipment(Guid id, [FromBody] UpdateMedicationShipmentDto updateDto)
     {
-        var response = await _homeMedService.UpdateShipmentAsync(id, updateDto);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.UpdateShipmentAsync(id, updateDto, GetToken(HttpContext));
     }
 
     [HttpDelete("shipments/{id}")]
-    public async Task<ActionResult<JsonModel>> DeleteShipment(Guid id)
+    public async Task<JsonModel> DeleteShipment(Guid id)
     {
-        var response = await _homeMedService.DeleteShipmentAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.DeleteShipmentAsync(id, GetToken(HttpContext));
     }
 
     // Shipment Workflow
     [HttpPost("shipments/{id}/process")]
-    public async Task<ActionResult<JsonModel>> ProcessShipment(Guid id)
+    public async Task<JsonModel> ProcessShipment(Guid id)
     {
-        var response = await _homeMedService.ProcessShipmentAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.ProcessShipmentAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost("shipments/{id}/ship")]
-    public async Task<ActionResult<JsonModel>> ShipMedication(Guid id, [FromQuery] string trackingNumber, [FromQuery] string carrier)
+    public async Task<JsonModel> ShipMedication(Guid id, [FromQuery] string trackingNumber, [FromQuery] string carrier)
     {
-        var response = await _homeMedService.ShipMedicationAsync(id, trackingNumber, carrier);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.ShipMedicationAsync(id, trackingNumber, carrier, GetToken(HttpContext));
     }
 
     [HttpPost("shipments/{id}/deliver")]
-    public async Task<ActionResult<JsonModel>> DeliverMedication(Guid id)
+    public async Task<JsonModel> DeliverMedication(Guid id)
     {
-        var response = await _homeMedService.DeliverMedicationAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.DeliverMedicationAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost("shipments/{id}/return")]
-    public async Task<ActionResult<JsonModel>> ReturnShipment(Guid id, [FromQuery] string reason)
+    public async Task<JsonModel> ReturnShipment(Guid id, [FromQuery] string reason)
     {
-        var response = await _homeMedService.ReturnShipmentAsync(id, reason);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.ReturnShipmentAsync(id, reason, GetToken(HttpContext));
     }
 
     // Tracking and Status
     [HttpGet("tracking/{trackingNumber}")]
-    public async Task<ActionResult<JsonModel>> GetTrackingStatus(string trackingNumber)
+    public async Task<JsonModel> GetTrackingStatus(string trackingNumber)
     {
-        var response = await _homeMedService.GetTrackingStatusAsync(trackingNumber);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetTrackingStatusAsync(trackingNumber, GetToken(HttpContext));
     }
 
     [HttpGet("shipments/{id}/estimated-delivery")]
-    public async Task<ActionResult<JsonModel>> GetEstimatedDelivery(Guid id)
+    public async Task<JsonModel> GetEstimatedDelivery(Guid id)
     {
-        var response = await _homeMedService.GetEstimatedDeliveryAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetEstimatedDeliveryAsync(id, GetToken(HttpContext));
     }
 
     [HttpPut("shipments/{id}/tracking")]
-    public async Task<ActionResult<JsonModel>> UpdateTrackingInfo(Guid id, [FromQuery] string trackingNumber, [FromQuery] string status)
+    public async Task<JsonModel> UpdateTrackingInfo(Guid id, [FromQuery] string trackingNumber, [FromQuery] string status)
     {
-        var response = await _homeMedService.UpdateTrackingInfoAsync(id, trackingNumber, status);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.UpdateTrackingInfoAsync(id, trackingNumber, status, GetToken(HttpContext));
     }
 
     // Analytics and Reporting
     [HttpGet("analytics/prescriptions")]
-    public async Task<ActionResult<JsonModel>> GetPrescriptionAnalytics([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    public async Task<JsonModel> GetPrescriptionAnalytics([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
     {
-        var response = await _homeMedService.GetPrescriptionAnalyticsAsync(startDate, endDate);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetPrescriptionAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     [HttpGet("analytics/shipments")]
-    public async Task<ActionResult<JsonModel>> GetShipmentAnalytics([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    public async Task<JsonModel> GetShipmentAnalytics([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
     {
-        var response = await _homeMedService.GetShipmentAnalyticsAsync(startDate, endDate);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetShipmentAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     [HttpGet("reports/prescriptions")]
-    public async Task<ActionResult<JsonModel>> GeneratePrescriptionReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
+    public async Task<JsonModel> GeneratePrescriptionReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
     {
-        var response = await _homeMedService.GeneratePrescriptionReportAsync(startDate, endDate, format);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GeneratePrescriptionReportAsync(startDate, endDate, format, GetToken(HttpContext));
     }
 
     [HttpGet("reports/shipments")]
-    public async Task<ActionResult<JsonModel>> GenerateShipmentReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
+    public async Task<JsonModel> GenerateShipmentReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
     {
-        var response = await _homeMedService.GenerateShipmentReportAsync(startDate, endDate, format);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GenerateShipmentReportAsync(startDate, endDate, format, GetToken(HttpContext));
     }
 
     // Pharmacy Integration
     [HttpGet("pharmacy/integration")]
-    public async Task<ActionResult<JsonModel>> GetPharmacyIntegration()
+    public async Task<JsonModel> GetPharmacyIntegration()
     {
-        var response = await _homeMedService.GetPharmacyIntegrationAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetPharmacyIntegrationAsync(GetToken(HttpContext));
     }
 
     [HttpPost("pharmacy/test-connection")]
-    public async Task<ActionResult<JsonModel>> TestPharmacyConnection()
+    public async Task<JsonModel> TestPharmacyConnection()
     {
-        var response = await _homeMedService.TestPharmacyConnectionAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.TestPharmacyConnectionAsync(GetToken(HttpContext));
     }
 
-    [HttpPost("pharmacy/sync/prescriptions")]
-    public async Task<ActionResult<JsonModel>> SyncPrescriptions()
+    [HttpPost("pharmacy/sync-prescriptions")]
+    public async Task<JsonModel> SyncPrescriptions()
     {
-        var response = await _homeMedService.SyncPrescriptionsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.SyncPrescriptionsAsync(GetToken(HttpContext));
     }
 
-    [HttpPost("pharmacy/sync/shipments")]
-    public async Task<ActionResult<JsonModel>> SyncShipments()
+    [HttpPost("pharmacy/sync-shipments")]
+    public async Task<JsonModel> SyncShipments()
     {
-        var response = await _homeMedService.SyncShipmentsAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.SyncShipmentsAsync(GetToken(HttpContext));
     }
 
     // Refill Management
     [HttpPost("prescriptions/{id}/refill-request")]
-    public async Task<ActionResult<JsonModel>> CreateRefillRequest(Guid id)
+    public async Task<JsonModel> CreateRefillRequest(Guid id)
     {
-        var response = await _homeMedService.CreateRefillRequestAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.CreateRefillRequestAsync(id, GetToken(HttpContext));
     }
 
     [HttpGet("users/{userId}/refill-requests")]
-    public async Task<ActionResult<JsonModel>> GetRefillRequests(Guid userId)
+    public async Task<JsonModel> GetRefillRequests(Guid userId)
     {
-        var response = await _homeMedService.GetRefillRequestsAsync(userId);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetRefillRequestsAsync(userId, GetToken(HttpContext));
     }
 
     [HttpPost("prescriptions/{id}/approve-refill")]
-    public async Task<ActionResult<JsonModel>> ApproveRefillRequest(Guid id)
+    public async Task<JsonModel> ApproveRefillRequest(Guid id)
     {
-        var response = await _homeMedService.ApproveRefillRequestAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.ApproveRefillRequestAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost("prescriptions/{id}/deny-refill")]
-    public async Task<ActionResult<JsonModel>> DenyRefillRequest(Guid id, [FromQuery] string reason)
+    public async Task<JsonModel> DenyRefillRequest(Guid id, [FromQuery] string reason)
     {
-        var response = await _homeMedService.DenyRefillRequestAsync(id, reason);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.DenyRefillRequestAsync(id, reason, GetToken(HttpContext));
     }
 
     // Inventory Management
-    [HttpGet("inventory/availability")]
-    public async Task<ActionResult<JsonModel>> CheckMedicationAvailability([FromQuery] string medicationName, [FromQuery] string dosage)
+    [HttpGet("medications/availability")]
+    public async Task<JsonModel> CheckMedicationAvailability([FromQuery] string medicationName, [FromQuery] string dosage)
     {
-        var response = await _homeMedService.CheckMedicationAvailabilityAsync(medicationName, dosage);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.CheckMedicationAvailabilityAsync(medicationName, dosage, GetToken(HttpContext));
     }
 
-    [HttpGet("inventory/price")]
-    public async Task<ActionResult<JsonModel>> GetMedicationPrice([FromQuery] string medicationName, [FromQuery] string dosage)
+    [HttpGet("medications/price")]
+    public async Task<JsonModel> GetMedicationPrice([FromQuery] string medicationName, [FromQuery] string dosage)
     {
-        var response = await _homeMedService.GetMedicationPriceAsync(medicationName, dosage);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetMedicationPriceAsync(medicationName, dosage, GetToken(HttpContext));
     }
 
-    [HttpPost("inventory/reserve")]
-    public async Task<ActionResult<JsonModel>> ReserveMedication([FromQuery] string medicationName, [FromQuery] string dosage, [FromQuery] int quantity)
+    [HttpPost("medications/reserve")]
+    public async Task<JsonModel> ReserveMedication([FromQuery] string medicationName, [FromQuery] string dosage, [FromQuery] int quantity)
     {
-        var response = await _homeMedService.ReserveMedicationAsync(medicationName, dosage, quantity);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.ReserveMedicationAsync(medicationName, dosage, quantity, GetToken(HttpContext));
     }
 
     // Auto-dispatch
     [HttpPost("prescriptions/{id}/auto-dispatch")]
-    public async Task<ActionResult<JsonModel>> TriggerAutoDispatch(Guid id)
+    public async Task<JsonModel> TriggerAutoDispatch(Guid id)
     {
-        var response = await _homeMedService.TriggerAutoDispatchAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.TriggerAutoDispatchAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost("auto-dispatch/process-queue")]
-    public async Task<ActionResult<JsonModel>> ProcessAutoDispatchQueue()
+    public async Task<JsonModel> ProcessAutoDispatchQueue()
     {
-        var response = await _homeMedService.ProcessAutoDispatchQueueAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.ProcessAutoDispatchQueueAsync(GetToken(HttpContext));
     }
 
     [HttpGet("auto-dispatch/queue")]
-    public async Task<ActionResult<JsonModel>> GetAutoDispatchQueue()
+    public async Task<JsonModel> GetAutoDispatchQueue()
     {
-        var response = await _homeMedService.GetAutoDispatchQueueAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _homeMedService.GetAutoDispatchQueueAsync(GetToken(HttpContext));
     }
 } 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SmartTelehealth.Application.Services;
 using SmartTelehealth.Core.Interfaces;
 using SmartTelehealth.Application.Interfaces;
+using SmartTelehealth.Application.DTOs;
 
 namespace SmartTelehealth.Application.Services.BackgroundServices;
 
@@ -62,7 +63,15 @@ public class SubscriptionBackgroundService : BackgroundService
             var automatedBillingService = scope.ServiceProvider.GetRequiredService<AutomatedBillingService>();
 
             _logger.LogInformation("Starting automated billing process");
-            await automatedBillingService.ProcessRecurringBillingAsync();
+            
+            // Create system-level token for background service operations
+            var systemToken = new TokenModel
+            {
+                UserID = 0, // System user ID
+                RoleID = 1  // Admin role
+            };
+            
+            await automatedBillingService.ProcessRecurringBillingAsync(systemToken);
 
             _logger.LogInformation("Automated billing completed");
         }

@@ -26,154 +26,184 @@ namespace SmartTelehealth.Infrastructure.Services
             _auditService = auditService;
         }
 
-        public async Task<bool> ValidatePaymentRequestAsync(string userId, string ipAddress, decimal amount)
+        public async Task<bool> ValidatePaymentRequestAsync(string userId, string ipAddress, decimal amount, TokenModel tokenModel)
         {
             try
             {
+                _logger.LogInformation("Validating payment request for user {UserId} from IP {IpAddress} amount {Amount} by user {TokenUserId}", 
+                    userId, ipAddress, amount, tokenModel.UserID);
+
                 // Check rate limiting
-                if (!await CheckRateLimitAsync(userId, ipAddress))
+                if (!await CheckRateLimitAsync(userId, ipAddress, tokenModel))
                 {
                     await _auditService.LogSecurityEventAsync(userId, "PaymentRateLimitExceeded", 
-                        $"Rate limit exceeded for user {userId} from IP {ipAddress}");
+                        $"Rate limit exceeded for user {userId} from IP {ipAddress}", null, tokenModel);
+                    _logger.LogWarning("Rate limit exceeded for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                     return false;
                 }
 
                 // Check for suspicious activity
-                if (await DetectSuspiciousActivityAsync(userId, ipAddress, amount))
+                if (await DetectSuspiciousActivityAsync(userId, ipAddress, amount, tokenModel))
                 {
                     await _auditService.LogSecurityEventAsync(userId, "SuspiciousPaymentDetected", 
-                        $"Suspicious payment activity detected for user {userId} from IP {ipAddress}");
+                        $"Suspicious payment activity detected for user {userId} from IP {ipAddress}", null, tokenModel);
+                    _logger.LogWarning("Suspicious payment activity detected for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                     return false;
                 }
 
                 // Check amount limits
-                if (!await ValidateAmountLimitsAsync(userId, amount))
+                if (!await ValidateAmountLimitsAsync(userId, amount, tokenModel))
                 {
                     await _auditService.LogSecurityEventAsync(userId, "PaymentAmountLimitExceeded", 
-                        $"Amount limit exceeded for user {userId}: {amount}");
+                        $"Amount limit exceeded for user {userId}: {amount}", null, tokenModel);
+                    _logger.LogWarning("Amount limit exceeded for user {UserId} by user {TokenUserId}: {Amount}", userId, tokenModel.UserID, amount);
                     return false;
                 }
 
                 // Log successful validation
                 await _auditService.LogSecurityEventAsync(userId, "PaymentRequestValidated", 
-                    $"Payment request validated for user {userId}");
+                    $"Payment request validated for user {userId}", null, tokenModel);
 
+                _logger.LogInformation("Payment request validated successfully for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error validating payment request for user {UserId}", userId);
+                _logger.LogError(ex, "Error validating payment request for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                 return false;
             }
         }
 
-        public async Task<bool> CheckRateLimitAsync(string userId, string ipAddress)
-        {
-            var userKey = $"payment_attempts_user_{userId}";
-            var ipKey = $"payment_attempts_ip_{ipAddress}";
-
-            var userAttempts = await GetAttemptsAsync(userKey);
-            var ipAttempts = await GetAttemptsAsync(ipKey);
-
-            // Allow max 5 attempts per user per hour
-            if (userAttempts >= 5)
-            {
-                _logger.LogWarning("Rate limit exceeded for user {UserId}: {Attempts} attempts", userId, userAttempts);
-                return false;
-            }
-
-            // Allow max 10 attempts per IP per hour
-            if (ipAttempts >= 10)
-            {
-                _logger.LogWarning("Rate limit exceeded for IP {IpAddress}: {Attempts} attempts", ipAddress, ipAttempts);
-                return false;
-            }
-
-            // Increment counters
-            await IncrementAttemptsAsync(userKey);
-            await IncrementAttemptsAsync(ipKey);
-
-            return true;
-        }
-
-        public async Task<bool> DetectSuspiciousActivityAsync(string userId, string ipAddress, decimal amount)
+        public async Task<bool> CheckRateLimitAsync(string userId, string ipAddress, TokenModel tokenModel)
         {
             try
             {
-                // Check for unusual payment patterns
-                var userPaymentHistory = await GetUserPaymentHistoryAsync(userId);
-                
-                // Detect unusual amounts
-                if (amount > 1000 && userPaymentHistory.AverageAmount < 100)
+                var userKey = $"payment_attempts_user_{userId}";
+                var ipKey = $"payment_attempts_ip_{ipAddress}";
+
+                var userAttempts = await GetAttemptsAsync(userKey);
+                var ipAttempts = await GetAttemptsAsync(ipKey);
+
+                // Allow max 5 attempts per user per hour
+                if (userAttempts >= 5)
                 {
-                    _logger.LogWarning("Unusual payment amount detected for user {UserId}: {Amount}", userId, amount);
-                    return true;
+                    _logger.LogWarning("Rate limit exceeded for user {UserId} by user {TokenUserId}: {Attempts} attempts", userId, tokenModel.UserID, userAttempts);
+                    return false;
                 }
 
-                // Detect rapid successive payments
-                var recentPayments = userPaymentHistory.RecentPayments;
-                if (recentPayments.Count >= 3 && 
-                    recentPayments.All(p => p.Timestamp > DateTime.UtcNow.AddMinutes(-5)))
+                // Allow max 10 attempts per IP per hour
+                if (ipAttempts >= 10)
                 {
-                    _logger.LogWarning("Rapid successive payments detected for user {UserId}", userId);
-                    return true;
+                    _logger.LogWarning("Rate limit exceeded for IP {IpAddress} by user {TokenUserId}: {Attempts} attempts", ipAddress, tokenModel.UserID, ipAttempts);
+                    return false;
                 }
+
+                // Increment counters
+                await IncrementAttemptsAsync(userKey);
+                await IncrementAttemptsAsync(ipKey);
+
+                _logger.LogInformation("Rate limit check passed for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking rate limit for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
+                return false;
+            }
+        }
+
+        public async Task<bool> DetectSuspiciousActivityAsync(string userId, string ipAddress, decimal amount, TokenModel tokenModel)
+        {
+            try
+            {
+                _logger.LogInformation("Detecting suspicious activity for user {UserId} from IP {IpAddress} amount {Amount} by user {TokenUserId}", 
+                    userId, ipAddress, amount, tokenModel.UserID);
 
                 // Check for geographic anomalies
                 if (await IsGeographicAnomalyAsync(userId, ipAddress))
                 {
-                    _logger.LogWarning("Geographic anomaly detected for user {UserId} from IP {IpAddress}", userId, ipAddress);
+                    _logger.LogWarning("Geographic anomaly detected for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                     return true;
                 }
 
+                // Check for unusual payment patterns
+                var userHistory = await GetUserPaymentHistoryAsync(userId);
+                var recentAttempts = await GetUserPaymentAttemptsAsync(userId, DateTime.UtcNow.AddHours(-1), DateTime.UtcNow);
+                
+                var riskScore = CalculateRiskScore(recentAttempts);
+                
+                // Consider activity suspicious if risk score > 70
+                if (riskScore > 70)
+                {
+                    _logger.LogWarning("High risk score detected for user {UserId} by user {TokenUserId}: {RiskScore}", userId, tokenModel.UserID, riskScore);
+                    return true;
+                }
+
+                // Check for unusual amounts
+                if (amount > userHistory.AverageAmount * 3)
+                {
+                    _logger.LogWarning("Unusual amount detected for user {UserId} by user {TokenUserId}: {Amount} vs average {AverageAmount}", 
+                        userId, tokenModel.UserID, amount, userHistory.AverageAmount);
+                    return true;
+                }
+
+                _logger.LogInformation("No suspicious activity detected for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error detecting suspicious activity for user {UserId}", userId);
-                return false; // Fail open for now
+                _logger.LogError(ex, "Error detecting suspicious activity for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
+                return false;
             }
         }
 
-        public async Task<bool> ValidateAmountLimitsAsync(string userId, decimal amount)
+        public async Task<bool> ValidateAmountLimitsAsync(string userId, decimal amount, TokenModel tokenModel)
         {
             try
             {
+                _logger.LogInformation("Validating amount limits for user {UserId} amount {Amount} by user {TokenUserId}", 
+                    userId, amount, tokenModel.UserID);
+
                 // Get user's payment history
-                var userPaymentHistory = await GetUserPaymentHistoryAsync(userId);
+                var userHistory = await GetUserPaymentHistoryAsync(userId);
                 
-                // Check daily limit
-                var todayPayments = userPaymentHistory.RecentPayments
-                    .Where(p => p.Timestamp.Date == DateTime.UtcNow.Date)
-                    .Sum(p => p.Amount);
-
-                if (todayPayments + amount > 5000) // $5000 daily limit
+                // Check against user's average payment amount
+                var maxAllowedAmount = userHistory.AverageAmount * 5; // Allow up to 5x average
+                
+                if (amount > maxAllowedAmount)
                 {
-                    _logger.LogWarning("Daily payment limit exceeded for user {UserId}: {TotalAmount}", userId, todayPayments + amount);
+                    _logger.LogWarning("Amount limit exceeded for user {UserId} by user {TokenUserId}: {Amount} > {MaxAllowed}", 
+                        userId, tokenModel.UserID, amount, maxAllowedAmount);
                     return false;
                 }
 
-                // Check single payment limit
-                if (amount > 2000) // $2000 single payment limit
+                // Check against absolute limits
+                var absoluteMaxAmount = 10000.00m; // $10,000 absolute limit
+                if (amount > absoluteMaxAmount)
                 {
-                    _logger.LogWarning("Single payment limit exceeded for user {UserId}: {Amount}", userId, amount);
+                    _logger.LogWarning("Absolute amount limit exceeded for user {UserId} by user {TokenUserId}: {Amount} > {AbsoluteMax}", 
+                        userId, tokenModel.UserID, amount, absoluteMaxAmount);
                     return false;
                 }
 
+                _logger.LogInformation("Amount limits validated successfully for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error validating amount limits for user {UserId}", userId);
+                _logger.LogError(ex, "Error validating amount limits for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                 return false;
             }
         }
 
-        public async Task LogPaymentAttemptAsync(string userId, string ipAddress, decimal amount, bool success, string? errorMessage = null)
+        public async Task LogPaymentAttemptAsync(string userId, string ipAddress, decimal amount, bool success, string? errorMessage, TokenModel tokenModel)
         {
             try
             {
-                var paymentAttempt = new PaymentAttemptLog
+                _logger.LogInformation("Logging payment attempt for user {UserId} from IP {IpAddress} amount {Amount} success {Success} by user {TokenUserId}", 
+                    userId, ipAddress, amount, success, tokenModel.UserID);
+
+                var logEntry = new PaymentAttemptLog
                 {
                     UserId = userId,
                     IpAddress = ipAddress,
@@ -183,88 +213,88 @@ namespace SmartTelehealth.Infrastructure.Services
                     Timestamp = DateTime.UtcNow
                 };
 
-                // Store in cache for quick access
-                // var cacheKey = $"payment_attempt_{userId}_{DateTime.UtcNow.Ticks}";
-                // _cache.Set(cacheKey, paymentAttempt, TimeSpan.FromHours(24));
+                // Store in cache for recent analysis
+                var cacheKey = $"payment_attempt_{userId}_{DateTime.UtcNow:yyyyMMddHH}";
+                var attempts = await GetAttemptsAsync(cacheKey);
+                _cache.Set(cacheKey, attempts + 1, TimeSpan.FromHours(1));
 
                 // Log to audit service
-                await _auditService.LogSecurityEventAsync(userId, 
-                    success ? "PaymentAttemptSuccess" : "PaymentAttemptFailed",
-                    $"Payment attempt {(success ? "succeeded" : "failed")} for user {userId} from IP {ipAddress}",
-                    ipAddress);
+                if (tokenModel != null)
+                {
+                    var action = success ? "PaymentAttemptSuccess" : "PaymentAttemptFailed";
+                    var description = success ? 
+                        $"Payment attempt successful: {amount}" : 
+                        $"Payment attempt failed: {amount} - {errorMessage}";
+                    
+                    await _auditService.LogPaymentEventAsync(userId, action, null, success ? "success" : "failed", errorMessage, tokenModel);
+                }
 
-                _logger.LogInformation("Payment attempt logged: User={UserId}, IP={IpAddress}, Amount={Amount}, Success={Success}",
-                    userId, ipAddress, amount, success);
+                _logger.LogInformation("Payment attempt logged successfully for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error logging payment attempt for user {UserId}", userId);
+                _logger.LogError(ex, "Error logging payment attempt for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
             }
         }
 
-        public async Task<PaymentSecurityReportDto> GenerateSecurityReportAsync(string userId, DateTime startDate, DateTime endDate)
+        public async Task<PaymentSecurityReportDto> GenerateSecurityReportAsync(string userId, DateTime startDate, DateTime endDate, TokenModel tokenModel)
         {
             try
             {
-                var attempts = await GetUserPaymentAttemptsAsync(userId, startDate, endDate);
+                _logger.LogInformation("Generating security report for user {UserId} from {StartDate} to {EndDate} by user {TokenUserId}", 
+                    userId, startDate, endDate, tokenModel?.UserID ?? 0);
+
+                var paymentAttempts = await GetUserPaymentAttemptsAsync(userId, startDate, endDate);
+                var userHistory = await GetUserPaymentHistoryAsync(userId);
                 
                 var report = new PaymentSecurityReportDto
                 {
                     UserId = userId,
                     StartDate = startDate,
                     EndDate = endDate,
-                    TotalPaymentAttempts = attempts.Count,
-                    SuccessfulPayments = attempts.Count(a => a.Success),
-                    FailedPayments = attempts.Count(a => !a.Success),
-                    SuspiciousActivities = attempts.Count(a => a.Amount > 1000), // Simple heuristic
-                    RateLimitViolations = 0, // Would be calculated from actual rate limiting data
-                    AverageAmount = attempts.Any() ? attempts.Average(a => a.Amount) : 0,
-                    RiskScore = CalculateRiskScore(attempts).ToString()
+                    TotalAttempts = paymentAttempts.Count,
+                    SuccessfulAttempts = paymentAttempts.Count(a => a.Success),
+                    FailedAttempts = paymentAttempts.Count(a => !a.Success),
+                    RiskScore = CalculateRiskScore(paymentAttempts).ToString(),
+                    AverageAmount = userHistory.AverageAmount,
+                    GeneratedBy = tokenModel.UserID,
+                    GeneratedAt = DateTime.UtcNow
                 };
 
-                await _auditService.LogSecurityEventAsync(userId, "SecurityReportGenerated", 
-                    $"Security report generated for user {userId} from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
-
+                _logger.LogInformation("Security report generated successfully for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                 return report;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error generating security report for user {UserId}", userId);
+                _logger.LogError(ex, "Error generating security report for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                 return new PaymentSecurityReportDto
                 {
                     UserId = userId,
                     StartDate = startDate,
                     EndDate = endDate,
-                    RiskScore = "100" // High risk if error occurs
+                    ErrorMessage = ex.Message
                 };
             }
         }
 
-        // Private helper methods
+        // Helper methods
         private async Task<int> GetAttemptsAsync(string key)
         {
-            var cachedValue = _cache.GetOrCreate(key, entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
-                return "0";
-            });
-            
+            var cachedValue = await Task.FromResult(_cache.Get(key)?.ToString() ?? "0");
             return int.TryParse(cachedValue, out var attempts) ? attempts : 0;
         }
 
         private async Task IncrementAttemptsAsync(string key)
         {
-            lock (_lockObject)
+            await Task.Run(() =>
             {
-                var cachedValue = _cache.GetOrCreate(key, entry =>
-                {
-                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
-                    return "0";
-                });
-
-                var attempts = int.TryParse(cachedValue, out var currentAttempts) ? currentAttempts : 0;
-                _cache.Set(key, (attempts + 1).ToString(), TimeSpan.FromHours(1));
-            }
+                var currentValue = _cache.Get(key)?.ToString() ?? "0";
+                var attempts = int.TryParse(currentValue, out var currentAttempts) ? currentAttempts : 0;
+                
+                var entry = _cache.CreateEntry(key);
+                entry.Value = (attempts + 1).ToString();
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+            });
         }
 
         private async Task<UserPaymentHistoryDto> GetUserPaymentHistoryAsync(string userId)
@@ -350,11 +380,11 @@ namespace SmartTelehealth.Application.Interfaces
 {
     public interface IPaymentSecurityService
     {
-        Task<bool> ValidatePaymentRequestAsync(string userId, string ipAddress, decimal amount);
-        Task<bool> CheckRateLimitAsync(string userId, string ipAddress);
-        Task<bool> DetectSuspiciousActivityAsync(string userId, string ipAddress, decimal amount);
-        Task<bool> ValidateAmountLimitsAsync(string userId, decimal amount);
-        Task LogPaymentAttemptAsync(string userId, string ipAddress, decimal amount, bool success, string? errorMessage = null);
-        Task<PaymentSecurityReportDto> GenerateSecurityReportAsync(string userId, DateTime startDate, DateTime endDate);
+        Task<bool> ValidatePaymentRequestAsync(string userId, string ipAddress, decimal amount, TokenModel tokenModel);
+        Task<bool> CheckRateLimitAsync(string userId, string ipAddress, TokenModel tokenModel);
+        Task<bool> DetectSuspiciousActivityAsync(string userId, string ipAddress, decimal amount, TokenModel tokenModel);
+        Task<bool> ValidateAmountLimitsAsync(string userId, decimal amount, TokenModel tokenModel);
+        Task LogPaymentAttemptAsync(string userId, string ipAddress, decimal amount, bool success, string? errorMessage = null, TokenModel tokenModel = null);
+        Task<PaymentSecurityReportDto> GenerateSecurityReportAsync(string userId, DateTime startDate, DateTime endDate, TokenModel tokenModel);
     }
 } 

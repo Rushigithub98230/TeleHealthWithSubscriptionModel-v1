@@ -9,7 +9,15 @@ public class SubscriptionDashboardDto
     public PlanAnalyticsDto Plans { get; set; } = new();
     public UsageAnalyticsDto Usage { get; set; } = new();
     public TrendAnalyticsDto Trends { get; set; } = new();
+    
+    // Added missing properties to fix build errors
+    public SubscriptionAnalyticsDto SubscriptionAnalytics { get; set; } = new();
+    public IEnumerable<CategoryAnalyticsDto> TopCategories { get; set; } = new List<CategoryAnalyticsDto>();
+    public IEnumerable<RevenueTrendDto> RevenueTrends { get; set; } = new List<RevenueTrendDto>();
+    public IEnumerable<CategoryRevenueDto> CategoryRevenue { get; set; } = new List<CategoryRevenueDto>();
 }
+
+
 
 public class DateRangeDto
 {

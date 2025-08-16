@@ -9,7 +9,7 @@ namespace SmartTelehealth.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin,Superadmin")]
-public class PrivilegesController : ControllerBase
+public class PrivilegesController : BaseController
 {
     private readonly IPrivilegeService _privilegeService;
 
@@ -19,9 +19,8 @@ public class PrivilegesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<JsonModel>> GetAll()
+    public async Task<JsonModel> GetAll()
     {
-        var response = await _privilegeService.GetAllPrivilegesAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _privilegeService.GetAllPrivilegesAsync(GetToken(HttpContext));
     }
 } 

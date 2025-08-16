@@ -122,4 +122,19 @@ public class ResetPasswordRequestDto
     public string Email { get; set; } = string.Empty;
     public string Token { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;
+}
+
+public class ConfirmPasswordResetDto
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+    [Required]
+    public string ResetToken { get; set; } = string.Empty;
+    [Required]
+    [MinLength(6)]
+    public string NewPassword { get; set; } = string.Empty;
+    [Required]
+    [Compare("NewPassword")]
+    public string ConfirmNewPassword { get; set; } = string.Empty;
 } 

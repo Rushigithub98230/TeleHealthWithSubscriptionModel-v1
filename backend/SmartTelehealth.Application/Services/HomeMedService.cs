@@ -30,7 +30,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Prescription Management
-    public async Task<JsonModel> CreatePrescriptionAsync(CreatePrescriptionDto createDto)
+    public async Task<JsonModel> CreatePrescriptionAsync(CreatePrescriptionDto createDto, TokenModel tokenModel)
     {
         try
         {
@@ -80,7 +80,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GetPrescriptionAsync(Guid id)
+    public async Task<JsonModel> GetPrescriptionAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -111,7 +111,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GetUserPrescriptionsAsync(Guid userId)
+    public async Task<JsonModel> GetUserPrescriptionsAsync(Guid userId, TokenModel tokenModel)
     {
         try
         {
@@ -136,7 +136,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GetProviderPrescriptionsAsync(Guid providerId)
+    public async Task<JsonModel> GetProviderPrescriptionsAsync(Guid providerId, TokenModel tokenModel)
     {
         try
         {
@@ -161,7 +161,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> UpdatePrescriptionAsync(Guid id, UpdatePrescriptionDto updateDto)
+    public async Task<JsonModel> UpdatePrescriptionAsync(Guid id, UpdatePrescriptionDto updateDto, TokenModel tokenModel)
     {
         try
         {
@@ -194,7 +194,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> DeletePrescriptionAsync(Guid id)
+    public async Task<JsonModel> DeletePrescriptionAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -219,7 +219,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Prescription Workflow
-    public async Task<JsonModel> SendPrescriptionToPharmacyAsync(Guid prescriptionId)
+    public async Task<JsonModel> SendPrescriptionToPharmacyAsync(Guid prescriptionId, TokenModel tokenModel)
     {
         try
         {
@@ -243,7 +243,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> ConfirmPrescriptionAsync(Guid prescriptionId, string pharmacyReference)
+    public async Task<JsonModel> ConfirmPrescriptionAsync(Guid prescriptionId, string pharmacyReference, TokenModel tokenModel)
     {
         try
         {
@@ -267,7 +267,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> DispensePrescriptionAsync(Guid prescriptionId)
+    public async Task<JsonModel> DispensePrescriptionAsync(Guid prescriptionId, TokenModel tokenModel)
     {
         try
         {
@@ -291,7 +291,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> ShipPrescriptionAsync(Guid prescriptionId, string trackingNumber)
+    public async Task<JsonModel> ShipPrescriptionAsync(Guid prescriptionId, string trackingNumber, TokenModel tokenModel)
     {
         try
         {
@@ -315,7 +315,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> DeliverPrescriptionAsync(Guid prescriptionId)
+    public async Task<JsonModel> DeliverPrescriptionAsync(Guid prescriptionId, TokenModel tokenModel)
     {
         try
         {
@@ -340,7 +340,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Medication Shipment Management
-    public async Task<JsonModel> CreateShipmentAsync(CreateMedicationShipmentDto createDto)
+    public async Task<JsonModel> CreateShipmentAsync(CreateMedicationShipmentDto createDto, TokenModel tokenModel)
     {
         try
         {
@@ -376,7 +376,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GetShipmentAsync(Guid id)
+    public async Task<JsonModel> GetShipmentAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -407,7 +407,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GetUserShipmentsAsync(Guid userId)
+    public async Task<JsonModel> GetUserShipmentsAsync(Guid userId, TokenModel tokenModel)
     {
         try
         {
@@ -432,7 +432,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> UpdateShipmentAsync(Guid id, UpdateMedicationShipmentDto updateDto)
+    public async Task<JsonModel> UpdateShipmentAsync(Guid id, UpdateMedicationShipmentDto updateDto, TokenModel tokenModel)
     {
         try
         {
@@ -468,7 +468,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> DeleteShipmentAsync(Guid id)
+    public async Task<JsonModel> DeleteShipmentAsync(Guid id, TokenModel tokenModel)
     {
         try
         {
@@ -493,7 +493,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Shipment Workflow
-    public async Task<JsonModel> ProcessShipmentAsync(Guid shipmentId)
+    public async Task<JsonModel> ProcessShipmentAsync(Guid shipmentId, TokenModel tokenModel)
     {
         try
         {
@@ -517,7 +517,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> ShipMedicationAsync(Guid shipmentId, string trackingNumber, string carrier)
+    public async Task<JsonModel> ShipMedicationAsync(Guid shipmentId, string trackingNumber, string carrier, TokenModel tokenModel)
     {
         try
         {
@@ -541,7 +541,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> DeliverMedicationAsync(Guid shipmentId)
+    public async Task<JsonModel> DeliverMedicationAsync(Guid shipmentId, TokenModel tokenModel)
     {
         try
         {
@@ -565,7 +565,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> ReturnShipmentAsync(Guid shipmentId, string reason)
+    public async Task<JsonModel> ReturnShipmentAsync(Guid shipmentId, string reason, TokenModel tokenModel)
     {
         try
         {
@@ -590,7 +590,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Tracking and Status
-    public async Task<JsonModel> GetTrackingStatusAsync(string trackingNumber)
+    public async Task<JsonModel> GetTrackingStatusAsync(string trackingNumber, TokenModel tokenModel)
     {
         try
         {
@@ -614,7 +614,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GetEstimatedDeliveryAsync(Guid shipmentId)
+    public async Task<JsonModel> GetEstimatedDeliveryAsync(Guid shipmentId, TokenModel tokenModel)
     {
         try
         {
@@ -638,7 +638,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> UpdateTrackingInfoAsync(Guid shipmentId, string trackingNumber, string status)
+    public async Task<JsonModel> UpdateTrackingInfoAsync(Guid shipmentId, string trackingNumber, string status, TokenModel tokenModel)
     {
         try
         {
@@ -663,7 +663,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Analytics and Reporting
-    public async Task<JsonModel> GetPrescriptionAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetPrescriptionAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
@@ -702,7 +702,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GetShipmentAnalyticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<JsonModel> GetShipmentAnalyticsAsync(DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
     {
         try
         {
@@ -740,7 +740,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GeneratePrescriptionReportAsync(DateTime startDate, DateTime endDate, string format = "pdf")
+    public async Task<JsonModel> GeneratePrescriptionReportAsync(DateTime startDate, DateTime endDate, string format, TokenModel tokenModel)
     {
         try
         {
@@ -765,7 +765,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GenerateShipmentReportAsync(DateTime startDate, DateTime endDate, string format = "pdf")
+    public async Task<JsonModel> GenerateShipmentReportAsync(DateTime startDate, DateTime endDate, string format, TokenModel tokenModel)
     {
         try
         {
@@ -791,7 +791,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Pharmacy Integration (Database Level)
-    public async Task<JsonModel> GetPharmacyIntegrationAsync()
+    public async Task<JsonModel> GetPharmacyIntegrationAsync(TokenModel tokenModel)
     {
         try
         {
@@ -826,7 +826,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> TestPharmacyConnectionAsync()
+    public async Task<JsonModel> TestPharmacyConnectionAsync(TokenModel tokenModel)
     {
         try
         {
@@ -850,7 +850,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> SyncPrescriptionsAsync()
+    public async Task<JsonModel> SyncPrescriptionsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -874,7 +874,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> SyncShipmentsAsync()
+    public async Task<JsonModel> SyncShipmentsAsync(TokenModel tokenModel)
     {
         try
         {
@@ -899,7 +899,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Refill Management
-    public async Task<JsonModel> CreateRefillRequestAsync(Guid prescriptionId)
+    public async Task<JsonModel> CreateRefillRequestAsync(Guid prescriptionId, TokenModel tokenModel)
     {
         try
         {
@@ -930,7 +930,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GetRefillRequestsAsync(Guid userId)
+    public async Task<JsonModel> GetRefillRequestsAsync(Guid userId, TokenModel tokenModel)
     {
         try
         {
@@ -955,7 +955,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> ApproveRefillRequestAsync(Guid prescriptionId)
+    public async Task<JsonModel> ApproveRefillRequestAsync(Guid prescriptionId, TokenModel tokenModel)
     {
         try
         {
@@ -979,7 +979,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> DenyRefillRequestAsync(Guid prescriptionId, string reason)
+    public async Task<JsonModel> DenyRefillRequestAsync(Guid prescriptionId, string reason, TokenModel tokenModel)
     {
         try
         {
@@ -1004,7 +1004,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Inventory Management (Placeholder for HomeMed API)
-    public async Task<JsonModel> CheckMedicationAvailabilityAsync(string medicationName, string dosage)
+    public async Task<JsonModel> CheckMedicationAvailabilityAsync(string medicationName, string dosage, TokenModel tokenModel)
     {
         try
         {
@@ -1028,7 +1028,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GetMedicationPriceAsync(string medicationName, string dosage)
+    public async Task<JsonModel> GetMedicationPriceAsync(string medicationName, string dosage, TokenModel tokenModel)
     {
         try
         {
@@ -1052,7 +1052,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> ReserveMedicationAsync(string medicationName, string dosage, int quantity)
+    public async Task<JsonModel> ReserveMedicationAsync(string medicationName, string dosage, int quantity, TokenModel tokenModel)
     {
         try
         {
@@ -1077,7 +1077,7 @@ public class HomeMedService : IHomeMedService
     }
 
     // Auto-dispatch (Placeholder for HomeMed API)
-    public async Task<JsonModel> TriggerAutoDispatchAsync(Guid prescriptionId)
+    public async Task<JsonModel> TriggerAutoDispatchAsync(Guid prescriptionId, TokenModel tokenModel)
     {
         try
         {
@@ -1101,7 +1101,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> ProcessAutoDispatchQueueAsync()
+    public async Task<JsonModel> ProcessAutoDispatchQueueAsync(TokenModel tokenModel)
     {
         try
         {
@@ -1125,7 +1125,7 @@ public class HomeMedService : IHomeMedService
         }
     }
 
-    public async Task<JsonModel> GetAutoDispatchQueueAsync()
+    public async Task<JsonModel> GetAutoDispatchQueueAsync(TokenModel tokenModel)
     {
         try
         {

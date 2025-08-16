@@ -185,12 +185,21 @@ namespace SmartTelehealth.Application.DTOs
         public int SubscriptionCount { get; set; }
         public decimal Revenue { get; set; }
         public decimal GrowthRate { get; set; }
+        
+        // Added missing properties to fix build errors
+        public Guid CategoryId { get; set; }
+        public int TotalSubscriptions { get; set; }
+        public int ActiveSubscriptions { get; set; }
     }
 
     public class CategoryRevenueDto
     {
         public string CategoryName { get; set; } = string.Empty;
         public decimal Revenue { get; set; }
+        
+        // Added missing properties to fix build errors
+        public Guid CategoryId { get; set; }
+        public int SubscriptionCount { get; set; }
     }
 
     public class RevenueTrendDto
@@ -198,6 +207,11 @@ namespace SmartTelehealth.Application.DTOs
         public DateTime Date { get; set; }
         public decimal Revenue { get; set; }
         public decimal Growth { get; set; }
+        
+        // Added missing properties to fix build errors
+        public string Period { get; set; } = string.Empty;
+        public int Month { get; set; }
+        public int Year { get; set; }
     }
 
     public class ProviderAnalyticsDto

@@ -31,10 +31,11 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         _privilegeService = privilegeService;
     }
 
-    public async Task<JsonModel> CheckVideoCallAccessAsync(int userId, Guid? consultationId = null)
+    public async Task<JsonModel> CheckVideoCallAccessAsync(int userId, Guid? consultationId = null, TokenModel tokenModel = null)
     {
         try
         {
+            // Get active subscription for user
             var subscription = await _subscriptionRepository.GetActiveSubscriptionByUserIdAsync(userId);
             if (subscription == null)
             {
@@ -46,7 +47,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                 };
             }
             // Check if subscription plan includes video calls (privilege)
-            var videoCallRemaining = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "VideoCall");
+            var videoCallRemaining = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "VideoCall", tokenModel);
             if (videoCallRemaining <= 0)
             {
                 return new JsonModel
@@ -57,7 +58,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                 };
             }
             // Check consultation limits (privilege)
-            var consultationRemaining = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "Teleconsultation");
+            var consultationRemaining = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "Teleconsultation", tokenModel);
             if (consultationRemaining == 0)
             {
                 return new JsonModel
@@ -84,7 +85,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                 // Remove ConsultationsUsed, ConsultationLimit, RemainingConsultations
                 // Use privilege system for privilege usage reporting if needed
                 MaxDurationMinutes = 60, // Default duration
-                CanRecord = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "PrioritySupport") > 0,
+                CanRecord = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "PrioritySupport", tokenModel) > 0,
                 CanBroadcast = false // Only for premium plans, add as privilege if needed
             };
             return new JsonModel
@@ -106,11 +107,11 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         }
     }
 
-    public async Task<JsonModel> CreateVideoCallSessionAsync(int userId, Guid consultationId, string sessionName)
+    public async Task<JsonModel> CreateVideoCallSessionAsync(int userId, Guid consultationId, string sessionName, TokenModel tokenModel)
     {
         try
         {
-            var accessResult = await CheckVideoCallAccessAsync(userId, consultationId);
+            var accessResult = await CheckVideoCallAccessAsync(userId, consultationId, tokenModel);
             if (accessResult.StatusCode != 200)
             {
                 return new JsonModel
@@ -130,7 +131,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                     StatusCode = 404
                 };
             }
-            var sessionResult = await _openTokService.CreateSessionAsync(sessionName, false);
+            var sessionResult = await _openTokService.CreateSessionAsync(sessionName, false, tokenModel);
             if (sessionResult.StatusCode != 200)
             {
                 return new JsonModel
@@ -157,7 +158,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                     var subscription = await _subscriptionRepository.GetActiveSubscriptionByUserIdAsync(userId);
                     if (subscription != null && !consultation.IsOneTime)
                     {
-                        await _privilegeService.UsePrivilegeAsync(subscription.Id, "Teleconsultation");
+                        await _privilegeService.UsePrivilegeAsync(subscription.Id, "Teleconsultation", 1, tokenModel);
                     }
                 }
             }
@@ -183,12 +184,12 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         }
     }
 
-    public async Task<JsonModel> GenerateVideoCallTokenAsync(int userId, string sessionId, OpenTokRole role)
+    public async Task<JsonModel> GenerateVideoCallTokenAsync(int userId, string sessionId, OpenTokRole role, TokenModel tokenModel)
     {
         try
         {
             // Check access
-            var accessResult = await CheckVideoCallAccessAsync(userId);
+            var accessResult = await CheckVideoCallAccessAsync(userId, null, tokenModel);
             if (accessResult.StatusCode != 200)
             {
                 return new JsonModel
@@ -200,7 +201,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
             }
 
             // Generate token
-            var tokenResult = await _openTokService.GenerateTokenAsync(sessionId, userId.ToString(), "User", role);
+            var tokenResult = await _openTokService.GenerateTokenAsync(sessionId, userId.ToString(), "User", role, tokenModel);
             
             if (tokenResult.StatusCode != 200)
             {
@@ -227,7 +228,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
         }
     }
 
-    public async Task<JsonModel> ProcessVideoCallBillingAsync(int userId, Guid consultationId, int durationMinutes)
+    public async Task<JsonModel> ProcessVideoCallBillingAsync(int userId, Guid consultationId, int durationMinutes, TokenModel tokenModel)
     {
         try
         {
@@ -250,7 +251,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
             else if (subscription != null)
             {
                 // Use privilege system to determine if included
-                var consultationRemaining = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "Teleconsultation");
+                var consultationRemaining = await _privilegeService.GetRemainingPrivilegeAsync(subscription.Id, "Teleconsultation", tokenModel);
                 if (consultationRemaining > 0)
                 {
                     billingAmount = 0; // Included in subscription
@@ -273,7 +274,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
                     Description = $"Video consultation - {durationMinutes} minutes",
                     DueDate = DateTime.UtcNow.AddDays(30)
                 };
-                var billingResult = await _billingService.CreateBillingRecordAsync(billingDto);
+                var billingResult = await _billingService.CreateBillingRecordAsync(billingDto, tokenModel);
                 if (billingResult.StatusCode != 200)
                 {
                     return new JsonModel
@@ -451,14 +452,21 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
 
     private Guid? GetBillingRecordId(object billingData)
     {
-        var dynamicData = billingData as dynamic;
-        if (dynamicData != null)
+        try
         {
-            if (Guid.TryParse(dynamicData.Id?.ToString(), out Guid billId))
+            var dynamicData = billingData as dynamic;
+            if (dynamicData != null)
             {
-                return billId;
+                if (Guid.TryParse(dynamicData.Id?.ToString(), out Guid billId))
+                {
+                    return billId;
+                }
             }
+            return null;
         }
-        return null;
+        catch
+        {
+            return null;
+        }
     }
 } 

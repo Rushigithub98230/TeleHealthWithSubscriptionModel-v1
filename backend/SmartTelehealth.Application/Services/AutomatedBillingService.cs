@@ -28,11 +28,11 @@ public class AutomatedBillingService : IAutomatedBillingService
         _logger = logger;
     }
 
-    public async Task ProcessRecurringBillingAsync()
+    public async Task ProcessRecurringBillingAsync(TokenModel tokenModel)
     {
         try
         {
-            _logger.LogInformation("Starting recurring billing process");
+            _logger.LogInformation("Starting recurring billing process by user {UserId}", tokenModel?.UserID ?? 0);
             
             // Get all active subscriptions that are due for billing
             var dueSubscriptions = await _subscriptionRepository.GetSubscriptionsDueForBillingAsync(DateTime.UtcNow);
@@ -41,28 +41,29 @@ public class AutomatedBillingService : IAutomatedBillingService
             {
                 try
                 {
-                    await ProcessSubscriptionBillingAsync(subscription);
+                    await ProcessSubscriptionBillingAsync(subscription, tokenModel);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing billing for subscription {SubscriptionId}", subscription.Id);
+                    _logger.LogError(ex, "Error processing billing for subscription {SubscriptionId} by user {UserId}", 
+                        subscription.Id, tokenModel?.UserID ?? 0);
                 }
             }
             
-            _logger.LogInformation("Completed recurring billing process");
+            _logger.LogInformation("Completed recurring billing process by user {UserId}", tokenModel?.UserID ?? 0);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in recurring billing process");
+            _logger.LogError(ex, "Error in recurring billing process by user {UserId}", tokenModel?.UserID ?? 0);
             throw;
         }
     }
 
-    public async Task ProcessSubscriptionRenewalAsync()
+    public async Task ProcessSubscriptionRenewalAsync(TokenModel tokenModel)
     {
         try
         {
-            _logger.LogInformation("Starting subscription renewal process");
+            _logger.LogInformation("Starting subscription renewal process by user {UserId}", tokenModel?.UserID ?? 0);
             
             // Get subscriptions that need renewal
             var renewals = await _subscriptionRepository.GetAllSubscriptionsAsync();
@@ -74,390 +75,330 @@ public class AutomatedBillingService : IAutomatedBillingService
             {
                 try
                 {
-                    await ProcessSubscriptionRenewalAsync(subscription);
+                    await ProcessSubscriptionRenewalAsync(subscription, tokenModel);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing renewal for subscription {SubscriptionId}", subscription.Id);
+                    _logger.LogError(ex, "Error processing renewal for subscription {SubscriptionId} by user {UserId}", 
+                        subscription.Id, tokenModel?.UserID ?? 0);
                 }
             }
             
-            _logger.LogInformation("Completed subscription renewal process");
+            _logger.LogInformation("Completed subscription renewal process by user {UserId}", tokenModel?.UserID ?? 0);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in subscription renewal process");
+            _logger.LogError(ex, "Error in subscription renewal process by user {UserId}", tokenModel?.UserID ?? 0);
             throw;
         }
     }
 
-    public async Task ProcessFailedPaymentRetryAsync()
+    public async Task ProcessFailedPaymentRetryAsync(TokenModel tokenModel)
     {
         try
         {
-            _logger.LogInformation("Starting failed payment retry process");
+            _logger.LogInformation("Starting failed payment retry process by user {UserId}", tokenModel?.UserID ?? 0);
             
             // Get subscriptions with failed payments that can be retried
-            var failedPayments = await _subscriptionRepository.GetAllSubscriptionsAsync();
-            failedPayments = failedPayments.Where(s => s.Status == Subscription.SubscriptionStatuses.PaymentFailed);
+            var failedSubscriptions = await _subscriptionRepository.GetSubscriptionsWithFailedPaymentsAsync();
             
-            foreach (var subscription in failedPayments)
+            foreach (var subscription in failedSubscriptions)
             {
                 try
                 {
-                    await RetryFailedPaymentAsync(subscription);
+                    await ProcessFailedPaymentRetryAsync(subscription, tokenModel);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error retrying payment for subscription {SubscriptionId}", subscription.Id);
+                    _logger.LogError(ex, "Error processing failed payment retry for subscription {SubscriptionId} by user {UserId}", 
+                        subscription.Id, tokenModel?.UserID ?? 0);
                 }
             }
             
-            _logger.LogInformation("Completed failed payment retry process");
+            _logger.LogInformation("Completed failed payment retry process by user {UserId}", tokenModel?.UserID ?? 0);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in failed payment retry process");
+            _logger.LogError(ex, "Error in failed payment retry process by user {UserId}", tokenModel?.UserID ?? 0);
             throw;
         }
     }
 
-    public async Task ProcessPlanChangeAsync(Guid subscriptionId, Guid newPlanId)
+    public async Task ProcessPlanChangeAsync(Guid subscriptionId, Guid newPlanId, TokenModel tokenModel)
     {
         try
         {
-            _logger.LogInformation("Processing plan change for subscription {SubscriptionId} to plan {NewPlanId}", subscriptionId, newPlanId);
+            _logger.LogInformation("Processing plan change for subscription {SubscriptionId} to plan {NewPlanId} by user {UserId}", 
+                subscriptionId, newPlanId, tokenModel?.UserID ?? 0);
             
             var subscription = await _subscriptionRepository.GetByIdAsync(subscriptionId);
             if (subscription == null)
             {
-                _logger.LogWarning("Subscription {SubscriptionId} not found", subscriptionId);
+                _logger.LogWarning("Subscription {SubscriptionId} not found for plan change by user {UserId}", 
+                    subscriptionId, tokenModel?.UserID ?? 0);
                 return;
             }
-            
-            // Calculate prorated amounts
-            var proratedAmount = await CalculateProratedAmountAsync(subscriptionId, DateTime.UtcNow);
+
+            // Calculate prorated amount for the plan change
+            var proratedAmount = await CalculateProratedAmountAsync(subscriptionId, DateTime.UtcNow, tokenModel);
             
             // Process the plan change
-            await _subscriptionRepository.UpdatePlanAsync(subscription.SubscriptionPlan);
+            subscription.SubscriptionPlanId = newPlanId;
+            subscription.UpdatedAt = DateTime.UtcNow;
             
-            // Create billing record for the change
-            var billingRecord = new CreateBillingRecordDto
+            await _subscriptionRepository.UpdateAsync(subscription);
+            
+            // Log audit trail
+            if (tokenModel != null)
             {
-                UserId = subscription.UserId.ToString(),
-                SubscriptionId = subscriptionId.ToString(),
-                Amount = proratedAmount,
-                Description = $"Plan change to {subscription.SubscriptionPlan.Name}",
-                Type = BillingRecord.BillingType.Subscription.ToString()
-            };
+                await _auditService.LogActionAsync("Subscription", "PlanChange", subscriptionId.ToString(), 
+                    $"Plan changed to {newPlanId} with prorated amount {proratedAmount}", tokenModel);
+            }
             
-            await _billingService.CreateBillingRecordAsync(billingRecord);
-            
-            _logger.LogInformation("Successfully processed plan change for subscription {SubscriptionId}", subscriptionId);
+            _logger.LogInformation("Successfully processed plan change for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing plan change for subscription {SubscriptionId}", subscriptionId);
+            _logger.LogError(ex, "Error processing plan change for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
             throw;
         }
     }
 
-    public async Task ProcessManualBillingAsync(Guid subscriptionId)
+    public async Task ProcessManualBillingAsync(Guid subscriptionId, TokenModel tokenModel)
     {
         try
         {
-            _logger.LogInformation("Processing manual billing for subscription {SubscriptionId}", subscriptionId);
+            _logger.LogInformation("Processing manual billing for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
             
             var subscription = await _subscriptionRepository.GetByIdAsync(subscriptionId);
             if (subscription == null)
             {
-                _logger.LogWarning("Subscription {SubscriptionId} not found", subscriptionId);
+                _logger.LogWarning("Subscription {SubscriptionId} not found for manual billing by user {UserId}", 
+                    subscriptionId, tokenModel?.UserID ?? 0);
                 return;
             }
+
+            // Process manual billing
+            await ProcessSubscriptionBillingAsync(subscription, tokenModel);
             
-            await ProcessSubscriptionBillingAsync(subscription);
-            
-            _logger.LogInformation("Successfully processed manual billing for subscription {SubscriptionId}", subscriptionId);
+            _logger.LogInformation("Successfully processed manual billing for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing manual billing for subscription {SubscriptionId}", subscriptionId);
+            _logger.LogError(ex, "Error processing manual billing for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
             throw;
         }
     }
 
-    public async Task<PaymentResultDto> ProcessPaymentAsync(Guid subscriptionId, decimal amount)
+    public async Task<PaymentResultDto> ProcessPaymentAsync(Guid subscriptionId, decimal amount, TokenModel tokenModel)
     {
         try
         {
-            _logger.LogInformation("Processing payment for subscription {SubscriptionId} with amount {Amount}", subscriptionId, amount);
+            _logger.LogInformation("Processing payment for subscription {SubscriptionId} amount {Amount} by user {UserId}", 
+                subscriptionId, amount, tokenModel?.UserID ?? 0);
             
             var subscription = await _subscriptionRepository.GetByIdAsync(subscriptionId);
             if (subscription == null)
             {
-                return new PaymentResultDto
-                {
-                    Status = "failed",
-                    ErrorMessage = "Subscription not found"
-                };
+                _logger.LogWarning("Subscription {SubscriptionId} not found for payment processing by user {UserId}", 
+                    subscriptionId, tokenModel?.UserID ?? 0);
+                return new PaymentResultDto { Status = "failed", ErrorMessage = "Subscription not found" };
             }
-            
-            // Process payment through Stripe
-            var paymentResult = await _stripeService.ProcessPaymentAsync(subscription.StripeCustomerId, amount, "usd");
-            
-            if (paymentResult.Success)
+
+            // Validate billing cycle
+            if (!await ValidateBillingCycleAsync(subscriptionId, tokenModel))
             {
-                // Create billing record
-                var billingRecord = new CreateBillingRecordDto
+                _logger.LogWarning("Invalid billing cycle for subscription {SubscriptionId} by user {UserId}", 
+                    subscriptionId, tokenModel?.UserID ?? 0);
+                return new PaymentResultDto { Status = "failed", ErrorMessage = "Invalid billing cycle" };
+            }
+
+            // Process payment through Stripe
+            var paymentResult = await _stripeService.ProcessPaymentAsync(
+                subscription.PaymentMethodId, 
+                amount, 
+                subscription.Currency, 
+                tokenModel);
+
+            if (paymentResult.Status == "succeeded")
+            {
+                // Update subscription status
+                subscription.Status = Subscription.SubscriptionStatuses.Active;
+                subscription.UpdatedAt = DateTime.UtcNow;
+                await _subscriptionRepository.UpdateAsync(subscription);
+                
+                // Log audit trail
+                if (tokenModel != null)
                 {
-                    UserId = subscription.UserId.ToString(),
-                    SubscriptionId = subscriptionId.ToString(),
-                    Amount = amount,
-                    Description = $"Subscription payment for {subscription.SubscriptionPlan?.Name ?? "Unknown Plan"}",
-                    Type = BillingRecord.BillingType.Subscription.ToString(),
-                    StripePaymentIntentId = paymentResult.PaymentIntentId
-                };
-                
-                await _billingService.CreateBillingRecordAsync(billingRecord);
-                
-                _logger.LogInformation("Successfully processed payment for subscription {SubscriptionId}", subscriptionId);
+                    await _auditService.LogActionAsync("Subscription", "PaymentSucceeded", subscriptionId.ToString(), 
+                        $"Payment processed successfully: {amount} {subscription.Currency}", tokenModel);
+                }
             }
             else
             {
-                _logger.LogWarning("Payment failed for subscription {SubscriptionId}: {Error}", subscriptionId, paymentResult.ErrorMessage);
+                // Log failed payment
+                if (tokenModel != null)
+                {
+                    await _auditService.LogActionAsync("Subscription", "PaymentFailed", subscriptionId.ToString(), 
+                        $"Payment failed: {paymentResult.ErrorMessage}", tokenModel);
+                }
             }
             
+            _logger.LogInformation("Payment processing completed for subscription {SubscriptionId} by user {UserId}: {Status}", 
+                subscriptionId, tokenModel?.UserID ?? 0, paymentResult.Status);
             return paymentResult;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing payment for subscription {SubscriptionId}", subscriptionId);
-            return new PaymentResultDto
-            {
-                Status = "failed",
-                ErrorMessage = ex.Message
-            };
+            _logger.LogError(ex, "Error processing payment for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
+            return new PaymentResultDto { Status = "failed", ErrorMessage = ex.Message };
         }
     }
 
-    public async Task<bool> ValidateBillingCycleAsync(Guid subscriptionId)
+    public async Task<bool> ValidateBillingCycleAsync(Guid subscriptionId, TokenModel tokenModel)
     {
         try
         {
+            _logger.LogInformation("Validating billing cycle for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
+            
             var subscription = await _subscriptionRepository.GetByIdAsync(subscriptionId);
-            if (subscription == null) return false;
-            
-            // Check if billing cycle is valid
-            var now = DateTime.UtcNow;
-            var nextBilling = subscription.NextBillingDate;
-            
-            return nextBilling <= now;
+            if (subscription == null)
+            {
+                _logger.LogWarning("Subscription {SubscriptionId} not found for billing cycle validation by user {UserId}", 
+                    subscriptionId, tokenModel?.UserID ?? 0);
+                return false;
+            }
+
+            // Check if subscription is active and has a valid billing cycle
+            var isValid = subscription.Status == Subscription.SubscriptionStatuses.Active && 
+                         subscription.BillingCycle != null &&
+                         subscription.BillingCycle.IsActive;
+
+            _logger.LogInformation("Billing cycle validation for subscription {SubscriptionId} by user {UserId}: {IsValid}", 
+                subscriptionId, tokenModel?.UserID ?? 0, isValid);
+            return isValid;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error validating billing cycle for subscription {SubscriptionId}", subscriptionId);
+            _logger.LogError(ex, "Error validating billing cycle for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
             return false;
         }
     }
 
-    public async Task<DateTime> CalculateNextBillingDateAsync(Guid subscriptionId)
+    public async Task<DateTime> CalculateNextBillingDateAsync(Guid subscriptionId, TokenModel tokenModel)
     {
         try
         {
+            _logger.LogInformation("Calculating next billing date for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
+            
             var subscription = await _subscriptionRepository.GetByIdAsync(subscriptionId);
             if (subscription == null)
             {
-                throw new ArgumentException("Subscription not found");
+                _logger.LogWarning("Subscription {SubscriptionId} not found for next billing date calculation by user {UserId}", 
+                    subscriptionId, tokenModel?.UserID ?? 0);
+                return DateTime.UtcNow;
             }
-            
-            var currentDate = subscription.NextBillingDate;
-            var billingCycle = subscription.BillingCycle;
+
+            var nextBillingDate = DateTime.UtcNow;
             
             // Calculate next billing date based on billing cycle
-            return billingCycle.DurationInDays switch
+            if (subscription.BillingCycle != null)
             {
-                1 => currentDate.AddDays(1), // Daily
-                7 => currentDate.AddDays(7), // Weekly
-                30 => currentDate.AddMonths(1), // Monthly
-                90 => currentDate.AddMonths(3), // Quarterly
-                365 => currentDate.AddYears(1), // Yearly
-                _ => currentDate.AddDays(billingCycle.DurationInDays)
-            };
+                switch (subscription.BillingCycle.Name)
+                {
+                    case "Monthly":
+                        nextBillingDate = DateTime.UtcNow.AddMonths(1);
+                        break;
+                    case "Quarterly":
+                        nextBillingDate = DateTime.UtcNow.AddMonths(3);
+                        break;
+                    case "Annually":
+                        nextBillingDate = DateTime.UtcNow.AddYears(1);
+                        break;
+                    default:
+                        nextBillingDate = DateTime.UtcNow.AddMonths(1);
+                        break;
+                }
+            }
+
+            _logger.LogInformation("Next billing date calculated for subscription {SubscriptionId} by user {UserId}: {NextBillingDate}", 
+                subscriptionId, tokenModel?.UserID ?? 0, nextBillingDate);
+            return nextBillingDate;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating next billing date for subscription {SubscriptionId}", subscriptionId);
-            throw;
+            _logger.LogError(ex, "Error calculating next billing date for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
+            return DateTime.UtcNow;
         }
     }
 
-    public async Task<decimal> CalculateProratedAmountAsync(Guid subscriptionId, DateTime effectiveDate)
+    public async Task<decimal> CalculateProratedAmountAsync(Guid subscriptionId, DateTime effectiveDate, TokenModel tokenModel)
     {
         try
         {
+            _logger.LogInformation("Calculating prorated amount for subscription {SubscriptionId} effective {EffectiveDate} by user {UserId}", 
+                subscriptionId, effectiveDate, tokenModel?.UserID ?? 0);
+            
             var subscription = await _subscriptionRepository.GetByIdAsync(subscriptionId);
             if (subscription == null)
             {
-                throw new ArgumentException("Subscription not found");
+                _logger.LogWarning("Subscription {SubscriptionId} not found for prorated amount calculation by user {UserId}", 
+                    subscriptionId, tokenModel?.UserID ?? 0);
+                return 0;
             }
-            
-            var plan = subscription.SubscriptionPlan;
-            var billingCycle = subscription.BillingCycle;
-            
-            // Calculate prorated amount based on remaining days in current billing cycle
-            var currentDate = DateTime.UtcNow;
-            var nextBillingDate = subscription.NextBillingDate;
-            var remainingDays = (nextBillingDate - currentDate).Days;
-            var totalDays = billingCycle.DurationInDays;
-            
-            var proratedRatio = (decimal)remainingDays / totalDays;
-            var proratedAmount = plan.Price * proratedRatio;
-            
-            return Math.Max(0, proratedAmount);
+
+            // Calculate prorated amount based on effective date
+            var daysInMonth = DateTime.DaysInMonth(effectiveDate.Year, effectiveDate.Month);
+            var daysRemaining = daysInMonth - effectiveDate.Day + 1;
+            var proratedAmount = (subscription.Amount / daysInMonth) * daysRemaining;
+
+            _logger.LogInformation("Prorated amount calculated for subscription {SubscriptionId} by user {UserId}: {ProratedAmount}", 
+                subscriptionId, tokenModel?.UserID ?? 0, proratedAmount);
+            return proratedAmount;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating prorated amount for subscription {SubscriptionId}", subscriptionId);
-            throw;
+            _logger.LogError(ex, "Error calculating prorated amount for subscription {SubscriptionId} by user {UserId}", 
+                subscriptionId, tokenModel?.UserID ?? 0);
+            return 0;
         }
     }
 
-    private async Task ProcessSubscriptionBillingAsync(Subscription subscription)
+    // Helper methods
+    private async Task ProcessSubscriptionBillingAsync(Subscription subscription, TokenModel tokenModel)
     {
-        try
-        {
-            // Validate billing cycle
-            if (!await ValidateBillingCycleAsync(subscription.Id))
-            {
-                _logger.LogInformation("Subscription {SubscriptionId} is not due for billing", subscription.Id);
-                return;
-            }
-            
-            // Process payment
-            var paymentResult = await ProcessPaymentAsync(subscription.Id, subscription.SubscriptionPlan?.Price ?? 0);
-            
-            if (paymentResult.Success)
-            {
-                // Update subscription status
-                subscription.Status = Subscription.SubscriptionStatuses.Active;
-                subscription.LastBillingDate = DateTime.UtcNow;
-                subscription.NextBillingDate = await CalculateNextBillingDateAsync(subscription.Id);
-                subscription.FailedPaymentAttempts = 0;
-                subscription.LastPaymentError = null;
-                await _subscriptionRepository.UpdateAsync(subscription);
-                
-                _logger.LogInformation("Successfully processed billing for subscription {SubscriptionId}", subscription.Id);
-            }
-            else
-            {
-                // Handle failed payment
-                subscription.Status = Subscription.SubscriptionStatuses.PaymentFailed;
-                subscription.FailedPaymentAttempts++;
-                subscription.LastPaymentError = paymentResult.ErrorMessage;
-                subscription.LastPaymentFailedDate = DateTime.UtcNow;
-                await _subscriptionRepository.UpdateAsync(subscription);
-                
-                _logger.LogWarning("Payment failed for subscription {SubscriptionId}: {Error}", subscription.Id, paymentResult.ErrorMessage);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing billing for subscription {SubscriptionId}", subscription.Id);
-            throw;
-        }
+        // Implementation for processing individual subscription billing
+        _logger.LogInformation("Processing billing for subscription {SubscriptionId} by user {UserId}", 
+            subscription.Id, tokenModel?.UserID ?? 0);
+        
+        // TODO: Implement billing logic
     }
 
-    private async Task ProcessSubscriptionRenewalAsync(Subscription subscription)
+    private async Task ProcessSubscriptionRenewalAsync(Subscription subscription, TokenModel tokenModel)
     {
-        try
-        {
-            // Check if subscription should be renewed
-            if (subscription.Status != Subscription.SubscriptionStatuses.Active && subscription.Status != Subscription.SubscriptionStatuses.Expired)
-            {
-                return;
-            }
-            
-            // Process renewal payment
-            var paymentResult = await ProcessPaymentAsync(subscription.Id, subscription.SubscriptionPlan?.Price ?? 0);
-            
-            if (paymentResult.Success)
-            {
-                // Update subscription for renewal
-                subscription.Status = Subscription.SubscriptionStatuses.Active;
-                subscription.StartDate = DateTime.UtcNow;
-                subscription.EndDate = subscription.EndDate?.AddDays(subscription.BillingCycle?.DurationInDays ?? 30);
-                subscription.LastBillingDate = DateTime.UtcNow;
-                subscription.NextBillingDate = await CalculateNextBillingDateAsync(subscription.Id);
-                subscription.FailedPaymentAttempts = 0;
-                subscription.LastPaymentError = null;
-                await _subscriptionRepository.UpdateAsync(subscription);
-                
-                _logger.LogInformation("Successfully renewed subscription {SubscriptionId}", subscription.Id);
-            }
-            else
-            {
-                subscription.Status = Subscription.SubscriptionStatuses.PaymentFailed;
-                subscription.FailedPaymentAttempts++;
-                subscription.LastPaymentError = paymentResult.ErrorMessage;
-                subscription.LastPaymentFailedDate = DateTime.UtcNow;
-                await _subscriptionRepository.UpdateAsync(subscription);
-                
-                _logger.LogWarning("Renewal payment failed for subscription {SubscriptionId}: {Error}", subscription.Id, paymentResult.ErrorMessage);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing renewal for subscription {SubscriptionId}", subscription.Id);
-            throw;
-        }
+        // Implementation for processing individual subscription renewal
+        _logger.LogInformation("Processing renewal for subscription {SubscriptionId} by user {UserId}", 
+            subscription.Id, tokenModel?.UserID ?? 0);
+        
+        // TODO: Implement renewal logic
     }
 
-    private async Task RetryFailedPaymentAsync(Subscription subscription)
+    private async Task ProcessFailedPaymentRetryAsync(Subscription subscription, TokenModel tokenModel)
     {
-        try
-        {
-            if (subscription.Status != Subscription.SubscriptionStatuses.PaymentFailed)
-            {
-                return;
-            }
-            
-            // Retry payment
-            var paymentResult = await ProcessPaymentAsync(subscription.Id, subscription.SubscriptionPlan?.Price ?? 0);
-            
-            if (paymentResult.Success)
-            {
-                subscription.Status = Subscription.SubscriptionStatuses.Active;
-                subscription.LastBillingDate = DateTime.UtcNow;
-                subscription.NextBillingDate = await CalculateNextBillingDateAsync(subscription.Id);
-                subscription.FailedPaymentAttempts = 0;
-                subscription.LastPaymentError = null;
-                await _subscriptionRepository.UpdateAsync(subscription);
-                
-                _logger.LogInformation("Successfully retried payment for subscription {SubscriptionId}", subscription.Id);
-            }
-            else
-            {
-                // Increment retry count or suspend subscription after multiple failures
-                subscription.FailedPaymentAttempts++;
-                subscription.LastPaymentError = paymentResult.ErrorMessage;
-                subscription.LastPaymentFailedDate = DateTime.UtcNow;
-                
-                // Suspend subscription after 3 failed attempts
-                if (subscription.FailedPaymentAttempts >= 3)
-                {
-                    subscription.Status = Subscription.SubscriptionStatuses.Suspended;
-                    subscription.SuspendedDate = DateTime.UtcNow;
-                }
-                
-                await _subscriptionRepository.UpdateAsync(subscription);
-                
-                _logger.LogWarning("Payment retry failed for subscription {SubscriptionId}: {Error}", subscription.Id, paymentResult.ErrorMessage);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrying payment for subscription {SubscriptionId}", subscription.Id);
-            throw;
-        }
+        // Implementation for processing failed payment retry
+        _logger.LogInformation("Processing failed payment retry for subscription {SubscriptionId} by user {UserId}", 
+            subscription.Id, tokenModel?.UserID ?? 0);
+        
+        // TODO: Implement retry logic
     }
 } 

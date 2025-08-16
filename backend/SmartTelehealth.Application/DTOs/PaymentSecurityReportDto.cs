@@ -19,6 +19,14 @@ namespace SmartTelehealth.Application.DTOs
         public List<string> RiskFactors { get; set; } = new();
         public string RiskScore { get; set; } = "LOW";
         public string Recommendation { get; set; } = string.Empty;
+        
+        // Additional properties for PaymentSecurityService
+        public int TotalAttempts { get; set; }
+        public int SuccessfulAttempts { get; set; }
+        public int FailedAttempts { get; set; }
+        public int GeneratedBy { get; set; }
+        public DateTime GeneratedAt { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
     }
 
     public class PaymentSecurityEventDto

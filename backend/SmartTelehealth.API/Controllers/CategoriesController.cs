@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTelehealth.Application.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using SmartTelehealth.Application.Interfaces;
 
 namespace SmartTelehealth.API.Controllers;
@@ -11,9 +8,10 @@ namespace SmartTelehealth.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class CategoriesController : ControllerBase
+public class CategoriesController : BaseController
 {
     private readonly ICategoryService _categoryService;
+    
     public CategoriesController(ICategoryService categoryService)
     {
         _categoryService = categoryService;
@@ -22,22 +20,19 @@ public class CategoriesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<JsonModel>> GetAllCategories()
     {
-        var response = await _categoryService.GetAllCategoriesAsync();
-        return StatusCode(response.StatusCode, response);
+        return await _categoryService.GetAllCategoriesAsync(GetToken(HttpContext));
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<JsonModel>> GetCategory(Guid id)
     {
-        var response = await _categoryService.GetCategoryAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _categoryService.GetCategoryAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost]
     public async Task<ActionResult<JsonModel>> CreateCategory([FromBody] CreateCategoryDto createCategoryDto)
     {
-        var response = await _categoryService.CreateCategoryAsync(createCategoryDto);
-        return StatusCode(response.StatusCode, response);
+        return await _categoryService.CreateCategoryAsync(createCategoryDto, GetToken(HttpContext));
     }
 
     [HttpPut("{id}")]
@@ -45,14 +40,46 @@ public class CategoriesController : ControllerBase
     {
         if (!Guid.TryParse(updateCategoryDto.Id, out var dtoId) || id != dtoId)
             return BadRequest(new JsonModel { data = new object(), Message = "ID mismatch", StatusCode = 400 });
-        var response = await _categoryService.UpdateCategoryAsync(id, updateCategoryDto);
-        return StatusCode(response.StatusCode, response);
+        return await _categoryService.UpdateCategoryAsync(id, updateCategoryDto, GetToken(HttpContext));
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult<JsonModel>> DeleteCategory(Guid id)
     {
-        var response = await _categoryService.DeleteCategoryAsync(id);
-        return StatusCode(response.StatusCode, response);
+        return await _categoryService.DeleteCategoryAsync(id, GetToken(HttpContext));
+    }
+
+    [HttpGet("active")]
+    public async Task<ActionResult<JsonModel>> GetActiveCategories()
+    {
+        return await _categoryService.GetActiveCategoriesAsync(GetToken(HttpContext));
+    }
+
+    [HttpGet("search")]
+    public async Task<ActionResult<JsonModel>> SearchCategories([FromQuery] string searchTerm)
+    {
+        return await _categoryService.SearchCategoriesAsync(searchTerm, GetToken(HttpContext));
+    }
+
+    [HttpGet("{id}/plans")]
+    public async Task<ActionResult<JsonModel>> GetCategoryPlans(Guid id)
+    {
+        return await _categoryService.GetCategoryPlansAsync(id, GetToken(HttpContext));
+    }
+
+    [HttpGet("count/active")]
+    public async Task<ActionResult<JsonModel>> GetActiveCategoryCount()
+    {
+        return await _categoryService.GetActiveCategoryCountAsync(GetToken(HttpContext));
+    }
+
+    [HttpGet("paged")]
+    public async Task<ActionResult<JsonModel>> GetAllCategoriesPaged(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] bool? isActive = null)
+    {
+        return await _categoryService.GetAllCategoriesAsync(page, pageSize, searchTerm, isActive, GetToken(HttpContext));
     }
 } 

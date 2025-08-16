@@ -5,42 +5,42 @@ namespace SmartTelehealth.Application.Interfaces;
 public interface IOpenTokService
 {
     // Session management
-    Task<JsonModel> CreateSessionAsync(string sessionName, bool isArchived = false);
-    Task<JsonModel> GetSessionAsync(string sessionId);
-    Task<JsonModel> ArchiveSessionAsync(string sessionId);
-    Task<JsonModel> DeleteSessionAsync(string sessionId);
+    Task<JsonModel> CreateSessionAsync(string sessionName, bool isArchived, TokenModel tokenModel);
+    Task<JsonModel> GetSessionAsync(string sessionId, TokenModel tokenModel);
+    Task<JsonModel> ArchiveSessionAsync(string sessionId, TokenModel tokenModel);
+    Task<JsonModel> DeleteSessionAsync(string sessionId, TokenModel tokenModel);
 
     // Token generation
-    Task<JsonModel> GenerateTokenAsync(string sessionId, string userId, string userName, OpenTokRole role = OpenTokRole.Publisher);
-    Task<JsonModel> GenerateTokenAsync(string sessionId, string userId, string userName, DateTime expireTime, OpenTokRole role = OpenTokRole.Publisher);
+    Task<JsonModel> GenerateTokenAsync(string sessionId, string userId, string userName, OpenTokRole role, TokenModel tokenModel);
+    Task<JsonModel> GenerateTokenAsync(string sessionId, string userId, string userName, DateTime expireTime, OpenTokRole role, TokenModel tokenModel);
 
     // Stream management
-    Task<JsonModel> GetSessionStreamsAsync(string sessionId);
-    Task<JsonModel> ForceDisconnectAsync(string sessionId, string connectionId);
-    Task<JsonModel> MuteStreamAsync(string sessionId, string streamId, bool mute);
+    Task<JsonModel> GetSessionStreamsAsync(string sessionId, TokenModel tokenModel);
+    Task<JsonModel> ForceDisconnectAsync(string sessionId, string connectionId, TokenModel tokenModel);
+    Task<JsonModel> MuteStreamAsync(string sessionId, string streamId, bool mute, TokenModel tokenModel);
 
     // Recording
-    Task<JsonModel> StartRecordingAsync(string sessionId, OpenTokRecordingOptions options);
-    Task<JsonModel> StopRecordingAsync(string recordingId);
-    Task<JsonModel> GetRecordingAsync(string recordingId);
-    Task<JsonModel> GetSessionRecordingsAsync(string sessionId);
-    Task<JsonModel> GetRecordingUrlAsync(string recordingId);
+    Task<JsonModel> StartRecordingAsync(string sessionId, OpenTokRecordingOptions options, TokenModel tokenModel);
+    Task<JsonModel> StopRecordingAsync(string recordingId, TokenModel tokenModel);
+    Task<JsonModel> GetRecordingAsync(string recordingId, TokenModel tokenModel);
+    Task<JsonModel> GetSessionRecordingsAsync(string sessionId, TokenModel tokenModel);
+    Task<JsonModel> GetRecordingUrlAsync(string recordingId, TokenModel tokenModel);
 
     // Broadcasting
-    Task<JsonModel> StartBroadcastAsync(string sessionId, OpenTokBroadcastOptions options);
-    Task<JsonModel> StopBroadcastAsync(string broadcastId);
-    Task<JsonModel> GetBroadcastAsync(string broadcastId);
+    Task<JsonModel> StartBroadcastAsync(string sessionId, OpenTokBroadcastOptions options, TokenModel tokenModel);
+    Task<JsonModel> StopBroadcastAsync(string broadcastId, TokenModel tokenModel);
+    Task<JsonModel> GetBroadcastAsync(string broadcastId, TokenModel tokenModel);
 
     // Webhook handling
-    Task<JsonModel> HandleWebhookAsync(OpenTokWebhookDto webhook);
-    Task<JsonModel> LogSessionEventAsync(string sessionId, OpenTokEventType eventType, string connectionId, string? streamId = null);
+    Task<JsonModel> HandleWebhookAsync(OpenTokWebhookDto webhook, TokenModel tokenModel);
+    Task<JsonModel> LogSessionEventAsync(string sessionId, OpenTokEventType eventType, string connectionId, string? streamId, TokenModel tokenModel);
 
     // Analytics and monitoring
-    Task<JsonModel> GetSessionAnalyticsAsync(string sessionId);
-    Task<JsonModel> GetConnectionQualityAsync(string sessionId, string connectionId);
+    Task<JsonModel> GetSessionAnalyticsAsync(string sessionId, TokenModel tokenModel);
+    Task<JsonModel> GetConnectionQualityAsync(string sessionId, string connectionId, TokenModel tokenModel);
 
     // Health check
-    Task<JsonModel> IsServiceHealthyAsync();
+    Task<JsonModel> IsServiceHealthyAsync(TokenModel tokenModel);
 }
 
 public enum OpenTokRole

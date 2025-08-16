@@ -17,6 +17,16 @@ public class VideoCallHub : Hub
     private static readonly Dictionary<string, HashSet<string>> _callGroups = new();
     private static readonly Dictionary<string, VideoCallDto> _activeCalls = new();
 
+    private TokenModel GetTokenModel()
+    {
+        var userId = GetUserId();
+        return new TokenModel
+        {
+            UserID = userId,
+            RoleID = 0 // Default role
+        };
+    }
+
     public VideoCallHub(
         IVideoCallService videoCallService,
         IChatStorageService chatStorageService,
@@ -75,7 +85,7 @@ public class VideoCallHub : Hub
                 IsAudioEnabled = true
             };
 
-            var result = await _videoCallService.InitiateVideoCallAsync(createCallDto);
+            var result = await _videoCallService.InitiateVideoCallAsync(createCallDto, GetTokenModel());
             
                     if (result.StatusCode == 200 && result.data != null)
         {
@@ -100,7 +110,7 @@ public class VideoCallHub : Hub
                     UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.CallInitiated,
                     Description = $"Video call initiated by {GetUserName()}"
-                });
+                }, GetTokenModel());
             }
             else
             {
@@ -122,7 +132,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.JoinVideoCallAsync(Guid.Parse(callId), userId);
+            var result = await _videoCallService.JoinVideoCallAsync(Guid.Parse(callId), userId, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -142,7 +152,7 @@ public class VideoCallHub : Hub
                     UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.ParticipantJoined,
                     Description = $"{GetUserName()} joined the call"
-                });
+                }, GetTokenModel());
             }
             else
             {
@@ -164,7 +174,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.LeaveVideoCallAsync(Guid.Parse(callId), userId);
+            var result = await _videoCallService.LeaveVideoCallAsync(Guid.Parse(callId), userId, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -181,7 +191,7 @@ public class VideoCallHub : Hub
                     UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.ParticipantLeft,
                     Description = $"{GetUserName()} left the call"
-                });
+                }, GetTokenModel());
             }
         }
         catch (Exception ex)
@@ -198,7 +208,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.EndVideoCallAsync(Guid.Parse(callId), reason);
+            var result = await _videoCallService.EndVideoCallAsync(Guid.Parse(callId), reason, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -216,7 +226,7 @@ public class VideoCallHub : Hub
                     UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.CallDisconnected,
                     Description = $"Call ended by {GetUserName()}"
-                });
+                }, GetTokenModel());
             }
         }
         catch (Exception ex)
@@ -233,7 +243,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.RejectVideoCallAsync(Guid.Parse(callId), reason);
+            var result = await _videoCallService.RejectVideoCallAsync(Guid.Parse(callId), reason, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -245,7 +255,7 @@ public class VideoCallHub : Hub
                     UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.CallRejected,
                     Description = $"Call rejected by {GetUserName()}: {reason}"
-                });
+                }, GetTokenModel());
             }
         }
         catch (Exception ex)
@@ -262,7 +272,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.ToggleVideoAsync(Guid.Parse(callId), enabled);
+            var result = await _videoCallService.ToggleVideoAsync(Guid.Parse(callId), enabled, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -274,7 +284,7 @@ public class VideoCallHub : Hub
                     UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = enabled ? SmartTelehealth.Core.Entities.VideoCallEventType.VideoEnabled : SmartTelehealth.Core.Entities.VideoCallEventType.VideoDisabled,
                     Description = $"{GetUserName()} {(enabled ? "enabled" : "disabled")} video"
-                });
+                }, GetTokenModel());
             }
         }
         catch (Exception ex)
@@ -291,7 +301,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.ToggleAudioAsync(Guid.Parse(callId), enabled);
+            var result = await _videoCallService.ToggleAudioAsync(Guid.Parse(callId), enabled, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -303,7 +313,7 @@ public class VideoCallHub : Hub
                     UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = enabled ? SmartTelehealth.Core.Entities.VideoCallEventType.AudioEnabled : SmartTelehealth.Core.Entities.VideoCallEventType.AudioDisabled,
                     Description = $"{GetUserName()} {(enabled ? "enabled" : "disabled")} audio"
-                });
+                }, GetTokenModel());
             }
         }
         catch (Exception ex)
@@ -320,7 +330,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.StartScreenSharingAsync(Guid.Parse(callId));
+            var result = await _videoCallService.StartScreenSharingAsync(Guid.Parse(callId), GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -332,7 +342,7 @@ public class VideoCallHub : Hub
                     UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.ScreenSharingStarted,
                     Description = $"{GetUserName()} started screen sharing"
-                });
+                }, GetTokenModel());
             }
         }
         catch (Exception ex)
@@ -349,7 +359,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.StopScreenSharingAsync(Guid.Parse(callId));
+            var result = await _videoCallService.StopScreenSharingAsync(Guid.Parse(callId), GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -361,7 +371,7 @@ public class VideoCallHub : Hub
                     UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.ScreenSharingStopped,
                     Description = $"{GetUserName()} stopped screen sharing"
-                });
+                }, GetTokenModel());
             }
         }
         catch (Exception ex)
@@ -378,7 +388,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _videoCallService.UpdateCallQualityAsync(Guid.Parse(callId), audioQuality, videoQuality, networkQuality);
+            var result = await _videoCallService.UpdateCallQualityAsync(Guid.Parse(callId), audioQuality, videoQuality, networkQuality, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -388,7 +398,7 @@ public class VideoCallHub : Hub
                     UserId = Guid.Empty, // TODO: Convert int UserId to Guid when DTOs are updated
                     Type = SmartTelehealth.Core.Entities.VideoCallEventType.QualityChanged,
                     Description = $"Call quality updated: Audio={audioQuality}, Video={videoQuality}, Network={networkQuality}"
-                });
+                }, GetTokenModel());
             }
         }
         catch (Exception ex)
@@ -402,7 +412,7 @@ public class VideoCallHub : Hub
     {
         try
         {
-            var result = await _videoCallService.GetVideoCallParticipantsAsync(Guid.Parse(callId));
+            var result = await _videoCallService.GetVideoCallParticipantsAsync(Guid.Parse(callId), GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -443,7 +453,7 @@ public class VideoCallHub : Hub
 
         try
         {
-            var result = await _openTokService.GenerateTokenAsync(sessionId, userId.ToString(), userName);
+            var result = await _openTokService.GenerateTokenAsync(sessionId, userId.ToString(), userName, DateTime.UtcNow.AddHours(24), OpenTokRole.Publisher, GetTokenModel());
             if (result.StatusCode == 200)
             {
                 return (string)result.data;
@@ -465,7 +475,7 @@ public class VideoCallHub : Hub
     {
         try
         {
-            var result = await _openTokService.CreateSessionAsync(sessionName, true); // Enable archiving for HIPAA compliance
+            var result = await _openTokService.CreateSessionAsync(sessionName, true, GetTokenModel()); // Enable archiving for HIPAA compliance
             if (result.StatusCode == 200)
             {
                 return (OpenTokSessionDto)result.data;
@@ -497,7 +507,7 @@ public class VideoCallHub : Hub
                 Storage = "cloud"
             };
 
-            var result = await _openTokService.StartRecordingAsync(sessionId, options);
+            var result = await _openTokService.StartRecordingAsync(sessionId, options, GetTokenModel());
             return result.StatusCode == 200;
         }
         catch (Exception ex)
@@ -511,7 +521,7 @@ public class VideoCallHub : Hub
     {
         try
         {
-            var result = await _openTokService.StopRecordingAsync(recordingId);
+            var result = await _openTokService.StopRecordingAsync(recordingId, GetTokenModel());
             return result.StatusCode == 200;
         }
         catch (Exception ex)
@@ -525,7 +535,7 @@ public class VideoCallHub : Hub
     {
         try
         {
-            var result = await _openTokService.GetRecordingUrlAsync(recordingId);
+            var result = await _openTokService.GetRecordingUrlAsync(recordingId, GetTokenModel());
             return result.StatusCode == 200 ? (string)result.data : string.Empty;
         }
         catch (Exception ex)

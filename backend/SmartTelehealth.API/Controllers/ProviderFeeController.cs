@@ -89,10 +89,10 @@ public class ProviderFeeController : BaseController
     /// Get fees by category
     /// </summary>
     [HttpGet("category/{categoryId}")]
-    public async Task<ActionResult<JsonModel>> GetFeesByCategory(Guid categoryId)
+    public async Task<JsonModel> GetFeesByCategory(Guid categoryId)
     {
         var result = await _feeService.GetFeesByCategoryAsync(categoryId, GetToken(HttpContext));
-        return StatusCode(result.StatusCode, result);
+        return result;
     }
 
     /// <summary>

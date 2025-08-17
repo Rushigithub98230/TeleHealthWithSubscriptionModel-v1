@@ -29,7 +29,7 @@ public class BillingController : BaseController
 
     [HttpGet("records")]
     [AllowAnonymous]
-    public async Task<ActionResult<JsonModel>> GetAllBillingRecords()
+    public async Task<JsonModel> GetAllBillingRecords()
     {
         return await _billingService.GetAllBillingRecordsAsync(GetToken(HttpContext));
     }
@@ -38,7 +38,7 @@ public class BillingController : BaseController
     /// Download invoice PDF for a billing record
     /// </summary>
     [HttpGet("{id}/invoice-pdf")]
-    public async Task<ActionResult<JsonModel>> DownloadInvoicePdf(Guid id)
+    public async Task<JsonModel> DownloadInvoicePdf(Guid id)
     {
         return await _billingService.GenerateInvoicePdfAsync(id, GetToken(HttpContext));
     }
@@ -47,7 +47,7 @@ public class BillingController : BaseController
     /// Get billing record by ID
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<JsonModel>> GetBillingRecord(Guid id)
+    public async Task<JsonModel> GetBillingRecord(Guid id)
     {
         return await _billingService.GetBillingRecordAsync(id, GetToken(HttpContext));
     }
@@ -56,7 +56,7 @@ public class BillingController : BaseController
     /// Get user billing history
     /// </summary>
     [HttpGet("user/{userId}")]
-    public async Task<ActionResult<JsonModel>> GetUserBillingHistory(int userId)
+    public async Task<JsonModel> GetUserBillingHistory(int userId)
     {
         return await _billingService.GetUserBillingHistoryAsync(userId, GetToken(HttpContext));
     }
@@ -65,7 +65,7 @@ public class BillingController : BaseController
     /// Get subscription billing history
     /// </summary>
     [HttpGet("subscription/{subscriptionId}")]
-    public async Task<ActionResult<JsonModel>> GetSubscriptionBillingHistory(Guid subscriptionId)
+    public async Task<JsonModel> GetSubscriptionBillingHistory(Guid subscriptionId)
     {
         return await _billingService.GetSubscriptionBillingHistoryAsync(subscriptionId, GetToken(HttpContext));
     }
@@ -75,7 +75,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> CreateBillingRecord([FromBody] CreateBillingRecordDto createDto)
+    public async Task<JsonModel> CreateBillingRecord([FromBody] CreateBillingRecordDto createDto)
     {
         return await _billingService.CreateBillingRecordAsync(createDto, GetToken(HttpContext));
     }
@@ -84,7 +84,7 @@ public class BillingController : BaseController
     /// Process payment for a billing record
     /// </summary>
     [HttpPost("{id}/process-payment")]
-    public async Task<ActionResult<JsonModel>> ProcessPayment(Guid id)
+    public async Task<JsonModel> ProcessPayment(Guid id)
     {
         return await _billingService.ProcessPaymentAsync(id, GetToken(HttpContext));
     }
@@ -93,7 +93,7 @@ public class BillingController : BaseController
     /// Process refund for a billing record
     /// </summary>
     [HttpPost("{id}/process-refund")]
-    public async Task<ActionResult<JsonModel>> ProcessRefund(Guid id, [FromBody] RefundRequestDto refundRequest)
+    public async Task<JsonModel> ProcessRefund(Guid id, [FromBody] RefundRequestDto refundRequest)
     {
         return await _billingService.ProcessRefundAsync(id, refundRequest.Amount, refundRequest.Reason, GetToken(HttpContext));
     }
@@ -102,7 +102,7 @@ public class BillingController : BaseController
     /// Calculate total amount including tax and shipping
     /// </summary>
     [HttpPost("calculate-total")]
-    public async Task<ActionResult<JsonModel>> CalculateTotal([FromBody] BillingCalculationRequestDto request)
+    public async Task<JsonModel> CalculateTotal([FromBody] BillingCalculationRequestDto request)
     {
         return await _billingService.CalculateTotalAmountAsync(request.BaseAmount, 0, 0, GetToken(HttpContext));
     }
@@ -111,7 +111,7 @@ public class BillingController : BaseController
     /// Calculate tax amount for a given base amount and state
     /// </summary>
     [HttpPost("calculate-tax")]
-    public async Task<ActionResult<JsonModel>> CalculateTax([FromBody] TaxCalculationRequestDto request)
+    public async Task<JsonModel> CalculateTax([FromBody] TaxCalculationRequestDto request)
     {
         return await _billingService.CalculateTaxAmountAsync(request.BaseAmount, request.State, GetToken(HttpContext));
     }
@@ -120,7 +120,7 @@ public class BillingController : BaseController
     /// Calculate shipping amount
     /// </summary>
     [HttpPost("calculate-shipping")]
-    public async Task<ActionResult<JsonModel>> CalculateShipping([FromBody] ShippingCalculationRequestDto request)
+    public async Task<JsonModel> CalculateShipping([FromBody] ShippingCalculationRequestDto request)
     {
         return await _billingService.CalculateShippingAmountAsync(request.DeliveryAddress, request.IsExpress, GetToken(HttpContext));
     }
@@ -129,7 +129,7 @@ public class BillingController : BaseController
     /// Check if payment is overdue
     /// </summary>
     [HttpGet("{id}/overdue-status")]
-    public async Task<ActionResult<JsonModel>> CheckOverdueStatus(Guid id)
+    public async Task<JsonModel> CheckOverdueStatus(Guid id)
     {
         return await _billingService.IsPaymentOverdueAsync(id, GetToken(HttpContext));
     }
@@ -138,7 +138,7 @@ public class BillingController : BaseController
     /// Calculate due date based on billing date and grace period
     /// </summary>
     [HttpPost("calculate-due-date")]
-    public async Task<ActionResult<JsonModel>> CalculateDueDate([FromBody] DueDateCalculationRequestDto request)
+    public async Task<JsonModel> CalculateDueDate([FromBody] DueDateCalculationRequestDto request)
     {
         return await _billingService.CalculateDueDateAsync(request.BillingDate, request.GracePeriodDays, GetToken(HttpContext));
     }
@@ -148,7 +148,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpGet("analytics")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> GetBillingAnalytics()
+    public async Task<JsonModel> GetBillingAnalytics()
     {
         return await _billingService.GetBillingAnalyticsAsync(GetToken(HttpContext));
     }
@@ -158,7 +158,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpPost("recurring")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> CreateRecurringBilling([FromBody] CreateRecurringBillingDto createDto)
+    public async Task<JsonModel> CreateRecurringBilling([FromBody] CreateRecurringBillingDto createDto)
     {
         return await _billingService.CreateRecurringBillingAsync(createDto, GetToken(HttpContext));
     }
@@ -167,7 +167,7 @@ public class BillingController : BaseController
     /// Process recurring payment
     /// </summary>
     [HttpPost("recurring/{subscriptionId}/process")]
-    public async Task<ActionResult<JsonModel>> ProcessRecurringPayment(Guid subscriptionId)
+    public async Task<JsonModel> ProcessRecurringPayment(Guid subscriptionId)
     {
         return await _billingService.ProcessRecurringPaymentAsync(subscriptionId, GetToken(HttpContext));
     }
@@ -177,7 +177,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpPost("recurring/{subscriptionId}/cancel")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> CancelRecurringBilling(Guid subscriptionId)
+    public async Task<JsonModel> CancelRecurringBilling(Guid subscriptionId)
     {
         return await _billingService.CancelRecurringBillingAsync(subscriptionId, GetToken(HttpContext));
     }
@@ -186,7 +186,7 @@ public class BillingController : BaseController
     /// Create upfront payment
     /// </summary>
     [HttpPost("upfront")]
-    public async Task<ActionResult<JsonModel>> CreateUpfrontPayment([FromBody] CreateUpfrontPaymentDto createDto)
+    public async Task<JsonModel> CreateUpfrontPayment([FromBody] CreateUpfrontPaymentDto createDto)
     {
         return await _billingService.CreateUpfrontPaymentAsync(createDto, GetToken(HttpContext));
     }
@@ -195,7 +195,7 @@ public class BillingController : BaseController
     /// Process bundle payment
     /// </summary>
     [HttpPost("bundle")]
-    public async Task<ActionResult<JsonModel>> ProcessBundlePayment([FromBody] CreateBundlePaymentDto createDto)
+    public async Task<JsonModel> ProcessBundlePayment([FromBody] CreateBundlePaymentDto createDto)
     {
         return await _billingService.ProcessBundlePaymentAsync(createDto, GetToken(HttpContext));
     }
@@ -205,7 +205,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpPost("{id}/adjustments")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> ApplyBillingAdjustment(Guid id, [FromBody] CreateBillingAdjustmentDto adjustmentDto)
+    public async Task<JsonModel> ApplyBillingAdjustment(Guid id, [FromBody] CreateBillingAdjustmentDto adjustmentDto)
     {
         return await _billingService.ApplyBillingAdjustmentAsync(id, adjustmentDto, GetToken(HttpContext));
     }
@@ -214,7 +214,7 @@ public class BillingController : BaseController
     /// Get billing adjustments
     /// </summary>
     [HttpGet("{id}/adjustments")]
-    public async Task<ActionResult<JsonModel>> GetBillingAdjustments(Guid id)
+    public async Task<JsonModel> GetBillingAdjustments(Guid id)
     {
         return await _billingService.GetBillingAdjustmentsAsync(id, GetToken(HttpContext));
     }
@@ -223,7 +223,7 @@ public class BillingController : BaseController
     /// Retry failed payment
     /// </summary>
     [HttpPost("{id}/retry-failed")]
-    public async Task<ActionResult<JsonModel>> RetryFailedPayment(Guid id)
+    public async Task<JsonModel> RetryFailedPayment(Guid id)
     {
         return await _billingService.RetryFailedPaymentAsync(id, GetToken(HttpContext));
     }
@@ -232,7 +232,7 @@ public class BillingController : BaseController
     /// Retry payment
     /// </summary>
     [HttpPost("{id}/retry")]
-    public async Task<ActionResult<JsonModel>> RetryPayment(Guid id)
+    public async Task<JsonModel> RetryPayment(Guid id)
     {
         return await _billingService.RetryPaymentAsync(id, GetToken(HttpContext));
     }
@@ -241,7 +241,7 @@ public class BillingController : BaseController
     /// Process partial payment
     /// </summary>
     [HttpPost("{id}/partial-payment")]
-    public async Task<ActionResult<JsonModel>> ProcessPartialPayment(Guid id, [FromBody] PartialPaymentRequestDto request)
+    public async Task<JsonModel> ProcessPartialPayment(Guid id, [FromBody] PartialPaymentRequestDto request)
     {
         return await _billingService.ProcessPartialPaymentAsync(id, request.Amount, GetToken(HttpContext));
     }
@@ -251,7 +251,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpPost("invoice")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> CreateInvoice([FromBody] CreateInvoiceDto createDto)
+    public async Task<JsonModel> CreateInvoice([FromBody] CreateInvoiceDto createDto)
     {
         return await _billingService.CreateInvoiceAsync(createDto, GetToken(HttpContext));
     }
@@ -261,7 +261,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpGet("report")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> GenerateBillingReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
+    public async Task<JsonModel> GenerateBillingReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format = "pdf")
     {
         return await _billingService.GenerateBillingReportAsync(startDate, endDate, format, GetToken(HttpContext));
     }
@@ -270,7 +270,7 @@ public class BillingController : BaseController
     /// Get billing summary
     /// </summary>
     [HttpGet("summary")]
-    public async Task<ActionResult<JsonModel>> GetBillingSummary([FromQuery] int userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetBillingSummary([FromQuery] int userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _billingService.GetBillingSummaryAsync(userId, startDate, endDate, GetToken(HttpContext));
     }
@@ -279,7 +279,7 @@ public class BillingController : BaseController
     /// Get payment schedule
     /// </summary>
     [HttpGet("schedule/{subscriptionId}")]
-    public async Task<ActionResult<JsonModel>> GetPaymentSchedule(Guid subscriptionId)
+    public async Task<JsonModel> GetPaymentSchedule(Guid subscriptionId)
     {
         return await _billingService.GetPaymentScheduleAsync(subscriptionId, GetToken(HttpContext));
     }
@@ -288,7 +288,7 @@ public class BillingController : BaseController
     /// Update payment method
     /// </summary>
     [HttpPut("{id}/payment-method")]
-    public async Task<ActionResult<JsonModel>> UpdatePaymentMethod(Guid id, [FromBody] UpdatePaymentMethodRequestDto request)
+    public async Task<JsonModel> UpdatePaymentMethod(Guid id, [FromBody] UpdatePaymentMethodRequestDto request)
     {
         return await _billingService.UpdatePaymentMethodAsync(id, request.PaymentMethodId, GetToken(HttpContext));
     }
@@ -298,7 +298,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpPost("cycle")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> CreateBillingCycle([FromBody] CreateBillingCycleDto createDto)
+    public async Task<JsonModel> CreateBillingCycle([FromBody] CreateBillingCycleDto createDto)
     {
         return await _billingService.CreateBillingCycleAsync(createDto, GetToken(HttpContext));
     }
@@ -308,7 +308,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpPost("cycle/{id}/process")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> ProcessBillingCycle(Guid id)
+    public async Task<JsonModel> ProcessBillingCycle(Guid id)
     {
         return await _billingService.ProcessBillingCycleAsync(id, GetToken(HttpContext));
     }
@@ -318,7 +318,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpGet("cycle/{id}/records")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> GetBillingCycleRecords(Guid id)
+    public async Task<JsonModel> GetBillingCycleRecords(Guid id)
     {
         return await _billingService.GetBillingCycleRecordsAsync(id, GetToken(HttpContext));
     }
@@ -328,7 +328,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpGet("pending")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> GetPendingPayments()
+    public async Task<JsonModel> GetPendingPayments()
     {
         return await _billingService.GetPendingPaymentsAsync(GetToken(HttpContext));
     }
@@ -338,7 +338,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpGet("overdue")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> GetOverdueBillingRecords()
+    public async Task<JsonModel> GetOverdueBillingRecords()
     {
         return await _billingService.GetOverdueBillingRecordsAsync(GetToken(HttpContext));
     }
@@ -348,7 +348,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpGet("revenue-summary")]
     [Authorize(Roles = "Admin,Superadmin")]
-    public async Task<ActionResult<JsonModel>> GetRevenueSummary([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null)
+    public async Task<JsonModel> GetRevenueSummary([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null)
     {
         return await _billingService.GetRevenueSummaryAsync(from, to, planId, GetToken(HttpContext));
     }
@@ -358,7 +358,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpGet("export-revenue")]
     [Authorize(Roles = "Admin,Superadmin")]
-    public async Task<ActionResult<JsonModel>> ExportRevenue([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null, [FromQuery] string format = "csv")
+    public async Task<JsonModel> ExportRevenue([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null, [FromQuery] string format = "csv")
     {
         return await _billingService.ExportRevenueAsync(from, to, planId, format, GetToken(HttpContext));
     }
@@ -367,7 +367,7 @@ public class BillingController : BaseController
     /// Get payment history
     /// </summary>
     [HttpGet("payment-history")]
-    public async Task<ActionResult<JsonModel>> GetPaymentHistory([FromQuery] int userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetPaymentHistory([FromQuery] int userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _billingService.GetPaymentHistoryAsync(userId, startDate, endDate, GetToken(HttpContext));
     }
@@ -377,7 +377,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpGet("payment-analytics")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> GetPaymentAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetPaymentAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _billingService.GetPaymentAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -387,7 +387,7 @@ public class BillingController : BaseController
     /// </summary>
     [HttpGet("payment-analytics/{userId}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> GetUserPaymentAnalytics(int userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetUserPaymentAnalytics(int userId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _billingService.GetPaymentAnalyticsAsync(userId, startDate, endDate, GetToken(HttpContext));
     }

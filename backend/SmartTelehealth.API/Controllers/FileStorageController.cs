@@ -86,22 +86,22 @@ public class FileStorageController : BaseController
     /// Download a file
     /// </summary>
     [HttpGet("download/{filePath}")]
-    public async Task<ActionResult> DownloadFile(string filePath)
+    public async Task<JsonModel> DownloadFile(string filePath)
     {
         var result = await _fileStorageService.DownloadFileAsync(filePath, GetToken(HttpContext));
         
         if (result.StatusCode != 200)
         {
-            return NotFound(new JsonModel { data = new object(), Message = "File not found", StatusCode = 404 });
+            return new JsonModel { data = new object(), Message = "File not found", StatusCode = 404 };
         }
 
         var fileInfo = await _fileStorageService.GetFileInfoAsync(filePath, GetToken(HttpContext));
         if (fileInfo.StatusCode != 200)
         {
-            return NotFound(new JsonModel { data = new object(), Message = "File info not found", StatusCode = 404 });
+            return new JsonModel { data = new object(), Message = "File info not found", StatusCode = 404 };
         }
 
-        return File((byte[])result.data, ((dynamic)fileInfo.data).ContentType, ((dynamic)fileInfo.data).FileName);
+        return result;
     }
 
     /// <summary>
@@ -256,21 +256,21 @@ public class FileStorageController : BaseController
     /// Decrypt a file
     /// </summary>
     [HttpPost("decrypt/{encryptedFilePath}")]
-    public async Task<ActionResult> DecryptFile(string encryptedFilePath, [FromQuery] string encryptionKey)
+    public async Task<JsonModel> DecryptFile(string encryptedFilePath, [FromQuery] string encryptionKey)
     {
         if (string.IsNullOrEmpty(encryptionKey))
         {
-            return BadRequest(new JsonModel { data = new object(), Message = "Encryption key is required", StatusCode = 400 });
+            return new JsonModel { data = new object(), Message = "Encryption key is required", StatusCode = 400 };
         }
 
         var result = await _fileStorageService.DecryptFileAsync(encryptedFilePath, encryptionKey, GetToken(HttpContext));
         
         if (result.StatusCode != 200)
         {
-            return NotFound(new JsonModel { data = new object(), Message = "Encrypted file not found", StatusCode = 404 });
+            return new JsonModel { data = new object(), Message = "Encrypted file not found", StatusCode = 404 };
         }
 
-        return File((byte[])result.data, "application/octet-stream", $"decrypted_{Path.GetFileName(encryptedFilePath)}");
+        return result;
     }
 }
 

@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SmartTelehealth.Application.Interfaces;
 using SmartTelehealth.Core.Interfaces;
+using SmartTelehealth.Infrastructure.Configuration;
 using SmartTelehealth.Infrastructure.Data;
 using SmartTelehealth.Infrastructure.Repositories;
 using SmartTelehealth.Infrastructure.Services;
@@ -16,6 +18,11 @@ public static class DependencyInjection
         // Database Configuration (temporarily removed for focused testing)
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
+        // Register Twilio Configuration
+        var twilioSettings = new TwilioSettings();
+        configuration.GetSection("TwilioSettings").Bind(twilioSettings);
+        services.AddSingleton(twilioSettings);
 
         // Register Repositories
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -56,7 +63,6 @@ public static class DependencyInjection
         services.AddScoped<IProviderFeeRepository, ProviderFeeRepository>();
         services.AddScoped<IProviderOnboardingRepository, ProviderOnboardingRepository>();
 
-
         // Register Services
         services.AddScoped<LocalFileStorageService>();
         services.AddScoped<FileStorageFactory>();
@@ -69,6 +75,9 @@ public static class DependencyInjection
         
         // Register JWT Service
         services.AddScoped<IJwtService, JwtService>();
+        
+        // Register Communication Service (Twilio)
+        services.AddScoped<ICommunicationService, TwilioService>();
         
         // Register Notification Service
         services.AddScoped<INotificationService, NotificationService>();
@@ -90,8 +99,6 @@ public static class DependencyInjection
 
         // Cloud Storage Services (temporarily removed for focused testing)
         // services.AddScoped<AzureBlobStorageService>();
-        // services.AddScoped<AwsS3StorageService>();
-        // services.AddAzureClients(builder => { builder.AddBlobServiceClient(configuration.GetConnectionString("AzureBlobStorage")); });
         // services.AddAWSService<IAmazonS3>(configuration.GetAWSOptions());
 
         return services;

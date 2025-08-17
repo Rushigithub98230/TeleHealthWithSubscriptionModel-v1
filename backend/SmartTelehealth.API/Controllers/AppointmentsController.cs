@@ -24,38 +24,38 @@ public class AppointmentsController : BaseController
     // Homepage endpoints
     [HttpGet("homepage")]
     [AllowAnonymous]
-    public async Task<ActionResult<JsonModel>> GetHomepageData()
+    public async Task<JsonModel> GetHomepageData()
     {
         return await _appointmentService.GetHomepageDataAsync(GetToken(HttpContext));
     }
 
     [HttpGet("categories")]
-    public async Task<ActionResult<JsonModel>> GetCategories()
+    public async Task<JsonModel> GetCategories()
     {
         return await _appointmentService.GetCategoriesWithSubscriptionsAsync(GetToken(HttpContext));
     }
 
     [HttpGet("providers/featured")]
-    public async Task<ActionResult<JsonModel>> GetFeaturedProviders()
+    public async Task<JsonModel> GetFeaturedProviders()
     {
         return await _appointmentService.GetFeaturedProvidersAsync(GetToken(HttpContext));
     }
 
     [HttpGet("home-data")]
-    public async Task<ActionResult<JsonModel>> GetHomeData()
+    public async Task<JsonModel> GetHomeData()
     {
         return await _appointmentService.GetHomeDataAsync(GetToken(HttpContext));
     }
 
     // Appointment booking flow
     [HttpPost("book")]
-    public async Task<ActionResult<JsonModel>> BookAppointment([FromBody] AppointmentBookingDto bookingDto)
+    public async Task<JsonModel> BookAppointment([FromBody] AppointmentBookingDto bookingDto)
     {
         return await _appointmentService.BookAppointmentAsync(bookingDto, GetToken(HttpContext));
     }
 
     [HttpPost("{appointmentId}/payment")]
-    public async Task<ActionResult<JsonModel>> ProcessPayment(Guid appointmentId, [FromBody] ProcessPaymentDto request)
+    public async Task<JsonModel> ProcessPayment(Guid appointmentId, [FromBody] ProcessPaymentDto request)
     {
         return await _appointmentService.ProcessPaymentAsync(appointmentId, request, GetToken(HttpContext));
     }
@@ -63,47 +63,47 @@ public class AppointmentsController : BaseController
     // Provider actions
     [HttpPost("{appointmentId}/accept")]
     [Authorize(Roles = "Provider")]
-    public async Task<ActionResult<JsonModel>> AcceptAppointment(Guid appointmentId, [FromBody] ProviderAcceptDto acceptDto)
+    public async Task<JsonModel> AcceptAppointment(Guid appointmentId, [FromBody] ProviderAcceptDto acceptDto)
     {
         return await _appointmentService.ProviderAcceptAppointmentAsync(appointmentId, acceptDto, GetToken(HttpContext));
     }
 
     [HttpPost("{appointmentId}/reject")]
     [Authorize(Roles = "Provider")]
-    public async Task<ActionResult<JsonModel>> RejectAppointment(Guid appointmentId, [FromBody] ProviderRejectDto rejectDto)
+    public async Task<JsonModel> RejectAppointment(Guid appointmentId, [FromBody] ProviderRejectDto rejectDto)
     {
         return await _appointmentService.ProviderRejectAppointmentAsync(appointmentId, rejectDto, GetToken(HttpContext));
     }
 
     // Meeting management
     [HttpPost("{appointmentId}/start-meeting")]
-    public async Task<ActionResult<JsonModel>> StartMeeting(Guid appointmentId)
+    public async Task<JsonModel> StartMeeting(Guid appointmentId)
     {
         return await _appointmentService.StartMeetingAsync(appointmentId, GetToken(HttpContext));
     }
 
     [HttpPost("{appointmentId}/end-meeting")]
-    public async Task<ActionResult<JsonModel>> EndMeeting(Guid appointmentId)
+    public async Task<JsonModel> EndMeeting(Guid appointmentId)
     {
         return await _appointmentService.EndMeetingAsync(appointmentId, GetToken(HttpContext));
     }
 
     [HttpPost("{appointmentId}/complete")]
     [Authorize(Roles = "Provider")]
-    public async Task<ActionResult<JsonModel>> CompleteAppointment(Guid appointmentId, [FromBody] CompleteAppointmentDto completeDto)
+    public async Task<JsonModel> CompleteAppointment(Guid appointmentId, [FromBody] CompleteAppointmentDto completeDto)
     {
         return await _appointmentService.CompleteAppointmentAsync(appointmentId, completeDto, GetToken(HttpContext));
     }
 
     // Video call integration
     [HttpGet("{appointmentId}/meeting-link")]
-    public async Task<ActionResult<JsonModel>> GetMeetingLink(Guid appointmentId)
+    public async Task<JsonModel> GetMeetingLink(Guid appointmentId)
     {
         return await _appointmentService.GenerateMeetingLinkAsync(appointmentId, GetToken(HttpContext));
     }
 
     [HttpGet("{appointmentId}/opentok-token")]
-    public async Task<ActionResult<JsonModel>> GetOpenTokToken(Guid appointmentId)
+    public async Task<JsonModel> GetOpenTokToken(Guid appointmentId)
     {
         var userId = GetCurrentUserId();
         return await _appointmentService.GetOpenTokTokenAsync(appointmentId, userId, GetToken(HttpContext));
@@ -111,26 +111,26 @@ public class AppointmentsController : BaseController
 
     // CRUD operations
     [HttpGet]
-    public async Task<ActionResult<JsonModel>> GetUserAppointments()
+    public async Task<JsonModel> GetUserAppointments()
     {
         var userId = GetCurrentUserId();
         return await _appointmentService.GetPatientAppointmentsAsync(userId, GetToken(HttpContext));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<JsonModel>> GetAppointment(Guid id)
+    public async Task<JsonModel> GetAppointment(Guid id)
     {
         return await _appointmentService.GetAppointmentByIdAsync(id, GetToken(HttpContext));
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<JsonModel>> UpdateAppointment(Guid id, [FromBody] UpdateAppointmentDto updateDto)
+    public async Task<JsonModel> UpdateAppointment(Guid id, [FromBody] UpdateAppointmentDto updateDto)
     {
         return await _appointmentService.UpdateAppointmentAsync(id, updateDto, GetToken(HttpContext));
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<JsonModel>> CancelAppointment(Guid id, [FromBody] string reason)
+    public async Task<JsonModel> CancelAppointment(Guid id, [FromBody] string reason)
     {
         return await _appointmentService.CancelAppointmentAsync(id, reason, GetToken(HttpContext));
     }
@@ -138,7 +138,7 @@ public class AppointmentsController : BaseController
     // Provider availability
     [HttpGet("providers/{providerId}/availability")]
     [AllowAnonymous]
-    public async Task<ActionResult<JsonModel>> GetProviderAvailability(Guid providerId, [FromQuery] DateTime date)
+    public async Task<JsonModel> GetProviderAvailability(Guid providerId, [FromQuery] DateTime date)
     {
         return await _appointmentService.GetProviderAvailabilityAsync(providerId, date, GetToken(HttpContext));
     }
@@ -146,14 +146,14 @@ public class AppointmentsController : BaseController
     // Analytics
     [HttpGet("analytics")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<JsonModel>> GetAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+    public async Task<JsonModel> GetAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {
         return await _appointmentService.GetAppointmentAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
 
     // --- PARTICIPANT MANAGEMENT ---
     [HttpPost("{appointmentId}/participants")]
-    public async Task<ActionResult<JsonModel>> AddParticipant(Guid appointmentId, [FromBody] AddParticipantDto request)
+    public async Task<JsonModel> AddParticipant(Guid appointmentId, [FromBody] AddParticipantDto request)
     {
         return await _appointmentService.AddParticipantAsync(
             appointmentId, 
@@ -166,16 +166,16 @@ public class AppointmentsController : BaseController
     }
 
     [HttpPost("{appointmentId}/invite-external")]
-    public async Task<ActionResult<JsonModel>> InviteExternal(Guid appointmentId, [FromBody] InviteExternalDto request)
+    public async Task<JsonModel> InviteExternal(Guid appointmentId, [FromBody] InviteExternalDto request)
     {
         if (string.IsNullOrEmpty(request.Email))
         {
-            return BadRequest(new JsonModel 
+            return new JsonModel 
             { 
                 data = new object(), 
                 Message = "Email is required",
                 StatusCode = 400
-            });
+            };
         }
 
         var invitedByUserId = request.InvitedByUserId != null ? int.Parse(request.InvitedByUserId) : 0;
@@ -183,71 +183,77 @@ public class AppointmentsController : BaseController
     }
 
     [HttpPost("{appointmentId}/join")]
-    public async Task<ActionResult<JsonModel>> JoinAppointment(Guid appointmentId, [FromBody] JoinAppointmentDto request)
+    public async Task<JsonModel> JoinAppointment(Guid appointmentId, [FromBody] JoinAppointmentDto request)
     {
         int? userId = request.UserId != null ? int.Parse(request.UserId) : null;
         return await _appointmentService.MarkParticipantJoinedAsync(appointmentId, userId, request.Email, GetToken(HttpContext));
     }
 
     [HttpPost("{appointmentId}/leave")]
-    public async Task<ActionResult<JsonModel>> LeaveAppointment(Guid appointmentId, [FromBody] LeaveAppointmentDto request)
+    public async Task<JsonModel> LeaveAppointment(Guid appointmentId, [FromBody] LeaveAppointmentDto request)
     {
         int? userId = request.UserId != null ? int.Parse(request.UserId) : null;
         return await _appointmentService.MarkParticipantLeftAsync(appointmentId, userId, request.Email, GetToken(HttpContext));
     }
 
     [HttpGet("{appointmentId}/participants")]
-    public async Task<ActionResult<JsonModel>> GetParticipants(Guid appointmentId)
+    public async Task<JsonModel> GetParticipants(Guid appointmentId)
     {
         return await _appointmentService.GetParticipantsAsync(appointmentId, GetToken(HttpContext));
     }
 
     [HttpGet("{appointmentId}/video-token")]
-    public async Task<ActionResult<string>> GetVideoToken(Guid appointmentId, [FromQuery] string? userId, [FromQuery] string? email, [FromQuery] Guid? role = null)
+    public async Task<JsonModel> GetVideoToken(Guid appointmentId, [FromQuery] string? userId, [FromQuery] string? email, [FromQuery] Guid? role = null)
     {
         int? userIdInt = userId != null ? int.Parse(userId) : null;
-        return await _appointmentService.GenerateVideoTokenAsync(appointmentId, userIdInt, email, role ?? Guid.Empty, GetToken(HttpContext));
+        var token = await _appointmentService.GenerateVideoTokenAsync(appointmentId, userIdInt, email, role ?? Guid.Empty, GetToken(HttpContext));
+        return new JsonModel 
+        { 
+            data = token, 
+            Message = "Video token generated successfully", 
+            StatusCode = 200 
+        };
     }
 
     // --- PAYMENT MANAGEMENT ---
     [HttpPost("{appointmentId}/confirm-payment")]
-    public async Task<ActionResult<JsonModel>> ConfirmPayment(Guid appointmentId, [FromBody] ConfirmPaymentDto request)
+    public async Task<JsonModel> ConfirmPayment(Guid appointmentId, [FromBody] ConfirmPaymentDto request)
     {
         return await _appointmentService.ConfirmPaymentAsync(appointmentId, request.PaymentIntentId, GetToken(HttpContext));
     }
 
     [HttpPost("{appointmentId}/refund")]
-    public async Task<ActionResult<JsonModel>> ProcessRefund(Guid appointmentId, [FromBody] ProcessRefundDto request)
+    public async Task<JsonModel> ProcessRefund(Guid appointmentId, [FromBody] ProcessRefundDto request)
     {
         if (string.IsNullOrEmpty(request.Reason))
         {
-            return BadRequest(new JsonModel 
+            return new JsonModel 
             { 
                 data = new object(), 
                 Message = "Reason is required",
                 StatusCode = 400
-            });
+            };
         }
 
         return await _appointmentService.ProcessRefundAsync(appointmentId, request.RefundAmount, request.Reason, GetToken(HttpContext));
     }
 
     [HttpGet("{appointmentId}/payment-logs")]
-    public async Task<ActionResult<JsonModel>> GetPaymentLogs(Guid appointmentId)
+    public async Task<JsonModel> GetPaymentLogs(Guid appointmentId)
     {
         return await _appointmentService.GetPaymentLogsAsync(appointmentId, GetToken(HttpContext));
     }
 
     // --- PROVIDER ACTIONS ---
     [HttpPost("{appointmentId}/provider-action")]
-    public async Task<ActionResult<JsonModel>> ProviderAction(Guid appointmentId, [FromBody] ProviderActionDto request)
+    public async Task<JsonModel> ProviderAction(Guid appointmentId, [FromBody] ProviderActionDto request)
     {
         return await _appointmentService.ProviderActionAsync(appointmentId, request.Action, request.Notes, GetToken(HttpContext));
     }
 
     // Health check
     [HttpGet("health")]
-    public async Task<ActionResult<JsonModel>> HealthCheck()
+    public async Task<JsonModel> HealthCheck()
     {
         return await _appointmentService.IsAppointmentServiceHealthyAsync(GetToken(HttpContext));
     }

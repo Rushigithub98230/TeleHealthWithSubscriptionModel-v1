@@ -18,7 +18,7 @@ public class AnalyticsController : BaseController
     }
 
     [HttpGet("dashboard")]
-    public async Task<ActionResult<JsonModel>> GetDashboardAnalytics()
+    public async Task<JsonModel> GetDashboardAnalytics()
     {
         return await _analyticsService.GetSubscriptionAnalyticsAsync(null, null, GetToken(HttpContext));
     }
@@ -27,7 +27,7 @@ public class AnalyticsController : BaseController
     /// Get subscription analytics
     /// </summary>
     [HttpGet("subscriptions")]
-    public async Task<ActionResult<JsonModel>> GetSubscriptionAnalytics()
+    public async Task<JsonModel> GetSubscriptionAnalytics()
     {
         return await _analyticsService.GetSubscriptionAnalyticsAsync(null, null, GetToken(HttpContext));
     }
@@ -36,7 +36,7 @@ public class AnalyticsController : BaseController
     /// Get billing analytics
     /// </summary>
     [HttpGet("billing")]
-    public async Task<ActionResult<JsonModel>> GetBillingAnalytics()
+    public async Task<JsonModel> GetBillingAnalytics()
     {
         return await _analyticsService.GetBillingAnalyticsAsync(null, null, GetToken(HttpContext));
     }
@@ -45,7 +45,7 @@ public class AnalyticsController : BaseController
     /// Get user analytics
     /// </summary>
     [HttpGet("users")]
-    public async Task<ActionResult<JsonModel>> GetUserAnalytics()
+    public async Task<JsonModel> GetUserAnalytics()
     {
         return await _analyticsService.GetUserAnalyticsAsync(null, null, GetToken(HttpContext));
     }
@@ -54,7 +54,7 @@ public class AnalyticsController : BaseController
     /// Get provider analytics
     /// </summary>
     [HttpGet("providers")]
-    public async Task<ActionResult<JsonModel>> GetProviderAnalytics()
+    public async Task<JsonModel> GetProviderAnalytics()
     {
         return await _analyticsService.GetProviderAnalyticsAsync(null, null, GetToken(HttpContext));
     }
@@ -63,7 +63,7 @@ public class AnalyticsController : BaseController
     /// Get system analytics
     /// </summary>
     [HttpGet("system")]
-    public async Task<ActionResult<JsonModel>> GetSystemAnalytics()
+    public async Task<JsonModel> GetSystemAnalytics()
     {
         return await _analyticsService.GetSystemAnalyticsAsync(GetToken(HttpContext));
     }
@@ -72,7 +72,7 @@ public class AnalyticsController : BaseController
     /// Get system health
     /// </summary>
     [HttpGet("system/health")]
-    public async Task<ActionResult<JsonModel>> GetSystemHealth()
+    public async Task<JsonModel> GetSystemHealth()
     {
         return await _analyticsService.GetSystemHealthAsync(GetToken(HttpContext));
     }
@@ -81,7 +81,7 @@ public class AnalyticsController : BaseController
     /// Get revenue analytics
     /// </summary>
     [HttpGet("revenue")]
-    public async Task<ActionResult<JsonModel>> GetRevenueAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetRevenueAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GetRevenueAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -90,7 +90,7 @@ public class AnalyticsController : BaseController
     /// Get user activity analytics
     /// </summary>
     [HttpGet("user-activity")]
-    public async Task<ActionResult<JsonModel>> GetUserActivityAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetUserActivityAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GetUserActivityAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -99,7 +99,7 @@ public class AnalyticsController : BaseController
     /// Get appointment analytics
     /// </summary>
     [HttpGet("appointments")]
-    public async Task<ActionResult<JsonModel>> GetAppointmentAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetAppointmentAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GetAppointmentAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -108,7 +108,7 @@ public class AnalyticsController : BaseController
     /// Get subscription analytics with plan filter
     /// </summary>
     [HttpGet("subscriptions/plan/{planId}")]
-    public async Task<ActionResult<JsonModel>> GetSubscriptionAnalyticsByPlan(string planId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetSubscriptionAnalyticsByPlan(string planId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GetSubscriptionAnalyticsAsync(startDate, endDate, planId, GetToken(HttpContext));
     }
@@ -117,7 +117,7 @@ public class AnalyticsController : BaseController
     /// Get subscription dashboard
     /// </summary>
     [HttpGet("subscriptions/dashboard")]
-    public async Task<ActionResult<JsonModel>> GetSubscriptionDashboard([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetSubscriptionDashboard([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GetSubscriptionDashboardAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -126,7 +126,7 @@ public class AnalyticsController : BaseController
     /// Get churn analytics
     /// </summary>
     [HttpGet("churn")]
-    public async Task<ActionResult<JsonModel>> GetChurnAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetChurnAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GetChurnAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -135,7 +135,7 @@ public class AnalyticsController : BaseController
     /// Get plan analytics
     /// </summary>
     [HttpGet("plans")]
-    public async Task<ActionResult<JsonModel>> GetPlanAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetPlanAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GetPlanAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -144,7 +144,7 @@ public class AnalyticsController : BaseController
     /// Get usage analytics
     /// </summary>
     [HttpGet("usage")]
-    public async Task<ActionResult<JsonModel>> GetUsageAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GetUsageAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GetUsageAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -153,7 +153,7 @@ public class AnalyticsController : BaseController
     /// Generate subscription report
     /// </summary>
     [HttpGet("reports/subscriptions")]
-    public async Task<ActionResult<JsonModel>> GenerateSubscriptionReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GenerateSubscriptionReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GenerateSubscriptionReportAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -162,7 +162,7 @@ public class AnalyticsController : BaseController
     /// Generate billing report
     /// </summary>
     [HttpGet("reports/billing")]
-    public async Task<ActionResult<JsonModel>> GenerateBillingReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GenerateBillingReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GenerateBillingReportAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -171,7 +171,7 @@ public class AnalyticsController : BaseController
     /// Generate user report
     /// </summary>
     [HttpGet("reports/users")]
-    public async Task<ActionResult<JsonModel>> GenerateUserReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GenerateUserReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GenerateUserReportAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -180,7 +180,7 @@ public class AnalyticsController : BaseController
     /// Generate provider report
     /// </summary>
     [HttpGet("reports/providers")]
-    public async Task<ActionResult<JsonModel>> GenerateProviderReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> GenerateProviderReport([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.GenerateProviderReportAsync(startDate, endDate, GetToken(HttpContext));
     }
@@ -189,7 +189,7 @@ public class AnalyticsController : BaseController
     /// Export subscription analytics
     /// </summary>
     [HttpGet("export/subscriptions")]
-    public async Task<ActionResult<JsonModel>> ExportSubscriptionAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    public async Task<JsonModel> ExportSubscriptionAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         return await _analyticsService.ExportSubscriptionAnalyticsAsync(startDate, endDate, GetToken(HttpContext));
     }

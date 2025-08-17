@@ -131,7 +131,7 @@ public class SubscriptionAnalyticsController : BaseController
     /// Export analytics data to CSV
     /// </summary>
     [HttpGet("export")]
-    public async Task<ActionResult> ExportAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "csv")
+    public async Task<JsonModel> ExportAnalytics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] string format = "csv")
     {
         var start = startDate ?? DateTime.UtcNow.AddDays(-30);
         var end = endDate ?? DateTime.UtcNow;
@@ -140,15 +140,8 @@ public class SubscriptionAnalyticsController : BaseController
         
         await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "ExportAnalytics", "Analytics", "Export", $"Analytics exported in {format} format", GetToken(HttpContext));
 
-        // Cast the data to byte array for file download
-        if (exportData.data is byte[] fileData)
-        {
-            return File(fileData, "text/csv", $"subscription-analytics-{start:yyyy-MM-dd}-{end:yyyy-MM-dd}.csv");
-        }
-        else
-        {
-            return BadRequest(new JsonModel { data = new object(), Message = "Export data is not in the expected format", StatusCode = 400 });
-        }
+        // Return the export data directly
+        return exportData;
     }
 
     // Private helper methods for analytics calculations

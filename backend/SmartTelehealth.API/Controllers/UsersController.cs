@@ -23,17 +23,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("profile")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetCurrentUserProfile()
+        public async Task<JsonModel> GetCurrentUserProfile()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.GetUserByIdAsync(userIdInt, GetToken(HttpContext));
@@ -44,17 +44,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("profile")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> UpdateProfile([FromBody] UpdateUserDto updateDto)
+        public async Task<JsonModel> UpdateProfile([FromBody] UpdateUserDto updateDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             updateDto.Id = userIdInt.ToString();
@@ -66,7 +66,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("{userId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetUser(int userId)
+        public async Task<JsonModel> GetUser(int userId)
         {
             return await _userService.GetUserByIdAsync(userId, GetToken(HttpContext));
         }
@@ -76,7 +76,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetAllUsers()
+        public async Task<JsonModel> GetAllUsers()
         {
             return await _userService.GetAllUsersAsync(GetToken(HttpContext));
         }
@@ -86,7 +86,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> CreateUser([FromBody] CreateUserDto createUserDto)
+        public async Task<JsonModel> CreateUser([FromBody] CreateUserDto createUserDto)
         {
             return await _userService.CreateUserAsync(createUserDto, GetToken(HttpContext));
         }
@@ -96,7 +96,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("{userId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> UpdateUser(int userId, [FromBody] UpdateUserDto updateDto)
+        public async Task<JsonModel> UpdateUser(int userId, [FromBody] UpdateUserDto updateDto)
         {
             return await _userService.UpdateUserAsync(userId, updateDto, GetToken(HttpContext));
         }
@@ -106,7 +106,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpDelete("{userId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> DeleteUser(int userId)
+        public async Task<JsonModel> DeleteUser(int userId)
         {
             return await _userService.DeleteUserAsync(userId, GetToken(HttpContext));
         }
@@ -116,7 +116,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("role/{role}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetUsersByRole(string role)
+        public async Task<JsonModel> GetUsersByRole(string role)
         {
             return await _userService.GetUsersByRoleAsync(role, GetToken(HttpContext));
         }
@@ -126,17 +126,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost("change-password")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
+        public async Task<JsonModel> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.ChangePasswordAsync(userIdInt, changePasswordDto, GetToken(HttpContext));
@@ -146,7 +146,7 @@ namespace SmartTelehealth.API.Controllers
         /// Request password reset
         /// </summary>
         [HttpPost("request-password-reset")]
-        public async Task<ActionResult<JsonModel>> RequestPasswordReset([FromBody] string email)
+        public async Task<JsonModel> RequestPasswordReset([FromBody] string email)
         {
             return await _userService.ResetPasswordAsync(email, GetToken(HttpContext));
         }
@@ -155,7 +155,7 @@ namespace SmartTelehealth.API.Controllers
         /// Reset password
         /// </summary>
         [HttpPost("reset-password")]
-        public async Task<ActionResult<JsonModel>> ResetPassword([FromBody] ResetPasswordDto resetDto)
+        public async Task<JsonModel> ResetPassword([FromBody] ResetPasswordDto resetDto)
         {
             return await _userService.ResetPasswordAsync(resetDto, GetToken(HttpContext));
         }
@@ -164,7 +164,7 @@ namespace SmartTelehealth.API.Controllers
         /// Confirm password reset
         /// </summary>
         [HttpPost("confirm-password-reset")]
-        public async Task<ActionResult<JsonModel>> ConfirmPasswordReset([FromBody] ConfirmPasswordResetDto confirmDto)
+        public async Task<JsonModel> ConfirmPasswordReset([FromBody] ConfirmPasswordResetDto confirmDto)
         {
             return await _userService.ConfirmPasswordResetAsync(confirmDto.Email, confirmDto.ResetToken, confirmDto.NewPassword, GetToken(HttpContext));
         }
@@ -174,17 +174,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost("profile-picture")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> UploadProfilePicture(IFormFile file)
+        public async Task<JsonModel> UploadProfilePicture(IFormFile file)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.UploadProfilePictureAsync(userIdInt, file, GetToken(HttpContext));
@@ -195,17 +195,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("documents")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetUserDocuments([FromQuery] string? referenceType = null)
+        public async Task<JsonModel> GetUserDocuments([FromQuery] string? referenceType = null)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.GetUserDocumentsAsync(userIdInt, referenceType, GetToken(HttpContext));
@@ -216,17 +216,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost("documents")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> UploadUserDocument([FromBody] UploadUserDocumentRequest request)
+        public async Task<JsonModel> UploadUserDocument([FromBody] UploadUserDocumentRequest request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.UploadUserDocumentAsync(userIdInt, request, GetToken(HttpContext));
@@ -237,17 +237,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpDelete("documents/{documentId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> DeleteUserDocument(Guid documentId)
+        public async Task<JsonModel> DeleteUserDocument(Guid documentId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.DeleteUserDocumentAsync(documentId, userIdInt, GetToken(HttpContext));
@@ -258,17 +258,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("medical-history")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetMedicalHistory()
+        public async Task<JsonModel> GetMedicalHistory()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.GetMedicalHistoryAsync(userIdInt, GetToken(HttpContext));
@@ -279,17 +279,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("medical-history")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> UpdateMedicalHistory([FromBody] UpdateMedicalHistoryDto medicalHistoryDto)
+        public async Task<JsonModel> UpdateMedicalHistory([FromBody] UpdateMedicalHistoryDto medicalHistoryDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.UpdateMedicalHistoryAsync(userIdInt, medicalHistoryDto, GetToken(HttpContext));
@@ -300,17 +300,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("preferences")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetUserPreferences()
+        public async Task<JsonModel> GetUserPreferences()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.GetUserPreferencesAsync(userIdInt, GetToken(HttpContext));
@@ -321,17 +321,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("preferences")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> UpdateUserPreferences([FromBody] UpdateUserPreferencesDto preferencesDto)
+        public async Task<JsonModel> UpdateUserPreferences([FromBody] UpdateUserPreferencesDto preferencesDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.UpdateUserPreferencesAsync(userIdInt, preferencesDto, GetToken(HttpContext));
@@ -342,17 +342,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("notifications")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetUserNotifications()
+        public async Task<JsonModel> GetUserNotifications()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.GetUserNotificationsAsync(userIdInt, GetToken(HttpContext));
@@ -363,17 +363,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("notifications/{notificationId}/read")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> MarkNotificationAsRead(Guid notificationId)
+        public async Task<JsonModel> MarkNotificationAsRead(Guid notificationId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
             return await _userService.MarkNotificationAsReadAsync(userIdInt, notificationId, GetToken(HttpContext));
         }
@@ -383,17 +383,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("notifications/read-all")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> MarkAllNotificationsAsRead()
+        public async Task<JsonModel> MarkAllNotificationsAsRead()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.MarkAllNotificationsAsReadAsync(userIdInt, GetToken(HttpContext));
@@ -404,17 +404,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpDelete("notifications/{notificationId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> DeleteNotification(Guid notificationId)
+        public async Task<JsonModel> DeleteNotification(Guid notificationId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
             return await _userService.DeleteNotificationAsync(userIdInt, notificationId, GetToken(HttpContext));
         }
@@ -424,17 +424,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("stats")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetUserStats()
+        public async Task<JsonModel> GetUserStats()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.GetUserStatsAsync(userIdInt, GetToken(HttpContext));
@@ -445,17 +445,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("payment-methods")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetPaymentMethods()
+        public async Task<JsonModel> GetPaymentMethods()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.GetPaymentMethodsAsync(userIdInt, GetToken(HttpContext));
@@ -466,17 +466,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost("payment-methods")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> AddPaymentMethod([FromBody] AddPaymentMethodDto addPaymentMethodDto)
+        public async Task<JsonModel> AddPaymentMethod([FromBody] AddPaymentMethodDto addPaymentMethodDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.AddPaymentMethodAsync(userIdInt, addPaymentMethodDto, GetToken(HttpContext));
@@ -487,17 +487,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpDelete("payment-methods/{paymentMethodId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> DeletePaymentMethod(string paymentMethodId)
+        public async Task<JsonModel> DeletePaymentMethod(string paymentMethodId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.DeletePaymentMethodAsync(userIdInt, paymentMethodId, GetToken(HttpContext));
@@ -508,17 +508,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("payment-methods/{paymentMethodId}/default")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> SetDefaultPaymentMethod(string paymentMethodId)
+        public async Task<JsonModel> SetDefaultPaymentMethod(string paymentMethodId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.SetDefaultPaymentMethodAsync(userIdInt, paymentMethodId, GetToken(HttpContext));
@@ -529,17 +529,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost("send-email-verification")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> SendEmailVerification()
+        public async Task<JsonModel> SendEmailVerification()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.SendEmailVerificationAsync(userIdInt, GetToken(HttpContext));
@@ -550,17 +550,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost("resend-email-verification")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> ResendEmailVerification()
+        public async Task<JsonModel> ResendEmailVerification()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.ResendEmailVerificationAsync(userIdInt, GetToken(HttpContext));
@@ -570,17 +570,17 @@ namespace SmartTelehealth.API.Controllers
         /// Verify email
         /// </summary>
         [HttpPost("verify-email")]
-        public async Task<ActionResult<JsonModel>> VerifyEmail([FromBody] string token)
+        public async Task<JsonModel> VerifyEmail([FromBody] string token)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
             return await _userService.VerifyEmailAsync(userIdInt, token, GetToken(HttpContext));
         }
@@ -590,17 +590,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpDelete("account")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> DeleteAccount([FromBody] string reason)
+        public async Task<JsonModel> DeleteAccount([FromBody] string reason)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.DeleteAccountAsync(userIdInt, GetToken(HttpContext));
@@ -613,7 +613,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("providers/{providerId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetProvider(int providerId)
+        public async Task<JsonModel> GetProvider(int providerId)
         {
             return await _userService.GetProviderByIdAsync(providerId, GetToken(HttpContext));
         }
@@ -623,7 +623,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("providers")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetAllProviders()
+        public async Task<JsonModel> GetAllProviders()
         {
             return await _userService.GetAllProvidersAsync(GetToken(HttpContext));
         }
@@ -633,17 +633,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost("providers")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> CreateProvider([FromBody] CreateProviderDto createDto)
+        public async Task<JsonModel> CreateProvider([FromBody] CreateProviderDto createDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
             return await _userService.CreateProviderAsync(userIdInt, createDto, GetToken(HttpContext));
         }
@@ -653,7 +653,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("providers/{providerId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> UpdateProvider(int providerId, [FromBody] UpdateProviderDto updateDto)
+        public async Task<JsonModel> UpdateProvider(int providerId, [FromBody] UpdateProviderDto updateDto)
         {
             return await _userService.UpdateProviderAsync(providerId, updateDto, GetToken(HttpContext));
         }
@@ -663,7 +663,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpDelete("providers/{providerId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> DeleteProvider(int providerId)
+        public async Task<JsonModel> DeleteProvider(int providerId)
         {
             return await _userService.DeleteProviderAsync(providerId, GetToken(HttpContext));
         }
@@ -673,7 +673,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("providers/{providerId}/verify")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> VerifyProvider(int providerId)
+        public async Task<JsonModel> VerifyProvider(int providerId)
         {
             return await _userService.VerifyProviderAsync(providerId, GetToken(HttpContext));
         }
@@ -683,7 +683,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("providers/{providerId}/schedule")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetProviderSchedule(int providerId)
+        public async Task<JsonModel> GetProviderSchedule(int providerId)
         {
             return await _userService.GetProviderScheduleAsync(providerId, GetToken(HttpContext));
         }
@@ -693,7 +693,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("providers/{providerId}/schedule")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> UpdateProviderSchedule(int providerId, [FromBody] UpdateProviderScheduleDto scheduleDto)
+        public async Task<JsonModel> UpdateProviderSchedule(int providerId, [FromBody] UpdateProviderScheduleDto scheduleDto)
         {
             return await _userService.UpdateProviderScheduleAsync(providerId, scheduleDto, GetToken(HttpContext));
         }
@@ -703,7 +703,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("providers/{providerId}/reviews")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetProviderReviews(int providerId)
+        public async Task<JsonModel> GetProviderReviews(int providerId)
         {
             return await _userService.GetProviderReviewsAsync(providerId, GetToken(HttpContext));
         }
@@ -713,17 +713,17 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPost("providers/{providerId}/reviews")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> AddProviderReview(int providerId, [FromBody] AddReviewDto reviewDto)
+        public async Task<JsonModel> AddProviderReview(int providerId, [FromBody] AddReviewDto reviewDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
-                return Unauthorized(new JsonModel 
+                return new JsonModel 
                 { 
                     data = new object(), 
                     Message = "User not authenticated",
                     StatusCode = 401
-                });
+                };
             }
 
             return await _userService.AddProviderReviewAsync(userIdInt, reviewDto, GetToken(HttpContext));
@@ -736,7 +736,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("patients/{patientId}")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetPatient(int patientId)
+        public async Task<JsonModel> GetPatient(int patientId)
         {
             return await _userService.GetPatientByIdAsync(patientId, GetToken(HttpContext));
         }
@@ -746,7 +746,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("patients")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetAllPatients()
+        public async Task<JsonModel> GetAllPatients()
         {
             return await _userService.GetAllPatientsAsync(GetToken(HttpContext));
         }
@@ -756,7 +756,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpGet("patients/{patientId}/medical-history")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> GetPatientMedicalHistory(int patientId)
+        public async Task<JsonModel> GetPatientMedicalHistory(int patientId)
         {
             return await _userService.GetPatientMedicalHistoryAsync(patientId, GetToken(HttpContext));
         }
@@ -766,7 +766,7 @@ namespace SmartTelehealth.API.Controllers
         /// </summary>
         [HttpPut("patients/{patientId}/medical-history")]
         [Authorize]
-        public async Task<ActionResult<JsonModel>> UpdatePatientMedicalHistory(int patientId, [FromBody] UpdateMedicalHistoryDto medicalHistoryDto)
+        public async Task<JsonModel> UpdatePatientMedicalHistory(int patientId, [FromBody] UpdateMedicalHistoryDto medicalHistoryDto)
         {
             return await _userService.UpdatePatientMedicalHistoryAsync(patientId, medicalHistoryDto, GetToken(HttpContext));
         }

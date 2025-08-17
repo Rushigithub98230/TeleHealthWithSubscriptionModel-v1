@@ -18,153 +18,153 @@ public class NotificationsController : BaseController
     }
 
     [HttpGet]
-    public async Task<ActionResult<JsonModel>> GetAllNotifications()
+    public async Task<JsonModel> GetAllNotifications()
     {
         return await _notificationService.GetNotificationsAsync(GetToken(HttpContext));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<JsonModel>> GetNotification(Guid id)
+    public async Task<JsonModel> GetNotification(Guid id)
     {
         return await _notificationService.GetNotificationAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost]
-    public async Task<ActionResult<JsonModel>> CreateNotification([FromBody] CreateNotificationDto createNotificationDto)
+    public async Task<JsonModel> CreateNotification([FromBody] CreateNotificationDto createNotificationDto)
     {
         return await _notificationService.CreateNotificationAsync(createNotificationDto, GetToken(HttpContext));
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<JsonModel>> UpdateNotification(Guid id, [FromBody] UpdateNotificationDto updateNotificationDto)
+    public async Task<JsonModel> UpdateNotification(Guid id, [FromBody] UpdateNotificationDto updateNotificationDto)
     {
         if (id != updateNotificationDto.Id)
-            return BadRequest(new JsonModel { data = new object(), Message = "ID mismatch", StatusCode = 400 });
+            return new JsonModel { data = new object(), Message = "ID mismatch", StatusCode = 400 };
         return await _notificationService.UpdateNotificationAsync(id, updateNotificationDto, GetToken(HttpContext));
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<JsonModel>> DeleteNotification(Guid id)
+    public async Task<JsonModel> DeleteNotification(Guid id)
     {
         return await _notificationService.DeleteNotificationAsync(id, GetToken(HttpContext));
     }
 
     [HttpGet("user/{userId}")]
-    public async Task<ActionResult<JsonModel>> GetUserNotifications(int userId)
+    public async Task<JsonModel> GetUserNotifications(int userId)
     {
         return await _notificationService.GetUserNotificationsAsync(userId, GetToken(HttpContext));
     }
 
     [HttpPost("mark-read/{id}")]
-    public async Task<ActionResult<JsonModel>> MarkNotificationAsRead(Guid id)
+    public async Task<JsonModel> MarkNotificationAsRead(Guid id)
     {
         return await _notificationService.MarkNotificationAsReadAsync(id, GetToken(HttpContext));
     }
 
     [HttpGet("unread-count/{userId}")]
-    public async Task<ActionResult<JsonModel>> GetUnreadNotificationCount(int userId)
+    public async Task<JsonModel> GetUnreadNotificationCount(int userId)
     {
         return await _notificationService.GetUnreadNotificationCountAsync(userId, GetToken(HttpContext));
     }
 
     [HttpPost("in-app")]
-    public async Task<ActionResult<JsonModel>> CreateInAppNotification([FromBody] CreateInAppNotificationDto createDto)
+    public async Task<JsonModel> CreateInAppNotification([FromBody] CreateInAppNotificationDto createDto)
     {
         return await _notificationService.CreateInAppNotificationAsync(createDto.UserId, createDto.Title, createDto.Message, GetToken(HttpContext));
     }
 
     [HttpPost("email/welcome")]
-    public async Task<ActionResult<JsonModel>> SendWelcomeEmail([FromBody] SendEmailDto emailDto)
+    public async Task<JsonModel> SendWelcomeEmail([FromBody] SendEmailDto emailDto)
     {
         return await _notificationService.SendWelcomeEmailAsync(emailDto.Email, emailDto.UserName, GetToken(HttpContext));
     }
 
     [HttpPost("email/verification")]
-    public async Task<ActionResult<JsonModel>> SendEmailVerification([FromBody] SendEmailVerificationDto emailDto)
+    public async Task<JsonModel> SendEmailVerification([FromBody] SendEmailVerificationDto emailDto)
     {
         return await _notificationService.SendEmailVerificationAsync(emailDto.Email, emailDto.UserName, emailDto.VerificationToken, GetToken(HttpContext));
     }
 
     [HttpPost("email/subscription-confirmation")]
-    public async Task<ActionResult<JsonModel>> SendSubscriptionConfirmation([FromBody] SendSubscriptionEmailDto emailDto)
+    public async Task<JsonModel> SendSubscriptionConfirmation([FromBody] SendSubscriptionEmailDto emailDto)
     {
         return await _notificationService.SendSubscriptionConfirmationAsync(emailDto.Email, emailDto.UserName, emailDto.Subscription, GetToken(HttpContext));
     }
 
     [HttpPost("email/payment-reminder")]
-    public async Task<ActionResult<JsonModel>> SendPaymentReminder([FromBody] SendPaymentReminderDto emailDto)
+    public async Task<JsonModel> SendPaymentReminder([FromBody] SendPaymentReminderDto emailDto)
     {
         return await _notificationService.SendPaymentReminderAsync(emailDto.Email, emailDto.UserName, emailDto.BillingRecord, GetToken(HttpContext));
     }
 
     [HttpPost("email/consultation-reminder")]
-    public async Task<ActionResult<JsonModel>> SendConsultationReminder([FromBody] SendConsultationReminderDto emailDto)
+    public async Task<JsonModel> SendConsultationReminder([FromBody] SendConsultationReminderDto emailDto)
     {
         return await _notificationService.SendConsultationReminderAsync(emailDto.Email, emailDto.UserName, emailDto.Consultation, GetToken(HttpContext));
     }
 
     [HttpPost("email/password-reset")]
-    public async Task<ActionResult<JsonModel>> SendPasswordResetEmail([FromBody] SendPasswordResetDto emailDto)
+    public async Task<JsonModel> SendPasswordResetEmail([FromBody] SendPasswordResetDto emailDto)
     {
         return await _notificationService.SendPasswordResetEmailAsync(emailDto.Email, emailDto.ResetToken, GetToken(HttpContext));
     }
 
     [HttpPost("email/delivery-notification")]
-    public async Task<ActionResult<JsonModel>> SendDeliveryNotification([FromBody] SendDeliveryNotificationDto emailDto)
+    public async Task<JsonModel> SendDeliveryNotification([FromBody] SendDeliveryNotificationDto emailDto)
     {
         return await _notificationService.SendDeliveryNotificationAsync(emailDto.Email, emailDto.UserName, emailDto.Delivery, GetToken(HttpContext));
     }
 
     [HttpPost("email/payment-success")]
-    public async Task<ActionResult<JsonModel>> SendPaymentSuccessEmail([FromBody] SendPaymentEmailDto emailDto)
+    public async Task<JsonModel> SendPaymentSuccessEmail([FromBody] SendPaymentEmailDto emailDto)
     {
         return await _notificationService.SendPaymentSuccessEmailAsync(emailDto.Email, emailDto.UserName, emailDto.BillingRecord, GetToken(HttpContext));
     }
 
     [HttpPost("email/payment-failed")]
-    public async Task<ActionResult<JsonModel>> SendPaymentFailedEmail([FromBody] SendPaymentEmailDto emailDto)
+    public async Task<JsonModel> SendPaymentFailedEmail([FromBody] SendPaymentEmailDto emailDto)
     {
         return await _notificationService.SendPaymentFailedEmailAsync(emailDto.Email, emailDto.UserName, emailDto.BillingRecord, GetToken(HttpContext));
     }
 
     [HttpPost("email/refund-processed")]
-    public async Task<ActionResult<JsonModel>> SendRefundProcessedEmail([FromBody] SendRefundEmailDto emailDto)
+    public async Task<JsonModel> SendRefundProcessedEmail([FromBody] SendRefundEmailDto emailDto)
     {
         return await _notificationService.SendRefundProcessedEmailAsync(emailDto.Email, emailDto.UserName, emailDto.BillingRecord, emailDto.RefundAmount, GetToken(HttpContext));
     }
 
     [HttpPost("email/overdue-payment")]
-    public async Task<ActionResult<JsonModel>> SendOverduePaymentEmail([FromBody] SendPaymentEmailDto emailDto)
+    public async Task<JsonModel> SendOverduePaymentEmail([FromBody] SendPaymentEmailDto emailDto)
     {
         return await _notificationService.SendOverduePaymentEmailAsync(emailDto.Email, emailDto.UserName, emailDto.BillingRecord, GetToken(HttpContext));
     }
 
     [HttpPost("sms")]
-    public async Task<ActionResult<JsonModel>> SendSms([FromBody] SendSmsDto smsDto)
+    public async Task<JsonModel> SendSms([FromBody] SendSmsDto smsDto)
     {
         return await _notificationService.SendSmsAsync(smsDto.PhoneNumber, smsDto.Message, GetToken(HttpContext));
     }
 
     [HttpPost("validate-email")]
-    public async Task<ActionResult<JsonModel>> ValidateEmail([FromBody] ValidateEmailDto emailDto)
+    public async Task<JsonModel> ValidateEmail([FromBody] ValidateEmailDto emailDto)
     {
         return await _notificationService.IsEmailValidAsync(emailDto.Email, GetToken(HttpContext));
     }
 
     [HttpPost("subscription-suspended")]
-    public async Task<ActionResult<JsonModel>> SendSubscriptionSuspendedNotification([FromBody] SendSubscriptionNotificationDto notificationDto)
+    public async Task<JsonModel> SendSubscriptionSuspendedNotification([FromBody] SendSubscriptionNotificationDto notificationDto)
     {
         return await _notificationService.SendSubscriptionSuspendedNotificationAsync(notificationDto.UserId, notificationDto.SubscriptionId, GetToken(HttpContext));
     }
 
     [HttpPost("refund")]
-    public async Task<ActionResult<JsonModel>> SendRefundNotification([FromBody] SendRefundNotificationDto notificationDto)
+    public async Task<JsonModel> SendRefundNotification([FromBody] SendRefundNotificationDto notificationDto)
     {
         return await _notificationService.SendRefundNotificationAsync(notificationDto.UserId, notificationDto.Amount, notificationDto.BillingRecordId, GetToken(HttpContext));
     }
 
     [HttpPost("subscription-reactivated")]
-    public async Task<ActionResult<JsonModel>> SendSubscriptionReactivatedNotification([FromBody] SendSubscriptionNotificationDto notificationDto)
+    public async Task<JsonModel> SendSubscriptionReactivatedNotification([FromBody] SendSubscriptionNotificationDto notificationDto)
     {
         return await _notificationService.SendSubscriptionReactivatedNotificationAsync(notificationDto.UserId, notificationDto.SubscriptionId, GetToken(HttpContext));
     }

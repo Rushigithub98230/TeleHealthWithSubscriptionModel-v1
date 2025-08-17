@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartTelehealth.Infrastruct
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartTelehealth.Application", "backend\SmartTelehealth.Application\SmartTelehealth.Application.csproj", "{3099745D-3260-45C2-B7AC-A0B8EDA69D08}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartTelehealth.Tests", "SmartTelehealth.Tests\SmartTelehealth.Tests.csproj", "{A2B3C4D5-E6F7-8901-BCDE-F23456789012}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,9 +35,13 @@ Global
 		{E3984612-E647-40CA-85AA-815F7F46CC71}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3099745D-3260-45C2-B7AC-A0B8EDA69D08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3099745D-3260-45C2-B7AC-A0B8EDA69D08}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3099745D-3260-45C2-B7AC-A0B8EDA69D08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+				{3099745D-3260-45C2-B7AC-A0B8EDA69D08}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3099745D-3260-45C2-B7AC-A0B8EDA69D08}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
+		{A2B3C4D5-E6F7-8901-BCDE-F23456789012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2B3C4D5-E6F7-8901-BCDE-F23456789012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2B3C4D5-E6F7-8901-BCDE-F23456789012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2B3C4D5-E6F7-8901-BCDE-F23456789012}.Release|Any CPU.Build.0 = Release|Any CPU
+EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection

@@ -15,20 +15,23 @@ public class NotificationService : INotificationService
     private readonly ILogger<NotificationService> _logger;
     private readonly INotificationRepository _notificationRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ICommunicationService _communicationService;
     
     public NotificationService(
         IConfiguration configuration, 
         ILogger<NotificationService> logger,
         INotificationRepository notificationRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        ICommunicationService communicationService)
     {
         _configuration = configuration;
         _logger = logger;
         _notificationRepository = notificationRepository;
         _userRepository = userRepository;
+        _communicationService = communicationService;
     }
     
-    // Email notifications with SMTP implementation
+    // Email notifications with unified communication service
     public async Task<JsonModel> SendWelcomeEmailAsync(string email, string userName, TokenModel tokenModel)
     {
         try
@@ -41,16 +44,8 @@ public class NotificationService : INotificationService
                 <br>
                 <p>Best regards,<br>Smart Telehealth Team</p>";
             
-            // EMAIL FUNCTIONALITY DISABLED - Commented out for now
-            // await SendEmailAsync(email, subject, body);
-            _logger.LogInformation("Email sending disabled - would have sent welcome email to {Email} for user {UserName}", email, userName);
-            
-            return new JsonModel
-            {
-                data = true,
-                Message = "Welcome email sent successfully",
-                StatusCode = 200
-            };
+            // Use the unified communication service
+            return await _communicationService.SendEmailAsync(email, subject, body, true, tokenModel);
         }
         catch (Exception ex)
         {
@@ -772,16 +767,8 @@ public class NotificationService : INotificationService
     {
         try
         {
-            // Placeholder SMS implementation
-            // In a real application, this would integrate with an SMS service like Twilio
-            _logger.LogInformation("SMS sent to {PhoneNumber}: {Message}", phoneNumber, message);
-            
-            return new JsonModel
-            {
-                data = true,
-                Message = "SMS sent successfully",
-                StatusCode = 200
-            };
+            // Use the unified communication service
+            return await _communicationService.SendSmsAsync(phoneNumber, message, tokenModel);
         }
         catch (Exception ex)
         {

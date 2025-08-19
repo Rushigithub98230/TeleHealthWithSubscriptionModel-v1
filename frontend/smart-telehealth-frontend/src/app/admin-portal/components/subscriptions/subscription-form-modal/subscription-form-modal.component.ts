@@ -62,13 +62,13 @@ export class SubscriptionFormModalComponent implements OnInit, OnDestroy {
     private toastService: ToastService
   ) {
     this.subscriptionForm = this.fb.group({
-      userId: ['', Validators.required],
-      subscriptionPlanId: ['', Validators.required],
+      userId: [null, Validators.required],
+      subscriptionPlanId: [null, Validators.required],
       status: ['Active', Validators.required],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
       billingCycle: ['Monthly', Validators.required],
-      amount: ['', [Validators.required, Validators.min(0)]],
+      amount: [null, [Validators.required, Validators.min(0)]],
       discountPercentage: [0, [Validators.min(0), Validators.max(100)]],
       notes: [''],
       autoRenew: [true],
@@ -253,7 +253,7 @@ export class SubscriptionFormModalComponent implements OnInit, OnDestroy {
 
   removeSelectedUser(): void {
     this.selectedUser = null;
-    this.subscriptionForm.patchValue({ userId: '' });
+    this.subscriptionForm.patchValue({ userId: null });
   }
 
   onUserSearchBlur(): void {

@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { map, tap } from 'rxjs/operators';
 
 export interface AuthUser {
-	id: number | string;
+	id: number;
 	email: string;
 	firstName?: string;
 	lastName?: string;

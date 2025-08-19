@@ -38,7 +38,7 @@ export class AdminSignupComponent implements OnInit {
       lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: ['', [Validators.pattern(/^\+?[\d\s\-\(\)]+$/)]],
-      roleId: ['', Validators.required],
+      roleId: [null, Validators.required],
       password: ['', [
         Validators.required,
         Validators.minLength(8),

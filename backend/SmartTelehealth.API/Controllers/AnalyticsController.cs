@@ -7,7 +7,7 @@ namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin")]
 public class AnalyticsController : BaseController
 {
     private readonly IAnalyticsService _analyticsService;

@@ -819,7 +819,7 @@ namespace SmartTelehealth.Application.Services
                 var paymentHistory = billingRecords.Select(br => new PaymentHistoryDto
                 {
                     Id = br.Id,
-                    UserId = br.UserId.ToString(),
+                    UserId = br.UserId,
                     SubscriptionId = br.SubscriptionId?.ToString() ?? string.Empty,
                     Amount = br.Amount,
                     Currency = "USD",

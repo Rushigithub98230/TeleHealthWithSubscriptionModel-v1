@@ -1,0 +1,85 @@
+<div class="bulk-action-overlay">
+  <div class="bulk-action-container">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">{{ title }}</h2>
+      <button class="modal-close" (click)="onCancel()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <!-- Selection Summary -->
+      <div class="selection-summary">
+        <div class="summary-icon">📋</div>
+        <div class="summary-content">
+          <h3 class="summary-title">{{ getSelectedCount() }} {{ getActionTypeLabel() }} selected</h3>
+          <p class="summary-description">Choose an action to perform on all selected items</p>
+        </div>
+      </div>
+
+      <!-- Action Selection -->
+      <div class="action-selection">
+        <h4 class="section-title">Select Action</h4>
+        <div class="action-grid">
+          <div 
+            class="action-card"
+            *ngFor="let action of availableActions"
+            [class.selected]="selectedAction === action.action"
+            (click)="selectAction(action)"
+          >
+            <div class="action-icon" [style.color]="action.color">
+              {{ action.icon }}
+            </div>
+            <div class="action-content">
+              <h5 class="action-label">{{ action.label }}</h5>
+              <p class="action-description">{{ action.description }}</p>
+            </div>
+            <div class="action-check" *ngIf="selectedAction === action.action">
+              <span class="check-icon">✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warning Message -->
+      <div class="warning-message" *ngIf="selectedAction">
+        <div class="warning-icon">⚠️</div>
+        <div class="warning-content">
+          <h5 class="warning-title">Action Confirmation</h5>
+          <p class="warning-text">
+            This action will be applied to all {{ getSelectedCount() }} selected {{ getActionTypeLabel() }}. 
+            This operation cannot be undone.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Actions -->
+    <div class="modal-actions">
+      <button
+        type="button"
+        class="btn btn-outline"
+        (click)="onCancel()"
+        [disabled]="isLoading"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="!selectedAction || isLoading"
+        (click)="onConfirm()"
+      >
+        <span class="btn-text" *ngIf="!isLoading">
+          Confirm Action
+        </span>
+        <span class="btn-loading" *ngIf="isLoading">
+          <i class="loading-spinner"></i>
+          Processing...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

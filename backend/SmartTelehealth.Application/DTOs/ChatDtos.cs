@@ -9,7 +9,7 @@ public class ChatNotificationDto
     public string Title { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public string? ChatRoomId { get; set; }
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsRead { get; set; }
 }
@@ -17,7 +17,7 @@ public class ChatNotificationDto
 // Chat Room Invitation DTO
 public class InviteToChatRoomDto
 {
-    public Guid InviteeId { get; set; }
+    public int InviteeId { get; set; }
     public string Role { get; set; } = string.Empty;
     public string? Message { get; set; }
     public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddDays(7);

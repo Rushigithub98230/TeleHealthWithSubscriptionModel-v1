@@ -333,7 +333,7 @@ namespace SmartTelehealth.Tests
             var createdSubscription = new SubscriptionDto
             {
                 Id = Guid.NewGuid().ToString(),
-                UserId = _testUser.Id.ToString(),
+                UserId = _testUser.Id,
                 PlanId = _basicPlan.Id.ToString(),
                 PlanName = _basicPlan.Name,
                 Status = Subscription.SubscriptionStatuses.TrialActive,
@@ -576,7 +576,7 @@ namespace SmartTelehealth.Tests
             var billingRecord = new BillingRecordDto
             {
                 Id = Guid.NewGuid().ToString(),
-                UserId = _testUser.Id.ToString(),
+                UserId = _testUser.Id,
                 SubscriptionId = subscriptionId,
                 Amount = amount,
                 Status = BillingRecord.BillingStatus.Paid.ToString(),
@@ -633,8 +633,8 @@ namespace SmartTelehealth.Tests
             // Test admin getting all subscriptions
             var adminSubscriptions = new List<SubscriptionDto>
             {
-                new SubscriptionDto { Id = "1", UserId = "1", Status = "Active" },
-                new SubscriptionDto { Id = "2", UserId = "2", Status = "TrialActive" }
+                new SubscriptionDto { Id = "1", UserId = 1, Status = "Active" },
+                new SubscriptionDto { Id = "2", UserId = 2, Status = "TrialActive" }
             };
 
             _mockSubscriptionService.Setup(x => x.GetAllUserSubscriptionsAsync(

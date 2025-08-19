@@ -570,7 +570,7 @@ public class AppointmentService : IAppointmentService
         {
             Id = p.Id.ToString(),
             AppointmentId = p.AppointmentId.ToString(),
-            UserId = p.UserId.ToString(),
+            UserId = p.UserId,
             UserName = p.User?.FirstName + " " + p.User?.LastName,
             PaymentStatusId = p.PaymentStatusId,
             PaymentStatusName = p.PaymentStatus?.Name ?? "",

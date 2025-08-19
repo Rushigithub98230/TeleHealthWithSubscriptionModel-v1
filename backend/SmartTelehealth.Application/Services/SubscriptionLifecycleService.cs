@@ -710,7 +710,7 @@ public class SubscriptionLifecycleService : ISubscriptionLifecycleService
 
             // Audit log
             await _auditService.LogUserActionAsync(
-                changedByUserId ?? "System",
+                !string.IsNullOrEmpty(changedByUserId) ? int.Parse(changedByUserId) : 0,
                 "SubscriptionStateChange",
                 "Subscription",
                 subscriptionId,

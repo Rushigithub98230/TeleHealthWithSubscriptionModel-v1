@@ -23,7 +23,7 @@ public class ChatHub : Hub
         var userId = GetUserId();
         return new TokenModel
         {
-            UserID = userId != Guid.Empty ? int.Parse(userId.ToString()) : 0,
+            UserID = userId,
             RoleID = 0 // Default role
         };
     }
@@ -41,7 +41,7 @@ public class ChatHub : Hub
     public override async Task OnConnectedAsync()
     {
         var userId = GetUserId();
-        if (userId != Guid.Empty)
+        if (userId != 0)
         {
             _userConnections[userId.ToString()] = Context.ConnectionId;
             _userLastSeen[userId.ToString()] = DateTime.UtcNow;
@@ -56,7 +56,7 @@ public class ChatHub : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetUserId();
-        if (userId != Guid.Empty)
+        if (userId != 0)
         {
             _userConnections.Remove(userId.ToString());
             _userLastSeen[userId.ToString()] = DateTime.UtcNow;
@@ -72,12 +72,12 @@ public class ChatHub : Hub
     public async Task JoinChatRoom(string chatRoomId)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
             // Validate access to chat room
-            var accessValidation = await _messagingService.ValidateChatRoomAccessAsync(chatRoomId, userId.ToString(), GetTokenModel());
+            var accessValidation = await _messagingService.ValidateChatRoomAccessAsync(chatRoomId, userId, GetTokenModel());
             if (accessValidation.StatusCode != 200)
             {
                 await Clients.Caller.SendAsync("AccessDenied", "You don't have access to this chat room");
@@ -107,7 +107,7 @@ public class ChatHub : Hub
     public async Task LeaveChatRoom(string chatRoomId)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -130,7 +130,7 @@ public class ChatHub : Hub
     public async Task SendMessage(string chatRoomId, string content, string? replyToMessageId = null, string? filePath = null)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -143,7 +143,7 @@ public class ChatHub : Hub
                 FilePath = filePath
             };
 
-            var result = await _messagingService.SendMessageAsync(createMessageDto, userId.ToString(), GetTokenModel());
+            var result = await _messagingService.SendMessageAsync(createMessageDto, userId, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -173,7 +173,7 @@ public class ChatHub : Hub
     public async Task SendTypingIndicator(string chatRoomId, bool isTyping)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -188,7 +188,7 @@ public class ChatHub : Hub
             await Clients.OthersInGroup(chatRoomId).SendAsync("TypingIndicator", typingIndicator);
             
             // Also send to messaging service for persistence if needed
-            await _messagingService.SendTypingIndicatorAsync(chatRoomId, userId.ToString(), isTyping, GetTokenModel());
+            await _messagingService.SendTypingIndicatorAsync(chatRoomId, userId, isTyping, GetTokenModel());
         }
         catch (Exception ex)
         {
@@ -200,11 +200,11 @@ public class ChatHub : Hub
     public async Task MarkMessageAsRead(string messageId)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
-            var result = await _messagingService.MarkMessageAsReadAsync(messageId, userId.ToString(), GetTokenModel());
+            var result = await _messagingService.MarkMessageAsReadAsync(messageId, userId, GetTokenModel());
             if (result.StatusCode == 200)
             {
                 var message = await _messagingService.GetMessageAsync(messageId, GetTokenModel());
@@ -225,12 +225,12 @@ public class ChatHub : Hub
     public async Task AddReaction(string messageId, string emoji)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
             var addReactionDto = new AddReactionDto { Emoji = emoji };
-            var result = await _messagingService.AddReactionAsync(messageId, emoji, userId.ToString(), GetTokenModel());
+            var result = await _messagingService.AddReactionAsync(messageId, userId, emoji, GetTokenModel());
             
             if (result.StatusCode == 200 && result.data != null)
             {
@@ -252,11 +252,11 @@ public class ChatHub : Hub
     public async Task RemoveReaction(string messageId, string emoji)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
-            var result = await _messagingService.RemoveReactionAsync(messageId, emoji, userId.ToString(), GetTokenModel());
+            var result = await _messagingService.RemoveReactionAsync(messageId, userId, emoji, GetTokenModel());
             if (result.StatusCode == 200)
             {
                 var message = await _messagingService.GetMessageAsync(messageId, GetTokenModel());
@@ -342,7 +342,7 @@ public class ChatHub : Hub
     public async Task UpdateUserStatus(string status)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -371,10 +371,10 @@ public class ChatHub : Hub
     }
 
     // Private helper methods
-    private Guid GetUserId()
+    private int GetUserId()
     {
         var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 
     private string GetUserName()
@@ -399,12 +399,12 @@ public class ChatHub : Hub
         };
     }
 
-    private async Task NotifyUserOnlineStatus(Guid userId, bool isOnline)
+    private async Task NotifyUserOnlineStatus(int userId, bool isOnline)
     {
         try
         {
             // Get all chat rooms where user is a participant
-            var chatRooms = await _messagingService.GetUserChatRoomsAsync(userId.ToString(), GetTokenModel());
+            var chatRooms = await _messagingService.GetUserChatRoomsAsync(userId, GetTokenModel());
             if (chatRooms != null && chatRooms.data != null)
             {
                 var chatRoomsList = chatRooms.data as IEnumerable<object>;
@@ -436,7 +436,7 @@ public class ChatHub : Hub
 public class TypingIndicatorDto
 {
     public Guid ChatRoomId { get; set; }
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
     public bool IsTyping { get; set; }
 } 

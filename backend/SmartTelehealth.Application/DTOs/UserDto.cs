@@ -6,7 +6,7 @@ namespace SmartTelehealth.Application.DTOs
 {
     public class UserDto
     {
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; }
         public string Email { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
@@ -15,7 +15,7 @@ namespace SmartTelehealth.Application.DTOs
         public string PhoneNumber { get; set; } = string.Empty;
         public string UserType { get; set; } = string.Empty;
         public string Role { get; set; } = "User";
-        public string UserRoleId { get; set; } = string.Empty;
+        public int UserRoleId { get; set; }
         public bool IsActive { get; set; }
         public bool IsVerified { get; set; }
         public bool IsEmailVerified { get; set; }
@@ -38,7 +38,7 @@ namespace SmartTelehealth.Application.DTOs
 
     public class PatientDto
     {
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; }
         public string Email { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
@@ -88,13 +88,13 @@ namespace SmartTelehealth.Application.DTOs
         public string? EmergencyContactPhone { get; set; }
         public string UserType { get; set; } = "Patient";
         public string Role { get; set; } = "User";
-        public string UserRoleId { get; set; } = string.Empty;
+        public int UserRoleId { get; set; }
     }
 
     public class UpdateUserDto
     {
-        public string Id { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
+        public int Id { get; set; }
+        public int UserId { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
@@ -177,7 +177,7 @@ namespace SmartTelehealth.Application.DTOs
 
     public class MedicalHistoryDto
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public List<string> Allergies { get; set; } = new();
         public List<string> Medications { get; set; } = new();
         public List<string> Conditions { get; set; } = new();
@@ -204,7 +204,7 @@ namespace SmartTelehealth.Application.DTOs
 
     public class CreatePaymentMethodDto
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public string Token { get; set; } = string.Empty;
         public bool IsDefault { get; set; }
     }

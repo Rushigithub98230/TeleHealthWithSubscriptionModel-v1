@@ -1,0 +1,58 @@
+<div class="admin-dashboard">
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1>Admin Dashboard</h1>
+      <div class="user-info">
+        <span>Welcome, {{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
+        <button class="logout-btn" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-content">
+    <div class="dashboard-grid">
+      <div class="dashboard-card" (click)="navigateToSubscriptions()">
+        <div class="card-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Subscription Management</h3>
+        <p>Manage subscription plans, user subscriptions, and billing</p>
+      </div>
+
+      <div class="dashboard-card" (click)="navigateToUsers()">
+        <div class="card-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>User Management</h3>
+        <p>Manage user accounts, roles, and permissions</p>
+      </div>
+
+      <div class="dashboard-card" (click)="navigateToPrivileges()">
+        <div class="card-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Privilege Management</h3>
+        <p>Manage system privileges and access controls</p>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="card-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 19V13C9 11.8954 9.89543 11 11 11H13C14.1046 11 15 11.8954 15 13V19M9 19H15M9 19H7C5.89543 19 5 18.1046 5 17V7C5 5.89543 5.89543 5 7 5H17C18.1046 5 19 5.89543 19 7V17C19 18.1046 18.1046 19 17 19H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>System Analytics</h3>
+        <p>View system statistics and performance metrics</p>
+      </div>
+    </div>
+  </main>
+</div>

@@ -55,7 +55,7 @@ namespace SmartTelehealth.Application.DTOs
     {
         public string Id { get; set; } = string.Empty;
         public string MessageId { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public string ReactionType { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }

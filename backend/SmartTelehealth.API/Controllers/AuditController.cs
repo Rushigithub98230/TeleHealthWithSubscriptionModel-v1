@@ -28,7 +28,12 @@ public class AuditController : BaseController
         [FromQuery] int pageSize = 50)
     {
         var tokenModel = GetToken(HttpContext);
-        var response = await _auditService.GetAuditLogsAsync(action, userId, startDate, endDate, page, pageSize, tokenModel);
+        int? parsedUserId = null;
+        if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out int parsedId))
+        {
+            parsedUserId = parsedId;
+        }
+        var response = await _auditService.GetAuditLogsAsync(action, parsedUserId, startDate, endDate, page, pageSize, tokenModel);
         return response;
     }
 

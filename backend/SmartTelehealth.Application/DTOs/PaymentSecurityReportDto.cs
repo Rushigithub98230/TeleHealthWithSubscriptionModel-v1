@@ -2,7 +2,7 @@ namespace SmartTelehealth.Application.DTOs
 {
     public class PaymentSecurityReportDto
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public DateTime ReportDate { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

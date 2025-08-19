@@ -109,7 +109,7 @@ public class AutomatedBillingService : BackgroundService
                 {
                     _logger.LogError(ex, "Error processing billing for subscription {SubscriptionId}", subscription.Id);
                     await auditService.LogPaymentEventAsync(
-                        subscription.UserId.ToString(),
+                        subscription.UserId,
                         "BillingError",
                         subscription.Id.ToString(),
                         "Error",
@@ -146,7 +146,7 @@ public class AutomatedBillingService : BackgroundService
             // Create billing record
             var billingRecord = new CreateBillingRecordDto
             {
-                UserId = subscription.UserId.ToString(),
+                UserId = subscription.UserId,
                 SubscriptionId = subscription.Id.ToString(),
                 Amount = subscription.CurrentPrice,
                 Description = $"Subscription billing for {subscription.SubscriptionPlan.Name}",
@@ -196,7 +196,7 @@ public class AutomatedBillingService : BackgroundService
                 }
 
                 await auditService.LogPaymentEventAsync(
-                    subscription.UserId.ToString(),
+                    subscription.UserId,
                     "PaymentSuccess",
                     subscription.Id.ToString(),
                     "Success",
@@ -366,7 +366,7 @@ public class AutomatedBillingService : BackgroundService
                     // Retry payment for suspended subscription
                     var billingRecord = new CreateBillingRecordDto
                     {
-                        UserId = userId,
+                        UserId = userIdInt,
                         SubscriptionId = subscriptionId,
                         Amount = currentPrice,
                         Description = $"Retry payment for {subscriptionPlanName}",
@@ -410,7 +410,7 @@ public class AutomatedBillingService : BackgroundService
                         }
 
                         await auditService.LogPaymentEventAsync(
-                            userId,
+                            userIdInt,
                             "PaymentRetrySuccess",
                             subscriptionId,
                             "Success",
@@ -430,7 +430,7 @@ public class AutomatedBillingService : BackgroundService
 
                         var errorMessage = paymentResult.Message?.ToString() ?? "Unknown error";
                         await auditService.LogPaymentEventAsync(
-                            userId,
+                            userIdInt,
                             "PaymentRetryFailed",
                             subscriptionId,
                             "Failed",
@@ -476,7 +476,7 @@ public class AutomatedBillingService : BackgroundService
                     await subscriptionRepository.ResetUsageCountersAsync();
 
                     await auditService.LogUserActionAsync(
-                        subscription.UserId.ToString(),
+                        subscription.UserId,
                         "UsageReset",
                         "Subscription",
                         subscription.Id.ToString(),

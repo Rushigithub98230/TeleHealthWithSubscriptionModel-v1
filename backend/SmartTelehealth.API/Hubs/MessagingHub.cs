@@ -21,7 +21,7 @@ public class MessagingHub : Hub
         var userId = GetUserId();
         return new TokenModel
         {
-            UserID = userId != Guid.Empty ? int.Parse(userId.ToString()) : 0,
+            UserID = userId,
             RoleID = 0 // Default role
         };
     }
@@ -39,7 +39,7 @@ public class MessagingHub : Hub
     public override async Task OnConnectedAsync()
     {
         var userId = GetUserId();
-        if (userId != Guid.Empty)
+        if (userId != 0)
         {
             _userConnections[userId.ToString()] = Context.ConnectionId;
             _logger.LogInformation("User {UserId} connected to messaging hub", userId);
@@ -50,7 +50,7 @@ public class MessagingHub : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetUserId();
-        if (userId != Guid.Empty)
+            if (userId != 0)
         {
             _userConnections.Remove(userId.ToString());
             _logger.LogInformation("User {UserId} disconnected from messaging hub", userId);
@@ -62,7 +62,7 @@ public class MessagingHub : Hub
     public async Task SubscribeToNotifications()
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -86,7 +86,7 @@ public class MessagingHub : Hub
     public async Task UnsubscribeFromNotifications()
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -108,7 +108,7 @@ public class MessagingHub : Hub
     public async Task SendNotificationToUser(string targetUserId, string title, string message, string? chatRoomId = null)
     {
         var senderId = GetUserId();
-        if (senderId == Guid.Empty) return;
+        if (senderId == 0) return;
 
         try
         {
@@ -118,13 +118,18 @@ public class MessagingHub : Hub
                 Title = title,
                 Message = message,
                 ChatRoomId = chatRoomId,
-                UserId = Guid.TryParse(targetUserId, out var userGuid) ? userGuid : Guid.Empty,
+                UserId = int.TryParse(targetUserId, out var userId) ? userId : 0,
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
             };
 
             // Send via messaging service
-            var result = await _messagingService.SendNotificationToUserAsync(targetUserId, title, message, chatRoomId, GetTokenModel());
+            if (!int.TryParse(targetUserId, out int targetUserIdInt))
+            {
+                await Clients.Caller.SendAsync("NotificationFailed", "Invalid user ID format");
+                return;
+            }
+            var result = await _messagingService.SendNotificationToUserAsync(targetUserIdInt, title, message, chatRoomId, GetTokenModel());
             
             if (result.StatusCode == 200)
             {
@@ -152,7 +157,7 @@ public class MessagingHub : Hub
     public async Task SendNotificationToChatRoom(string chatRoomId, string title, string message)
     {
         var senderId = GetUserId();
-        if (senderId == Guid.Empty) return;
+        if (senderId == 0) return;
 
         try
         {
@@ -192,7 +197,7 @@ public class MessagingHub : Hub
     public async Task MarkNotificationAsRead(string notificationId)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -211,7 +216,7 @@ public class MessagingHub : Hub
     public async Task GetUnreadNotificationsCount()
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -230,7 +235,7 @@ public class MessagingHub : Hub
     public async Task SendTypingIndicator(string chatRoomId, bool isTyping)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -245,7 +250,7 @@ public class MessagingHub : Hub
             await Clients.OthersInGroup(chatRoomId).SendAsync("TypingIndicator", typingIndicator);
             
             // Also send to messaging service for persistence if needed
-            await _messagingService.SendTypingIndicatorAsync(chatRoomId, userId.ToString(), isTyping, GetTokenModel());
+            await _messagingService.SendTypingIndicatorAsync(chatRoomId, userId, isTyping, GetTokenModel());
         }
         catch (Exception ex)
         {
@@ -257,7 +262,7 @@ public class MessagingHub : Hub
     public async Task SendMessageStatusUpdate(string messageId, string status)
     {
         var userId = GetUserId();
-        if (userId == Guid.Empty) return;
+        if (userId == 0) return;
 
         try
         {
@@ -298,7 +303,7 @@ public class MessagingHub : Hub
     public async Task SendSystemNotification(string title, string message, string? targetUserId = null)
     {
         var senderId = GetUserId();
-        if (senderId == Guid.Empty) return;
+        if (senderId == 0) return;
 
         try
         {
@@ -307,7 +312,7 @@ public class MessagingHub : Hub
                 Id = Guid.NewGuid(),
                 Title = title,
                 Message = message,
-                UserId = !string.IsNullOrEmpty(targetUserId) && Guid.TryParse(targetUserId, out var guid) ? guid : Guid.Empty,
+                UserId = !string.IsNullOrEmpty(targetUserId) && int.TryParse(targetUserId, out var userId) ? userId : 0,
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
             };
@@ -336,10 +341,10 @@ public class MessagingHub : Hub
     }
 
     // Private helper methods
-    private Guid GetUserId()
+    private int GetUserId()
     {
         var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 
     private string GetUserName()

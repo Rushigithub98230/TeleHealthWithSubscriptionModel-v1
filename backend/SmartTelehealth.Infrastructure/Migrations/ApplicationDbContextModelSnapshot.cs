@@ -4609,6 +4609,9 @@ namespace SmartTelehealth.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("AutoRenew")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -4621,6 +4624,9 @@ namespace SmartTelehealth.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("CancelledDate")
                         .HasColumnType("datetime2");
 
@@ -4632,6 +4638,10 @@ namespace SmartTelehealth.Infrastructure.Migrations
 
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("CurrentPrice")
                         .HasPrecision(18, 2)
@@ -4647,6 +4657,12 @@ namespace SmartTelehealth.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("FailedPaymentAttempts")
@@ -4707,6 +4723,9 @@ namespace SmartTelehealth.Infrastructure.Migrations
                     b.Property<int?>("ProviderId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("RenewedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ResumedDate")
                         .HasColumnType("datetime2");
 
@@ -4732,6 +4751,10 @@ namespace SmartTelehealth.Infrastructure.Migrations
 
                     b.Property<Guid>("SubscriptionPlanId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SubscriptionStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("SuspendedDate")
                         .HasColumnType("datetime2");

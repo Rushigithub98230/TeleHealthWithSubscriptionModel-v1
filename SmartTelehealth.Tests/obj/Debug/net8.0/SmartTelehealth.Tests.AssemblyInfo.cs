@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SmartTelehealth.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1e5a0727ff670672a64d54e812a50ce2b0fb5e5f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+677140c743768bef27b6e71922c475f77c1a1b96")]
 [assembly: System.Reflection.AssemblyProductAttribute("SmartTelehealth.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SmartTelehealth.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

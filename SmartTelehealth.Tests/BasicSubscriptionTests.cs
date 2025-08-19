@@ -225,7 +225,7 @@ namespace SmartTelehealth.Tests
             var subscriptionDto = new SubscriptionDto
             {
                 Id = subscriptionId,
-                UserId = _testUser.Id.ToString(),
+                UserId = _testUser.Id,
                 PlanId = _basicPlan.Id.ToString(),
                 Status = "Active",
                 IsActive = true
@@ -246,7 +246,7 @@ namespace SmartTelehealth.Tests
         public async Task Test_Get_User_Subscriptions()
         {
             // Arrange
-            var userId = _testUser.Id.ToString();
+            var userId = _testUser.Id;
             var subscriptions = new List<SubscriptionDto>
             {
                 new SubscriptionDto { Id = "1", UserId = userId, Status = "Active" }
@@ -282,7 +282,7 @@ namespace SmartTelehealth.Tests
             var subscriptionDto = new SubscriptionDto
             {
                 Id = Guid.NewGuid().ToString(),
-                UserId = _testUser.Id.ToString(),
+                UserId = _testUser.Id,
                 PlanId = _basicPlan.Id.ToString(),
                 PlanName = _basicPlan.Name,
                 Status = "Active",

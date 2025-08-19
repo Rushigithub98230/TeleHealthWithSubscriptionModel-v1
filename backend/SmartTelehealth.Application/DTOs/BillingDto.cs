@@ -1,7 +1,7 @@
  
 public class CreateBillingRecordDto
 {
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public string SubscriptionId { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public string Currency { get; set; } = "USD";
@@ -39,7 +39,7 @@ public class UpdateBillingRecordDto
 public class BillingHistoryDto
 {
     public string Id { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
     public string BillingType { get; set; } = string.Empty;
     public decimal Amount { get; set; }

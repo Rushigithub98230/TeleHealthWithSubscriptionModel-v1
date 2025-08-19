@@ -42,10 +42,10 @@ public interface INotificationService
     // Utility methods
     Task<JsonModel> IsEmailValidAsync(string email, TokenModel tokenModel);
     Task<JsonModel> SendSmsAsync(string phoneNumber, string message, TokenModel tokenModel);
-    Task<JsonModel> SendNotificationAsync(string userId, string title, string message, TokenModel tokenModel);
+    Task<JsonModel> SendNotificationAsync(int userId, string title, string message, TokenModel tokenModel);
     
     // Added missing methods for BillingService and AutomatedBillingService
-    Task<JsonModel> SendSubscriptionSuspendedNotificationAsync(string userId, string subscriptionId, TokenModel tokenModel);
-    Task<JsonModel> SendRefundNotificationAsync(string userId, decimal amount, string billingRecordId, TokenModel tokenModel);
-    Task<JsonModel> SendSubscriptionReactivatedNotificationAsync(string userId, string subscriptionId, TokenModel tokenModel);
+    Task<JsonModel> SendSubscriptionSuspendedNotificationAsync(int userId, string subscriptionId, TokenModel tokenModel);
+    Task<JsonModel> SendRefundNotificationAsync(int userId, decimal amount, string billingRecordId, TokenModel tokenModel);
+    Task<JsonModel> SendSubscriptionReactivatedNotificationAsync(int userId, string subscriptionId, TokenModel tokenModel);
 } 

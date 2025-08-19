@@ -155,7 +155,7 @@ public class SubscriptionService : ISubscriptionService
             }
             
             // Audit log
-                            await _auditService.LogUserActionAsync(createDto.UserId.ToString(), "CreateSubscription", "Subscription", created.Id.ToString(), "Subscription created successfully", tokenModel);
+                            await _auditService.LogUserActionAsync(createDto.UserId, "CreateSubscription", "Subscription", created.Id.ToString(), "Subscription created successfully", tokenModel);
             
             return new JsonModel { data = dto, Message = "Subscription created", StatusCode = 201 };
         }
@@ -217,7 +217,7 @@ public class SubscriptionService : ISubscriptionService
             }
             
             // Audit log
-            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "CancelSubscription", "Subscription", subscriptionId, reason ?? "Subscription cancelled", tokenModel);
+            await _auditService.LogUserActionAsync(entity.UserId, "CancelSubscription", "Subscription", subscriptionId, reason ?? "Subscription cancelled", tokenModel);
             
             return new JsonModel { data = dto, Message = "Subscription cancelled", StatusCode = 200 };
         }
@@ -279,7 +279,7 @@ public class SubscriptionService : ISubscriptionService
             }
             
             // Audit log
-            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "PauseSubscription", "Subscription", subscriptionId, "Subscription paused", tokenModel);
+            await _auditService.LogUserActionAsync(entity.UserId, "PauseSubscription", "Subscription", subscriptionId, "Subscription paused", tokenModel);
             
             return new JsonModel { data = dto, Message = "Subscription paused", StatusCode = 200 };
         }
@@ -338,7 +338,7 @@ public class SubscriptionService : ISubscriptionService
             }
             
             // Audit log
-            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "ResumeSubscription", "Subscription", subscriptionId, "Subscription resumed", tokenModel);
+            await _auditService.LogUserActionAsync(entity.UserId, "ResumeSubscription", "Subscription", subscriptionId, "Subscription resumed", tokenModel);
             
             return new JsonModel { data = dto, Message = "Subscription resumed", StatusCode = 200 };
         }
@@ -374,7 +374,7 @@ public class SubscriptionService : ISubscriptionService
             var updated = await _subscriptionRepository.UpdateAsync(entity);
             
             // Audit log
-            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "UpgradeSubscription", "Subscription", subscriptionId, $"Upgraded from plan {oldPlanId} to {newPlanId}", tokenModel);
+            await _auditService.LogUserActionAsync(entity.UserId, "UpgradeSubscription", "Subscription", subscriptionId, $"Upgraded from plan {oldPlanId} to {newPlanId}", tokenModel);
             
             return new JsonModel { data = _mapper.Map<SubscriptionDto>(updated), Message = "Subscription upgraded", StatusCode = 200 };
         }
@@ -419,7 +419,7 @@ public class SubscriptionService : ISubscriptionService
             });
             
             // Audit log
-            await _auditService.LogUserActionAsync(entity.UserId.ToString(), "ReactivateSubscription", "Subscription", subscriptionId, "Subscription reactivated", tokenModel);
+            await _auditService.LogUserActionAsync(entity.UserId, "ReactivateSubscription", "Subscription", subscriptionId, "Subscription reactivated", tokenModel);
             
             return new JsonModel { data = _mapper.Map<SubscriptionDto>(updated), Message = "Subscription reactivated", StatusCode = 200 };
         }
@@ -633,7 +633,7 @@ public class SubscriptionService : ISubscriptionService
             var updatedSubscription = await _subscriptionRepository.UpdateAsync(subscription);
             
             // Audit log
-                            await _auditService.LogUserActionAsync(subscription.UserId.ToString(), "UpdateSubscription", "Subscription", subscriptionId, "Subscription updated", tokenModel);
+                            await _auditService.LogUserActionAsync(subscription.UserId, "UpdateSubscription", "Subscription", subscriptionId, "Subscription updated", tokenModel);
             
             return new JsonModel { data = _mapper.Map<SubscriptionDto>(updatedSubscription), Message = "Subscription updated successfully", StatusCode = 200 };
         }
@@ -1492,7 +1492,7 @@ public class SubscriptionService : ISubscriptionService
             }
 
             // Audit log
-            await _auditService.LogPaymentEventAsync(entity.UserId.ToString(), "PaymentFailed", subscriptionId, "Failed", reason, tokenModel);
+            await _auditService.LogPaymentEventAsync(entity.UserId, "PaymentFailed", subscriptionId, "Failed", reason, tokenModel);
 
             return new JsonModel { data = new object(), Message = $"Payment failed: {reason}", StatusCode = 400 };
         }
@@ -1737,7 +1737,7 @@ public class SubscriptionService : ISubscriptionService
                                     // await _notificationService.SendSubscriptionCancelledNotificationAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, _mapper.Map<SubscriptionDto>(sub));
                 _logger.LogInformation("Email notifications disabled - would have sent cancellation notification to {Email}", ((UserDto)userResult.data).Email);
                 }
-                await _auditService.LogUserActionAsync(adminUserId, "BulkCancelSubscription", "Subscription", id, "Cancelled by admin", tokenModel);
+                await _auditService.LogUserActionAsync(int.Parse(adminUserId), "BulkCancelSubscription", "Subscription", id, "Cancelled by admin", tokenModel);
                 cancelled++;
             }
         }
@@ -1763,7 +1763,7 @@ public class SubscriptionService : ISubscriptionService
                                     // await _notificationService.SendSubscriptionConfirmationAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, _mapper.Map<SubscriptionDto>(sub));
                 _logger.LogInformation("Email notifications disabled - would have sent confirmation email to {Email}", ((UserDto)userResult.data).Email);
                 }
-                await _auditService.LogUserActionAsync(adminUserId, "BulkUpgradeSubscription", "Subscription", id, $"Upgraded to plan {newPlanId}", tokenModel);
+                await _auditService.LogUserActionAsync(int.Parse(adminUserId), "BulkUpgradeSubscription", "Subscription", id, $"Upgraded to plan {newPlanId}", tokenModel);
                 upgraded++;
             }
         }
@@ -1801,7 +1801,7 @@ public class SubscriptionService : ISubscriptionService
                         // await _notificationService.SendPaymentSuccessEmailAsync(((UserDto)userResult.data).Email, ((UserDto)userResult.data).FullName, billingRecord);
                         _logger.LogInformation("Email notifications disabled - would have sent payment success email to {Email}", ((UserDto)userResult.data).Email);
                     }
-                    await _auditService.LogPaymentEventAsync(sub.UserId.ToString(), "PaymentSucceeded", subscriptionId, "Succeeded", null, tokenModel);
+                    await _auditService.LogPaymentEventAsync(sub.UserId, "PaymentSucceeded", subscriptionId, "Succeeded", null, tokenModel);
                 }
                 return new JsonModel { data = true, Message = "Payment success handled", StatusCode = 200 };
             }

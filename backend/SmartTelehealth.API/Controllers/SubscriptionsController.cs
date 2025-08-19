@@ -24,13 +24,9 @@ public class SubscriptionsController : BaseController
     }
 
     [HttpGet("user/{userId}")]
-    public async Task<JsonModel> GetUserSubscriptions(string userId)
+    public async Task<JsonModel> GetUserSubscriptions(int userId)
     {
-        if (!int.TryParse(userId, out int userIdInt))
-        {
-            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
-        }
-        return await _subscriptionService.GetUserSubscriptionsAsync(userIdInt, GetToken(HttpContext));
+        return await _subscriptionService.GetUserSubscriptionsAsync(userId, GetToken(HttpContext));
     }
 
     [HttpPost]
@@ -88,23 +84,15 @@ public class SubscriptionsController : BaseController
     }
 
     [HttpGet("user/{userId}/payment-methods")]
-    public async Task<JsonModel> GetPaymentMethods(string userId)
+    public async Task<JsonModel> GetPaymentMethods(int userId)
     {
-        if (!int.TryParse(userId, out int userIdInt))
-        {
-            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
-        }
-        return await _subscriptionService.GetPaymentMethodsAsync(userIdInt, GetToken(HttpContext));
+        return await _subscriptionService.GetPaymentMethodsAsync(userId, GetToken(HttpContext));
     }
 
     [HttpPost("user/{userId}/payment-methods")]
-    public async Task<JsonModel> AddPaymentMethod(string userId, [FromBody] string paymentMethodId)
+    public async Task<JsonModel> AddPaymentMethod(int userId, [FromBody] string paymentMethodId)
     {
-        if (!int.TryParse(userId, out int userIdInt))
-        {
-            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
-        }
-        return await _subscriptionService.AddPaymentMethodAsync(userIdInt, paymentMethodId, GetToken(HttpContext));
+        return await _subscriptionService.AddPaymentMethodAsync(userId, paymentMethodId, GetToken(HttpContext));
     }
 
     [HttpGet("plan/{planId}")]

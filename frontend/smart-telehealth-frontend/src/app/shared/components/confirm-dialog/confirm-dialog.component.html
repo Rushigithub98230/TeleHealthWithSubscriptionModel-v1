@@ -1,0 +1,43 @@
+<div class="confirm-dialog-overlay">
+  <div class="confirm-dialog">
+    <div class="dialog-header">
+      <div class="dialog-icon">
+        <span class="icon" [class.destructive]="isDestructive">
+          {{ isDestructive ? '⚠️' : '❓' }}
+        </span>
+      </div>
+      <h3 class="dialog-title">{{ title }}</h3>
+    </div>
+
+    <div class="dialog-content">
+      <p class="dialog-message">{{ message }}</p>
+    </div>
+
+    <div class="dialog-actions">
+      <button 
+        type="button"
+        class="btn btn-outline btn-cancel"
+        (click)="onCancel()"
+        [disabled]="isLoading"
+      >
+        {{ cancelText }}
+      </button>
+      <button 
+        type="button"
+        class="btn btn-confirm"
+        [class.btn-destructive]="isDestructive"
+        [class.btn-primary]="!isDestructive"
+        (click)="onConfirm()"
+        [disabled]="isLoading"
+      >
+        <span class="btn-content" *ngIf="!isLoading">
+          {{ confirmText }}
+        </span>
+        <span class="btn-loading" *ngIf="isLoading">
+          <div class="loading-spinner"></div>
+          Processing...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -138,7 +138,7 @@ public class SubscriptionAnalyticsController : BaseController
 
         var exportData = await _analyticsService.ExportSubscriptionAnalyticsAsync(start, end, GetToken(HttpContext));
         
-        await _auditService.LogUserActionAsync(GetCurrentUserId().ToString(), "ExportAnalytics", "Analytics", "Export", $"Analytics exported in {format} format", GetToken(HttpContext));
+        await _auditService.LogUserActionAsync(GetCurrentUserId(), "ExportAnalytics", "Analytics", "Export", $"Analytics exported in {format} format", GetToken(HttpContext));
 
         // Return the export data directly
         return exportData;
@@ -455,10 +455,10 @@ public class SubscriptionAnalyticsController : BaseController
         };
     }
 
-    private Guid GetCurrentUserId()
+    private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
         {
             throw new UnauthorizedAccessException("Invalid user ID");
         }

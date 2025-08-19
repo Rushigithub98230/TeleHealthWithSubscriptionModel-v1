@@ -75,12 +75,12 @@ public class OpenTokWebhookController : BaseController
     [HttpPost("session/{sessionId}/token")]
     public async Task<JsonModel> GenerateToken(string sessionId, [FromBody] TokenRequest request)
     {
-        if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.UserName))
+        if (request.UserId <= 0 || string.IsNullOrEmpty(request.UserName))
         {
             return new JsonModel { data = new object(), Message = "UserId and UserName are required", StatusCode = 400 };
         }
 
-        var result = await _openTokService.GenerateTokenAsync(sessionId, request.UserId, request.UserName, request.Role, GetToken(HttpContext));
+        var result = await _openTokService.GenerateTokenAsync(sessionId, request.UserId.ToString(), request.UserName, request.Role, GetToken(HttpContext));
 
         if (result.StatusCode == 200)
         {
@@ -172,7 +172,7 @@ public class OpenTokWebhookController : BaseController
 
 public class TokenRequest
 {
-    public string UserId { get; set; } = string.Empty;
+            public int UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
     public OpenTokRole Role { get; set; } = OpenTokRole.Publisher;
 }

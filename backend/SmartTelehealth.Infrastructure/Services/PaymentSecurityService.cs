@@ -36,7 +36,7 @@ namespace SmartTelehealth.Infrastructure.Services
                 // Check rate limiting
                 if (!await CheckRateLimitAsync(userId, ipAddress, tokenModel))
                 {
-                    await _auditService.LogSecurityEventAsync(userId, "PaymentRateLimitExceeded", 
+                    await _auditService.LogSecurityEventAsync(int.Parse(userId), "PaymentRateLimitExceeded", 
                         $"Rate limit exceeded for user {userId} from IP {ipAddress}", null, tokenModel);
                     _logger.LogWarning("Rate limit exceeded for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                     return false;
@@ -45,7 +45,7 @@ namespace SmartTelehealth.Infrastructure.Services
                 // Check for suspicious activity
                 if (await DetectSuspiciousActivityAsync(userId, ipAddress, amount, tokenModel))
                 {
-                    await _auditService.LogSecurityEventAsync(userId, "SuspiciousPaymentDetected", 
+                    await _auditService.LogSecurityEventAsync(int.Parse(userId), "SuspiciousPaymentDetected", 
                         $"Suspicious payment activity detected for user {userId} from IP {ipAddress}", null, tokenModel);
                     _logger.LogWarning("Suspicious payment activity detected for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                     return false;
@@ -54,14 +54,14 @@ namespace SmartTelehealth.Infrastructure.Services
                 // Check amount limits
                 if (!await ValidateAmountLimitsAsync(userId, amount, tokenModel))
                 {
-                    await _auditService.LogSecurityEventAsync(userId, "PaymentAmountLimitExceeded", 
+                    await _auditService.LogSecurityEventAsync(int.Parse(userId), "PaymentAmountLimitExceeded", 
                         $"Amount limit exceeded for user {userId}: {amount}", null, tokenModel);
                     _logger.LogWarning("Amount limit exceeded for user {UserId} by user {TokenUserId}: {Amount}", userId, tokenModel.UserID, amount);
                     return false;
                 }
 
                 // Log successful validation
-                await _auditService.LogSecurityEventAsync(userId, "PaymentRequestValidated", 
+                await _auditService.LogSecurityEventAsync(int.Parse(userId), "PaymentRequestValidated", 
                     $"Payment request validated for user {userId}", null, tokenModel);
 
                 _logger.LogInformation("Payment request validated successfully for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
@@ -205,7 +205,7 @@ namespace SmartTelehealth.Infrastructure.Services
 
                 var logEntry = new PaymentAttemptLog
                 {
-                    UserId = userId,
+                    UserId = int.Parse(userId),
                     IpAddress = ipAddress,
                     Amount = amount,
                     Success = success,
@@ -226,7 +226,7 @@ namespace SmartTelehealth.Infrastructure.Services
                         $"Payment attempt successful: {amount}" : 
                         $"Payment attempt failed: {amount} - {errorMessage}";
                     
-                    await _auditService.LogPaymentEventAsync(userId, action, null, success ? "success" : "failed", errorMessage, tokenModel);
+                    await _auditService.LogPaymentEventAsync(int.Parse(userId), action, null, success ? "success" : "failed", errorMessage, tokenModel);
                 }
 
                 _logger.LogInformation("Payment attempt logged successfully for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
@@ -249,7 +249,7 @@ namespace SmartTelehealth.Infrastructure.Services
                 
                 var report = new PaymentSecurityReportDto
                 {
-                    UserId = userId,
+                    UserId = int.Parse(userId),
                     StartDate = startDate,
                     EndDate = endDate,
                     TotalAttempts = paymentAttempts.Count,
@@ -269,7 +269,7 @@ namespace SmartTelehealth.Infrastructure.Services
                 _logger.LogError(ex, "Error generating security report for user {UserId} by user {TokenUserId}", userId, tokenModel.UserID);
                 return new PaymentSecurityReportDto
                 {
-                    UserId = userId,
+                    UserId = int.Parse(userId),
                     StartDate = startDate,
                     EndDate = endDate,
                     ErrorMessage = ex.Message
@@ -303,7 +303,7 @@ namespace SmartTelehealth.Infrastructure.Services
             // For now, return mock data
             return new UserPaymentHistoryDto
             {
-                UserId = userId,
+                UserId = int.Parse(userId),
                 AverageAmount = 150.00m,
                 RecentPayments = new List<PaymentHistoryItemDto>
                 {
@@ -326,8 +326,8 @@ namespace SmartTelehealth.Infrastructure.Services
             // For now, return mock data
             return new List<PaymentAttemptLog>
             {
-                new PaymentAttemptLog { UserId = userId, Amount = 100.00m, Success = true, Timestamp = DateTime.UtcNow.AddHours(-1) },
-                new PaymentAttemptLog { UserId = userId, Amount = 200.00m, Success = false, Timestamp = DateTime.UtcNow.AddHours(-2) }
+                new PaymentAttemptLog { UserId = int.Parse(userId), Amount = 100.00m, Success = true, Timestamp = DateTime.UtcNow.AddHours(-1) },
+                new PaymentAttemptLog { UserId = int.Parse(userId), Amount = 200.00m, Success = false, Timestamp = DateTime.UtcNow.AddHours(-2) }
             };
         }
 
@@ -354,7 +354,7 @@ namespace SmartTelehealth.Infrastructure.Services
     // DTOs for payment security
     public class PaymentAttemptLog
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public string IpAddress { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public bool Success { get; set; }
@@ -364,7 +364,7 @@ namespace SmartTelehealth.Infrastructure.Services
 
     public class UserPaymentHistoryDto
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public decimal AverageAmount { get; set; }
         public List<PaymentHistoryItemDto> RecentPayments { get; set; } = new();
     }

@@ -336,7 +336,7 @@ public class NotificationService : INotificationService
             var notificationDto = new NotificationDto
             {
                 Id = createdNotification.Id.ToString(),
-                UserId = createdNotification.UserId.ToString(),
+                UserId = createdNotification.UserId,
                 Title = createdNotification.Title,
                 Message = createdNotification.Message,
                 Type = createdNotification.Type.ToString(),
@@ -374,7 +374,7 @@ public class NotificationService : INotificationService
             var notificationDtos = notifications.Select(n => new NotificationDto
             {
                 Id = n.Id.ToString(),
-                UserId = n.UserId.ToString(),
+                UserId = n.UserId,
                 Title = n.Title,
                 Message = n.Message,
                 Type = n.Type.ToString(),
@@ -793,7 +793,7 @@ public class NotificationService : INotificationService
             var dtos = notifications.Select(n => new NotificationDto
             {
                 Id = n.Id.ToString(),
-                UserId = n.UserId.ToString(),
+                UserId = n.UserId,
                 Title = n.Title,
                 Message = n.Message,
                 Type = n.Type.ToString(),
@@ -837,7 +837,7 @@ public class NotificationService : INotificationService
             var dto = new NotificationDto
             {
                 Id = notification.Id.ToString(),
-                UserId = notification.UserId.ToString(),
+                UserId = notification.UserId,
                 Title = notification.Title,
                 Message = notification.Message,
                 Type = notification.Type.ToString(),
@@ -885,7 +885,7 @@ public class NotificationService : INotificationService
             var dto = new NotificationDto
             {
                 Id = created.Id.ToString(),
-                UserId = created.UserId.ToString(),
+                UserId = created.UserId,
                 Title = created.Title,
                 Message = created.Message,
                 Type = created.Type.ToString(),
@@ -938,7 +938,7 @@ public class NotificationService : INotificationService
             var notificationDto = new NotificationDto
             {
                 Id = updatedNotification.Id.ToString(),
-                UserId = updatedNotification.UserId.ToString(),
+                UserId = updatedNotification.UserId,
                 Title = updatedNotification.Title,
                 Message = updatedNotification.Message,
                 Type = updatedNotification.Type.ToString(),
@@ -1028,7 +1028,7 @@ public class NotificationService : INotificationService
             var notificationDto = new NotificationDto
             {
                 Id = updatedNotification.Id.ToString(),
-                UserId = updatedNotification.UserId.ToString(),
+                UserId = updatedNotification.UserId,
                 Title = updatedNotification.Title,
                 Message = updatedNotification.Message,
                 Type = updatedNotification.Type.ToString(),
@@ -1194,14 +1194,14 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> SendNotificationAsync(string userId, string title, string message, TokenModel tokenModel)
+    public async Task<JsonModel> SendNotificationAsync(int userId, string title, string message, TokenModel tokenModel)
     {
         try
         {
             var notification = new Notification
             {
                 Id = Guid.NewGuid(),
-                UserId = int.Parse(userId),
+                UserId = userId,
                 Title = title,
                 Message = message,
                 Type = NotificationType.InApp,
@@ -1232,12 +1232,12 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> SendSubscriptionSuspendedNotificationAsync(string userId, string subscriptionId, TokenModel tokenModel)
+    public async Task<JsonModel> SendSubscriptionSuspendedNotificationAsync(int userId, string subscriptionId, TokenModel tokenModel)
     {
         try
         {
             // Get user details from the user service
-            var user = await _userRepository.GetByIdAsync(int.Parse(userId));
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null) return new JsonModel
             {
                 data = new object(),
@@ -1277,12 +1277,12 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> SendRefundNotificationAsync(string userId, decimal amount, string billingRecordId, TokenModel tokenModel)
+    public async Task<JsonModel> SendRefundNotificationAsync(int userId, decimal amount, string billingRecordId, TokenModel tokenModel)
     {
         try
         {
             // Get user details from the user service
-            var user = await _userRepository.GetByIdAsync(int.Parse(userId));
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null) return new JsonModel
             {
                 data = new object(),
@@ -1322,12 +1322,12 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<JsonModel> SendSubscriptionReactivatedNotificationAsync(string userId, string subscriptionId, TokenModel tokenModel)
+    public async Task<JsonModel> SendSubscriptionReactivatedNotificationAsync(int userId, string subscriptionId, TokenModel tokenModel)
     {
         try
         {
             // Get user details from the user service
-            var user = await _userRepository.GetByIdAsync(int.Parse(userId));
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null) return new JsonModel
             {
                 data = new object(),

@@ -157,11 +157,11 @@ public class AppointmentsController : BaseController
     {
         return await _appointmentService.AddParticipantAsync(
             appointmentId, 
-            request.UserId != null ? int.Parse(request.UserId) : (int?)null, 
+            request.UserId, 
             request.Email, 
             request.Phone, 
-            request.Role != null ? Guid.Parse(request.Role) : Guid.Empty, 
-            request.InvitedByUserId != null ? int.Parse(request.InvitedByUserId) : 0, 
+            !string.IsNullOrEmpty(request.Role) ? Guid.Parse(request.Role) : Guid.Empty, 
+            !string.IsNullOrEmpty(request.InvitedByUserId) ? int.Parse(request.InvitedByUserId) : 0, 
             GetToken(HttpContext));
     }
 
@@ -178,22 +178,20 @@ public class AppointmentsController : BaseController
             };
         }
 
-        var invitedByUserId = request.InvitedByUserId != null ? int.Parse(request.InvitedByUserId) : 0;
+        var invitedByUserId = request.InvitedByUserId ?? 0;
         return await _appointmentService.InviteExternalAsync(appointmentId, request.Email, request.Phone, request.Message, invitedByUserId, GetToken(HttpContext));
     }
 
     [HttpPost("{appointmentId}/join")]
     public async Task<JsonModel> JoinAppointment(Guid appointmentId, [FromBody] JoinAppointmentDto request)
     {
-        int? userId = request.UserId != null ? int.Parse(request.UserId) : null;
-        return await _appointmentService.MarkParticipantJoinedAsync(appointmentId, userId, request.Email, GetToken(HttpContext));
+        return await _appointmentService.MarkParticipantJoinedAsync(appointmentId, request.UserId, request.Email, GetToken(HttpContext));
     }
 
     [HttpPost("{appointmentId}/leave")]
     public async Task<JsonModel> LeaveAppointment(Guid appointmentId, [FromBody] LeaveAppointmentDto request)
     {
-        int? userId = request.UserId != null ? int.Parse(request.UserId) : null;
-        return await _appointmentService.MarkParticipantLeftAsync(appointmentId, userId, request.Email, GetToken(HttpContext));
+        return await _appointmentService.MarkParticipantLeftAsync(appointmentId, request.UserId, request.Email, GetToken(HttpContext));
     }
 
     [HttpGet("{appointmentId}/participants")]

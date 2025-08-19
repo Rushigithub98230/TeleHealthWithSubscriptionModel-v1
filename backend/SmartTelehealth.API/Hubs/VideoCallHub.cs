@@ -70,7 +70,7 @@ public class VideoCallHub : Hub
         try
         {
             // Validate chat room access
-            var hasAccess = await _chatStorageService.ValidateChatAccessAsync(userId.ToString(), chatRoomId);
+            var hasAccess = await _chatStorageService.ValidateChatAccessAsync(userId, chatRoomId);
             if (!hasAccess)
             {
                 await Clients.Caller.SendAsync("CallAccessDenied", "You don't have access to this chat room");

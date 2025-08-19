@@ -3,9 +3,9 @@ using System;
 namespace SmartTelehealth.Application.DTOs
 {
     public class ProviderDto
-    {
-        public string Id { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
         public string UserName { get; set; } = string.Empty;
         public string CategoryId { get; set; } = string.Empty;
         public string CategoryName { get; set; } = string.Empty;
@@ -44,7 +44,7 @@ namespace SmartTelehealth.Application.DTOs
     public class UpdateProviderDto
     {
         public int Id { get; set; }
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;

@@ -1,0 +1,248 @@
+<div class="user-signup-container">
+  <div class="signup-card">
+    <div class="signup-header">
+      <h2>Create User Account</h2>
+      <p>Join our telehealth platform to access healthcare services</p>
+    </div>
+
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="signup-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First Name *</label>
+          <input
+            type="text"
+            id="firstName"
+            formControlName="firstName"
+            [class.invalid]="isFieldInvalid('firstName')"
+            placeholder="Enter your first name"
+          />
+          <span class="error-message" *ngIf="getFieldError('firstName')">
+            {{ getFieldError('firstName') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Last Name *</label>
+          <input
+            type="text"
+            id="lastName"
+            formControlName="lastName"
+            [class.invalid]="isFieldInvalid('lastName')"
+            placeholder="Enter your last name"
+          />
+          <span class="error-message" *ngIf="getFieldError('lastName')">
+            {{ getFieldError('lastName') }}
+          </span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="email">Email Address *</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            [class.invalid]="isFieldInvalid('email')"
+            placeholder="Enter your email address"
+          />
+          <span class="error-message" *ngIf="getFieldError('email')">
+            {{ getFieldError('email') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="phoneNumber">Phone Number *</label>
+          <input
+            type="tel"
+            id="phoneNumber"
+            formControlName="phoneNumber"
+            [class.invalid]="isFieldInvalid('phoneNumber')"
+            placeholder="Enter your phone number"
+          />
+          <span class="error-message" *ngIf="getFieldError('phoneNumber')">
+            {{ getFieldError('phoneNumber') }}
+          </span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="gender">Gender *</label>
+          <select
+            id="gender"
+            formControlName="gender"
+            [class.invalid]="isFieldInvalid('gender')"
+          >
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+          <span class="error-message" *ngIf="getFieldError('gender')">
+            {{ getFieldError('gender') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="zipCode">ZIP Code *</label>
+          <input
+            type="text"
+            id="zipCode"
+            formControlName="zipCode"
+            [class.invalid]="isFieldInvalid('zipCode')"
+            placeholder="Enter ZIP code"
+          />
+          <span class="error-message" *ngIf="getFieldError('zipCode')">
+            {{ getFieldError('zipCode') }}
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="address">Address *</label>
+        <input
+          type="text"
+          id="address"
+          formControlName="address"
+          [class.invalid]="isFieldInvalid('address')"
+          placeholder="Enter your street address"
+        />
+        <span class="error-message" *ngIf="getFieldError('address')">
+          {{ getFieldError('address') }}
+        </span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="city">City *</label>
+          <input
+            type="text"
+            id="city"
+            formControlName="city"
+            [class.invalid]="isFieldInvalid('city')"
+            placeholder="Enter your city"
+          />
+          <span class="error-message" *ngIf="getFieldError('city')">
+            {{ getFieldError('city') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="state">State *</label>
+          <input
+            type="text"
+            id="state"
+            formControlName="state"
+            [class.invalid]="isFieldInvalid('state')"
+            placeholder="Enter your state"
+          />
+          <span class="error-message" *ngIf="getFieldError('state')">
+            {{ getFieldError('state') }}
+          </span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="password">Password *</label>
+          <div class="password-input">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              [class.invalid]="isFieldInvalid('password')"
+              placeholder="Create a strong password"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="showPassword = !showPassword"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <span class="error-message" *ngIf="getFieldError('password')">
+            {{ getFieldError('password') }}
+          </span>
+          
+          <div class="password-strength">
+            <div class="strength-bar">
+              <div class="strength-fill" [style.width.%]="passwordStrength * 20"></div>
+            </div>
+            <span class="strength-text">{{ getPasswordStrengthText() }}</span>
+          </div>
+
+          <div class="password-requirements">
+            <h4>Password Requirements:</h4>
+            <ul>
+              <li [class.met]="hasMinLength()">At least 8 characters</li>
+              <li [class.met]="hasLowercase()">One lowercase letter</li>
+              <li [class.met]="hasUppercase()">One uppercase letter</li>
+              <li [class.met]="hasNumber()">One number</li>
+              <li [class.met]="hasSpecialChar()">One special character (@$!%*?&)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password *</label>
+          <div class="password-input">
+            <input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              [class.invalid]="isFieldInvalid('confirmPassword')"
+              placeholder="Confirm your password"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="showConfirmPassword = !showConfirmPassword"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <span class="error-message" *ngIf="getFieldError('confirmPassword')">
+            {{ getFieldError('confirmPassword') }}
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="acceptTerms"
+            [class.invalid]="isFieldInvalid('acceptTerms')"
+          />
+          <span class="checkmark"></span>
+          I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a> *
+        </label>
+        <span class="error-message" *ngIf="getFieldError('acceptTerms')">
+          You must accept the terms and conditions
+        </span>
+      </div>
+
+      <button
+        type="submit"
+        class="signup-btn"
+        [disabled]="signupForm.invalid || isLoading"
+      >
+        <span *ngIf="!isLoading">Create Account</span>
+        <span *ngIf="isLoading">Creating Account...</span>
+      </button>
+    </form>
+
+    <div class="signup-footer">
+      <p>Already have an account? <a (click)="goToLogin()" class="login-link">Sign In</a></p>
+    </div>
+  </div>
+</div>

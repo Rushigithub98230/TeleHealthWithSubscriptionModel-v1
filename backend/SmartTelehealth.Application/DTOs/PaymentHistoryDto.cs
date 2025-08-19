@@ -3,7 +3,7 @@ namespace SmartTelehealth.Application.DTOs
     public class PaymentHistoryDto
     {
         public Guid Id { get; set; }
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public string SubscriptionId { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public string Currency { get; set; } = "USD";

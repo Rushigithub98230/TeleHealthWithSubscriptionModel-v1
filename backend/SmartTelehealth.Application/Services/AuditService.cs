@@ -54,6 +54,127 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
+        public async Task<JsonModel> GetUserAuditLogsAsync(int userId, TokenModel tokenModel)
+        {
+            try
+            {
+                _logger.LogInformation("Getting audit logs for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
+                
+                var auditLogs = await _auditLogRepository.GetByUserIdAsync(userId);
+                var dtos = _mapper.Map<List<AuditLogDto>>(auditLogs);
+                
+                _logger.LogInformation("Retrieved {Count} audit logs for user {UserId} by user {TokenUserId}", dtos.Count, userId, tokenModel?.UserID ?? 0);
+                return new JsonModel { data = dtos, Message = "User audit logs retrieved successfully", StatusCode = 200 };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting audit logs for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
+                return new JsonModel { data = new object(), Message = "An error occurred while retrieving user audit logs", StatusCode = 500 };
+            }
+        }
+
+        public async Task<JsonModel> SearchAuditLogsAsync(AuditLogSearchDto searchDto, TokenModel tokenModel)
+        {
+            try
+            {
+                _logger.LogInformation("Searching audit logs by user {TokenUserId}", tokenModel?.UserID ?? 0);
+                
+                var auditLogs = await _auditLogRepository.GetWithFiltersAsync(
+                    searchDto.Action, 
+                    searchDto.UserId, 
+                    searchDto.StartDate, 
+                    searchDto.EndDate, 
+                    searchDto.Page, 
+                    searchDto.PageSize);
+                var dtos = _mapper.Map<List<AuditLogDto>>(auditLogs);
+                
+                _logger.LogInformation("Search completed with {Count} results by user {TokenUserId}", dtos.Count, tokenModel?.UserID ?? 0);
+                return new JsonModel { data = dtos, Message = "Audit log search completed successfully", StatusCode = 200 };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching audit logs by user {TokenUserId}", tokenModel?.UserID ?? 0);
+                return new JsonModel { data = new object(), Message = "An error occurred while searching audit logs", StatusCode = 500 };
+            }
+        }
+
+        public async Task<JsonModel> GetRecentAuditLogsAsync(int count, TokenModel tokenModel)
+        {
+            try
+            {
+                _logger.LogInformation("Getting {Count} recent audit logs by user {TokenUserId}", count, tokenModel?.UserID ?? 0);
+                
+                var auditLogs = await _auditLogRepository.GetRecentAsync(count);
+                var dtos = _mapper.Map<List<AuditLogDto>>(auditLogs);
+                
+                _logger.LogInformation("Retrieved {Count} recent audit logs by user {TokenUserId}", dtos.Count, tokenModel?.UserID ?? 0);
+                return new JsonModel { data = dtos, Message = "Recent audit logs retrieved successfully", StatusCode = 200 };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting recent audit logs by user {TokenUserId}", tokenModel?.UserID ?? 0);
+                return new JsonModel { data = new object(), Message = "An error occurred while retrieving recent audit logs", StatusCode = 500 };
+            }
+        }
+
+        public async Task<JsonModel> GetAuditLogsAsync(string? action, int? userId, DateTime? startDate, DateTime? endDate, int page, int pageSize, TokenModel tokenModel)
+        {
+            try
+            {
+                _logger.LogInformation("Getting audit logs with filters by user {TokenUserId}", tokenModel?.UserID ?? 0);
+                
+                var auditLogs = await _auditLogRepository.GetWithFiltersAsync(action, userId, startDate, endDate, page, pageSize);
+                var dtos = _mapper.Map<List<AuditLogDto>>(auditLogs);
+                
+                _logger.LogInformation("Retrieved {Count} audit logs with filters by user {TokenUserId}", dtos.Count, tokenModel?.UserID ?? 0);
+                return new JsonModel { data = dtos, Message = "Audit logs retrieved successfully", StatusCode = 200 };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting audit logs with filters by user {TokenUserId}", tokenModel?.UserID ?? 0);
+                return new JsonModel { data = new object(), Message = "An error occurred while retrieving audit logs", StatusCode = 500 };
+            }
+        }
+
+        public async Task<JsonModel> GetUserAuditLogCountAsync(int userId, TokenModel tokenModel)
+        {
+            try
+            {
+                _logger.LogInformation("Getting audit log count for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
+                
+                var count = await _auditLogRepository.GetCountByUserIdAsync(userId);
+                
+                _logger.LogInformation("Retrieved audit log count {Count} for user {UserId} by user {TokenUserId}", count, userId, tokenModel?.UserID ?? 0);
+                return new JsonModel { data = count, Message = "User audit log count retrieved successfully", StatusCode = 200 };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting audit log count for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
+                return new JsonModel { data = new object(), Message = "An error occurred while retrieving user audit log count", StatusCode = 500 };
+            }
+        }
+
+        public async Task LogUserActionAsync(int userId, string action, string entityType, string? entityId, string? description, TokenModel tokenModel)
+        {
+            try
+            {
+                var createDto = new CreateAuditLogDto
+                {
+                    Action = action,
+                    EntityType = entityType,
+                    EntityId = entityId ?? "",
+                    UserId = userId,
+                    Description = description ?? ""
+                };
+
+                await CreateAuditLogAsync(createDto, tokenModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error logging user action: {Action} by user {UserId}", action, userId);
+            }
+        }
+
         public async Task<JsonModel> CreateAuditLogAsync(CreateAuditLogDto createDto, TokenModel tokenModel)
         {
             try
@@ -99,167 +220,17 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetUserAuditLogsAsync(string userId, TokenModel tokenModel)
-        {
-            try
-            {
-                _logger.LogInformation("Getting audit logs for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
-                
-                if (!int.TryParse(userId, out int userIdInt))
-                {
-                    return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
-                }
-                
-                var logs = await _auditLogRepository.GetByUserIdAsync(userIdInt);
-                var dtos = _mapper.Map<IEnumerable<AuditLogDto>>(logs);
-                return new JsonModel { data = dtos, Message = "User audit logs retrieved successfully", StatusCode = 200 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting audit logs for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
-                return new JsonModel { data = new object(), Message = "An error occurred while retrieving audit logs", StatusCode = 500 };
-            }
-        }
 
-        public async Task<JsonModel> SearchAuditLogsAsync(AuditLogSearchDto searchDto, TokenModel tokenModel)
-        {
-            try
-            {
-                _logger.LogInformation("Searching audit logs by user {TokenUserId}", tokenModel?.UserID ?? 0);
-                
-                var logs = await _auditLogRepository.SearchAsync(searchDto.SearchTerm ?? "");
-                var dtos = _mapper.Map<IEnumerable<AuditLogDto>>(logs);
-                
-                _logger.LogInformation("Audit logs search completed by user {TokenUserId}: {Count} results", tokenModel?.UserID ?? 0, dtos.Count());
-                return new JsonModel { data = dtos, Message = "Audit logs searched successfully", StatusCode = 200 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error searching audit logs by user {TokenUserId}", tokenModel?.UserID ?? 0);
-                return new JsonModel { data = new object(), Message = "An error occurred while searching audit logs", StatusCode = 500 };
-            }
-        }
 
-        public async Task<JsonModel> GetRecentAuditLogsAsync(int count, TokenModel tokenModel)
-        {
-            try
-            {
-                _logger.LogInformation("Getting recent audit logs by user {TokenUserId}", tokenModel?.UserID ?? 0);
-                
-                var logs = await _auditLogRepository.GetRecentAsync(count);
-                var dtos = _mapper.Map<IEnumerable<AuditLogDto>>(logs);
-                
-                _logger.LogInformation("Recent audit logs retrieved by user {TokenUserId}: {Count} logs", tokenModel?.UserID ?? 0, dtos.Count());
-                return new JsonModel { data = dtos, Message = "Recent audit logs retrieved successfully", StatusCode = 200 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting recent audit logs by user {TokenUserId}", tokenModel?.UserID ?? 0);
-                return new JsonModel { data = new object(), Message = "An error occurred while retrieving recent audit logs", StatusCode = 500 };
-            }
-        }
 
-        public async Task<JsonModel> GetAuditLogsAsync(string? action, string? userId, DateTime? startDate, DateTime? endDate, int page, int pageSize, TokenModel tokenModel)
-        {
-            try
-            {
-                _logger.LogInformation("Getting audit logs by user {TokenUserId} with filters: action={Action}, userId={UserId}, startDate={StartDate}, endDate={EndDate}, page={Page}, pageSize={PageSize}", 
-                    tokenModel?.UserID ?? 0, action, userId, startDate, endDate, page, pageSize);
-                
-                IEnumerable<AuditLog> logs;
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    if (!int.TryParse(userId, out int userIdInt))
-                    {
-                        return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
-                    }
-                    logs = await _auditLogRepository.GetByUserIdAsync(userIdInt);
-                }
-                else if (!string.IsNullOrEmpty(action))
-                {
-                    logs = await _auditLogRepository.GetByActionAsync(action);
-                }
-                else if (startDate.HasValue && endDate.HasValue)
-                {
-                    logs = await _auditLogRepository.GetByDateRangeAsync(startDate.Value, endDate.Value);
-                }
-                else
-                {
-                    logs = await _auditLogRepository.GetRecentAsync(pageSize * page);
-                }
 
-                // Further filter in-memory if needed
-                if (!string.IsNullOrEmpty(action))
-                {
-                    logs = logs.Where(l => l.Action.Contains(action, StringComparison.OrdinalIgnoreCase));
-                }
-                if (startDate.HasValue)
-                {
-                    logs = logs.Where(l => l.Timestamp >= startDate.Value);
-                }
-                if (endDate.HasValue)
-                {
-                    logs = logs.Where(l => l.Timestamp <= endDate.Value);
-                }
 
-                // Pagination
-                logs = logs.OrderByDescending(l => l.Timestamp)
-                             .Skip((page - 1) * pageSize)
-                             .Take(pageSize);
 
-                var dtos = _mapper.Map<IEnumerable<AuditLogDto>>(logs);
-                
-                _logger.LogInformation("Audit logs retrieved by user {TokenUserId}: {Count} logs", tokenModel?.UserID ?? 0, dtos.Count());
-                return new JsonModel { data = dtos, Message = "Audit logs retrieved successfully", StatusCode = 200 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting audit logs by user {TokenUserId}", tokenModel?.UserID ?? 0);
-                return new JsonModel { data = new object(), Message = "An error occurred while retrieving audit logs", StatusCode = 500 };
-            }
-        }
 
-        public async Task<JsonModel> GetUserAuditLogCountAsync(string userId, TokenModel tokenModel)
-        {
-            try
-            {
-                _logger.LogInformation("Getting audit log count for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
-                
-                if (!int.TryParse(userId, out int userIdInt))
-                {
-                    return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
-                }
-                
-                var count = await _auditLogRepository.GetCountByUserIdAsync(userIdInt);
-                
-                _logger.LogInformation("Audit log count retrieved for user {UserId} by user {TokenUserId}: {Count}", userId, tokenModel?.UserID ?? 0, count);
-                return new JsonModel { data = count, Message = "User audit log count retrieved successfully", StatusCode = 200 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting audit log count for user {UserId} by user {TokenUserId}", userId, tokenModel?.UserID ?? 0);
-                return new JsonModel { data = new object(), Message = "An error occurred while retrieving audit log count", StatusCode = 500 };
-            }
-        }
 
-        public async Task LogUserActionAsync(string userId, string action, string entityType, string? entityId, string? description, TokenModel tokenModel)
-        {
-            _logger.LogInformation("Logging user action by user {TokenUserId}: {Action} on {EntityType} {EntityId}", 
-                tokenModel?.UserID ?? 0, action, entityType, entityId);
-            
-            var createDto = new CreateAuditLogDto
-            {
-                Action = action,
-                EntityType = entityType,
-                EntityId = entityId ?? "",
-                UserId = userId,
-                Description = description ?? ""
-            };
 
-            await CreateAuditLogAsync(createDto, tokenModel);
-        }
 
-        public async Task LogDataChangeAsync(string userId, string entityType, string entityId, string? oldValues, string? newValues, TokenModel tokenModel)
+        public async Task LogDataChangeAsync(int userId, string entityType, string entityId, string? oldValues, string? newValues, TokenModel tokenModel)
         {
             _logger.LogInformation("Logging data change by user {TokenUserId}: {EntityType} {EntityId}", 
                 tokenModel?.UserID ?? 0, entityType, entityId);
@@ -278,7 +249,7 @@ namespace SmartTelehealth.Application.Services
             await CreateAuditLogAsync(createDto, tokenModel);
         }
 
-        public async Task LogSecurityEventAsync(string userId, string action, string? description, string? ipAddress, TokenModel tokenModel)
+        public async Task LogSecurityEventAsync(int userId, string action, string? description, string? ipAddress, TokenModel tokenModel)
         {
             _logger.LogInformation("Logging security event by user {TokenUserId}: {Action} for user {UserId}", 
                 tokenModel?.UserID ?? 0, action, userId);
@@ -295,7 +266,7 @@ namespace SmartTelehealth.Application.Services
             await CreateAuditLogAsync(createDto, tokenModel);
         }
 
-        public async Task LogPaymentEventAsync(string userId, string action, string? entityId, string? status, string? errorMessage, TokenModel tokenModel)
+        public async Task LogPaymentEventAsync(int userId, string action, string? entityId, string? status, string? errorMessage, TokenModel tokenModel)
         {
             _logger.LogInformation("Logging payment event by user {TokenUserId}: {Action} for user {UserId}", 
                 tokenModel?.UserID ?? 0, action, userId);
@@ -318,7 +289,7 @@ namespace SmartTelehealth.Application.Services
             await CreateAuditLogAsync(createDto, tokenModel);
         }
 
-        public async Task LogSubscriptionEventAsync(string userId, string action, string? subscriptionId, string? status, TokenModel tokenModel)
+        public async Task LogSubscriptionEventAsync(int userId, string action, string? subscriptionId, string? status, TokenModel tokenModel)
         {
             _logger.LogInformation("Logging subscription event by user {TokenUserId}: {Action} for user {UserId}", 
                 tokenModel?.UserID ?? 0, action, userId);
@@ -335,7 +306,7 @@ namespace SmartTelehealth.Application.Services
             await CreateAuditLogAsync(createDto, tokenModel);
         }
 
-        public async Task LogConsultationEventAsync(string userId, string action, string? consultationId, string? status, TokenModel tokenModel)
+        public async Task LogConsultationEventAsync(int userId, string action, string? consultationId, string? status, TokenModel tokenModel)
         {
             _logger.LogInformation("Logging consultation event by user {TokenUserId}: {Action} for user {UserId}", 
                 tokenModel?.UserID ?? 0, action, userId);
@@ -369,10 +340,10 @@ namespace SmartTelehealth.Application.Services
         }
 
         // Helper to get userId from context (if available)
-        private string GetCurrentUserId()
+        private int GetCurrentUserId()
         {
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value;
-            return userId ?? string.Empty;
+            return int.TryParse(userId, out var parsedUserId) ? parsedUserId : 0;
         }
 
         // PCI-Compliant Payment Data Sanitization

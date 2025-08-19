@@ -14,8 +14,7 @@ public static class SeedData
             {
                 new UserRole { Name = "Client", Description = "Patient/Client users", SortOrder = 1 },
                 new UserRole { Name = "Provider", Description = "Healthcare providers", SortOrder = 2 },
-                new UserRole { Name = "Admin", Description = "System administrators", SortOrder = 3 },
-                new UserRole { Name = "Support", Description = "Customer support staff", SortOrder = 4 }
+                new UserRole { Name = "Admin", Description = "System administrators", SortOrder = 3 }
             };
             context.UserRoles.AddRange(userRoles);
             context.SaveChanges();
@@ -361,7 +360,7 @@ public static class SeedData
         
         // Create Identity roles if they don't exist
         var adminRoleName = "Admin";
-        var userRoleName = "User";
+        var clientRoleName = "Client";
         var providerRoleName = "Provider";
         
         if (!await roleManager.RoleExistsAsync(adminRoleName))
@@ -369,9 +368,9 @@ public static class SeedData
             await roleManager.CreateAsync(new Role(adminRoleName) { Description = "System administrators" });
         }
         
-        if (!await roleManager.RoleExistsAsync(userRoleName))
+        if (!await roleManager.RoleExistsAsync(clientRoleName))
         {
-            await roleManager.CreateAsync(new Role(userRoleName) { Description = "Regular users" });
+            await roleManager.CreateAsync(new Role(clientRoleName) { Description = "Regular users" });
         }
         
         if (!await roleManager.RoleExistsAsync(providerRoleName))

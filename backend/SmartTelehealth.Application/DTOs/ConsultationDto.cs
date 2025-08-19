@@ -5,7 +5,7 @@ namespace SmartTelehealth.Application.DTOs;
 public class ConsultationDto
 {
     public string Id { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public string Type { get; set; } = string.Empty;
     public string Notes { get; set; } = string.Empty;
     public bool IsOneTime { get; set; } = false;
@@ -24,7 +24,7 @@ public class ConsultationDto
 
 public class CreateConsultationDto
 {
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public string Type { get; set; } = string.Empty;
     public string Notes { get; set; } = string.Empty;
     public bool IsOneTime { get; set; } = false;

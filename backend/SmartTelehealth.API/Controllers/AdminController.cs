@@ -9,7 +9,7 @@ namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin")]
 public class AdminController : BaseController
 {
     private readonly ISubscriptionService _subscriptionService;
@@ -75,7 +75,12 @@ public class AdminController : BaseController
     [HttpGet("audit-logs")]
     public async Task<JsonModel> GetAuditLogs([FromQuery] string? action = null, [FromQuery] string? userId = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        return await _auditService.GetAuditLogsAsync(action, userId, startDate, endDate, page, pageSize, GetToken(HttpContext));
+        int? parsedUserId = null;
+        if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out int parsedId))
+        {
+            parsedUserId = parsedId;
+        }
+        return await _auditService.GetAuditLogsAsync(action, parsedUserId, startDate, endDate, page, pageSize, GetToken(HttpContext));
     }
 
     /// <summary>

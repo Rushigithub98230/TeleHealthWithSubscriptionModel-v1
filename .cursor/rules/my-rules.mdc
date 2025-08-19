@@ -1,0 +1,118 @@
+---
+description: always apply this rule of coding style
+globs:
+alwaysApply: true
+---
+1. Controller Responsibilities
+Controllers are designed to be lean and focused solely on handling incoming requests
+and returning responses. They should act as an orchestration layer, delegating all
+business logic to the service layer. The primary responsibility of a controller is to
+return a JsonModel object, which encapsulates the service's response.
+Example:
+[HttpPost]
+public async Task<JsonModel> CreateAssessment([FromBody]
+CreateHealthAssessmentDto createDto)
+{
+return await _healthAssessmentService.CreateAssessmentAsync(createDto,
+GetToken(HttpContext));
+}
+2. Service Layer Token Management
+Every service method must include a TokenModel parameter. This TokenModel will be
+passed from the controller layer using a standardized method, typically
+GetToken(HttpContext) from a BaseController .
+3. Controller Inheritance
+All controllers within the application must inherit from a BaseController . This
+ensures consistent behavior, provides common functionalities (like token retrieval),
+and enforces architectural patterns across the application.
+4. Standardized Response and Error Handling
+All API responses, including successful operations and error conditions, must be
+encapsulated within a JsonModel . This model should provide a consistent structure
+for data, messages, and status codes, facilitating predictable client-side handling.
+5. Robust Error Handling in Services
+Every service method must implement a try-catch block to gracefully handle
+exceptions. In the event of an error, the catch block should return a JsonModel with
+an appropriate error message and status code, preventing unhandled exceptions from
+propagating to higher layers.
+Example:
+public JsonModel GetRaisedTicketById(GetTicketReqModel getTicketReqModel,
+TokenModel token)
+{
+try
+{
+var (userRaisedTickets, totalCount) =
+_userRepository.GetUserRaiseTicketById<GetRaisedTicketSPResponseModel>
+(token.UserID, getTicketReqModel, token);
+var location = _locationService.GetLocationOffsets(token.LocationID,
+token);
+if (userRaisedTickets == null || !userRaisedTickets.Any())
+{
+return new JsonModel
+{
+data = new object(),
+Message = "No tickets found for the user",
+StatusCode = (int)HttpStatusCodes.NoContent
+};
+}
+var options = new JsonSerializerOptions { PropertyNameCaseInsensitive =
+true };
+var getRaisedTicketByIdResponceModelsList =
+userRaisedTickets.Select(ticket => new GetRaisedTicketByIdResponseModel
+{
+CreatedDate = ConvertFromUtcTimeNew((DateTime)ticket.CreatedDate,
+location, token),
+Remarks = ticket.Remarks,
+Priority = ticket.Priority,
+Status = ticket.Status,
+CategoryName = ticket.CategoryName,
+Description = ticket.Description,
+TicketId = ticket.TicketId,
+CreatedBy = ticket.CreatedBy,
+UpdatedBy = ticket.UpdatedBy,
+UpdatedDate = ticket.UpdatedDate,
+IsActive = ticket.IsActive,
+CreatorName = ticket.CreatorName,
+CreatorRole = ticket.CreatorRole,
+RoleName = ticket.RoleName,
+Files = ticket.Files != null ? DeserializeTicketFiles(ticket.Files,
+options, token, location) : null,
+ResolvedDate = ticket.ResolvedDate != null ?
+(DateTime?)ConvertFromUtcTimeNew((DateTime)ticket.ResolvedDate, location,
+token) : null,
+}).ToList();
+return new JsonModel
+{
+data = getRaisedTicketByIdResponceModelsList,
+Message = "Retrieved all user tickets",
+meta = new Meta()
+{
+TotalRecords = totalCount,
+PageSize = getTicketReqModel.PageSize,
+CurrentPage = getTicketReqModel.PageNumber,
+TotalPages = Math.Ceiling(Convert.ToDecimal(totalCount /
+getTicketReqModel.PageSize)),
+DefaultPageSize = getTicketReqModel.PageSize
+},
+StatusCode = (int)HttpStatusCodes.OK
+};
+}
+catch (Exception e)
+{
+return new JsonModel
+{
+data = new object(),
+Message = e.Message,
+StatusCode = (int)HttpStatusCodes.InternalServerError
+};
+}
+}
+6. Base Entity Inheritance
+All core entity classes within the domain model should inherit from a BaseEntity
+class. This provides a common foundation for properties such as Id , CreatedDate ,
+UpdatedDate , etc., ensuring consistency and simplifying data management
+operations.
+7. TokenModel Parameter Handling
+The TokenModel parameter in service methods should generally not be optional and
+should not be assigned a default value of null . It should typically be the last
+parameter in the method signature. Avoid providing default values to parameters
+unless absolutely necessary, to maintain clarity and enforce explicit parameter
+passing.

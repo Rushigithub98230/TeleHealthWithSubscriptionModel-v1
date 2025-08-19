@@ -1,0 +1,137 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-section">
+        <h1 class="app-title">Smart Telehealth</h1>
+        <p class="app-subtitle">Admin Portal</p>
+      </div>
+      <h2 class="login-title">Welcome Back</h2>
+      <p class="login-description">Sign in to access your administrative dashboard</p>
+    </div>
+
+    <!-- Lockout Message -->
+    <div class="lockout-alert" *ngIf="isLockedOut()">
+      <div class="alert-icon">🔒</div>
+      <div class="alert-content">
+        <h3 class="alert-title">Account Temporarily Locked</h3>
+        <p class="alert-message">{{ getLockoutMessage() }}</p>
+      </div>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" [class.disabled]="isLockedOut()">
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address *</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="form-input"
+          [class.invalid]="isFieldInvalid('email')"
+          placeholder="Enter your email address"
+          [disabled]="isLockedOut()"
+        />
+        <div class="error-message" *ngIf="getFieldError('email')">
+          {{ getFieldError('email') }}
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password" class="form-label">Password *</label>
+        <div class="password-input-group">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            class="form-input"
+            [class.invalid]="isFieldInvalid('password')"
+            placeholder="Enter your password"
+            [disabled]="isLockedOut()"
+          />
+          <button
+            type="button"
+            class="password-toggle-btn"
+            (click)="togglePasswordVisibility()"
+            [disabled]="isLockedOut()"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          >
+            <i class="password-icon" [class]="showPassword ? 'icon-eye-off' : 'icon-eye'"></i>
+          </button>
+        </div>
+        <div class="error-message" *ngIf="getFieldError('password')">
+          {{ getFieldError('password') }}
+        </div>
+      </div>
+
+      <!-- Remember Me & Forgot Password -->
+      <div class="form-options">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="rememberMe"
+            class="form-checkbox"
+            [disabled]="isLockedOut()"
+          />
+          <span class="checkmark"></span>
+          <span class="checkbox-text">Remember me</span>
+        </label>
+        
+        <a (click)="goToForgotPassword()" class="forgot-password-link" [class.disabled]="isLockedOut()">
+          Forgot Password?
+        </a>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary btn-submit"
+          [disabled]="isLoading || loginForm.invalid || isLockedOut()"
+        >
+          <span class="btn-text" *ngIf="!isLoading">Sign In</span>
+          <span class="btn-loading" *ngIf="isLoading">
+            <i class="loading-spinner"></i>
+            Signing In...
+          </span>
+        </button>
+      </div>
+
+      <!-- Demo Login Button (Development Only) -->
+      <div class="demo-login" *ngIf="!isLockedOut()">
+        <button
+          type="button"
+          class="btn btn-secondary btn-demo"
+          (click)="demoLogin()"
+          [disabled]="isLoading"
+        >
+          Demo Login
+        </button>
+        <p class="demo-note">Use demo credentials for testing</p>
+      </div>
+    </form>
+
+    <!-- Signup Link -->
+    <div class="signup-link">
+      <p>Don't have an admin account? <a (click)="goToSignup()" class="link">Create one here</a></p>
+    </div>
+
+    <!-- Security Features Info -->
+    <div class="security-info">
+      <div class="security-item">
+        <div class="security-icon">🔐</div>
+        <div class="security-text">
+          <h4>Secure Authentication</h4>
+          <p>Your credentials are encrypted and secure</p>
+        </div>
+      </div>
+      <div class="security-item">
+        <div class="security-icon">🛡️</div>
+        <div class="security-text">
+          <h4>Account Protection</h4>
+          <p>Automatic lockout after failed attempts</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

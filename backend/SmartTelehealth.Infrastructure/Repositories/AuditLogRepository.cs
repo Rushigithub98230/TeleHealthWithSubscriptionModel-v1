@@ -90,5 +90,28 @@ namespace SmartTelehealth.Infrastructure.Repositories
         {
             return await _context.AuditLogs.FirstOrDefaultAsync(a => a.Id == id);
         }
+
+        public async Task<IEnumerable<AuditLog>> GetWithFiltersAsync(string? action, int? userId, DateTime? startDate, DateTime? endDate, int page, int pageSize)
+        {
+            var query = _context.AuditLogs.AsQueryable();
+
+            if (!string.IsNullOrEmpty(action))
+                query = query.Where(a => a.Action == action);
+
+            if (userId.HasValue)
+                query = query.Where(a => a.UserId == userId.Value);
+
+            if (startDate.HasValue)
+                query = query.Where(a => a.Timestamp >= startDate.Value);
+
+            if (endDate.HasValue)
+                query = query.Where(a => a.Timestamp <= endDate.Value);
+
+            return await query
+                .OrderByDescending(a => a.Timestamp)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
     }
 } 

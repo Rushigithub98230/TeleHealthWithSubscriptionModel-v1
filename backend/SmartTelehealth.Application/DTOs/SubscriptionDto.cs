@@ -7,7 +7,7 @@ namespace SmartTelehealth.Application.DTOs
     public class SubscriptionDto
     {
         public string Id { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public string UserName { get; set; } = string.Empty;
         public string PlanId { get; set; } = string.Empty;
         public string PlanName { get; set; } = string.Empty;
@@ -93,7 +93,7 @@ namespace SmartTelehealth.Application.DTOs
         public DateTime? ResumedAt { get; set; }
         public bool? IsPaused { get; set; }
         public string? CancellationReason { get; set; }
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         // Added properties
         public string? Status { get; set; }
         public bool? AutoRenew { get; set; }
@@ -103,7 +103,7 @@ namespace SmartTelehealth.Application.DTOs
     public class UpgradeSubscriptionDto
     {
         public string SubscriptionId { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         [Required]
         public int NewPlanId { get; set; }
         [Required]
@@ -115,7 +115,7 @@ namespace SmartTelehealth.Application.DTOs
     {
         public string Id { get; set; } = string.Empty;
         public string SubscriptionId { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public decimal Amount { get; set; }
         public string Currency { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;

@@ -1,0 +1,56 @@
+<div class="user-dashboard">
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1>User Dashboard</h1>
+      <div class="user-info">
+        <span>Welcome, {{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
+        <button class="logout-btn" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-content">
+    <div class="dashboard-grid">
+      <div class="dashboard-card" (click)="navigateToAppointments()">
+        <div class="card-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 2V5M16 2V5M3.5 4H20.5M19 21H5C3.89543 21 3 20.1046 3 19V8C3 6.89543 3.89543 6 5 6H19C20.1046 6 21 6.89543 21 8V19C21 20.1046 20.1046 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 12H12.01M12 16H12.01M8 12H8.01M8 16H8.01M16 12H16.01M16 16H16.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Appointments</h3>
+        <p>Schedule and manage your healthcare appointments</p>
+      </div>
+
+      <div class="dashboard-card" (click)="navigateToMedicalRecords()">
+        <div class="card-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L19.7071 9.70711C19.8946 9.89464 20 10.149 20 10.4142V19C20 20.1046 19.1046 21 18 21H17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Medical Records</h3>
+        <p>Access your medical history and test results</p>
+      </div>
+
+      <div class="dashboard-card" (click)="navigateToConsultations()">
+        <div class="card-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 8L21 12L17 16M9 8L5 12L9 16M14 4L10 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Consultations</h3>
+        <p>Start or join virtual healthcare consultations</p>
+      </div>
+
+      <div class="dashboard-card" (click)="navigateToBilling()">
+        <div class="card-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2V6M12 18V22M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07M2 12H6M18 12H22M4.93 19.07L7.76 16.24M16.24 7.76L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Billing & Subscriptions</h3>
+        <p>Manage your billing and subscription plans</p>
+      </div>
+    </div>
+  </main>
+</div>

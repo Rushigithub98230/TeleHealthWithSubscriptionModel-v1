@@ -3,7 +3,7 @@ namespace SmartTelehealth.Application.DTOs;
 public class BillingRecordDto
 {
     public string Id { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public string? SubscriptionId { get; set; }
     public decimal Amount { get; set; }
     public string Description { get; set; } = string.Empty;

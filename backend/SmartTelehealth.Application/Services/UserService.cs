@@ -635,7 +635,7 @@ public class UserService : IUserService
             var providers = await _userRepository.GetByUserTypeAsync("Provider");
             var userDtos = providers.Select(u => new UserDto
             {
-                Id = u.Id.ToString(),
+                Id = u.Id,
                 Email = u.Email,
                 FirstName = u.FirstName,
                 LastName = u.LastName,
@@ -910,7 +910,7 @@ public class UserService : IUserService
                 new NotificationDto
                 {
                     Id = Guid.NewGuid().ToString(),
-                    UserId = userId.ToString(),
+                    UserId = userId,
                     Title = "Appointment Reminder",
                     Message = "Your appointment with Dr. Smith is in 1 hour.",
                     Type = "appointment",
@@ -920,7 +920,7 @@ public class UserService : IUserService
                 new NotificationDto
                 {
                     Id = Guid.NewGuid().ToString(),
-                    UserId = userId.ToString(),
+                    UserId = userId,
                     Title = "Payment Successful",
                     Message = "Your payment of $75 has been processed successfully.",
                     Type = "payment",
@@ -1300,7 +1300,7 @@ public class UserService : IUserService
     {
         return new UserDto
         {
-            Id = user.Id.ToString(),
+            Id = user.Id,
             Email = user.Email ?? string.Empty,
             FirstName = user.FirstName,
             LastName = user.LastName,
@@ -1309,7 +1309,7 @@ public class UserService : IUserService
             PhoneNumber = user.PhoneNumber ?? string.Empty,
             UserType = user.UserType,
             Role = user.RoleName,
-            UserRoleId = user.UserRoleId.ToString(),
+            UserRoleId = user.UserRoleId,
             IsActive = user.IsActive,
             IsVerified = user.IsEmailVerified,
             IsEmailVerified = user.IsEmailVerified,
@@ -1335,7 +1335,7 @@ public class UserService : IUserService
     {
         return new PatientDto
         {
-            Id = user.Id.ToString(),
+            Id = user.Id,
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
@@ -1359,7 +1359,7 @@ public class UserService : IUserService
     {
         return new ProviderDto
         {
-            Id = user.Id.ToString(),
+            Id = user.Id,
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
@@ -1632,8 +1632,7 @@ public class UserService : IUserService
             { "Provider", "Provider" },
             { "Doctor", "Provider" },
             { "Physician", "Provider" },
-            { "Support", "Support" },
-            { "CustomerSupport", "Support" }
+
         };
         
         if (roleMapping.TryGetValue(userTypeName, out var mappedRole))

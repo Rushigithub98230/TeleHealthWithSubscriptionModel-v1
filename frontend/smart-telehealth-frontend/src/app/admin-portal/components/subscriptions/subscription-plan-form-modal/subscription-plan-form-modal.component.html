@@ -1,0 +1,303 @@
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2 class="modal-title">{{ getModalTitle() }}</h2>
+      <button 
+        type="button" 
+        class="btn-close"
+        (click)="onCancel()"
+        aria-label="Close modal"
+      >
+        <i class="icon-close">×</i>
+      </button>
+    </div>
+
+    <form [formGroup]="planForm" (ngSubmit)="onSubmit()" class="modal-form">
+      <div class="form-content">
+        <!-- Basic Information Section -->
+        <div class="form-section">
+          <h3 class="section-title">Basic Information</h3>
+          
+          <!-- Name Field -->
+          <div class="form-group">
+            <label for="name" class="form-label">
+              Plan Name <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              formControlName="name"
+              class="form-input"
+              [class.is-invalid]="isFieldInvalid('name')"
+              placeholder="Enter subscription plan name"
+              maxlength="100"
+            />
+            <div class="error-message" *ngIf="isFieldInvalid('name')">
+              {{ getFieldError('name') }}
+            </div>
+            <div class="help-text">
+              A unique name for the subscription plan (2-100 characters)
+            </div>
+          </div>
+
+          <!-- Description Field -->
+          <div class="form-group">
+            <label for="description" class="form-label">
+              Description <span class="required">*</span>
+            </label>
+            <textarea
+              id="description"
+              formControlName="description"
+              class="form-textarea"
+              [class.is-invalid]="isFieldInvalid('description')"
+              placeholder="Describe what this subscription plan offers"
+              rows="3"
+              maxlength="500"
+            ></textarea>
+            <div class="error-message" *ngIf="isFieldInvalid('description')">
+              {{ getFieldError('description') }}
+            </div>
+            <div class="help-text">
+              Detailed description of the subscription plan (10-500 characters)
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing & Billing Section -->
+        <div class="form-section">
+          <h3 class="section-title">Pricing & Billing</h3>
+          
+          <div class="form-row">
+            <!-- Price Field -->
+            <div class="form-group">
+              <label for="price" class="form-label">
+                Price (USD) <span class="required">*</span>
+              </label>
+              <div class="price-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input
+                  type="number"
+                  id="price"
+                  formControlName="price"
+                  class="form-input price-input"
+                  [class.is-invalid]="isFieldInvalid('price')"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div class="error-message" *ngIf="isFieldInvalid('price')">
+                {{ getFieldError('price') }}
+              </div>
+            </div>
+
+            <!-- Billing Cycle Field -->
+            <div class="form-group">
+              <label for="billingCycle" class="form-label">
+                Billing Cycle <span class="required">*</span>
+              </label>
+              <select
+                id="billingCycle"
+                formControlName="billingCycle"
+                class="form-select"
+                [class.is-invalid]="isFieldInvalid('billingCycle')"
+                (change)="onBillingCycleChange()"
+              >
+                <option value="">Select billing cycle</option>
+                <option *ngFor="let cycle of billingCycles" [value]="cycle.value">
+                  {{ cycle.label }}
+                </option>
+              </select>
+              <div class="error-message" *ngIf="isFieldInvalid('billingCycle')">
+                {{ getFieldError('billingCycle') }}
+              </div>
+              <div class="help-text" *ngIf="planForm.get('billingCycle')?.value">
+                {{ getBillingCycleDescription(planForm.get('billingCycle')?.value) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <!-- Duration Field -->
+            <div class="form-group">
+              <label for="duration" class="form-label">
+                Duration <span class="required">*</span>
+              </label>
+              <div class="duration-input-wrapper">
+                <input
+                  type="number"
+                  id="duration"
+                  formControlName="duration"
+                  class="form-input duration-input"
+                  [class.is-invalid]="isFieldInvalid('duration')"
+                  placeholder="1"
+                  min="1"
+                  [disabled]="planForm.get('billingCycle')?.value === 'OneTime'"
+                />
+                <span class="duration-unit">
+                  {{ planForm.get('billingCycle')?.value === 'OneTime' ? 'payment' : 'months' }}
+                </span>
+              </div>
+              <div class="error-message" *ngIf="isFieldInvalid('duration')">
+                {{ getFieldError('duration') }}
+              </div>
+            </div>
+
+            <!-- Max Users Field -->
+            <div class="form-group">
+              <label for="maxUsers" class="form-label">
+                Max Users
+              </label>
+              <input
+                type="number"
+                id="maxUsers"
+                formControlName="maxUsers"
+                class="form-input"
+                [class.is-invalid]="isFieldInvalid('maxUsers')"
+                placeholder="Unlimited"
+                min="1"
+              />
+              <div class="error-message" *ngIf="isFieldInvalid('maxUsers')">
+                {{ getFieldError('maxUsers') }}
+              </div>
+              <div class="help-text">
+                Leave empty for unlimited users
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="form-section">
+          <h3 class="section-title">Features</h3>
+          
+          <div class="features-container">
+            <div class="features-header">
+              <span class="features-label">Plan Features</span>
+              <button 
+                type="button"
+                class="btn btn-sm btn-outline btn-add-feature"
+                (click)="addFeature()"
+              >
+                <i class="icon-plus">+</i>
+                Add Feature
+              </button>
+            </div>
+            
+            <div class="features-list">
+              <div 
+                *ngFor="let feature of featuresArray.controls; let i = index"
+                class="feature-item"
+              >
+                <input
+                  type="text"
+                  [formControlName]="i"
+                  class="form-input feature-input"
+                  [class.is-invalid]="isFeatureInvalid(i)"
+                  placeholder="Enter feature description"
+                  maxlength="200"
+                />
+                <button 
+                  type="button"
+                  class="btn btn-sm btn-icon btn-remove-feature"
+                  (click)="removeFeature(i)"
+                  [disabled]="featuresArray.length === 1"
+                  title="Remove feature"
+                >
+                  <i class="icon-minus">−</i>
+                </button>
+                <div class="error-message" *ngIf="isFeatureInvalid(i)">
+                  {{ getFeatureError(i) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Privileges Section -->
+        <div class="form-section">
+          <h3 class="section-title">Privileges</h3>
+          
+          <div class="form-group">
+            <label class="form-label">
+              Select Privileges <span class="required">*</span>
+            </label>
+            <div class="privileges-selection">
+              <div 
+                *ngFor="let privilege of availablePrivileges"
+                class="privilege-option"
+              >
+                <label class="privilege-checkbox-label">
+                  <input
+                    type="checkbox"
+                    [value]="privilege.id"
+                    [checked]="planForm.get('privilegeIds')?.value?.includes(privilege.id)"
+                    (change)="onPrivilegeSelectionChange($event, privilege.id)"
+                    class="privilege-checkbox"
+                  />
+                  <span class="checkmark"></span>
+                  <div class="privilege-info">
+                    <span class="privilege-name">{{ privilege.name }}</span>
+                    <span class="privilege-category">{{ privilege.category }}</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+            <div class="error-message" *ngIf="isFieldInvalid('privilegeIds')">
+              Please select at least one privilege
+            </div>
+            <div class="help-text">
+              Selected privileges: {{ getSelectedPrivilegeNames().join(', ') || 'None' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="form-section">
+          <h3 class="section-title">Status</h3>
+          
+          <div class="form-group">
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  formControlName="isActive"
+                  class="form-checkbox"
+                />
+                <span class="checkmark"></span>
+                <span class="checkbox-text">Active</span>
+              </label>
+            </div>
+            <div class="help-text">
+              Enable or disable this subscription plan
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button 
+          type="button"
+          class="btn btn-outline btn-cancel"
+          (click)="onCancel()"
+          [disabled]="isSubmitting"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit"
+          class="btn btn-primary btn-submit"
+          [disabled]="isSubmitting || planForm.invalid"
+        >
+          <span class="btn-content" *ngIf="!isSubmitting">
+            {{ getSubmitButtonText() }}
+          </span>
+          <span class="btn-loading" *ngIf="isSubmitting">
+            <div class="loading-spinner"></div>
+            {{ isCreateMode ? 'Creating...' : 'Updating...' }}
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -253,13 +253,13 @@ public class ValidateEmailDto
 
 public class SendSubscriptionNotificationDto
 {
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public string SubscriptionId { get; set; } = string.Empty;
 }
 
 public class SendRefundNotificationDto
 {
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public decimal Amount { get; set; }
     public string BillingRecordId { get; set; } = string.Empty;
 }
@@ -267,7 +267,7 @@ public class SendRefundNotificationDto
 // DTO for creating test notifications
 public class CreateTestNotificationDto
 {
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
 } 

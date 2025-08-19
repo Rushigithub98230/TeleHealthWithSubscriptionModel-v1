@@ -175,7 +175,7 @@ public class StripeWebhookController : BaseController
         if (invoice == null) return;
 
         // Validate customer ID format before parsing
-        if (!Guid.TryParse(invoice.CustomerId, out Guid userId))
+        if (!int.TryParse(invoice.CustomerId, out int userId))
         {
             return;
         }
@@ -183,7 +183,7 @@ public class StripeWebhookController : BaseController
         // Create billing record for successful payment
         await _billingService.CreateBillingRecordAsync(new CreateBillingRecordDto
         {
-            UserId = userId.ToString(),
+            UserId = userId,
             Amount = invoice.AmountPaid / 100m, // Convert from cents
             Currency = invoice.Currency,
             PaymentMethod = "stripe",
@@ -204,7 +204,7 @@ public class StripeWebhookController : BaseController
         if (invoice == null) return;
 
         // Validate customer ID format before parsing
-        if (!Guid.TryParse(invoice.CustomerId, out Guid userId))
+        if (!int.TryParse(invoice.CustomerId, out int userId))
         {
             return;
         }
@@ -212,7 +212,7 @@ public class StripeWebhookController : BaseController
         // Create billing record for failed payment
         await _billingService.CreateBillingRecordAsync(new CreateBillingRecordDto
         {
-            UserId = userId.ToString(),
+            UserId = userId,
             Amount = invoice.AmountDue / 100m, // Convert from cents
             Currency = invoice.Currency,
             PaymentMethod = "stripe",

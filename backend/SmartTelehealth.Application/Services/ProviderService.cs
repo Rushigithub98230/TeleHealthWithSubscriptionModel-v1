@@ -58,7 +58,7 @@ namespace SmartTelehealth.Application.Services
             var provider = _mapper.Map<Provider>(createProviderDto);
             var created = await _providerRepository.CreateAsync(provider);
             var dto = _mapper.Map<ProviderDto>(created);
-            await _auditService.LogUserActionAsync(dto.Id.ToString(), "ProviderCreated", "Provider", dto.Id.ToString(), $"Provider {dto.FullName} created", tokenModel);
+            await _auditService.LogUserActionAsync(dto.Id, "ProviderCreated", "Provider", dto.Id.ToString(), $"Provider {dto.FullName} created", tokenModel);
             return new JsonModel
             {
                 data = dto,
@@ -80,7 +80,7 @@ namespace SmartTelehealth.Application.Services
             _mapper.Map(updateProviderDto, existing);
             var updated = await _providerRepository.UpdateAsync(existing);
             var dto = _mapper.Map<ProviderDto>(updated);
-            await _auditService.LogUserActionAsync(dto.Id.ToString(), "ProviderUpdated", "Provider", dto.Id.ToString(), $"Provider {dto.FullName} updated", tokenModel);
+            await _auditService.LogUserActionAsync(dto.Id, "ProviderUpdated", "Provider", dto.Id.ToString(), $"Provider {dto.FullName} updated", tokenModel);
             return new JsonModel
             {
                 data = dto,
@@ -99,7 +99,7 @@ namespace SmartTelehealth.Application.Services
                     Message = "Provider not found",
                     StatusCode = 404
                 };
-            await _auditService.LogUserActionAsync(id.ToString(), "ProviderDeleted", "Provider", id.ToString(), $"Provider {id} deleted", tokenModel);
+            await _auditService.LogUserActionAsync(id, "ProviderDeleted", "Provider", id.ToString(), $"Provider {id} deleted", tokenModel);
             return new JsonModel
             {
                 data = true,

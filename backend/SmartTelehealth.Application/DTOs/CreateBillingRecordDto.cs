@@ -6,7 +6,7 @@ namespace SmartTelehealth.Application.DTOs;
 public class CreateBillingRecordDto
 {
     [Required]
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     
     public string? SubscriptionId { get; set; }
     

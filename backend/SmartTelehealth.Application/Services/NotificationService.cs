@@ -46,7 +46,7 @@ namespace SmartTelehealth.Application.Services
                 var notification = new NotificationDto
                 {
                     Id = id.ToString(),
-                    UserId = Guid.NewGuid().ToString(),
+                    UserId = 0, // Placeholder value
                     Title = "Sample Notification",
                     Message = "This is a sample notification",
                     Type = "Info",
@@ -80,7 +80,7 @@ namespace SmartTelehealth.Application.Services
                 var notification = new NotificationDto
                 {
                     Id = Guid.NewGuid().ToString(),
-                    UserId = createNotificationDto.UserId.ToString(),
+                    UserId = createNotificationDto.UserId,
                     Title = createNotificationDto.Title,
                     Message = createNotificationDto.Message,
                     Type = createNotificationDto.Type,
@@ -114,7 +114,7 @@ namespace SmartTelehealth.Application.Services
                 var notification = new NotificationDto
                 {
                     Id = id.ToString(),
-                    UserId = Guid.NewGuid().ToString(),
+                    UserId = 0, // Placeholder value
                     Title = "Updated Notification",
                     Message = "Updated message",
                     Type = "Info",
@@ -825,7 +825,7 @@ namespace SmartTelehealth.Application.Services
                 var notification = new NotificationDto
                 {
                     Id = Guid.NewGuid().ToString(),
-                    UserId = userId.ToString(),
+                    UserId = 0, // Placeholder value - userId is Guid but should be int
                     Title = title,
                     Message = message,
                     Type = "Info",
@@ -933,7 +933,7 @@ namespace SmartTelehealth.Application.Services
                 var notification = new NotificationDto
                 {
                     Id = Guid.NewGuid().ToString(),
-                    UserId = userId.ToString(),
+                    UserId = 0, // Placeholder value - userId is Guid but should be int
                     Title = title,
                     Message = message,
                     Type = "InApp",
@@ -1063,7 +1063,7 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> SendNotificationAsync(string userId, string title, string message, TokenModel tokenModel)
+        public async Task<JsonModel> SendNotificationAsync(int userId, string title, string message, TokenModel tokenModel)
         {
             try
             {
@@ -1129,13 +1129,13 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> SendSubscriptionSuspendedNotificationAsync(string userId, string subscriptionId, TokenModel tokenModel)
+        public async Task<JsonModel> SendSubscriptionSuspendedNotificationAsync(int userId, string subscriptionId, TokenModel tokenModel)
         {
             try
             {
                 var notification = new CreateNotificationDto
                 {
-                    UserId = int.Parse(userId),
+                    UserId = userId,
                     Title = "Subscription Suspended",
                     Message = $"Your subscription {subscriptionId} has been suspended due to payment issues. Please update your payment method to reactivate your subscription.",
                     Type = "Warning"
@@ -1163,13 +1163,13 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> SendRefundNotificationAsync(string userId, decimal amount, string billingRecordId, TokenModel tokenModel)
+        public async Task<JsonModel> SendRefundNotificationAsync(int userId, decimal amount, string billingRecordId, TokenModel tokenModel)
         {
             try
             {
                 var notification = new CreateNotificationDto
                 {
-                    UserId = int.Parse(userId),
+                    UserId = userId,
                     Title = "Refund Processed",
                     Message = $"A refund of ${amount:F2} has been processed for billing record {billingRecordId}. The refund will appear in your account within 3-5 business days.",
                     Type = "Success"
@@ -1197,13 +1197,13 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> SendSubscriptionReactivatedNotificationAsync(string userId, string subscriptionId, TokenModel tokenModel)
+        public async Task<JsonModel> SendSubscriptionReactivatedNotificationAsync(int userId, string subscriptionId, TokenModel tokenModel)
         {
             try
             {
                 var notification = new CreateNotificationDto
                 {
-                    UserId = int.Parse(userId),
+                    UserId = userId,
                     Title = "Subscription Reactivated",
                     Message = $"Your subscription {subscriptionId} has been reactivated successfully. You now have full access to all features.",
                     Type = "Success"

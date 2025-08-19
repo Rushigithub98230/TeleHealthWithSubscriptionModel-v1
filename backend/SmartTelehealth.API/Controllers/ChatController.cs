@@ -28,14 +28,14 @@ public class ChatController : BaseController
     public async Task<JsonModel> SendMessage([FromBody] CreateMessageDto createDto)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.SendMessageAsync(createDto, userId.ToString(), GetToken(HttpContext));
+        return await _messagingService.SendMessageAsync(createDto, userId, GetToken(HttpContext));
     }
 
     [HttpPost("messages/with-notification")]
     public async Task<JsonModel> SendMessageWithNotification([FromBody] CreateMessageDto createDto)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.SendMessageAsync(createDto, userId.ToString(), GetToken(HttpContext));
+        return await _messagingService.SendMessageAsync(createDto, userId, GetToken(HttpContext));
     }
 
     [HttpGet("messages/{messageId}")]
@@ -72,21 +72,21 @@ public class ChatController : BaseController
     public async Task<JsonModel> MarkMessageAsRead(Guid messageId)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.MarkMessageAsReadAsync(messageId.ToString(), userId.ToString(), GetToken(HttpContext));
+        return await _messagingService.MarkMessageAsReadAsync(messageId.ToString(), userId, GetToken(HttpContext));
     }
 
     [HttpPost("messages/{messageId}/reactions")]
     public async Task<JsonModel> AddReaction(Guid messageId, [FromQuery] string reactionType)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.AddReactionAsync(messageId.ToString(), userId.ToString(), reactionType, GetToken(HttpContext));
+        return await _messagingService.AddReactionAsync(messageId.ToString(), userId, reactionType, GetToken(HttpContext));
     }
 
     [HttpDelete("messages/{messageId}/reactions")]
     public async Task<JsonModel> RemoveReaction(Guid messageId, [FromQuery] string reactionType)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.RemoveReactionAsync(messageId.ToString(), userId.ToString(), reactionType, GetToken(HttpContext));
+        return await _messagingService.RemoveReactionAsync(messageId.ToString(), userId, reactionType, GetToken(HttpContext));
     }
 
     [HttpGet("messages/{messageId}/reactions")]
@@ -114,9 +114,13 @@ public class ChatController : BaseController
     }
 
     [HttpGet("users/{userId}/rooms")]
-    public async Task<JsonModel> GetUserChatRooms(Guid userId)
+    public async Task<JsonModel> GetUserChatRooms(string userId)
     {
-        return await _messagingService.GetUserChatRoomsAsync(userId.ToString(), GetToken(HttpContext));
+        if (!int.TryParse(userId, out int parsedUserId))
+        {
+            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+        }
+        return await _messagingService.GetUserChatRoomsAsync(parsedUserId, GetToken(HttpContext));
     }
 
     [HttpPut("rooms/{chatRoomId}")]
@@ -134,13 +138,21 @@ public class ChatController : BaseController
     [HttpPost("rooms/{chatRoomId}/participants")]
     public async Task<JsonModel> AddParticipant(Guid chatRoomId, [FromQuery] string userId, [FromQuery] string role)
     {
-        return await _messagingService.AddParticipantAsync(chatRoomId.ToString(), userId, role, GetToken(HttpContext));
+        if (!int.TryParse(userId, out int parsedUserId))
+        {
+            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+        }
+        return await _messagingService.AddParticipantAsync(chatRoomId.ToString(), parsedUserId, role, GetToken(HttpContext));
     }
 
     [HttpDelete("rooms/{chatRoomId}/participants/{userId}")]
     public async Task<JsonModel> RemoveParticipant(Guid chatRoomId, string userId)
     {
-        return await _messagingService.RemoveParticipantAsync(chatRoomId.ToString(), userId, GetToken(HttpContext));
+        if (!int.TryParse(userId, out int parsedUserId))
+        {
+            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+        }
+        return await _messagingService.RemoveParticipantAsync(chatRoomId.ToString(), parsedUserId, GetToken(HttpContext));
     }
 
     [HttpGet("rooms/{chatRoomId}/participants")]
@@ -152,34 +164,42 @@ public class ChatController : BaseController
     [HttpPut("rooms/{chatRoomId}/participants/{userId}/role")]
     public async Task<JsonModel> UpdateParticipantRole(Guid chatRoomId, string userId, [FromQuery] string newRole)
     {
-        return await _messagingService.UpdateParticipantRoleAsync(chatRoomId.ToString(), userId, newRole, GetToken(HttpContext));
+        if (!int.TryParse(userId, out int parsedUserId))
+        {
+            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+        }
+        return await _messagingService.UpdateParticipantRoleAsync(chatRoomId.ToString(), parsedUserId, newRole, GetToken(HttpContext));
     }
 
     [HttpGet("rooms/{chatRoomId}/unread")]
     public async Task<JsonModel> GetUnreadMessages(Guid chatRoomId)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.GetUnreadMessagesAsync(chatRoomId.ToString(), userId.ToString(), GetToken(HttpContext));
+        return await _messagingService.GetUnreadMessagesAsync(chatRoomId.ToString(), userId, GetToken(HttpContext));
     }
 
     [HttpPost("rooms/{chatRoomId}/validate-access")]
     public async Task<JsonModel> ValidateChatRoomAccess(Guid chatRoomId)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.ValidateChatRoomAccessAsync(chatRoomId.ToString(), userId.ToString(), GetToken(HttpContext));
+        return await _messagingService.ValidateChatRoomAccessAsync(chatRoomId.ToString(), userId, GetToken(HttpContext));
     }
 
     [HttpPost("rooms/{chatRoomId}/typing")]
     public async Task<JsonModel> SendTypingIndicator(Guid chatRoomId, [FromQuery] bool isTyping)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.SendTypingIndicatorAsync(chatRoomId.ToString(), userId.ToString(), isTyping, GetToken(HttpContext));
+        return await _messagingService.SendTypingIndicatorAsync(chatRoomId.ToString(), userId, isTyping, GetToken(HttpContext));
     }
 
     [HttpPost("notifications/user/{userId}")]
     public async Task<JsonModel> SendNotificationToUser(string userId, [FromBody] SendNotificationRequest request)
     {
-        return await _messagingService.SendNotificationToUserAsync(userId, request.Title, request.Message, request.Data, GetToken(HttpContext));
+        if (!int.TryParse(userId, out int parsedUserId))
+        {
+            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+        }
+        return await _messagingService.SendNotificationToUserAsync(parsedUserId, request.Title, request.Message, request.Data, GetToken(HttpContext));
     }
 
     [HttpPost("rooms/{chatRoomId}/notifications")]
@@ -227,10 +247,10 @@ public class ChatController : BaseController
         return await _messagingService.DecryptMessageAsync(request.EncryptedMessage, request.Key, GetToken(HttpContext));
     }
 
-    private Guid GetCurrentUserId()
+    private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 }
 

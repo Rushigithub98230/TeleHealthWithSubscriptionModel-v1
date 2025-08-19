@@ -78,7 +78,7 @@ public class PaymentController : BaseController
         }
         
         // Log the action
-        await _auditService.LogUserActionAsync(userId.ToString(), "AddPaymentMethod", "PaymentMethod", paymentMethod.Id, "Payment method added successfully", GetToken(HttpContext));
+        await _auditService.LogUserActionAsync(userId, "AddPaymentMethod", "PaymentMethod", paymentMethod.Id, "Payment method added successfully", GetToken(HttpContext));
         
         return new JsonModel { data = paymentMethod, Message = "Payment method added successfully", StatusCode = 200 };
     }
@@ -94,7 +94,7 @@ public class PaymentController : BaseController
         
         if (result)
         {
-            await _auditService.LogUserActionAsync(userId.ToString(), "SetDefaultPaymentMethod", "PaymentMethod", paymentMethodId, "Default payment method updated", GetToken(HttpContext));
+            await _auditService.LogUserActionAsync(userId, "SetDefaultPaymentMethod", "PaymentMethod", paymentMethodId, "Default payment method updated", GetToken(HttpContext));
             return new JsonModel { data = true, Message = "Default payment method updated", StatusCode = 200 };
         }
         
@@ -112,7 +112,7 @@ public class PaymentController : BaseController
         
         if (result)
         {
-            await _auditService.LogUserActionAsync(userId.ToString(), "RemovePaymentMethod", "PaymentMethod", paymentMethodId, "Payment method removed", GetToken(HttpContext));
+            await _auditService.LogUserActionAsync(userId, "RemovePaymentMethod", "PaymentMethod", paymentMethodId, "Payment method removed", GetToken(HttpContext));
             return new JsonModel { data = true, Message = "Payment method removed", StatusCode = 200 };
         }
         
@@ -135,9 +135,9 @@ public class PaymentController : BaseController
             return new JsonModel { data = new object(), Message = "Billing record not found", StatusCode = 400 };
         }
 
-        if (((BillingRecordDto)billingRecord.data).UserId != userId.ToString())
+        if (((BillingRecordDto)billingRecord.data).UserId != userId)
         {
-            await _auditService.LogSecurityEventAsync(userId.ToString(), "PaymentAccessDenied", 
+            await _auditService.LogSecurityEventAsync(userId, "PaymentAccessDenied", 
                 $"User {userId} attempted to access billing record {request.BillingRecordId} belonging to {((BillingRecordDto)billingRecord.data).UserId}", ipAddress, GetToken(HttpContext));
             return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
         }
@@ -162,7 +162,7 @@ public class PaymentController : BaseController
         
         if (result.StatusCode == 200)
         {
-            await _auditService.LogPaymentEventAsync(userId.ToString(), "PaymentProcessed", request.BillingRecordId.ToString(), "Success", null, GetToken(HttpContext));
+            await _auditService.LogPaymentEventAsync(userId, "PaymentProcessed", request.BillingRecordId.ToString(), "Success", null, GetToken(HttpContext));
             return result;
         }
         
@@ -184,7 +184,7 @@ public class PaymentController : BaseController
             return new JsonModel { data = new object(), Message = "Billing record not found", StatusCode = 400 };
         }
 
-        if (((BillingRecordDto)billingRecord.data).UserId != userId.ToString())
+        if (((BillingRecordDto)billingRecord.data).UserId != userId)
         {
             return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
         }
@@ -194,7 +194,7 @@ public class PaymentController : BaseController
         
         if (result.StatusCode == 200)
         {
-            await _auditService.LogPaymentEventAsync(userId.ToString(), "PaymentRetried", billingRecordId.ToString(), "Success", null, GetToken(HttpContext));
+            await _auditService.LogPaymentEventAsync(userId, "PaymentRetried", billingRecordId.ToString(), "Success", null, GetToken(HttpContext));
             return result;
         }
         
@@ -216,7 +216,7 @@ public class PaymentController : BaseController
             return new JsonModel { data = new object(), Message = "Billing record not found", StatusCode = 400 };
         }
 
-        if (((BillingRecordDto)billingRecord.data).UserId != userId.ToString())
+        if (((BillingRecordDto)billingRecord.data).UserId != userId)
         {
             return new JsonModel { data = new object(), Message = "Access denied", StatusCode = 403 };
         }
@@ -226,7 +226,7 @@ public class PaymentController : BaseController
         
         if (result.StatusCode == 200)
         {
-            await _auditService.LogPaymentEventAsync(userId.ToString(), "RefundProcessed", billingRecordId.ToString(), "Success", request.Reason, GetToken(HttpContext));
+            await _auditService.LogPaymentEventAsync(userId, "RefundProcessed", billingRecordId.ToString(), "Success", request.Reason, GetToken(HttpContext));
             return result;
         }
         

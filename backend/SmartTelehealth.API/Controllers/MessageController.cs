@@ -28,7 +28,7 @@ public class MessageController : BaseController
     public async Task<JsonModel> SendMessage([FromBody] CreateMessageDto createDto)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.SendMessageAsync(createDto, userId.ToString(), GetToken(HttpContext));
+        return await _messagingService.SendMessageAsync(createDto, userId, GetToken(HttpContext));
     }
 
     [HttpPut("{messageId}")]
@@ -49,21 +49,21 @@ public class MessageController : BaseController
     public async Task<JsonModel> MarkMessageAsRead(Guid messageId)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.MarkMessageAsReadAsync(messageId.ToString(), userId.ToString(), GetToken(HttpContext));
+        return await _messagingService.MarkMessageAsReadAsync(messageId.ToString(), userId, GetToken(HttpContext));
     }
 
     [HttpPost("{messageId}/reactions")]
     public async Task<JsonModel> AddReaction(Guid messageId, [FromQuery] string reactionType)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.AddReactionAsync(messageId.ToString(), userId.ToString(), reactionType, GetToken(HttpContext));
+        return await _messagingService.AddReactionAsync(messageId.ToString(), userId, reactionType, GetToken(HttpContext));
     }
 
     [HttpDelete("{messageId}/reactions")]
     public async Task<JsonModel> RemoveReaction(Guid messageId, [FromQuery] string reactionType)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.RemoveReactionAsync(messageId.ToString(), userId.ToString(), reactionType, GetToken(HttpContext));
+        return await _messagingService.RemoveReactionAsync(messageId.ToString(), userId, reactionType, GetToken(HttpContext));
     }
 
     [HttpGet("{messageId}/reactions")]
@@ -117,10 +117,10 @@ public class MessageController : BaseController
         return await _messagingService.DecryptMessageAsync(request.EncryptedMessage, request.Key, GetToken(HttpContext));
     }
 
-    private Guid GetCurrentUserId()
+    private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 }
 

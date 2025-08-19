@@ -65,9 +65,13 @@ public class ChatRoomController : BaseController
     }
 
     [HttpGet("users/{userId}")]
-    public async Task<JsonModel> GetUserChatRooms(Guid userId)
+    public async Task<JsonModel> GetUserChatRooms(string userId)
     {
-        return await _messagingService.GetUserChatRoomsAsync(userId.ToString(), GetToken(HttpContext));
+        if (!int.TryParse(userId, out int parsedUserId))
+        {
+            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+        }
+        return await _messagingService.GetUserChatRoomsAsync(parsedUserId, GetToken(HttpContext));
     }
 
     [HttpPut("{chatRoomId}")]
@@ -85,13 +89,21 @@ public class ChatRoomController : BaseController
     [HttpPost("{chatRoomId}/participants")]
     public async Task<JsonModel> AddParticipant(Guid chatRoomId, [FromQuery] string userId, [FromQuery] string role)
     {
-        return await _messagingService.AddParticipantAsync(chatRoomId.ToString(), userId, role, GetToken(HttpContext));
+        if (!int.TryParse(userId, out int parsedUserId))
+        {
+            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+        }
+        return await _messagingService.AddParticipantAsync(chatRoomId.ToString(), parsedUserId, role, GetToken(HttpContext));
     }
 
     [HttpDelete("{chatRoomId}/participants/{userId}")]
     public async Task<JsonModel> RemoveParticipant(Guid chatRoomId, string userId)
     {
-        return await _messagingService.RemoveParticipantAsync(chatRoomId.ToString(), userId, GetToken(HttpContext));
+        if (!int.TryParse(userId, out int parsedUserId))
+        {
+            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+        }
+        return await _messagingService.RemoveParticipantAsync(chatRoomId.ToString(), parsedUserId, GetToken(HttpContext));
     }
 
     [HttpGet("{chatRoomId}/participants")]
@@ -103,14 +115,18 @@ public class ChatRoomController : BaseController
     [HttpPut("{chatRoomId}/participants/{userId}/role")]
     public async Task<JsonModel> UpdateParticipantRole(Guid chatRoomId, string userId, [FromQuery] string newRole)
     {
-        return await _messagingService.UpdateParticipantRoleAsync(chatRoomId.ToString(), userId, newRole, GetToken(HttpContext));
+        if (!int.TryParse(userId, out int parsedUserId))
+        {
+            return new JsonModel { data = new object(), Message = "Invalid user ID format", StatusCode = 400 };
+        }
+        return await _messagingService.UpdateParticipantRoleAsync(chatRoomId.ToString(), parsedUserId, newRole, GetToken(HttpContext));
     }
 
     [HttpPost("{chatRoomId}/validate-access")]
     public async Task<JsonModel> ValidateChatRoomAccess(Guid chatRoomId)
     {
         var userId = GetCurrentUserId();
-        return await _messagingService.ValidateChatRoomAccessAsync(chatRoomId.ToString(), userId.ToString(), GetToken(HttpContext));
+        return await _messagingService.ValidateChatRoomAccessAsync(chatRoomId.ToString(), userId, GetToken(HttpContext));
     }
 
     [HttpPost("{chatRoomId}/archive")]
@@ -197,10 +213,10 @@ public class ChatRoomController : BaseController
         return new JsonModel { data = new object(), Message = "Join chat room functionality not implemented yet", StatusCode = 501 };
     }
 
-    private Guid GetCurrentUserId()
+    private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 }
 

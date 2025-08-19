@@ -54,7 +54,7 @@ public class JwtService : IJwtService
                 var userRolesList = new List<string> { userRole.Name };
                 
                 // Add isAdmin claim for policy-based authorization
-                if (userRolesList.Contains("Admin") || userRolesList.Contains("SuperAdmin"))
+                if (userRolesList.Contains("Admin"))
                 {
                     claims.Add(new Claim("isAdmin", "true"));
                 }
@@ -63,7 +63,7 @@ public class JwtService : IJwtService
         else
         {
             // Add isAdmin claim for policy-based authorization (when Identity roles are found)
-            if (userRoles.Contains("Admin") || userRoles.Contains("SuperAdmin"))
+            if (userRoles.Contains("Admin"))
             {
                 claims.Add(new Claim("isAdmin", "true"));
             }

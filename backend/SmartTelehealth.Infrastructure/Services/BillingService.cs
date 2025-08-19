@@ -44,7 +44,7 @@ public class BillingService : IBillingService
         {
             var billingRecord = new BillingRecord
             {
-                UserId = int.Parse(createDto.UserId),
+                UserId = createDto.UserId,
                 SubscriptionId = !string.IsNullOrEmpty(createDto.SubscriptionId) ? Guid.Parse(createDto.SubscriptionId) : (Guid?)null,
                 Amount = createDto.Amount,
                 Description = createDto.Description,
@@ -140,7 +140,7 @@ public class BillingService : IBillingService
                 await _billingRepository.UpdateAsync(billingRecord);
                 
                 await SendPaymentNotificationsAsync(MapToDto(billingRecord), false, tokenModel);
-                await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "PaymentFailed", billingRecord.Id.ToString(), "Failed", "No default payment method", tokenModel);
+                await _auditService.LogPaymentEventAsync(billingRecord.UserId, "PaymentFailed", billingRecord.Id.ToString(), "Failed", "No default payment method", tokenModel);
                 
                 return new JsonModel
                 {
@@ -175,7 +175,7 @@ public class BillingService : IBillingService
 
                 // AUDIT LOG: Payment success
                 await _auditService.LogPaymentEventAsync(
-                    billingRecord.UserId.ToString(),
+                    billingRecord.UserId,
                     "PaymentSuccess",
                     billingRecord.Id.ToString(),
                     "Success",
@@ -225,7 +225,7 @@ public class BillingService : IBillingService
                     await SendPaymentNotificationsAsync(billingRecordDto, false, tokenModel);
                     
                     await _auditService.LogPaymentEventAsync(
-                        billingRecord.UserId.ToString(),
+                        billingRecord.UserId,
                         "PaymentFailed",
                         billingRecord.Id.ToString(),
                         "Failed",
@@ -264,7 +264,7 @@ public class BillingService : IBillingService
 
         // AUDIT LOG: Payment failure
         await _auditService.LogPaymentEventAsync(
-            billingRecord.UserId.ToString(),
+            billingRecord.UserId,
             "PaymentFailed",
             billingRecord.Id.ToString(),
             "Failed",
@@ -451,7 +451,7 @@ public class BillingService : IBillingService
 
                 // Audit log
                 await _auditService.LogPaymentEventAsync(
-                    billingRecord.UserId.ToString(),
+                    billingRecord.UserId,
                     "RefundProcessed",
                     billingRecord.Id.ToString(),
                     "Success",
@@ -615,7 +615,7 @@ public class BillingService : IBillingService
     {
         try
         {
-            var user = await _userRepository.GetByIdAsync(int.Parse(billingRecord.UserId));
+            var user = await _userRepository.GetByIdAsync(billingRecord.UserId);
             if (user == null) return;
             
             var userName = $"{user.FirstName} {user.LastName}";
@@ -630,7 +630,7 @@ public class BillingService : IBillingService
                 
                 // Send in-app notification
                 await _notificationService.CreateInAppNotificationAsync(
-                    int.Parse(billingRecord.UserId),
+                    billingRecord.UserId,
                     "Payment Successful",
                     $"Your payment of ${billingRecord.Amount} has been processed successfully.",
                     tokenModel
@@ -646,7 +646,7 @@ public class BillingService : IBillingService
                 
                 // Send in-app notification
                 await _notificationService.CreateInAppNotificationAsync(
-                    int.Parse(billingRecord.UserId),
+                    billingRecord.UserId,
                     "Payment Failed",
                     $"We were unable to process your payment of ${billingRecord.Amount}. Please check your payment method.",
                     tokenModel
@@ -702,7 +702,7 @@ public class BillingService : IBillingService
             // Send email notification
             if (!string.IsNullOrEmpty(user.Email))
             {
-                await _notificationService.SendRefundNotificationAsync(billingRecord.UserId.ToString(), amount, billingRecord.Id.ToString(), tokenModel);
+                await _notificationService.SendRefundNotificationAsync(billingRecord.UserId, amount, billingRecord.Id.ToString(), tokenModel);
             }
             
             // Send in-app notification
@@ -724,7 +724,7 @@ public class BillingService : IBillingService
         return new BillingRecordDto
         {
             Id = billingRecord.Id.ToString(),
-            UserId = billingRecord.UserId.ToString(),
+            UserId = billingRecord.UserId,
             SubscriptionId = billingRecord.SubscriptionId?.ToString(),
             Amount = billingRecord.Amount,
             Description = billingRecord.Description,
@@ -803,7 +803,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "RecurringBillingCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
+        await _auditService.LogPaymentEventAsync(createDto.UserId, "RecurringBillingCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -855,7 +855,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "UpfrontPaymentCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
+        await _auditService.LogPaymentEventAsync(createDto.UserId, "UpfrontPaymentCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -878,7 +878,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "BundlePaymentProcessed", createdRecord.Id.ToString(), "Success", null, tokenModel);
+        await _auditService.LogPaymentEventAsync(createDto.UserId, "BundlePaymentProcessed", createdRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -901,7 +901,7 @@ public class BillingService : IBillingService
         billingRecord.UpdatedAt = DateTime.UtcNow;
         await _billingRepository.UpdateAsync(billingRecord);
         var billingRecordDto = MapToDto(billingRecord);
-        await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "BillingAdjustmentApplied", billingRecord.Id.ToString(), "Success", null, tokenModel);
+        await _auditService.LogPaymentEventAsync(billingRecord.UserId, "BillingAdjustmentApplied", billingRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -973,7 +973,7 @@ public class BillingService : IBillingService
         billingRecord.UpdatedDate = DateTime.UtcNow;
         await _billingRepository.UpdateAsync(billingRecord);
         var billingRecordDto = MapToDto(billingRecord);
-        await _auditService.LogPaymentEventAsync(billingRecord.UserId.ToString(), "PartialPaymentProcessed", billingRecord.Id.ToString(), "Success", null, tokenModel);
+        await _auditService.LogPaymentEventAsync(billingRecord.UserId, "PartialPaymentProcessed", billingRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -994,7 +994,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(createDto.UserId.ToString(), "InvoiceCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
+        await _auditService.LogPaymentEventAsync(createDto.UserId, "InvoiceCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -1101,7 +1101,7 @@ public class BillingService : IBillingService
         };
         var createdRecord = await _billingRepository.CreateAsync(billingRecord);
         var billingRecordDto = MapToDto(createdRecord);
-        await _auditService.LogPaymentEventAsync(userId.ToString(), "BillingCycleCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
+        await _auditService.LogPaymentEventAsync(userId, "BillingCycleCreated", createdRecord.Id.ToString(), "Success", null, tokenModel);
         return new JsonModel
         {
             data = billingRecordDto,
@@ -1292,7 +1292,7 @@ public class BillingService : IBillingService
                 var updatedRecord = await _billingRepository.UpdateAsync(billingRecord);
 
                 await _auditService.LogPaymentEventAsync(
-                    billingRecord.UserId.ToString(),
+                    billingRecord.UserId,
                     "RefundProcessed",
                     billingRecordId.ToString(),
                     "Success",
@@ -1573,7 +1573,7 @@ public class BillingService : IBillingService
             var paymentHistory = filteredRecords.Select(r => new PaymentHistoryDto
             {
                 Id = r.Id,
-                UserId = r.UserId.ToString(),
+                UserId = r.UserId,
                 SubscriptionId = r.SubscriptionId?.ToString() ?? "",
                 Amount = r.Amount,
                 Currency = "USD",

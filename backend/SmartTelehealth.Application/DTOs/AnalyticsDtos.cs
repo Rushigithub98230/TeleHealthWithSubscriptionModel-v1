@@ -274,7 +274,7 @@ namespace SmartTelehealth.Application.DTOs
         public string ErrorType { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
         public string StackTrace { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public DateTime Timestamp { get; set; }
         public string Endpoint { get; set; } = string.Empty;
         public string UserAgent { get; set; } = string.Empty;

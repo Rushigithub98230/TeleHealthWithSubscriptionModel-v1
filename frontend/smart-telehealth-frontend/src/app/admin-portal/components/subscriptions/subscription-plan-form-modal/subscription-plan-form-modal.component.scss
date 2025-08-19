@@ -1,0 +1,623 @@
+// Variables
+$primary-color: #2563eb;
+$primary-hover: #1d4ed8;
+$error-color: #ef4444;
+$border-color: #e2e8f0;
+$background-color: #ffffff;
+$overlay-color: rgba(0, 0, 0, 0.5);
+$text-primary: #1e293b;
+$text-secondary: #64748b;
+$text-muted: #94a3b8;
+$success-color: #10b981;
+$shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+$border-radius: 12px;
+$transition: all 0.2s ease-in-out;
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Modal Overlay
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: $overlay-color;
+  z-index: 1000;
+  @include flex-center;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Modal Container
+.modal-container {
+  background: $background-color;
+  border-radius: $border-radius;
+  box-shadow: $shadow-lg;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Modal Header
+.modal-header {
+  @include flex-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid $border-color;
+  background: #f8fafc;
+
+  .modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: $text-secondary;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: $transition;
+    @include flex-center;
+    width: 32px;
+    height: 32px;
+
+    &:hover {
+      background: $border-color;
+      color: $text-primary;
+    }
+
+    .icon-close {
+      line-height: 1;
+    }
+  }
+}
+
+// Modal Form
+.modal-form {
+  .form-content {
+    padding: 2rem;
+  }
+
+  .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .section-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: $text-primary;
+      margin: 0 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid $primary-color;
+      display: inline-block;
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $text-primary;
+    margin-bottom: 0.5rem;
+
+    .required {
+      color: $error-color;
+      margin-left: 0.25rem;
+    }
+  }
+
+  .form-input,
+  .form-textarea,
+  .form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid $border-color;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: $transition;
+    background: white;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    &.is-invalid {
+      border-color: $error-color;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    &::placeholder {
+      color: $text-muted;
+    }
+
+    &:disabled {
+      background: #f8fafc;
+      color: $text-muted;
+      cursor: not-allowed;
+    }
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+  }
+
+  .form-select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+
+  // Special input styles
+  .price-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .currency-symbol {
+      position: absolute;
+      left: 1rem;
+      color: $text-secondary;
+      font-weight: 600;
+      z-index: 1;
+    }
+
+    .price-input {
+      padding-left: 2rem;
+    }
+  }
+
+  .duration-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .duration-input {
+      padding-right: 4rem;
+    }
+
+    .duration-unit {
+      position: absolute;
+      right: 1rem;
+      color: $text-secondary;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  }
+
+  .error-message {
+    color: $error-color;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    font-weight: 500;
+  }
+
+  .help-text {
+    color: $text-muted;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    line-height: 1.4;
+  }
+
+  // Features Section
+  .features-container {
+    .features-header {
+      @include flex-between;
+      margin-bottom: 1rem;
+
+      .features-label {
+        font-weight: 600;
+        color: $text-primary;
+      }
+
+      .btn-add-feature {
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+        border: 2px solid $primary-color;
+        color: $primary-color;
+        background: transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: $transition;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+
+        &:hover {
+          background: $primary-color;
+          color: white;
+        }
+
+        .icon-plus {
+          font-size: 0.875rem;
+          font-weight: bold;
+        }
+      }
+    }
+
+    .features-list {
+      .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+
+        .feature-input {
+          flex: 1;
+        }
+
+        .btn-remove-feature {
+          padding: 0.5rem;
+          border: 2px solid $error-color;
+          color: $error-color;
+          background: transparent;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: $transition;
+          @include flex-center;
+          width: 32px;
+          height: 32px;
+          font-size: 0.875rem;
+
+          &:hover:not(:disabled) {
+            background: $error-color;
+            color: white;
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          .icon-minus {
+            font-weight: bold;
+          }
+        }
+      }
+    }
+  }
+
+  // Privileges Section
+  .privileges-selection {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+
+    .privilege-option {
+      .privilege-checkbox-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+        padding: 0.75rem;
+        border: 2px solid $border-color;
+        border-radius: 8px;
+        transition: $transition;
+
+        &:hover {
+          border-color: $primary-color;
+          background: #f8fafc;
+        }
+
+        .privilege-checkbox {
+          position: absolute;
+          opacity: 0;
+          cursor: pointer;
+          height: 0;
+          width: 0;
+        }
+
+        .checkmark {
+          height: 20px;
+          width: 20px;
+          background-color: white;
+          border: 2px solid $border-color;
+          border-radius: 4px;
+          margin-right: 0.75rem;
+          position: relative;
+          transition: $transition;
+
+          &:after {
+            content: '';
+            position: absolute;
+            display: none;
+            left: 6px;
+            top: 2px;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+          }
+        }
+
+        .privilege-checkbox:checked ~ .checkmark {
+          background-color: $primary-color;
+          border-color: $primary-color;
+
+          &:after {
+            display: block;
+          }
+        }
+
+        .privilege-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+
+          .privilege-name {
+            font-weight: 600;
+            color: $text-primary;
+            font-size: 0.875rem;
+          }
+
+          .privilege-category {
+            font-size: 0.75rem;
+            color: $text-secondary;
+            background: #f1f5f9;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+          }
+        }
+      }
+    }
+  }
+
+  // Checkbox Styling
+  .checkbox-group {
+    margin-top: 0.5rem;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+
+    .form-checkbox {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+
+    .checkmark {
+      height: 20px;
+      width: 20px;
+      background-color: white;
+      border: 2px solid $border-color;
+      border-radius: 4px;
+      margin-right: 0.75rem;
+      position: relative;
+      transition: $transition;
+
+      &:after {
+        content: '';
+        position: absolute;
+        display: none;
+        left: 6px;
+        top: 2px;
+        width: 4px;
+        height: 8px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+
+    .form-checkbox:checked ~ .checkmark {
+      background-color: $primary-color;
+      border-color: $primary-color;
+
+      &:after {
+        display: block;
+      }
+    }
+
+    .checkbox-text {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: $text-primary;
+    }
+
+    &:hover .checkmark {
+      border-color: $primary-color;
+    }
+  }
+}
+
+// Modal Actions
+.modal-actions {
+  @include flex-between;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid $border-color;
+  background: #f8fafc;
+
+  .btn {
+    padding: 0.875rem 1.5rem;
+    border: 2px solid;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: $transition;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    min-width: 120px;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &.btn-outline {
+      background: transparent;
+      border-color: $border-color;
+      color: $text-secondary;
+
+      &:hover:not(:disabled) {
+        border-color: $text-primary;
+        color: $text-primary;
+      }
+    }
+
+    &.btn-primary {
+      background: $primary-color;
+      border-color: $primary-color;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: $primary-hover;
+        border-color: $primary-hover;
+        transform: translateY(-1px);
+      }
+    }
+
+    .btn-loading {
+      @include flex-center;
+      gap: 0.5rem;
+
+      .loading-spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive Design
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .modal-container {
+    max-height: 95vh;
+  }
+
+  .modal-header {
+    padding: 1rem 1.5rem;
+
+    .modal-title {
+      font-size: 1.25rem;
+    }
+  }
+
+  .modal-form .form-content {
+    padding: 1.5rem;
+  }
+
+  .modal-actions {
+    padding: 1rem 1.5rem;
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+      min-width: auto;
+    }
+  }
+
+  .privileges-selection {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Focus Management
+.modal-container:focus {
+  outline: none;
+}
+
+// Accessibility
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal-container {
+    animation: none;
+  }
+}

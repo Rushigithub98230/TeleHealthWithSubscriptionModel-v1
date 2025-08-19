@@ -1,0 +1,335 @@
+<div class="modal-overlay" (click)="onCancel()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">
+        {{ isCreateMode ? 'Create New Subscription' : 'Edit Subscription' }}
+      </h2>
+      <button class="modal-close" (click)="onCancel()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <form [formGroup]="subscriptionForm" (ngSubmit)="onSubmit()" class="subscription-form">
+        <!-- User Selection Section -->
+        <div class="form-section">
+          <h3 class="section-title">User Selection</h3>
+          
+          <div class="form-group">
+            <label class="form-label">Search User *</label>
+            <div class="user-search-container">
+              <input
+                type="text"
+                class="user-search-input"
+                placeholder="Search by name or email..."
+                (input)="onUserSearch($event)"
+                (blur)="onUserSearchBlur()"
+                [disabled]="!!selectedUser"
+              />
+              
+              <!-- User Search Results -->
+              <div class="user-search-results" *ngIf="showUserResults && filteredUsers.length > 0">
+                <div 
+                  class="user-result-item"
+                  *ngFor="let user of filteredUsers"
+                  (click)="selectUser(user)"
+                >
+                  <div class="user-avatar">
+                    <img 
+                      class="user-avatar" 
+                      [src]="user?.profilePicture || 'assets/images/default-avatar.png'"
+                      [alt]="user?.firstName + ' ' + user?.lastName"
+                    />
+                  </div>
+                  <div class="user-info">
+                    <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+                    <div class="user-email">{{ user.email }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Loading State -->
+              <div class="user-search-results" *ngIf="isSearchingUsers">
+                <div class="user-result-item">
+                  <div class="user-info">
+                    <div class="user-name">Searching...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selected User Display -->
+            <div class="selected-user" *ngIf="selectedUser">
+              <div class="selected-user-info">
+                <div class="user-avatar">
+                  <img 
+                    [src]="selectedUser?.profilePicture || 'assets/images/default-avatar.png'"
+                    [alt]="selectedUser?.firstName + ' ' + selectedUser?.lastName"
+                    class="avatar-image"
+                  />
+                </div>
+                <div class="user-details">
+                  <div class="user-name">{{ selectedUser?.firstName }} {{ selectedUser?.lastName }}</div>
+                  <div class="user-email">{{ selectedUser?.email }}</div>
+                </div>
+                <button 
+                  type="button"
+                  class="remove-user-btn"
+                  (click)="removeSelectedUser()"
+                >
+                  <i class="icon-remove"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="error-message" *ngIf="getFieldError('userId')">
+              {{ getFieldError('userId') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Plan Selection Section -->
+        <div class="form-section">
+          <h3 class="section-title">Subscription Plan</h3>
+          
+          <div class="form-group">
+            <label class="form-label">Select Plan *</label>
+            <div class="plan-selection-container">
+              <div 
+                class="plan-option"
+                *ngFor="let plan of subscriptionPlans"
+                [class.selected]="selectedPlan?.id === plan.id"
+                (click)="onPlanSelection(plan.id)"
+              >
+                <div class="plan-header">
+                  <h4 class="plan-name">{{ plan.name }}</h4>
+                  <span class="plan-price">{{ plan.price | currency:'USD' }}</span>
+                </div>
+                <p class="plan-description">{{ plan.description }}</p>
+                <div class="plan-features">
+                  <span 
+                    class="feature-tag" 
+                    *ngFor="let feature of plan.features?.slice(0, 3)"
+                  >
+                    {{ feature }}
+                  </span>
+                  <span 
+                    class="feature-more" 
+                    *ngIf="(plan.features?.length || 0) > 3"
+                  >
+                    +{{ (plan.features?.length || 0) - 3 }} more
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="error-message" *ngIf="getFieldError('subscriptionPlanId')">
+              {{ getFieldError('subscriptionPlanId') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscription Details Section -->
+        <div class="form-section">
+          <h3 class="section-title">Subscription Details</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Status *</label>
+              <select formControlName="status" class="form-select">
+                <option *ngFor="let status of statusOptions" [value]="status.value">
+                  {{ status.label }}
+                </option>
+              </select>
+              <div class="error-message" *ngIf="getFieldError('status')">
+                {{ getFieldError('status') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Billing Cycle *</label>
+              <select formControlName="billingCycle" class="form-select">
+                <option *ngFor="let cycle of billingCycleOptions" [value]="cycle.value">
+                  {{ cycle.label }}
+                </option>
+              </select>
+              <div class="error-message" *ngIf="getFieldError('billingCycle')">
+                {{ getFieldError('billingCycle') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Start Date *</label>
+              <input
+                type="date"
+                formControlName="startDate"
+                class="form-input"
+                [class.invalid]="isFieldInvalid('startDate')"
+              />
+              <div class="error-message" *ngIf="getFieldError('startDate')">
+                {{ getFieldError('startDate') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">End Date *</label>
+              <input
+                type="date"
+                formControlName="endDate"
+                class="form-input"
+                [class.invalid]="isFieldInvalid('endDate')"
+              />
+              <div class="error-message" *ngIf="getFieldError('endDate')">
+                {{ getFieldError('endDate') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing Section -->
+        <div class="form-section">
+          <h3 class="section-title">Pricing & Discounts</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Original Amount</label>
+              <div class="amount-input-group">
+                <span class="currency-symbol">$</span>
+                <input
+                  type="number"
+                  formControlName="amount"
+                  class="form-input amount-input"
+                  [class.invalid]="isFieldInvalid('amount')"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                />
+              </div>
+              <div class="form-help">
+                Base price from selected plan
+              </div>
+              <div class="error-message" *ngIf="getFieldError('amount')">
+                {{ getFieldError('amount') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Discount Percentage</label>
+              <input
+                type="number"
+                formControlName="discountPercentage"
+                class="form-input"
+                [class.invalid]="isFieldInvalid('discountPercentage')"
+                placeholder="0"
+                min="0"
+                max="100"
+              />
+              <div class="form-help">
+                Discount percentage (0-100%)
+              </div>
+              <div class="error-message" *ngIf="getFieldError('discountPercentage')">
+                {{ getFieldError('discountPercentage') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Price Summary -->
+          <div class="price-summary" *ngIf="selectedPlan">
+            <div class="summary-row">
+              <span class="summary-label">Original Price:</span>
+              <span class="summary-value">{{ selectedPlan?.price | currency:'USD' }}</span>
+            </div>
+            <div class="summary-row" *ngIf="subscriptionForm.get('discountPercentage')?.value > 0">
+              <span class="summary-label">Discount ({{ subscriptionForm.get('discountPercentage')?.value }}%):</span>
+              <span class="summary-value discount">-{{ getDiscountAmount() }}</span>
+            </div>
+            <div class="summary-row total">
+              <span class="summary-label">Final Amount:</span>
+              <span class="summary-value">{{ getFinalAmount() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Options Section -->
+        <div class="form-section">
+          <h3 class="section-title">Additional Options</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Notes</label>
+              <textarea
+                formControlName="notes"
+                class="form-textarea"
+                placeholder="Add any additional notes about this subscription..."
+                rows="3"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    formControlName="autoRenew"
+                    class="form-checkbox"
+                  />
+                  <span class="checkbox-text">Enable auto-renewal</span>
+                </label>
+              </div>
+              <div class="form-help">
+                Automatically renew subscription when it expires
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    formControlName="sendNotifications"
+                    class="form-checkbox"
+                  />
+                  <span class="checkbox-text">Send notifications</span>
+                </label>
+              </div>
+              <div class="form-help">
+                Send email notifications for important events
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn btn-outline"
+            (click)="onCancel()"
+            [disabled]="isLoading"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isLoading || subscriptionForm.invalid"
+          >
+            <span class="btn-text" *ngIf="!isLoading">
+              {{ isCreateMode ? 'Create Subscription' : 'Update Subscription' }}
+            </span>
+            <span class="btn-loading" *ngIf="isLoading">
+              <i class="loading-spinner"></i>
+              {{ isCreateMode ? 'Creating...' : 'Updating...' }}
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

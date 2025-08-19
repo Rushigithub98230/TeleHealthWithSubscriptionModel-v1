@@ -423,11 +423,15 @@
             },
             "SendGrid": {
               "target": "Package",
-              "version": "[9.28.1, )"
+              "version": "[9.29.3, )"
             },
             "Stripe.net": {
               "target": "Package",
               "version": "[48.3.0, )"
+            },
+            "Twilio": {
+              "target": "Package",
+              "version": "[7.12.0, )"
             }
           },
           "imports": [

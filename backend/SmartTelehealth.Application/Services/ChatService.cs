@@ -113,7 +113,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<JsonModel> AddParticipantAsync(string chatRoomId, string userId, string role = "Member")
+    public async Task<JsonModel> AddParticipantAsync(string chatRoomId, int userId, string role = "Member")
     {
         try
         {
@@ -127,7 +127,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<JsonModel> RemoveParticipantAsync(string chatRoomId, string userId)
+    public async Task<JsonModel> RemoveParticipantAsync(string chatRoomId, int userId)
     {
         try
         {
@@ -177,7 +177,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<JsonModel> GetUnreadMessagesAsync(string userId, string chatRoomId)
+    public async Task<JsonModel> GetUnreadMessagesAsync(int userId, string chatRoomId)
     {
         try
         {
@@ -191,7 +191,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<JsonModel> MarkMessageAsReadAsync(string messageId, string userId)
+    public async Task<JsonModel> MarkMessageAsReadAsync(string messageId, int userId)
     {
         try
         {
@@ -224,7 +224,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<JsonModel> UpdateParticipantRoleAsync(string chatRoomId, string userId, string newRole)
+    public async Task<JsonModel> UpdateParticipantRoleAsync(string chatRoomId, int userId, string newRole)
     {
         try
         {
@@ -238,7 +238,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<JsonModel> GetUserChatRoomsAsync(string userId)
+    public async Task<JsonModel> GetUserChatRoomsAsync(int userId)
     {
         try
         {
@@ -252,7 +252,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<JsonModel> ValidateChatAccessAsync(string userId, string chatRoomId)
+    public async Task<JsonModel> ValidateChatAccessAsync(int userId, string chatRoomId)
     {
         try
         {

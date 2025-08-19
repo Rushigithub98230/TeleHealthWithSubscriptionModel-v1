@@ -1,0 +1,74 @@
+/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+/* Custom MatSnackBar Styles */
+.success-snackbar {
+  background: #10b981 !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
+
+.error-snackbar {
+  background: #ef4444 !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
+
+.warning-snackbar {
+  background: #f59e0b !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
+
+.info-snackbar {
+  background: #3b82f6 !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
+
+/* Enhanced MatSnackBar styling */
+.mat-mdc-snack-bar-container {
+  &.success-snackbar {
+    --mdc-snackbar-container-color: #10b981;
+    --mat-mdc-snack-bar-button-color: white;
+    --mdc-snackbar-supporting-text-color: white;
+  }
+  
+  &.error-snackbar {
+    --mdc-snackbar-container-color: #ef4444;
+    --mat-mdc-snack-bar-button-color: white;
+    --mdc-snackbar-supporting-text-color: white;
+  }
+  
+  &.warning-snackbar {
+    --mdc-snackbar-container-color: #f59e0b;
+    --mat-mdc-snack-bar-button-color: white;
+    --mdc-snackbar-supporting-text-color: white;
+  }
+  
+  &.info-snackbar {
+    --mdc-snackbar-container-color: #3b82f6;
+    --mat-mdc-snack-bar-button-color: white;
+    --mdc-snackbar-supporting-text-color: white;
+  }
+}
+
+/* Responsive snackbar adjustments */
+@media (max-width: 768px) {
+  .mat-mdc-snack-bar-container {
+    margin: 8px !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+}

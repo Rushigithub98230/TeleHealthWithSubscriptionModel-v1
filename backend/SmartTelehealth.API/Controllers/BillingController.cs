@@ -347,7 +347,7 @@ public class BillingController : BaseController
     /// Get revenue summary for admin reporting (accrual and cash)
     /// </summary>
     [HttpGet("revenue-summary")]
-    [Authorize(Roles = "Admin,Superadmin")]
+    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> GetRevenueSummary([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null)
     {
         return await _billingService.GetRevenueSummaryAsync(from, to, planId, GetToken(HttpContext));
@@ -357,7 +357,7 @@ public class BillingController : BaseController
     /// Export revenue/financial data for admin (CSV/Excel)
     /// </summary>
     [HttpGet("export-revenue")]
-    [Authorize(Roles = "Admin,Superadmin")]
+    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> ExportRevenue([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] string? planId = null, [FromQuery] string format = "csv")
     {
         return await _billingService.ExportRevenueAsync(from, to, planId, format, GetToken(HttpContext));

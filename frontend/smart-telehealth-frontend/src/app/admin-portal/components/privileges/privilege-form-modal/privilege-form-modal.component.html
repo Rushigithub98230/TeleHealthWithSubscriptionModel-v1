@@ -1,0 +1,151 @@
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2 class="modal-title">{{ getModalTitle() }}</h2>
+      <button 
+        type="button" 
+        class="btn-close"
+        (click)="onCancel()"
+        aria-label="Close modal"
+      >
+        <i class="icon-close">×</i>
+      </button>
+    </div>
+
+    <form [formGroup]="privilegeForm" (ngSubmit)="onSubmit()" class="modal-form">
+      <div class="form-content">
+        <!-- Name Field -->
+        <div class="form-group">
+          <label for="name" class="form-label">
+            Privilege Name <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            class="form-input"
+            [class.is-invalid]="isFieldInvalid('name')"
+            placeholder="Enter privilege name"
+            maxlength="100"
+          />
+          <div class="error-message" *ngIf="isFieldInvalid('name')">
+            {{ getFieldError('name') }}
+          </div>
+          <div class="help-text">
+            A unique name for the privilege (2-100 characters)
+          </div>
+        </div>
+
+        <!-- Description Field -->
+        <div class="form-group">
+          <label for="description" class="form-label">
+            Description <span class="required">*</span>
+          </label>
+          <textarea
+            id="description"
+            formControlName="description"
+            class="form-textarea"
+            [class.is-invalid]="isFieldInvalid('description')"
+            placeholder="Describe what this privilege provides access to"
+            rows="4"
+            maxlength="500"
+          ></textarea>
+          <div class="error-message" *ngIf="isFieldInvalid('description')">
+            {{ getFieldError('description') }}
+          </div>
+          <div class="help-text">
+            Detailed description of the privilege (10-500 characters)
+          </div>
+        </div>
+
+        <!-- Category Field -->
+        <div class="form-group">
+          <label for="category" class="form-label">
+            Category <span class="required">*</span>
+          </label>
+          <select
+            id="category"
+            formControlName="category"
+            class="form-select"
+            [class.is-invalid]="isFieldInvalid('category')"
+          >
+            <option value="">Select a category</option>
+            <option *ngFor="let category of categories" [value]="category">
+              {{ category }}
+            </option>
+          </select>
+          <div class="error-message" *ngIf="isFieldInvalid('category')">
+            {{ getFieldError('category') }}
+          </div>
+          <div class="help-text">
+            Choose the appropriate category for this privilege
+          </div>
+        </div>
+
+        <!-- Sort Order Field -->
+        <div class="form-group">
+          <label for="sortOrder" class="form-label">
+            Sort Order <span class="required">*</span>
+          </label>
+          <input
+            type="number"
+            id="sortOrder"
+            formControlName="sortOrder"
+            class="form-input"
+            [class.is-invalid]="isFieldInvalid('sortOrder')"
+            placeholder="0"
+            min="0"
+          />
+          <div class="error-message" *ngIf="isFieldInvalid('sortOrder')">
+            {{ getFieldError('sortOrder') }}
+          </div>
+          <div class="help-text">
+            Order in which this privilege appears (0 or greater)
+          </div>
+        </div>
+
+        <!-- Active Status Field -->
+        <div class="form-group">
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                formControlName="isActive"
+                class="form-checkbox"
+              />
+              <span class="checkmark"></span>
+              <span class="checkbox-text">Active</span>
+            </label>
+          </div>
+          <div class="help-text">
+            Enable or disable this privilege
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button 
+          type="button"
+          class="btn btn-outline btn-cancel"
+          (click)="onCancel()"
+          [disabled]="isSubmitting"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit"
+          class="btn btn-primary btn-submit"
+          [disabled]="isSubmitting || privilegeForm.invalid"
+        >
+          <span class="btn-content" *ngIf="!isSubmitting">
+            {{ getSubmitButtonText() }}
+          </span>
+          <span class="btn-loading" *ngIf="isSubmitting">
+            <div class="loading-spinner"></div>
+            {{ isCreateMode ? 'Creating...' : 'Updating...' }}
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

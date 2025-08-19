@@ -1,0 +1,310 @@
+<div class="subscription-plans-container">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1 class="page-title">Subscription Plans Management</h1>
+        <p class="page-description">Create and manage subscription plans with associated privileges and billing cycles</p>
+      </div>
+      <div class="header-actions">
+        <button 
+          class="btn btn-secondary btn-export"
+          (click)="exportSubscriptionPlans()"
+          [disabled]="isLoading"
+        >
+          <i class="icon-export"></i>
+          Export
+        </button>
+        <button 
+          class="btn btn-primary btn-create"
+          (click)="openCreateModal()"
+          [disabled]="isLoading"
+        >
+          <i class="icon-plus"></i>
+          Create Plan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filters Section -->
+  <div class="filters-section">
+    <form [formGroup]="searchForm" class="filters-form">
+      <div class="filters-row">
+        <!-- Search Input -->
+        <div class="filter-group search-group">
+          <label class="filter-label">Search Plans</label>
+          <div class="search-input-wrapper">
+            <i class="icon-search"></i>
+            <input
+              type="text"
+              formControlName="searchTerm"
+              class="search-input"
+              placeholder="Search by name or description..."
+            />
+          </div>
+        </div>
+
+        <!-- Billing Cycle Filter -->
+        <div class="filter-group">
+          <label class="filter-label">Billing Cycle</label>
+          <select formControlName="billingCycle" class="filter-select" multiple>
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Yearly">Yearly</option>
+            <option value="OneTime">One Time</option>
+          </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <select formControlName="isActive" class="filter-select">
+            <option value="">All Status</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filter Actions -->
+      <div class="filter-actions">
+        <button 
+          type="button"
+          class="btn btn-outline btn-clear"
+          (click)="clearFilters()"
+        >
+          Clear Filters
+        </button>
+        <button 
+          type="button"
+          class="btn btn-outline btn-refresh"
+          (click)="refreshData()"
+          [disabled]="isRefreshing"
+        >
+          <i class="icon-refresh" [class.spinning]="isRefreshing"></i>
+          Refresh
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Bulk Actions Bar -->
+  <div class="bulk-actions-bar" *ngIf="selectedPlans.length > 0">
+    <div class="bulk-info">
+      <span class="selected-count">{{ selectedPlans.length }} plan(s) selected</span>
+    </div>
+    <div class="bulk-actions">
+      <button 
+        class="btn btn-outline btn-bulk-edit"
+        [disabled]="isBulkActionLoading"
+      >
+        <i class="icon-edit"></i>
+        Edit Selected
+      </button>
+      <button 
+        class="btn btn-outline btn-bulk-deactivate"
+        [disabled]="isBulkActionLoading"
+      >
+        <i class="icon-power-off"></i>
+        Deactivate
+      </button>
+      <button 
+        class="btn btn-outline btn-bulk-delete"
+        [disabled]="isBulkActionLoading"
+      >
+        <i class="icon-trash"></i>
+        Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Loading subscription plans...</p>
+  </div>
+
+  <!-- No Results State -->
+  <div class="no-results" *ngIf="!isLoading && filteredPlans.length === 0">
+    <div class="no-results-icon">📋</div>
+    <h3>No subscription plans found</h3>
+    <p>Try adjusting your search criteria or create a new subscription plan</p>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      Create First Plan
+    </button>
+  </div>
+
+  <!-- Subscription Plans Grid -->
+  <div class="plans-grid" *ngIf="!isLoading && filteredPlans.length > 0">
+    <div class="plan-card" *ngFor="let plan of filteredPlans">
+      <!-- Plan Header -->
+      <div class="card-header">
+        <div class="plan-selection">
+          <input 
+            type="checkbox" 
+            [checked]="selectedPlans.includes(plan.id)"
+            (change)="togglePlanSelection(plan.id)"
+            class="plan-checkbox"
+          />
+        </div>
+        <div class="plan-status">
+          <span 
+            class="status-badge"
+            [style.background-color]="getStatusColor(plan.isActive)"
+          >
+            {{ getStatusLabel(plan.isActive) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Plan Content -->
+      <div class="card-content">
+        <h3 class="plan-name">{{ plan.name }}</h3>
+        <p class="plan-description">{{ plan.description }}</p>
+        
+        <div class="plan-pricing">
+          <div class="price">
+            <span class="currency">$</span>
+            <span class="amount">{{ formatCurrency(plan.price) }}</span>
+            <span class="billing-cycle">/ {{ getBillingCycleLabel(plan.billingCycle) }}</span>
+          </div>
+          <div class="billing-info">
+            <span class="duration">{{ plan.duration }} {{ plan.billingCycle === 'OneTime' ? 'payment' : 'months' }}</span>
+          </div>
+        </div>
+
+        <div class="plan-features" *ngIf="plan.features && plan.features.length > 0">
+          <h4 class="features-title">Features:</h4>
+          <ul class="features-list">
+            <li *ngFor="let feature of plan.features" class="feature-item">
+              <i class="icon-check"></i>
+              {{ feature }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="plan-privileges" *ngIf="plan.privileges && plan.privileges.length > 0">
+          <h4 class="privileges-title">Privileges:</h4>
+          <div class="privileges-tags">
+            <span 
+              *ngFor="let privilege of getPrivilegeNames(plan.privileges)"
+              class="privilege-tag"
+            >
+              {{ privilege }}
+            </span>
+          </div>
+        </div>
+
+        <div class="plan-meta">
+          <div class="meta-item">
+            <span class="meta-label">Max Users:</span>
+            <span class="meta-value">{{ plan.maxUsers || 'Unlimited' }}</span>
+          </div>
+          
+          <div class="meta-item">
+            <span class="meta-label">Created:</span>
+            <span class="meta-value">{{ formatDate(plan.createdAt) }}</span>
+          </div>
+          
+          <div class="meta-item">
+            <span class="meta-label">Updated:</span>
+            <span class="meta-value">{{ formatDate(plan.updatedAt) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Actions -->
+      <div class="card-actions">
+        <button 
+          class="btn btn-sm btn-outline btn-edit"
+          (click)="openEditModal(plan)"
+        >
+          <i class="icon-edit"></i>
+          Edit
+        </button>
+        <button 
+          class="btn btn-sm btn-outline btn-delete"
+          (click)="openDeleteModal(plan)"
+        >
+          <i class="icon-trash"></i>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="!isLoading && totalPages > 1">
+    <div class="pagination-info">
+      <span>Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalItems) }} of {{ totalItems }} results</span>
+    </div>
+    <div class="pagination-controls">
+      <button 
+        class="btn btn-outline btn-page"
+        [disabled]="currentPage === 1"
+        (click)="onPageChange(currentPage - 1)"
+      >
+        Previous
+      </button>
+      
+      <div class="page-numbers">
+        <button 
+          *ngFor="let page of getPageNumbers()"
+          class="btn btn-page"
+          [class.active]="page === currentPage"
+          [class.disabled]="page === '...'"
+          (click)="page !== '...' ? onPageChange(page) : null"
+        >
+          {{ page }}
+        </button>
+      </div>
+
+      <button 
+        class="btn btn-outline btn-page"
+        [disabled]="currentPage === totalPages"
+        (click)="onPageChange(currentPage + 1)"
+      >
+        Next
+      </button>
+    </div>
+    
+    <div class="page-size-selector">
+      <label>Show:</label>
+      <select 
+        [value]="pageSize"
+        (change)="onPageSizeChange($event)"
+        class="page-size-select"
+      >
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+      <span>per page</span>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <!-- Create/Edit Subscription Plan Modal -->
+  <app-subscription-plan-form-modal
+    *ngIf="showCreateModal || showEditModal"
+    [isCreateMode]="showCreateModal"
+    [plan]="selectedPlan"
+    [privileges]="privileges"
+    (success)="showCreateModal ? onCreateSuccess() : onEditSuccess()"
+    (cancel)="closeModals()"
+  ></app-subscription-plan-form-modal>
+
+  <!-- Delete Confirmation Modal -->
+  <app-confirm-dialog
+    *ngIf="showDeleteModal"
+    [title]="'Delete Subscription Plan'"
+    [message]="'Are you sure you want to delete the subscription plan ' + (selectedPlan?.name || '') + '? This action cannot be undone and may affect existing subscriptions.'"
+    [confirmText]="'Delete'"
+    [cancelText]="'Cancel'"
+    [isDestructive]="true"
+    (confirm)="onDeleteSuccess()"
+    (cancel)="closeModals()"
+  ></app-confirm-dialog>
+</div>

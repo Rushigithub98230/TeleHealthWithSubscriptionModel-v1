@@ -163,7 +163,7 @@ public class AppointmentPaymentLogDto
 {
     public string Id { get; set; } = string.Empty;
     public string AppointmentId { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public decimal Amount { get; set; }
     public string Currency { get; set; } = "USD";
     public string PaymentMethod { get; set; } = string.Empty;
@@ -217,7 +217,7 @@ public class ProcessPaymentDto
     public string? PaymentIntentId { get; set; }
     public string? SessionId { get; set; }
     public string SubscriptionId { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
 }
 
 public class ProviderAcceptDto
@@ -428,26 +428,26 @@ public class InviteExternalDto
     public string? Phone { get; set; }
     public string? Name { get; set; }
     public string? Message { get; set; }
-    public string? InvitedByUserId { get; set; }
+    public int? InvitedByUserId { get; set; }
 }
 
 public class JoinAppointmentDto
 {
-    public string? UserId { get; set; }
+    public int? UserId { get; set; }
     public string? Email { get; set; }
     public string? Name { get; set; }
 }
 
 public class LeaveAppointmentDto
 {
-    public string? UserId { get; set; }
+    public int? UserId { get; set; }
     public string? Email { get; set; }
     public string? Reason { get; set; }
 }
 
 public class AddParticipantDto
 {
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public string Email { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public string? Role { get; set; }

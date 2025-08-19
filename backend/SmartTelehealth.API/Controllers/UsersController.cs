@@ -57,7 +57,7 @@ namespace SmartTelehealth.API.Controllers
                 };
             }
 
-            updateDto.Id = userIdInt.ToString();
+            updateDto.Id = userIdInt;
             return await _userService.UpdateUserAsync(userIdInt, updateDto, GetToken(HttpContext));
         }
 

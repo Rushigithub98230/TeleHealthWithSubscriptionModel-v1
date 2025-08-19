@@ -1,0 +1,456 @@
+// Variables
+$primary-color: #2563eb;
+$primary-hover: #1d4ed8;
+$secondary-color: #64748b;
+$success-color: #10b981;
+$error-color: #ef4444;
+$warning-color: #f59e0b;
+$background-color: #f8fafc;
+$card-background: #ffffff;
+$border-color: #e2e8f0;
+$text-primary: #1e293b;
+$text-secondary: #64748b;
+$text-muted: #94a3b8;
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+$border-radius: 8px;
+$transition: all 0.2s ease-in-out;
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin responsive($breakpoint) {
+  @if $breakpoint == tablet {
+    @media (max-width: 768px) { @content; }
+  } @else if $breakpoint == mobile {
+    @media (max-width: 480px) { @content; }
+  }
+}
+
+// Modal Overlay
+.bulk-action-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  @include flex-center;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+
+  @include responsive(mobile) {
+    padding: 0.5rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Modal Container
+.bulk-action-container {
+  background: $card-background;
+  border-radius: $border-radius;
+  box-shadow: $shadow-xl;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+
+  @include responsive(mobile) {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Modal Header
+.modal-header {
+  background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  @include flex-between;
+
+  @include responsive(mobile) {
+    padding: 1rem 1.5rem;
+  }
+
+  .modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+
+    @include responsive(mobile) {
+      font-size: 1.25rem;
+    }
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: $transition;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .icon-close::before {
+      content: "✕";
+    }
+  }
+}
+
+// Modal Body
+.modal-body {
+  padding: 2rem;
+  max-height: calc(90vh - 140px);
+  overflow-y: auto;
+
+  @include responsive(mobile) {
+    padding: 1.5rem 1rem;
+    max-height: calc(95vh - 120px);
+  }
+
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $background-color;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $border-color;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: $text-muted;
+  }
+}
+
+// Selection Summary
+.selection-summary {
+  background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: $border-radius;
+  margin-bottom: 2rem;
+  @include flex-center;
+  gap: 1rem;
+
+  @include responsive(mobile) {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .summary-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .summary-content {
+    text-align: center;
+
+    .summary-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+
+      @include responsive(mobile) {
+        font-size: 1.125rem;
+      }
+    }
+
+    .summary-description {
+      font-size: 0.875rem;
+      margin: 0;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+  }
+}
+
+// Action Selection
+.action-selection {
+  margin-bottom: 2rem;
+
+  .section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $text-primary;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid $border-color;
+  }
+
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+
+    @include responsive(mobile) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .action-card {
+    background: white;
+    border: 2px solid $border-color;
+    border-radius: $border-radius;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: $transition;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+
+    &:hover {
+      border-color: $primary-color;
+      box-shadow: $shadow-md;
+      transform: translateY(-2px);
+    }
+
+    &.selected {
+      border-color: $primary-color;
+      background: rgba(37, 99, 235, 0.05);
+      box-shadow: $shadow-md;
+
+      .action-check {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .action-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+      margin-top: 0.25rem;
+    }
+
+    .action-content {
+      flex: 1;
+
+      .action-label {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: $text-primary;
+        margin: 0 0 0.5rem 0;
+      }
+
+      .action-description {
+        font-size: 0.875rem;
+        color: $text-secondary;
+        margin: 0;
+        line-height: 1.4;
+      }
+    }
+
+    .action-check {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: $primary-color;
+      color: white;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      @include flex-center;
+      font-size: 0.875rem;
+      font-weight: bold;
+      opacity: 0;
+      transform: scale(0);
+      transition: $transition;
+    }
+  }
+}
+
+// Warning Message
+.warning-message {
+  background: linear-gradient(135deg, $warning-color 0%, #d97706 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: $border-radius;
+  @include flex-center;
+  gap: 1rem;
+
+  @include responsive(mobile) {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .warning-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .warning-content {
+    .warning-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .warning-text {
+      font-size: 0.875rem;
+      margin: 0;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+  }
+}
+
+// Modal Actions
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid $border-color;
+  background: $background-color;
+
+  @include responsive(mobile) {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    padding: 1rem 1.5rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: $border-radius;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: $transition;
+    min-width: 120px;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &.btn-primary {
+      background: $primary-color;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: $primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $shadow-md;
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+    }
+
+    &.btn-outline {
+      background: transparent;
+      color: $text-secondary;
+      border: 2px solid $border-color;
+
+      &:hover:not(:disabled) {
+        background: $text-secondary;
+        color: white;
+        border-color: $text-secondary;
+      }
+    }
+
+    .btn-text {
+      display: inline;
+    }
+
+    .btn-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .loading-spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive Design
+@include responsive(tablet) {
+  .bulk-action-container {
+    max-width: 600px;
+  }
+
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@include responsive(mobile) {
+  .bulk-action-overlay {
+    padding: 0;
+  }
+
+  .bulk-action-container {
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-actions .btn {
+    min-width: auto;
+  }
+}

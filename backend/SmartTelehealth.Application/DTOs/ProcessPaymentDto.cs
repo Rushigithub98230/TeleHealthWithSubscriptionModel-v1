@@ -8,5 +8,5 @@ public class ProcessPaymentDto
     public string? PaymentIntentId { get; set; }
     public string? SessionId { get; set; }
     public string SubscriptionId { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
 } 

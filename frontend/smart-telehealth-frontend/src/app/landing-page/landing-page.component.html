@@ -1,0 +1,74 @@
+<div class="landing-container">
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Smart Telehealth</h1>
+      <p class="hero-subtitle">Advanced healthcare management with subscription-based access</p>
+      <p class="hero-description">
+        Welcome to our comprehensive telehealth platform. Choose your portal below to access the appropriate features and services.
+      </p>
+    </div>
+  </div>
+
+  <div class="portal-selection">
+    <div class="portal-card admin-portal" (click)="navigateToAdminPortal()">
+      <div class="portal-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 class="portal-title">Admin Portal</h2>
+      <p class="portal-description">
+        Manage subscriptions, users, privileges, and system configuration. 
+        Full administrative control over the platform.
+      </p>
+      <div class="portal-features">
+        <span class="feature-tag">Subscription Management</span>
+        <span class="feature-tag">User Management</span>
+        <span class="feature-tag">System Analytics</span>
+        <span class="feature-tag">Configuration</span>
+      </div>
+      <button class="portal-button admin-button">
+        Access Admin Portal
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="portal-card user-portal" (click)="navigateToUserPortal()">
+      <div class="portal-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 class="portal-title">User Portal</h2>
+      <p class="portal-description">
+        Access healthcare services, manage appointments, view medical records, 
+        and communicate with healthcare providers.
+      </p>
+      <div class="portal-features">
+        <span class="feature-tag">Appointments</span>
+        <span class="feature-tag">Medical Records</span>
+        <span class="feature-tag">Consultations</span>
+        <span class="feature-tag">Billing</span>
+      </div>
+      <button class="portal-button user-button">
+        Access User Portal
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="footer-section">
+    <p class="footer-text">
+      © 2024 Smart Telehealth. All rights reserved. | 
+      <a href="#" class="footer-link">Privacy Policy</a> | 
+      <a href="#" class="footer-link">Terms of Service</a>
+    </p>
+  </div>
+</div>

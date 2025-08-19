@@ -5,7 +5,7 @@ namespace SmartTelehealth.Application.DTOs
     public class AuditLogDto
     {
         public Guid Id { get; set; }
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public string Action { get; set; } = string.Empty;
         public string EntityType { get; set; } = string.Empty;
         public string? EntityId { get; set; }
@@ -19,7 +19,7 @@ namespace SmartTelehealth.Application.DTOs
     public class CreateAuditLogDto
     {
         [Required]
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         
         [Required]
         public string Action { get; set; } = string.Empty;
@@ -38,7 +38,7 @@ namespace SmartTelehealth.Application.DTOs
 
     public class AuditLogSearchDto
     {
-        public string? UserId { get; set; }
+        public int? UserId { get; set; }
         public string? Action { get; set; }
         public string? EntityType { get; set; }
         public DateTime? StartDate { get; set; }

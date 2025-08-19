@@ -266,7 +266,7 @@ public class VideoCallSubscriptionService : IVideoCallSubscriptionService
             {
                 var billingDto = new CreateBillingRecordDto
                 {
-                    UserId = userId.ToString(),
+                    UserId = userId,
                     SubscriptionId = subscription?.Id.ToString() ?? string.Empty,
                     ConsultationId = consultationId.ToString(),
                     Amount = billingAmount,

@@ -14,8 +14,8 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.UserRoleId, opt => opt.MapFrom(src => src.UserRoleId.ToString()));
         
         CreateMap<UserDto, User>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.Parse(src.Id)))
-            .ForMember(dest => dest.UserRoleId, opt => opt.MapFrom(src => Guid.Parse(src.UserRoleId)));
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.UserRoleId, opt => opt.MapFrom(src => src.UserRoleId));
 
         // Appointment mappings
         CreateMap<Appointment, AppointmentDto>()
@@ -203,11 +203,11 @@ public class MappingProfile : Profile
         // Notification mappings
         CreateMap<Notification, NotificationDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
-            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()));
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
 
         // BillingRecord mappings
         CreateMap<CreateBillingRecordDto, BillingRecord>()
-            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => Guid.Parse(src.UserId)))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.SubscriptionId) ? (Guid?)null : Guid.Parse(src.SubscriptionId)))
             .ForMember(dest => dest.ConsultationId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.ConsultationId) ? (Guid?)null : Guid.Parse(src.ConsultationId)))
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
@@ -224,7 +224,7 @@ public class MappingProfile : Profile
 
         CreateMap<BillingRecord, BillingRecordDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
-            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => src.SubscriptionId.HasValue ? src.SubscriptionId.Value.ToString() : null))
             .ForMember(dest => dest.ConsultationId, opt => opt.MapFrom(src => src.ConsultationId.HasValue ? src.ConsultationId.Value.ToString() : null))
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
@@ -264,7 +264,7 @@ public class MappingProfile : Profile
 
         CreateMap<AuditLog, AuditLogDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
-            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.Action, opt => opt.MapFrom(src => src.Action))
             .ForMember(dest => dest.EntityType, opt => opt.MapFrom(src => src.EntityType))
             .ForMember(dest => dest.EntityId, opt => opt.MapFrom(src => src.EntityId))

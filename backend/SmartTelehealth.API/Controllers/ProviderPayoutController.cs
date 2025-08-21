@@ -34,7 +34,7 @@ public class ProviderPayoutController : BaseController
     /// Process payout (Admin only)
     /// </summary>
     [HttpPost("{id}/process")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> ProcessPayout(Guid id, [FromBody] ProcessPayoutDto processDto)
     {
         return await _providerPayoutService.ProcessPayoutAsync(id, processDto, GetToken(HttpContext));
@@ -62,7 +62,7 @@ public class ProviderPayoutController : BaseController
     /// Get all payouts with optional filtering
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> GetAllPayouts(
         [FromQuery] string? status = null,
         [FromQuery] int page = 1,
@@ -75,7 +75,7 @@ public class ProviderPayoutController : BaseController
     /// Get pending payouts
     /// </summary>
     [HttpGet("pending")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> GetPendingPayouts()
     {
         return await _providerPayoutService.GetPendingPayoutsAsync(GetToken(HttpContext));
@@ -85,7 +85,7 @@ public class ProviderPayoutController : BaseController
     /// Get payouts by status
     /// </summary>
     [HttpGet("status/{status}")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> GetPayoutsByStatus(string status)
     {
         return await _providerPayoutService.GetPayoutsByStatusAsync(status, GetToken(HttpContext));
@@ -104,7 +104,7 @@ public class ProviderPayoutController : BaseController
     /// Get payout statistics
     /// </summary>
     [HttpGet("statistics")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> GetPayoutStatistics()
     {
         return await _providerPayoutService.GetPayoutStatisticsAsync(GetToken(HttpContext));
@@ -114,7 +114,7 @@ public class ProviderPayoutController : BaseController
     /// Generate payouts for a period
     /// </summary>
     [HttpPost("period/{periodId}/generate")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> GeneratePayoutsForPeriod(Guid periodId)
     {
         return await _providerPayoutService.GeneratePayoutsForPeriodAsync(periodId, GetToken(HttpContext));
@@ -124,7 +124,7 @@ public class ProviderPayoutController : BaseController
     /// Process all pending payouts
     /// </summary>
     [HttpPost("process-all-pending")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> ProcessAllPendingPayouts()
     {
         return await _providerPayoutService.ProcessAllPendingPayoutsAsync(GetToken(HttpContext));
@@ -136,7 +136,7 @@ public class ProviderPayoutController : BaseController
     /// Create a new payout period
     /// </summary>
     [HttpPost("periods")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> CreatePayoutPeriod([FromBody] CreatePayoutPeriodDto createDto)
     {
         return await _periodService.CreatePeriodAsync(createDto, GetToken(HttpContext));
@@ -155,7 +155,7 @@ public class ProviderPayoutController : BaseController
     /// Update payout period
     /// </summary>
     [HttpPut("periods/{id}")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> UpdatePayoutPeriod(Guid id, [FromBody] CreatePayoutPeriodDto updateDto)
     {
         return await _periodService.UpdatePeriodAsync(id, updateDto, GetToken(HttpContext));
@@ -183,7 +183,7 @@ public class ProviderPayoutController : BaseController
     /// Delete payout period
     /// </summary>
     [HttpDelete("periods/{id}")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> DeletePayoutPeriod(Guid id)
     {
         return await _periodService.DeletePeriodAsync(id, GetToken(HttpContext));
@@ -193,7 +193,7 @@ public class ProviderPayoutController : BaseController
     /// Process payout period
     /// </summary>
     [HttpPost("periods/{id}/process")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> ProcessPayoutPeriod(Guid id)
     {
         return await _periodService.ProcessPeriodAsync(id, GetToken(HttpContext));
@@ -203,7 +203,7 @@ public class ProviderPayoutController : BaseController
     /// Get payout period statistics
     /// </summary>
     [HttpGet("periods/statistics")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> GetPayoutPeriodStatistics()
     {
         return await _periodService.GetPeriodStatisticsAsync(GetToken(HttpContext));

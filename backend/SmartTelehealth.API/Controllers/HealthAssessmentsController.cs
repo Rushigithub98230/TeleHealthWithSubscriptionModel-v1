@@ -39,7 +39,7 @@ public class HealthAssessmentsController : BaseController
     /// Get provider's pending assessments
     /// </summary>
     [HttpGet("provider/{providerId}/pending")]
-    [Authorize(Roles = "Provider,Admin")]
+    
     public async Task<JsonModel> GetProviderPendingAssessments(int providerId)
     {
         return await _healthAssessmentService.GetProviderPendingAssessmentsAsync(providerId, GetToken(HttpContext));
@@ -49,7 +49,7 @@ public class HealthAssessmentsController : BaseController
     /// Get provider's reviewed assessments
     /// </summary>
     [HttpGet("provider/{providerId}/reviewed")]
-    [Authorize(Roles = "Provider,Admin")]
+    [Authorize]
     public async Task<JsonModel> GetProviderReviewedAssessments(int providerId)
     {
         return await _healthAssessmentService.GetProviderReviewedAssessmentsAsync(providerId, GetToken(HttpContext));
@@ -59,7 +59,7 @@ public class HealthAssessmentsController : BaseController
     /// Get pending health assessments (Provider only)
     /// </summary>
     [HttpGet("pending")]
-    [Authorize(Roles = "Provider,Admin")]
+    
     public async Task<JsonModel> GetPendingAssessments()
     {
         return await _healthAssessmentService.GetPendingAssessmentsAsync(GetToken(HttpContext));
@@ -96,7 +96,7 @@ public class HealthAssessmentsController : BaseController
     /// Review health assessment (Provider only)
     /// </summary>
     [HttpPost("{assessmentId}/review")]
-    [Authorize(Roles = "Provider,Admin")]
+    [Authorize]
     public async Task<JsonModel> ReviewAssessment(Guid assessmentId, [FromBody] ReviewAssessmentDto reviewDto)
     {
         var userId = GetCurrentUserId();
@@ -125,7 +125,7 @@ public class HealthAssessmentsController : BaseController
     /// Create assessment template (Admin only)
     /// </summary>
     [HttpPost("templates")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> CreateAssessmentTemplate([FromBody] CreateAssessmentTemplateDto createDto)
     {
         return await _healthAssessmentService.CreateAssessmentTemplateAsync(createDto, GetToken(HttpContext));
@@ -153,7 +153,7 @@ public class HealthAssessmentsController : BaseController
     /// Update assessment template (Admin only)
     /// </summary>
     [HttpPut("templates/{id}")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> UpdateAssessmentTemplate(Guid id, [FromBody] UpdateAssessmentTemplateDto updateDto)
     {
         return await _healthAssessmentService.UpdateAssessmentTemplateAsync(id, updateDto, GetToken(HttpContext));
@@ -163,7 +163,7 @@ public class HealthAssessmentsController : BaseController
     /// Delete assessment template (Admin only)
     /// </summary>
     [HttpDelete("templates/{id}")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> DeleteAssessmentTemplate(Guid id)
     {
         return await _healthAssessmentService.DeleteAssessmentTemplateAsync(id, GetToken(HttpContext));
@@ -200,7 +200,7 @@ public class HealthAssessmentsController : BaseController
     /// Assign assessment to provider (Admin only)
     /// </summary>
     [HttpPost("{assessmentId}/assign")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> AssignAssessmentToProvider(Guid assessmentId, [FromBody] AssignAssessmentDto assignDto)
     {
         return await _healthAssessmentService.AssignAssessmentToProviderAsync(assessmentId, assignDto.ProviderId, GetToken(HttpContext));

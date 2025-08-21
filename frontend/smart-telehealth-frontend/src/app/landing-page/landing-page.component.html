@@ -1,74 +1,231 @@
 <div class="landing-container">
+  <!-- Hero Section -->
   <div class="hero-section">
     <div class="hero-content">
       <h1 class="hero-title">Smart Telehealth</h1>
       <p class="hero-subtitle">Advanced healthcare management with subscription-based access</p>
       <p class="hero-description">
-        Welcome to our comprehensive telehealth platform. Choose your portal below to access the appropriate features and services.
+        Experience premium telehealth services with our comprehensive subscription plans. 
+        Choose the perfect plan for your healthcare needs and get started today.
       </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-large" (click)="navigateToUserPortal()">
+          <i class="fas fa-rocket"></i> Get Started Now
+        </button>
+        <button class="btn btn-outline btn-large" (click)="navigateToSubscriptionPlans()">
+          <i class="fas fa-list"></i> View All Plans
+        </button>
+      </div>
     </div>
   </div>
 
+  <!-- Subscription Plans Section -->
+  <div class="plans-section" *ngIf="!loading && subscriptionPlans.length > 0">
+    <div class="section-header">
+      <h2><i class="fas fa-crown"></i> Choose Your Perfect Plan</h2>
+      <p>Select the subscription plan that best fits your healthcare needs and budget</p>
+    </div>
+
+    <!-- Plans Grid -->
+    <div class="plans-grid">
+      <div 
+        class="plan-card" 
+        *ngFor="let plan of subscriptionPlans"
+        [class.featured]="plan.isFeatured"
+        [class.most-popular]="plan.isMostPopular">
+        
+        <!-- Featured Badge -->
+        <div class="featured-badge" *ngIf="plan.isFeatured">
+          <i class="fas fa-star"></i> Featured
+        </div>
+        
+        <!-- Most Popular Badge -->
+        <div class="popular-badge" *ngIf="plan.isMostPopular">
+          <i class="fas fa-fire"></i> Most Popular
+        </div>
+
+        <div class="plan-header">
+          <h3 class="plan-name">{{ plan.name }}</h3>
+          <p class="plan-description">{{ plan.shortDescription || plan.longDescription }}</p>
+        </div>
+
+        <div class="plan-pricing">
+          <div class="price-section">
+            <span class="currency">$</span>
+            <span class="amount">{{ plan.price }}</span>
+            <span class="cycle">/month</span>
+          </div>
+          
+          <div class="discount" *ngIf="plan.discountedPrice && plan.discountedPrice < plan.price">
+            <span class="original-price">${{ plan.price }}</span>
+            <span class="discounted-price">${{ plan.discountedPrice }}</span>
+            <span class="discount-text">Save {{ getDiscountPercentage(plan.price, plan.discountedPrice) }}%</span>
+          </div>
+          
+          <div class="trial-info" *ngIf="plan.isTrialAllowed && plan.trialDurationInDays">
+            <i class="fas fa-gift"></i>
+            <span>{{ plan.trialDurationInDays }}-day free trial</span>
+          </div>
+        </div>
+
+        <div class="plan-features">
+          <h4><i class="fas fa-check-circle"></i> What's Included:</h4>
+          <ul class="features-list">
+            <li *ngFor="let privilege of plan.privileges">
+              <i class="fas fa-check"></i>
+              <span>{{ privilege.privilege?.name }}</span>
+              <span class="feature-value" *ngIf="privilege.value">
+                ({{ privilege.value }} {{ getPrivilegeUnit(privilege.privilege?.name || '') }})
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="plan-actions">
+          <button 
+            class="btn btn-primary full-width" 
+            (click)="navigateToUserPortal()"
+            [disabled]="loading">
+            <i class="fas fa-rocket"></i> 
+            {{ plan.isTrialAllowed ? 'Start Free Trial' : 'Subscribe Now' }}
+          </button>
+          
+          <button 
+            class="btn btn-outline full-width" 
+            (click)="navigateToSubscriptionPlans()"
+            [disabled]="loading">
+            <i class="fas fa-info-circle"></i> View Details
+          </button>
+        </div>
+
+        <div class="plan-footer">
+          <div class="plan-terms" *ngIf="plan.terms">
+            <small><i class="fas fa-file-contract"></i> {{ plan.terms }}</small>
+          </div>
+          
+          <div class="plan-validity" *ngIf="plan.discountValidUntil">
+            <small><i class="fas fa-clock"></i> Offer valid until {{ plan.discountValidUntil | date:'mediumDate' }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan Comparison -->
+    <div class="plan-comparison" *ngIf="subscriptionPlans.length > 1">
+      <h3><i class="fas fa-balance-scale"></i> Plan Comparison</h3>
+      <div class="comparison-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th *ngFor="let plan of subscriptionPlans">{{ plan.name }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><i class="fas fa-dollar-sign"></i> Price</td>
+              <td *ngFor="let plan of subscriptionPlans">
+                ${{ plan.discountedPrice || plan.price }}/month
+              </td>
+            </tr>
+            <tr>
+              <td><i class="fas fa-gift"></i> Trial</td>
+              <td *ngFor="let plan of subscriptionPlans">
+                {{ plan.isTrialAllowed ? (plan.trialDurationInDays + ' days') : 'No trial' }}
+              </td>
+            </tr>
+            <tr>
+              <td><i class="fas fa-list-check"></i> Features</td>
+              <td *ngFor="let plan of subscriptionPlans">
+                {{ plan.privileges?.length || 0 }} features
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-section" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading subscription plans...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-section" *ngIf="error">
+    <div class="error-content">
+      <i class="fas fa-exclamation-triangle"></i>
+      <h3>Oops! Something went wrong</h3>
+      <p>{{ error }}</p>
+      <button class="btn btn-primary" (click)="loadSubscriptionPlans()">
+        <i class="fas fa-refresh"></i> Try Again
+      </button>
+    </div>
+  </div>
+
+  <!-- Portal Selection Section -->
   <div class="portal-selection">
-    <div class="portal-card admin-portal" (click)="navigateToAdminPortal()">
-      <div class="portal-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <h2 class="portal-title">Admin Portal</h2>
-      <p class="portal-description">
-        Manage subscriptions, users, privileges, and system configuration. 
-        Full administrative control over the platform.
-      </p>
-      <div class="portal-features">
-        <span class="feature-tag">Subscription Management</span>
-        <span class="feature-tag">User Management</span>
-        <span class="feature-tag">System Analytics</span>
-        <span class="feature-tag">Configuration</span>
-      </div>
-      <button class="portal-button admin-button">
-        Access Admin Portal
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
+    <div class="section-header">
+      <h2><i class="fas fa-door-open"></i> Access Your Portal</h2>
+      <p>Choose the appropriate portal based on your role</p>
     </div>
+    
+    <div class="portal-cards">
+      <div class="portal-card admin-portal" (click)="navigateToAdminPortal()">
+        <div class="portal-icon">
+          <i class="fas fa-shield-alt fa-3x"></i>
+        </div>
+        <h3 class="portal-title">Admin Portal</h3>
+        <p class="portal-description">
+          Manage subscriptions, users, privileges, and system configuration. 
+          Full administrative control over the platform.
+        </p>
+        <div class="portal-features">
+          <span class="feature-tag"><i class="fas fa-cog"></i> Subscription Management</span>
+          <span class="feature-tag"><i class="fas fa-users"></i> User Management</span>
+          <span class="feature-tag"><i class="fas fa-chart-line"></i> System Analytics</span>
+          <span class="feature-tag"><i class="fas fa-tools"></i> Configuration</span>
+        </div>
+        <button class="portal-button admin-button">
+          <i class="fas fa-sign-in-alt"></i> Access Admin Portal
+        </button>
+        <div class="admin-actions">
+          <a routerLink="/webadmin/signup" class="admin-signup-link">
+            <i class="fas fa-user-plus"></i>
+            Create Admin Account
+          </a>
+        </div>
+      </div>
 
-    <div class="portal-card user-portal" (click)="navigateToUserPortal()">
-      <div class="portal-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+      <div class="portal-card user-portal" (click)="navigateToUserPortal()">
+        <div class="portal-icon">
+          <i class="fas fa-user-md fa-3x"></i>
+        </div>
+        <h3 class="portal-title">User Portal</h3>
+        <p class="portal-description">
+          Access healthcare services, manage appointments, view medical records, 
+          and communicate with healthcare providers.
+        </p>
+        <div class="portal-features">
+          <span class="feature-tag"><i class="fas fa-calendar-check"></i> Appointments</span>
+          <span class="feature-tag"><i class="fas fa-file-medical"></i> Medical Records</span>
+          <span class="feature-tag"><i class="fas fa-video"></i> Consultations</span>
+          <span class="feature-tag"><i class="fas fa-credit-card"></i> Billing</span>
+        </div>
+        <button class="portal-button user-button">
+          <i class="fas fa-sign-in-alt"></i> Access User Portal
+        </button>
       </div>
-      <h2 class="portal-title">User Portal</h2>
-      <p class="portal-description">
-        Access healthcare services, manage appointments, view medical records, 
-        and communicate with healthcare providers.
-      </p>
-      <div class="portal-features">
-        <span class="feature-tag">Appointments</span>
-        <span class="feature-tag">Medical Records</span>
-        <span class="feature-tag">Consultations</span>
-        <span class="feature-tag">Billing</span>
-      </div>
-      <button class="portal-button user-button">
-        Access User Portal
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
     </div>
   </div>
 
+  <!-- Footer Section -->
   <div class="footer-section">
     <p class="footer-text">
       © 2024 Smart Telehealth. All rights reserved. | 
-      <a href="#" class="footer-link">Privacy Policy</a> | 
-      <a href="#" class="footer-link">Terms of Service</a>
+      <a href="#" class="footer-link"><i class="fas fa-shield-alt"></i> Privacy Policy</a> | 
+      <a href="#" class="footer-link"><i class="fas fa-file-contract"></i> Terms of Service</a>
     </p>
   </div>
 </div>

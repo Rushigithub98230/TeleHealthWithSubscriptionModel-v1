@@ -39,8 +39,8 @@ export interface PrivilegeListParams {
 })
 export class PrivilegeService {
   private readonly API_PATHS = {
-    PRIVILEGES: '/admin/privileges',
-    PRIVILEGES_EXPORT: '/admin/privileges/export'
+    PRIVILEGES: '/api/Privileges',
+    PRIVILEGES_EXPORT: '/api/Privileges/export'
   } as const;
 
   constructor(private commonService: CommonService) {}

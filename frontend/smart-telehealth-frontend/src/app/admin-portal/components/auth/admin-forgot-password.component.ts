@@ -44,7 +44,7 @@ export class AdminForgotPasswordComponent implements OnInit, OnDestroy {
         userType: 'Admin'
       };
 
-      this.commonService.post<any>('/auth/forgot-password', resetData).subscribe({
+              this.commonService.post<any>('/api/auth/forgot-password', resetData).subscribe({
         next: (response) => {
           if (response.statusCode === 200) {
             this.handleSuccessfulReset();

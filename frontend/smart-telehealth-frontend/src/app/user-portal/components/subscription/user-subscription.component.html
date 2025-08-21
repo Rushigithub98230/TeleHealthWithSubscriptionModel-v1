@@ -1,0 +1,171 @@
+<div class="user-subscription-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="title-section">
+      <h1>My Subscriptions</h1>
+      <p>Manage your telehealth service subscriptions</p>
+    </div>
+    <div class="actions-section">
+      <button 
+        class="btn btn-primary" 
+        (click)="navigateToSubscriptionPlans()"
+        [disabled]="loading">
+        <i class="fas fa-plus"></i> Browse Plans
+      </button>
+      <button 
+        class="btn btn-outline" 
+        (click)="navigateToBilling()"
+        [disabled]="loading">
+        <i class="fas fa-credit-card"></i> View Billing
+      </button>
+    </div>
+  </div>
+
+  <!-- Subscription Summary -->
+  <div class="subscription-summary" *ngIf="!loading && subscriptions.length > 0">
+    <h2>Subscription Overview</h2>
+    <div class="summary-cards">
+      <div class="summary-card active">
+        <div class="card-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="card-content">
+          <h3>Active Subscriptions</h3>
+          <span class="count">{{ getActiveSubscriptionsCount() }}</span>
+          <span class="label">Currently active</span>
+        </div>
+      </div>
+
+      <div class="summary-card trial" *ngIf="getTrialSubscriptionsCount() > 0">
+        <div class="card-icon">
+          <i class="fas fa-gift"></i>
+        </div>
+        <div class="card-content">
+          <h3>Trial Subscriptions</h3>
+          <span class="count">{{ getTrialSubscriptionsCount() }}</span>
+          <span class="label">Free trial period</span>
+        </div>
+      </div>
+
+      <div class="summary-card monthly-cost">
+        <div class="card-icon">
+          <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="card-content">
+          <h3>Monthly Cost</h3>
+          <span class="count">{{ getTotalMonthlyCost() | currency:'USD':'symbol':'1.2-2' }}</span>
+          <span class="label">Total monthly</span>
+        </div>
+      </div>
+
+      <div class="summary-card next-payment">
+        <div class="card-icon">
+          <i class="fas fa-calendar"></i>
+        </div>
+        <div class="card-content">
+          <h3>Next Payment</h3>
+          <span class="count">{{ getNextPaymentDate() | date:'shortDate' }}</span>
+          <span class="label">Due date</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subscriptions List -->
+  <div class="subscriptions-list" *ngIf="!loading && subscriptions.length > 0">
+    <div class="subscription-card" *ngFor="let subscription of subscriptions">
+      <div class="subscription-header">
+        <div class="plan-info">
+          <h3>{{ subscription.subscriptionPlan?.name || 'Unknown Plan' }}</h3>
+          <p class="plan-description">{{ subscription.subscriptionPlan?.shortDescription || 'No description available' }}</p>
+        </div>
+        <div class="status-badge" [class]="subscription.status.toLowerCase()">
+          {{ subscription.status }}
+        </div>
+      </div>
+
+      <div class="subscription-details">
+        <div class="detail-item">
+          <span class="label">Start Date</span>
+          <span class="value">{{ subscription.startDate | date:'mediumDate' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">End Date</span>
+          <span class="value">{{ subscription.endDate ? (subscription.endDate | date:'mediumDate') : 'Ongoing' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Next Billing</span>
+          <span class="value">{{ subscription.nextBillingDate ? (subscription.nextBillingDate | date:'mediumDate') : 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Current Price</span>
+          <span class="value">{{ subscription.currentPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="subscription-features" *ngIf="subscription.subscriptionPlan?.privileges && (subscription.subscriptionPlan?.privileges?.length || 0) > 0">
+        <h4>Included Features</h4>
+        <div class="features-grid">
+          <div class="feature-item" *ngFor="let privilege of subscription.subscriptionPlan?.privileges">
+            <i class="fas fa-check"></i>
+            <span class="feature-name">{{ privilege.privilege?.name || 'Unknown Feature' }}</span>
+            <span class="feature-value" *ngIf="privilege.value">
+              ({{ privilege.value }} {{ getPrivilegeUnit(privilege.privilege?.name || '') }})
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="subscription-actions">
+        <button 
+          class="btn btn-outline" 
+          (click)="viewSubscriptionDetails(subscription)"
+          [disabled]="loading">
+          <i class="fas fa-eye"></i> View Details
+        </button>
+        <button 
+          class="btn btn-warning" 
+          (click)="pauseSubscription(subscription)"
+          *ngIf="subscription.status === 'Active'"
+          [disabled]="loading">
+          <i class="fas fa-pause"></i> Pause
+        </button>
+        <button 
+          class="btn btn-success" 
+          (click)="resumeSubscription(subscription)"
+          *ngIf="subscription.status === 'Paused'"
+          [disabled]="loading">
+          <i class="fas fa-play"></i> Resume
+        </button>
+        <button 
+          class="btn btn-danger" 
+          (click)="cancelSubscription(subscription)"
+          *ngIf="subscription.status === 'Active' || subscription.status === 'Paused'"
+          [disabled]="loading">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Subscriptions State -->
+  <div class="no-subscriptions" *ngIf="!loading && subscriptions.length === 0">
+    <div class="empty-state">
+      <i class="fas fa-subscription"></i>
+      <h3>No Active Subscriptions</h3>
+      <p>Get started with our telehealth services by choosing a subscription plan that fits your needs.</p>
+      <button class="btn btn-primary" (click)="navigateToSubscriptionPlans()">
+        Browse Subscription Plans
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-section" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading your subscriptions...</p>
+  </div>
+</div>
+
+
+

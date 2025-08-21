@@ -72,13 +72,18 @@ namespace SmartTelehealth.API.Controllers
         }
 
         /// <summary>
-        /// Get all users
+        /// Get all users with optional filtering and search
         /// </summary>
         [HttpGet]
         [Authorize]
-        public async Task<JsonModel> GetAllUsers()
+        public async Task<JsonModel> GetAllUsers(
+            [FromQuery] string? searchText = null,
+            [FromQuery] string? role = null,
+            [FromQuery] bool? isActive = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50)
         {
-            return await _userService.GetAllUsersAsync(GetToken(HttpContext));
+            return await _userService.GetAllUsersAsync(GetToken(HttpContext), searchText, role, isActive, page, pageSize);
         }
 
         /// <summary>

@@ -248,3 +248,4 @@ D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel-v1\
 D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel-v1\backend\SmartTelehealth.API\obj\Debug\net8.0\ref\SmartTelehealth.API.dll
 D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel-v1\backend\SmartTelehealth.API\bin\Debug\net8.0\Microsoft.Bcl.Memory.dll
 D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel-v1\backend\SmartTelehealth.API\bin\Debug\net8.0\Twilio.dll
+D:\DayUsers\Rushikesh\Personal\.Net Projects\TeleHealthWithSubscriptionModel-v1\backend\SmartTelehealth.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

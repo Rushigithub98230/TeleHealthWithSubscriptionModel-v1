@@ -114,10 +114,10 @@ export interface SubscriptionPlanListParams {
 })
 export class SubscriptionService {
   private readonly API_PATHS = {
-    SUBSCRIPTIONS: '/subscriptions',
-    SUBSCRIPTIONS_EXPORT: '/subscriptions/export',
-    SUBSCRIPTION_PLANS: '/subscription-plans',
-    SUBSCRIPTION_PLANS_EXPORT: '/subscription-plans/export'
+    SUBSCRIPTIONS: '/api/Subscriptions/admin/user-subscriptions',
+    SUBSCRIPTIONS_EXPORT: '/api/Subscriptions/admin/user-subscriptions/export',
+    SUBSCRIPTION_PLANS: '/api/Subscriptions/admin/plans',
+    SUBSCRIPTION_PLANS_EXPORT: '/api/Subscriptions/admin/plans/export'
   } as const;
 
   constructor(private commonService: CommonService) {}

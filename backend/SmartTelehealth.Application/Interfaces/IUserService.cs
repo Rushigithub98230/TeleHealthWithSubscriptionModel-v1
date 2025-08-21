@@ -45,7 +45,7 @@ namespace SmartTelehealth.Application.Interfaces
         
         // --- ADDITIONAL METHODS ---
         Task<JsonModel> GetUserAsync(int userId, TokenModel tokenModel);
-        Task<JsonModel> GetAllUsersAsync(TokenModel tokenModel);
+        Task<JsonModel> GetAllUsersAsync(TokenModel tokenModel, string? searchText = null, string? role = null, bool? isActive = null, int page = 1, int pageSize = 50);
         Task<JsonModel> CreateUserAsync(CreateUserDto createUserDto, TokenModel tokenModel);
         
         // --- NOTIFICATION METHODS ---

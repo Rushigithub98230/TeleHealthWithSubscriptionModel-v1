@@ -22,7 +22,6 @@ public class SubscriptionPlansController : BaseController
     /// Get all subscription plans (admin only)
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> GetAllPlans()
     {
         return await _subscriptionService.GetAllSubscriptionPlansAsync(GetToken(HttpContext));
@@ -62,7 +61,6 @@ public class SubscriptionPlansController : BaseController
     /// Create a new subscription plan (admin only)
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> CreatePlan([FromBody] CreateSubscriptionPlanDto createDto)
     {
         return await _subscriptionService.CreatePlanAsync(createDto, GetToken(HttpContext));
@@ -72,20 +70,18 @@ public class SubscriptionPlansController : BaseController
     /// Update a subscription plan (admin only)
     /// </summary>
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> UpdatePlan(string id, [FromBody] UpdateSubscriptionPlanDto updateDto)
     {
         if (id != updateDto.Id)
             return new JsonModel { data = new object(), Message = "ID mismatch", StatusCode = 400 };
         updateDto.Id = id;
-        return await _subscriptionService.UpdateSubscriptionPlanAsync(id, updateDto, GetToken(HttpContext));
+        return await _subscriptionService.UpdatePlanAsync(id, updateDto, GetToken(HttpContext));
     }
 
     /// <summary>
     /// Delete a subscription plan (admin only)
     /// </summary>
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> DeletePlan(string id)
     {
         return await _subscriptionService.DeleteSubscriptionPlanAsync(id, GetToken(HttpContext));

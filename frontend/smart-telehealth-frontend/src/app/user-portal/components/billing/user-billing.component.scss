@@ -1,0 +1,378 @@
+.user-billing-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+
+    .title-section {
+      h1 {
+        margin: 0 0 0.5rem 0;
+        color: #2c3e50;
+        font-size: 2.5rem;
+      }
+
+      p {
+        margin: 0;
+        color: #7f8c8d;
+        font-size: 1.1rem;
+      }
+    }
+
+    .actions-section {
+      display: flex;
+      gap: 1rem;
+
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+      }
+    }
+  }
+
+  .billing-summary {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+
+    h2 {
+      margin: 0 0 1rem 0;
+      color: #2c3e50;
+      font-size: 1.5rem;
+    }
+
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+
+      .summary-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+        .card-icon {
+          font-size: 2rem;
+          margin-bottom: 1rem;
+          color: #3498db;
+        }
+
+        .card-content {
+          h3 {
+            margin: 0 0 0.5rem 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+          }
+
+          .count {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+          }
+
+          .label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+  }
+
+  .filters-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+
+    .filter-form {
+      .filter-row {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+
+        mat-form-field {
+          min-width: 200px;
+        }
+
+        .btn {
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  .billing-records {
+    .billing-record-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .record-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+
+        .invoice-info {
+          h3 {
+            margin: 0 0 0.5rem 0;
+            color: #2c3e50;
+            font-size: 1.3rem;
+          }
+
+          .invoice-number {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+          }
+        }
+
+        .status-badge {
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          text-transform: uppercase;
+
+          &.paid {
+            background: #d4edda;
+            color: #155724;
+          }
+
+          &.pending {
+            background: #fff3cd;
+            color: #856404;
+          }
+
+          &.overdue {
+            background: #f8d7da;
+            color: #721c24;
+          }
+
+          &.failed {
+            background: #f8d7da;
+            color: #721c24;
+          }
+        }
+      }
+
+      .record-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+
+        .detail-item {
+          .label {
+            font-weight: 600;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+          }
+
+          .value {
+            color: #2c3e50;
+            font-size: 1rem;
+          }
+        }
+      }
+
+      .record-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+
+        .btn {
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          font-size: 0.9rem;
+          font-weight: 500;
+          transition: all 0.3s ease;
+
+          &:hover {
+            transform: translateY(-1px);
+          }
+        }
+      }
+    }
+  }
+
+  .no-records {
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+
+    .empty-state {
+      i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #bdc3c7;
+      }
+
+      h3 {
+        margin: 0 0 1rem 0;
+        color: #2c3e50;
+      }
+
+      p {
+        margin: 0 0 1.5rem 0;
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  .loading-section {
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+
+    p {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+    }
+  }
+}
+
+// Button Styles
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &.btn-primary {
+    background: #3498db;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #2980b9;
+    }
+  }
+
+  &.btn-outline {
+    background: transparent;
+    color: #3498db;
+    border: 2px solid #3498db;
+
+    &:hover:not(:disabled) {
+      background: #3498db;
+      color: white;
+    }
+  }
+
+  &.btn-success {
+    background: #27ae60;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #229954;
+    }
+  }
+
+  &.btn-warning {
+    background: #f39c12;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #e67e22;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .user-billing-container {
+    padding: 1rem;
+
+    .header-section {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+
+      .title-section h1 {
+        font-size: 2rem;
+      }
+
+      .actions-section {
+        flex-direction: column;
+        width: 100%;
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
+
+    .billing-summary .summary-cards {
+      grid-template-columns: 1fr;
+    }
+
+    .filters-section .filter-form .filter-row {
+      flex-direction: column;
+      align-items: stretch;
+
+      mat-form-field {
+        min-width: auto;
+      }
+    }
+
+    .billing-records .billing-record-card {
+      .record-details {
+        grid-template-columns: 1fr;
+      }
+
+      .record-actions {
+        flex-direction: column;
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
+  }
+}

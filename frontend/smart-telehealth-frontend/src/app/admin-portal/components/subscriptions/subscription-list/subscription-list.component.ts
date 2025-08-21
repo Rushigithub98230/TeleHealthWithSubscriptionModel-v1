@@ -1,87 +1,369 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { SubscriptionFormModalComponent } from '../subscription-form-modal/subscription-form-modal.component';
-import { BulkActionModalComponent } from '../../../../shared/components/bulk-action-modal/bulk-action-modal.component';
-import { SubscriptionService, Subscription, SubscriptionStatus, SubscriptionPlan } from '../../../services/subscription.service';
-import { ToastService } from '../../../../core/services/toast.service';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+
+import { AdminSubscriptionService, SubscriptionListResponse } from '../../../services/admin-subscription.service';
+import { AdminBillingService } from '../../../services/admin-billing.service';
+import { AdminNotificationService } from '../../../services/admin-notification.service';
+import { JsonModel } from '../../../../core/models/json-model.interface';
+import { 
+  Subscription, 
+  SubscriptionStatus, 
+  SubscriptionListParams, 
+  BulkActionRequest,
+  CreateSubscriptionDto,
+  UpdateSubscriptionDto,
+  SubscriptionPlan,
+  User
+} from '../../../models/subscription.interface';
+
 
 
 @Component({
   selector: 'app-subscription-list',
-  templateUrl: './subscription-list.component.html',
-  styleUrls: ['./subscription-list.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ConfirmDialogComponent, SubscriptionFormModalComponent, BulkActionModalComponent]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
+  template: `
+    <div class="subscription-list-container">
+      <!-- Header Section -->
+      <div class="header-section">
+        <div class="title-section">
+          <h1>Subscription Management</h1>
+          <p>Manage all user subscriptions, plans, and lifecycle operations</p>
+        </div>
+        <div class="actions-section">
+          <button 
+            class="btn btn-primary" 
+            (click)="openCreateModal()"
+            [disabled]="loading">
+            <i class="fas fa-plus"></i> Create Subscription
+          </button>
+          <button 
+            class="btn btn-secondary" 
+            (click)="exportSubscriptions()"
+            [disabled]="loading || subscriptions.length === 0">
+            <i class="fas fa-download"></i> Export
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters and Search -->
+      <div class="filters-section">
+        <form [formGroup]="filterForm" class="filter-form">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="search">Search</label>
+              <input 
+                type="text" 
+                id="search" 
+                formControlName="search"
+                placeholder="Search by user, plan, or ID..."
+                class="form-control">
+            </div>
+            <div class="filter-group">
+              <label for="status">Status</label>
+              <select id="status" formControlName="status" class="form-control">
+                <option value="">All Statuses</option>
+                <option *ngFor="let status of subscriptionStatuses" [value]="status">
+                  {{ status }}
+                </option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="plan">Plan</label>
+              <select id="plan" formControlName="planId" class="form-control">
+                <option value="">All Plans</option>
+                <option *ngFor="let plan of subscriptionPlans" [value]="plan.id">
+                  {{ plan.name }}
+                </option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="dateRange">Date Range</label>
+              <select id="dateRange" formControlName="dateRange" class="form-control">
+                <option value="">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="quarter">This Quarter</option>
+                <option value="year">This Year</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <button type="button" class="btn btn-outline" (click)="clearFilters()">
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Bulk Actions -->
+      <div class="bulk-actions" *ngIf="selectedSubscriptions.length > 0">
+        <div class="bulk-info">
+          <span>{{ selectedSubscriptions.length }} subscription(s) selected</span>
+        </div>
+        <div class="bulk-buttons">
+          <button 
+            class="btn btn-success" 
+            (click)="bulkActivate()"
+            [disabled]="loading">
+            Activate
+          </button>
+          <button 
+            class="btn btn-warning" 
+            (click)="bulkPause()"
+            [disabled]="loading">
+            Pause
+          </button>
+          <button 
+            class="btn btn-danger" 
+            (click)="bulkCancel()"
+            [disabled]="loading">
+            Cancel
+          </button>
+          <button 
+            class="btn btn-outline" 
+            (click)="clearSelection()">
+            Clear Selection
+          </button>
+        </div>
+      </div>
+
+      <!-- Subscriptions Table -->
+      <div class="table-container">
+        <div class="table-header">
+          <div class="table-info">
+            <span>Showing {{ paginationInfo.startIndex + 1 }}-{{ paginationInfo.endIndex }} of {{ paginationInfo.totalRecords }} subscriptions</span>
+          </div>
+          <div class="table-actions">
+            <select 
+              [(ngModel)]="pageSize" 
+              (change)="onPageSizeChange()"
+              class="form-control page-size-select">
+              <option value="10">10 per page</option>
+              <option value="25">25 per page</option>
+              <option value="50">50 per page</option>
+              <option value="100">100 per page</option>
+            </select>
+          </div>
+        </div>
+
+        <table class="subscriptions-table">
+          <thead>
+            <tr>
+              <th>
+                <input 
+                  type="checkbox" 
+                  [checked]="isAllSelected()"
+                  (change)="toggleSelectAll($event)">
+              </th>
+              <th>User</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th>Start Date</th>
+              <th>Next Billing</th>
+              <th>Price</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let subscription of subscriptions" 
+                [class.selected]="isSelected(subscription.id)"
+                [class.expired]="subscription.status === 'Expired'">
+              <td>
+                <input 
+                  type="checkbox" 
+                  [checked]="isSelected(subscription.id)"
+                  (change)="toggleSelection(subscription.id)">
+              </td>
+              <td>
+                <div class="user-info">
+                  <div class="user-name">{{ subscription.user?.firstName }} {{ subscription.user?.lastName }}</div>
+                  <div class="user-email">{{ subscription.user?.email || 'N/A' }}</div>
+                </div>
+              </td>
+              <td>
+                <div class="plan-info">
+                  <div class="plan-name">{{ subscription.subscriptionPlan?.name || 'N/A' }}</div>
+                  <div class="plan-type">{{ subscription.subscriptionPlan?.description || 'N/A' }}</div>
+                </div>
+              </td>
+              <td>
+                <span class="status-badge" [class]="'status-' + subscription.status.toLowerCase()">
+                  {{ subscription.status }}
+                </span>
+              </td>
+              <td>{{ subscription.startDate | date:'MMM dd, yyyy' }}</td>
+              <td>{{ subscription.nextBillingDate | date:'MMM dd, yyyy' }}</td>
+              <td>
+                <div class="price-info">
+                  <span class="currency">USD</span>
+                  <span class="amount">{{ subscription.currentPrice | number:'1.2-2' }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button 
+                    class="btn btn-sm btn-outline" 
+                    (click)="viewSubscription(subscription.id)"
+                    title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-outline" 
+                    (click)="editSubscription(subscription.id)"
+                    title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <div class="dropdown">
+                    <button 
+                      class="btn btn-sm btn-outline dropdown-toggle" 
+                      (click)="toggleDropdown(subscription.id)"
+                      title="More Actions">
+                      <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="dropdown-menu" [class.show]="openDropdowns[subscription.id]">
+                      <button 
+                        class="dropdown-item" 
+                        (click)="activateSubscription(subscription.id)"
+                        *ngIf="subscription.status !== 'Active'">
+                        <i class="fas fa-play"></i> Activate
+                      </button>
+                      <button 
+                        class="dropdown-item" 
+                        (click)="pauseSubscription(subscription.id)"
+                        *ngIf="subscription.status === 'Active'">
+                        <i class="fas fa-pause"></i> Pause
+                      </button>
+                      <button 
+                        class="dropdown-item" 
+                        (click)="cancelSubscription(subscription.id)"
+                        *ngIf="subscription.status !== 'Cancelled'">
+                        <i class="fas fa-stop"></i> Cancel
+                      </button>
+                      <button 
+                        class="dropdown-item" 
+                        (click)="renewSubscription(subscription.id)"
+                        *ngIf="subscription.status === 'Expired'">
+                        <i class="fas fa-redo"></i> Renew
+                      </button>
+                      <div class="dropdown-divider"></div>
+                      <button 
+                        class="dropdown-item text-danger" 
+                        (click)="deleteSubscription(subscription.id)">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Loading State -->
+        <div class="loading-state" *ngIf="loading">
+          <div class="spinner"></div>
+          <p>Loading subscriptions...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="!loading && subscriptions.length === 0">
+          <i class="fas fa-inbox"></i>
+          <h3>No subscriptions found</h3>
+          <p>Try adjusting your filters or create a new subscription to get started.</p>
+          <button class="btn btn-primary" (click)="openCreateModal()">
+            Create First Subscription
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="paginationInfo.totalPages > 1">
+        <button 
+          class="btn btn-outline" 
+          [disabled]="currentPage === 1"
+          (click)="goToPage(currentPage - 1)">
+          <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        
+        <div class="page-numbers">
+          <button 
+            *ngFor="let page of getPageNumbers()" 
+            class="btn" 
+            [class.active]="page === currentPage"
+            [class.disabled]="page === '...'"
+            (click)="page !== '...' ? goToPage(+page) : null">
+            {{ page }}
+          </button>
+        </div>
+        
+        <button 
+          class="btn btn-outline" 
+          [disabled]="currentPage === paginationInfo.totalPages"
+          (click)="goToPage(currentPage + 1)">
+          Next <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  `,
+  styleUrls: ['./subscription-list.component.scss']
 })
 export class SubscriptionListComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
-
-  // Math reference for template
-  Math = Math;
-
-  // Data
+  // Data properties
   subscriptions: Subscription[] = [];
   subscriptionPlans: SubscriptionPlan[] = [];
-  filteredSubscriptions: Subscription[] = [];
+  users: User[] = [];
   
-  // Pagination
+  // Form and filter properties
+  filterForm!: FormGroup;
+  
+  // Pagination properties
   currentPage = 1;
   pageSize = 10;
-  totalItems = 0;
+  totalCount = 0;
   totalPages = 0;
-
-  // Loading states
-  isLoading = false;
-  isRefreshing = false;
-
-  // Search and filters
-  searchForm: FormGroup;
-  selectedStatuses: SubscriptionStatus[] = [];
-  selectedPlans: number[] = [];
-  dateRange: { start: Date | null; end: Date | null } = { start: null, end: null };
-
-  // Bulk operations
-  selectedSubscriptions: number[] = [];
-  isBulkActionLoading = false;
-
-  // Modal states
-  showCreateModal = false;
-  showEditModal = false;
-  showDeleteModal = false;
-  showBulkActionModal = false;
-  selectedSubscription: Subscription | null = null;
-
-  // Status options
-  statusOptions: { value: SubscriptionStatus; label: string; color: string }[] = [
-    { value: 'Active', label: 'Active', color: '#10b981' },
-    { value: 'Inactive', label: 'Inactive', color: '#6b7280' },
-    { value: 'Suspended', label: 'Suspended', color: '#f59e0b' },
-    { value: 'Cancelled', label: 'Cancelled', color: '#ef4444' },
-    { value: 'Expired', label: 'Expired', color: '#8b5cf6' },
-    { value: 'Pending', label: 'Pending', color: '#3b82f6' }
+  paginationInfo = {
+    totalRecords: 0,
+    totalPages: 0,
+    startIndex: 0,
+    endIndex: 0
+  };
+  
+  // Selection properties
+  selectedSubscriptions: string[] = [];
+  openDropdowns: { [key: string]: boolean } = {};
+  
+  // State properties
+  loading = false;
+  error: string | null = null;
+  
+  // Subscription statuses for filter
+  subscriptionStatuses: SubscriptionStatus[] = [
+    'Pending', 'Active', 'Paused', 'Cancelled', 'Expired', 
+    'PaymentFailed', 'TrialActive', 'TrialExpired', 'Suspended'
   ];
+  
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
-    private subscriptionService: SubscriptionService,
-    private toastService: ToastService
+    private subscriptionService: AdminSubscriptionService,
+    private billingService: AdminBillingService,
+    private notificationService: AdminNotificationService,
+    private router: Router
   ) {
-    this.searchForm = this.fb.group({
-      searchTerm: [''],
-      status: [[]],
-      planId: [[]],
-      dateFrom: [null],
-      dateTo: [null]
-    });
+    this.initializeFilterForm();
   }
 
   ngOnInit(): void {
+    this.setupFilterSubscriptions();
     this.loadSubscriptions();
     this.loadSubscriptionPlans();
-    this.setupSearchListener();
+    this.loadUsers();
   }
 
   ngOnDestroy(): void {
@@ -89,8 +371,21 @@ export class SubscriptionListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  setupSearchListener(): void {
-    this.searchForm.valueChanges
+  // Form initialization
+  private initializeFilterForm(): void {
+    this.filterForm = this.fb.group({
+      search: [''],
+      status: [''],
+      planId: [''],
+      dateRange: [''],
+      startDate: [''],
+      endDate: ['']
+    });
+  }
+
+  // Setup filter subscriptions
+  private setupFilterSubscriptions(): void {
+    this.filterForm.get('search')?.valueChanges
       .pipe(
         takeUntil(this.destroy$),
         debounceTime(300),
@@ -98,324 +393,452 @@ export class SubscriptionListComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         this.currentPage = 1;
-        this.applyFilters();
+        this.loadSubscriptions();
+      });
+
+    this.filterForm.get('status')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.currentPage = 1;
+        this.loadSubscriptions();
+      });
+
+    this.filterForm.get('planId')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.currentPage = 1;
+        this.loadSubscriptions();
+      });
+
+    this.filterForm.get('dateRange')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        this.handleDateRangeChange(value);
       });
   }
 
+  // Load subscriptions with filters
   loadSubscriptions(): void {
-    this.isLoading = true;
+    this.loading = true;
+    this.error = null;
     
-    const params = {
+    const params: SubscriptionListParams = {
       page: this.currentPage,
       pageSize: this.pageSize,
-      ...this.getFilterParams()
+      searchTerm: this.filterForm.get('search')?.value || undefined,
+      status: this.filterForm.get('status')?.value ? [this.filterForm.get('status')?.value] : undefined,
+      planId: this.filterForm.get('planId')?.value ? [this.filterForm.get('planId')?.value] : undefined,
+      dateFrom: this.filterForm.get('startDate')?.value || undefined,
+      dateTo: this.filterForm.get('endDate')?.value || undefined
     };
 
-    this.subscriptionService.getSubscriptions(params)
+    this.subscriptionService.getAllSubscriptions(params)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
+        next: (response: JsonModel<SubscriptionListResponse>) => {
           if (response.statusCode === 200) {
-            this.subscriptions = response.data;
-            this.totalItems = response.meta?.totalRecords || 0;
-            this.totalPages = response.meta?.totalPages || 0;
-            this.applyFilters();
+            this.subscriptions = response.data.data || [];
+            this.totalCount = response.data.meta.totalRecords || 0;
+            this.currentPage = response.data.meta.currentPage || 1;
+            this.totalPages = response.data.meta.totalPages || 0;
+            this.pageSize = response.data.meta.pageSize || 10;
           } else {
-            this.toastService.showError(response.message || 'Failed to load subscriptions');
+            this.error = response.message || 'Failed to load subscriptions';
           }
+          this.loading = false;
         },
-        error: (error) => {
-          this.toastService.showError('Failed to load subscriptions');
+        error: (error: any) => {
+          this.error = 'An error occurred while loading subscriptions';
+          this.loading = false;
           console.error('Error loading subscriptions:', error);
-        },
-        complete: () => {
-          this.isLoading = false;
         }
       });
   }
 
+  // Load subscription plans for filter
   loadSubscriptionPlans(): void {
     this.subscriptionService.getSubscriptionPlans()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
+        next: (response: JsonModel<SubscriptionPlan[]>) => {
           if (response.statusCode === 200) {
-            this.subscriptionPlans = response.data;
+            this.subscriptionPlans = response.data || [];
           }
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error loading subscription plans:', error);
         }
       });
   }
 
-  getFilterParams(): any {
-    const formValue = this.searchForm.value;
-    const params: any = {};
-
-    if (formValue.searchTerm) {
-      params.searchTerm = formValue.searchTerm;
-    }
-
-    if (formValue.status && formValue.status.length > 0) {
-      params.status = formValue.status.join(',');
-    }
-
-    if (formValue.planId && formValue.planId.length > 0) {
-      params.planId = formValue.planId.join(',');
-    }
-
-    if (formValue.dateFrom) {
-      params.dateFrom = formValue.dateFrom;
-    }
-
-    if (formValue.dateTo) {
-      params.dateTo = formValue.dateTo;
-    }
-
-    return params;
+  // Load users for reference
+  loadUsers(): void {
+    // This would typically come from a user service
+    // For now, we'll extract from subscriptions
   }
 
-  applyFilters(): void {
-    let filtered = [...this.subscriptions];
+  // Handle date range filter changes
+  private handleDateRangeChange(dateRange: string): void {
+    const today = new Date();
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
 
-    // Apply search term filter
-    const searchTerm = this.searchForm.get('searchTerm')?.value?.toLowerCase();
-    if (searchTerm) {
-      filtered = filtered.filter(sub => 
-        sub.user?.firstName?.toLowerCase().includes(searchTerm) ||
-        sub.user?.lastName?.toLowerCase().includes(searchTerm) ||
-        sub.user?.email?.toLowerCase().includes(searchTerm) ||
-        sub.subscriptionPlan?.name?.toLowerCase().includes(searchTerm)
-      );
+    switch (dateRange) {
+      case 'today':
+        startDate = today;
+        endDate = today;
+        break;
+      case 'week':
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay());
+        startDate = weekStart;
+        endDate = today;
+        break;
+      case 'month':
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        startDate = monthStart;
+        endDate = today;
+        break;
+      case 'quarter':
+        const quarter = Math.floor(today.getMonth() / 3);
+        const quarterStart = new Date(today.getFullYear(), quarter * 3, 1);
+        startDate = quarterStart;
+        endDate = today;
+        break;
+      case 'year':
+        const yearStart = new Date(today.getFullYear(), 0, 1);
+        startDate = yearStart;
+        endDate = today;
+        break;
     }
 
-    // Apply status filter
-    const selectedStatuses = this.searchForm.get('status')?.value;
-    if (selectedStatuses && selectedStatuses.length > 0) {
-      filtered = filtered.filter(sub => selectedStatuses.includes(sub.status));
-    }
+    this.filterForm.patchValue({
+      startDate: startDate,
+      endDate: endDate
+    });
 
-    // Apply plan filter
-    const selectedPlans = this.searchForm.get('planId')?.value;
-    if (selectedPlans && selectedPlans.length > 0) {
-      filtered = filtered.filter(sub => selectedPlans.includes(sub.subscriptionPlanId));
-    }
-
-    // Apply date range filter
-    const dateFrom = this.searchForm.get('dateFrom')?.value;
-    const dateTo = this.searchForm.get('dateTo')?.value;
-    
-    if (dateFrom) {
-      filtered = filtered.filter(sub => new Date(sub.startDate) >= new Date(dateFrom));
-    }
-    
-    if (dateTo) {
-      filtered = filtered.filter(sub => new Date(sub.endDate) <= new Date(dateTo));
-    }
-
-    this.filteredSubscriptions = filtered;
+    this.currentPage = 1;
+    this.loadSubscriptions();
   }
 
-  onPageChange(page: number | string): void {
-    if (typeof page === 'number') {
+  // Clear all filters
+  clearFilters(): void {
+    this.filterForm.reset();
+    this.currentPage = 1;
+    this.loadSubscriptions();
+  }
+
+  // Pagination methods
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.loadSubscriptions();
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.paginationInfo.totalPages) {
       this.currentPage = page;
       this.loadSubscriptions();
     }
   }
 
-  onPageSizeChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    if (target && target.value) {
-      this.pageSize = +target.value;
-      this.currentPage = 1;
-      this.loadSubscriptions();
+  getPageNumbers(): (number | string)[] {
+    const pages: (number | string)[] = [];
+    const totalPages = this.paginationInfo.totalPages;
+    const current = this.currentPage;
+
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (current <= 4) {
+        for (let i = 1; i <= 5; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (current >= totalPages - 3) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = current - 1; i <= current + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      }
     }
-  }
 
-  refreshData(): void {
-    this.isRefreshing = true;
-    this.loadSubscriptions();
-    setTimeout(() => {
-      this.isRefreshing = false;
-    }, 1000);
-  }
-
-  clearFilters(): void {
-    this.searchForm.reset();
-    this.currentPage = 1;
-    this.loadSubscriptions();
+    return pages;
   }
 
   // Selection methods
-  toggleSubscriptionSelection(subscriptionId: number): void {
-    const index = this.selectedSubscriptions.indexOf(subscriptionId);
+  isAllSelected(): boolean {
+    return this.subscriptions.length > 0 && this.selectedSubscriptions.length === this.subscriptions.length;
+  }
+
+  toggleSelectAll(event: any): void {
+    if (event.target.checked) {
+      this.selectedSubscriptions = this.subscriptions.map(s => s.id);
+    } else {
+      this.selectedSubscriptions = [];
+    }
+  }
+
+  isSelected(id: string): boolean {
+    return this.selectedSubscriptions.includes(id);
+  }
+
+  toggleSelection(id: string): void {
+    const index = this.selectedSubscriptions.indexOf(id);
     if (index > -1) {
       this.selectedSubscriptions.splice(index, 1);
     } else {
-      this.selectedSubscriptions.push(subscriptionId);
+      this.selectedSubscriptions.push(id);
     }
   }
 
-  toggleAllSubscriptions(): void {
-    if (this.selectedSubscriptions.length === this.filteredSubscriptions.length) {
+  clearSelection(): void {
       this.selectedSubscriptions = [];
-    } else {
-      this.selectedSubscriptions = this.filteredSubscriptions.map(sub => sub.id);
-    }
   }
 
-  isAllSelected(): boolean {
-    return this.selectedSubscriptions.length === this.filteredSubscriptions.length && this.filteredSubscriptions.length > 0;
+  // Dropdown methods
+  toggleDropdown(id: string): void {
+    this.openDropdowns[id] = !this.openDropdowns[id];
+    // Close other dropdowns
+    Object.keys(this.openDropdowns).forEach(key => {
+      if (key !== id) {
+        this.openDropdowns[key] = false;
+      }
+    });
   }
 
-  isPartiallySelected(): boolean {
-    return this.selectedSubscriptions.length > 0 && this.selectedSubscriptions.length < this.filteredSubscriptions.length;
-  }
-
-  // Modal methods
+  // Navigation methods
   openCreateModal(): void {
-    this.showCreateModal = true;
+    // TODO: Implement create subscription modal
+    console.log('Open create subscription modal');
   }
 
-  openEditModal(subscription: Subscription): void {
-    this.selectedSubscription = subscription;
-    this.showEditModal = true;
+  viewSubscription(id: string): void {
+    this.router.navigate(['/admin-portal/subscriptions', id]);
   }
 
-  openDeleteModal(subscription: Subscription): void {
-    this.selectedSubscription = subscription;
-    this.showDeleteModal = true;
+  editSubscription(id: string): void {
+    this.router.navigate(['/admin-portal/subscriptions', id, 'edit']);
   }
 
-  openBulkActionModal(): void {
-    if (this.selectedSubscriptions.length === 0) {
-      this.toastService.showWarning('Please select subscriptions first');
-      return;
-    }
-    this.showBulkActionModal = true;
-  }
-
-  closeModals(): void {
-    this.showCreateModal = false;
-    this.showEditModal = false;
-    this.showDeleteModal = false;
-    this.showBulkActionModal = false;
-    this.selectedSubscription = null;
-  }
-
-  // CRUD operations
-  onCreateSuccess(): void {
-    this.closeModals();
-    this.loadSubscriptions();
-    this.toastService.showSuccess('Subscription created successfully');
-  }
-
-  onEditSuccess(): void {
-    this.closeModals();
-    this.loadSubscriptions();
-    this.toastService.showSuccess('Subscription updated successfully');
-  }
-
-  onDeleteSuccess(): void {
-    this.closeModals();
-    this.loadSubscriptions();
-    this.toastService.showSuccess('Subscription deleted successfully');
-  }
-
-  onBulkActionSuccess(): void {
-    this.closeModals();
-    this.selectedSubscriptions = [];
-    this.loadSubscriptions();
-    this.toastService.showSuccess('Bulk action completed successfully');
-  }
-
-  // Utility methods
-  formatCurrency(amount: number | undefined): string {
-    if (amount === undefined || amount === null) return '$0.00';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  }
-
-  getStatusColor(status: SubscriptionStatus): string {
-    return this.subscriptionService.getStatusColor(status);
-  }
-
-  getStatusLabel(status: SubscriptionStatus): string {
-    return this.subscriptionService.getStatusLabel(status);
-  }
-
-  getPlanName(planId: number): string {
-    const plan = this.subscriptionPlans.find(p => p.id === planId);
-    return plan?.name || 'Unknown Plan';
-  }
-
-  formatDate(date: string | Date): string {
-    return this.subscriptionService.formatDate(date);
-  }
-
-  getDaysUntilExpiry(endDate: string | Date): number {
-    return this.subscriptionService.getDaysUntilExpiry(endDate);
-  }
-
-  isExpiringSoon(endDate: string | Date): boolean {
-    return this.subscriptionService.isExpiringSoon(endDate);
-  }
-
-  isExpired(endDate: string | Date): boolean {
-    return this.subscriptionService.isExpired(endDate);
-  }
-
-  // Export functionality
-  exportSubscriptions(): void {
-    const params = this.getFilterParams();
-    this.subscriptionService.exportSubscriptions(params)
+  // Subscription lifecycle methods
+  activateSubscription(id: string): void {
+    this.subscriptionService.activateSubscription(id, 'Activated by admin')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: Blob) => {
-          const blob = new Blob([response], { type: 'text/csv' });
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `subscriptions-${new Date().toISOString().split('T')[0]}.csv`;
-          a.click();
-          window.URL.revokeObjectURL(url);
-          this.toastService.showSuccess('Subscriptions exported successfully');
+        next: (response: JsonModel<boolean>) => {
+          if (response.statusCode === 200) {
+            this.loadSubscriptions();
+            // TODO: Show success notification
+          } else {
+            // TODO: Show error notification
+            console.error('Failed to activate subscription:', response.message || response.Message);
+          }
         },
         error: (error) => {
-          this.toastService.showError('Failed to export subscriptions');
-          console.error('Export error:', error);
+          console.error('Error activating subscription:', error);
+          // TODO: Show error notification
         }
       });
   }
 
-  // Pagination helper
-  getPageNumbers(): (number | string)[] {
-    const pageNumbers: (number | string)[] = [];
-    const maxPagesToShow = 5;
-    const startPage = Math.max(1, this.currentPage - Math.floor(maxPagesToShow / 2));
-    const endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
+  pauseSubscription(id: string): void {
+    this.subscriptionService.pauseSubscription(id, 'Paused by admin')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: JsonModel<boolean>) => {
+          if (response.statusCode === 200) {
+            this.loadSubscriptions();
+            // TODO: Show success notification
+          } else {
+            // TODO: Show error notification
+            console.error('Failed to pause subscription:', response.message || response.Message);
+          }
+        },
+        error: (error) => {
+          console.error('Error pausing subscription:', error);
+          // TODO: Show error notification
+        }
+      });
+  }
 
-    if (startPage > 1) {
-      pageNumbers.push(1);
-      if (startPage > 2) {
-        pageNumbers.push('...');
-      }
+  cancelSubscription(id: string): void {
+    this.subscriptionService.cancelSubscription(id, 'Cancelled by admin')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: JsonModel<boolean>) => {
+          if (response.statusCode === 200) {
+    this.loadSubscriptions();
+            // TODO: Show success notification
+          } else {
+            // TODO: Show error notification
+            console.error('Failed to cancel subscription:', response.message || response.Message);
+          }
+        },
+        error: (error) => {
+          console.error('Error cancelling subscription:', error);
+          // TODO: Show error notification
+        }
+      });
+  }
+
+  renewSubscription(id: string): void {
+    // TODO: Implement renewal logic
+    console.log('Renew subscription:', id);
+  }
+
+  deleteSubscription(id: string): void {
+    if (confirm('Are you sure you want to delete this subscription? This action cannot be undone.')) {
+      this.subscriptionService.deleteSubscription(id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            if (response.StatusCode === 200) {
+    this.loadSubscriptions();
+              // TODO: Show success notification
+            } else {
+              // TODO: Show error notification
+              console.error('Failed to delete subscription:', response.Message);
+            }
+          },
+          error: (error) => {
+            console.error('Error deleting subscription:', error);
+            // TODO: Show error notification
+          }
+        });
     }
+  }
 
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(i);
+  // Bulk actions
+  bulkActivate(): void {
+    if (this.selectedSubscriptions.length === 0) return;
+
+    const request: BulkActionRequest = {
+      subscriptionIds: this.selectedSubscriptions,
+      action: 'activate',
+      reason: 'Bulk activation by admin'
+    };
+
+    this.subscriptionService.bulkAction(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.StatusCode === 200) {
+    this.loadSubscriptions();
+            this.clearSelection();
+            // TODO: Show success notification
+          } else {
+            // TODO: Show error notification
+            console.error('Failed to bulk activate subscriptions:', response.Message);
+          }
+        },
+        error: (error) => {
+          console.error('Error bulk activating subscriptions:', error);
+          // TODO: Show error notification
+        }
+      });
+  }
+
+  bulkPause(): void {
+    if (this.selectedSubscriptions.length === 0) return;
+
+    const request: BulkActionRequest = {
+      subscriptionIds: this.selectedSubscriptions,
+      action: 'pause',
+      reason: 'Bulk pause by admin'
+    };
+
+    this.subscriptionService.bulkAction(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.statusCode === 200) {
+            this.loadSubscriptions();
+            this.clearSelection();
+            // TODO: Show success notification
+          } else {
+            // TODO: Show error notification
+            console.error('Failed to bulk pause subscriptions:', response.message);
+          }
+        },
+        error: (error) => {
+          console.error('Error bulk pausing subscriptions:', error);
+          // TODO: Show error notification
+        }
+      });
+  }
+
+  bulkCancel(): void {
+    if (this.selectedSubscriptions.length === 0) return;
+
+    if (confirm(`Are you sure you want to cancel ${this.selectedSubscriptions.length} subscription(s)? This action cannot be undone.`)) {
+          const request: BulkActionRequest = {
+      subscriptionIds: this.selectedSubscriptions,
+      action: 'cancel',
+      reason: 'Bulk cancellation by admin'
+    };
+
+      this.subscriptionService.bulkAction(request)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+                  next: (response) => {
+          if (response.statusCode === 200) {
+            this.loadSubscriptions();
+            this.clearSelection();
+            // TODO: Show success notification
+          } else {
+            // TODO: Show error notification
+            console.error('Failed to bulk cancel subscriptions:', response.message);
+          }
+        },
+          error: (error) => {
+            console.error('Error bulk cancelling subscriptions:', error);
+            // TODO: Show error notification
+          }
+        });
     }
+  }
 
-    if (endPage < this.totalPages) {
-      if (endPage < this.totalPages - 1) {
-        pageNumbers.push('...');
-      }
-      pageNumbers.push(this.totalPages);
-    }
+  // Export functionality
+  exportSubscriptions(): void {
+    const params: SubscriptionListParams = {
+      page: 1,
+      pageSize: 10000, // Export all
+      searchTerm: this.filterForm.get('search')?.value || undefined,
+      status: this.filterForm.get('status')?.value ? [this.filterForm.get('status')?.value] : undefined,
+      planId: this.filterForm.get('planId')?.value ? [this.filterForm.get('planId')?.value] : undefined,
+      dateFrom: this.filterForm.get('startDate')?.value || undefined,
+      dateTo: this.filterForm.get('endDate')?.value || undefined
+    };
 
-    return pageNumbers;
+    this.subscriptionService.exportSubscriptions(params, 'csv')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `subscriptions_${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        },
+        error: (error) => {
+          console.error('Error exporting subscriptions:', error);
+          // TODO: Show error notification
+        }
+      });
   }
 }

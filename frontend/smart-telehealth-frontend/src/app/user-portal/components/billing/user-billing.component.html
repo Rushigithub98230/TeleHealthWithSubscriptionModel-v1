@@ -1,0 +1,228 @@
+<div class="user-billing-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="title-section">
+      <h1>Billing & Payments</h1>
+      <p>View your invoices and payment history</p>
+    </div>
+    <div class="actions-section">
+      <button 
+        class="btn btn-primary" 
+        (click)="navigateToPaymentMethods()"
+        [disabled]="loading">
+        <i class="fas fa-credit-card"></i> Payment Methods
+      </button>
+      <button 
+        class="btn btn-outline" 
+        (click)="navigateToSubscriptions()"
+        [disabled]="loading">
+        <i class="fas fa-subscription"></i> My Subscriptions
+      </button>
+    </div>
+  </div>
+
+  <!-- Billing Summary -->
+  <div class="billing-summary" *ngIf="!loading">
+    <h2>Billing Overview</h2>
+    <div class="summary-cards">
+      <div class="summary-card pending">
+        <div class="card-icon">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="card-content">
+          <h3>Pending Payments</h3>
+          <span class="count">{{ getPendingAmount() | currency:'USD':'symbol':'1.2-2' }}</span>
+          <span class="label">Awaiting payment</span>
+        </div>
+      </div>
+
+      <div class="summary-card overdue" *ngIf="getOverdueAmount() > 0">
+        <div class="card-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="card-content">
+          <h3>Overdue</h3>
+          <span class="count">{{ getOverdueAmount() | currency:'USD':'symbol':'1.2-2' }}</span>
+          <span class="label">Past due</span>
+        </div>
+      </div>
+
+      <div class="summary-card paid">
+        <div class="card-icon">
+          <i class="fas fa-check"></i>
+        </div>
+        <div class="card-content">
+          <h3>This Month</h3>
+          <span class="count">{{ getPaidAmount() | currency:'USD':'symbol':'1.2-2' }}</span>
+          <span class="label">Already paid</span>
+        </div>
+      </div>
+
+      <div class="summary-card total">
+        <div class="card-icon">
+          <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="card-content">
+          <h3>Total Outstanding</h3>
+          <span class="count">{{ getTotalOutstanding() | currency:'USD':'symbol':'1.2-2' }}</span>
+          <span class="label">Total due</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filter-form">
+      <div class="filter-group">
+        <label for="status-filter">Status</label>
+        <select 
+          id="status-filter" 
+          [(ngModel)]="statusFilter" 
+          (change)="applyFilters()"
+          class="form-control">
+          <option value="">All Statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Paid">Paid</option>
+          <option value="Overdue">Overdue</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="date-filter">Date Range</label>
+        <select 
+          id="date-filter" 
+          [(ngModel)]="dateFilter" 
+          (change)="applyFilters()"
+          class="form-control">
+          <option value="">All Time</option>
+          <option value="this-month">This Month</option>
+          <option value="last-month">Last Month</option>
+          <option value="this-year">This Year</option>
+          <option value="last-year">Last Year</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="amount-filter">Amount Range</label>
+        <select 
+          id="amount-filter" 
+          [(ngModel)]="amountFilter" 
+          (change)="applyFilters()"
+          class="form-control">
+          <option value="">All Amounts</option>
+          <option value="0-50">$0 - $50</option>
+          <option value="50-100">$50 - $100</option>
+          <option value="100-200">$100 - $200</option>
+          <option value="200+">$200+</option>
+        </select>
+      </div>
+
+      <button 
+        class="btn btn-outline" 
+        (click)="clearFilters()"
+        [disabled]="loading">
+        <i class="fas fa-times"></i> Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Billing Records List -->
+  <div class="billing-records-list" *ngIf="!loading && filteredBillingRecords.length > 0">
+    <div class="billing-record-card" *ngFor="let record of filteredBillingRecords">
+      <div class="record-header">
+        <div class="invoice-info">
+          <h3>Invoice #{{ record.invoiceNumber }}</h3>
+          <p class="description">{{ record.description || 'No description available' }}</p>
+        </div>
+        <div class="status-badge" [class]="record.status.toLowerCase()">
+          {{ record.status }}
+        </div>
+      </div>
+
+      <div class="record-details">
+        <div class="detail-item">
+          <span class="label">Billing Date</span>
+          <span class="value">{{ record.billingDate | date:'mediumDate' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Due Date</span>
+          <span class="value">{{ record.dueDate | date:'mediumDate' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Total Amount</span>
+          <span class="value">{{ record.totalAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="detail-item" *ngIf="record.taxAmount > 0">
+          <span class="label">Tax</span>
+          <span class="value">{{ record.taxAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="detail-item" *ngIf="record.discountAmount > 0">
+          <span class="label">Discount</span>
+          <span class="value">-{{ record.discountAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="record-subscription" *ngIf="record.subscription">
+        <h4>Related Subscription</h4>
+        <div class="subscription-info">
+          <span class="plan-name">{{ record.subscription.subscriptionPlan?.name || 'Unknown Plan' }}</span>
+          <span class="subscription-status">{{ record.subscription.status }}</span>
+        </div>
+      </div>
+
+      <div class="record-actions">
+        <button 
+          class="btn btn-outline" 
+          (click)="viewBillingDetails(record)"
+          [disabled]="loading">
+          <i class="fas fa-eye"></i> View Details
+        </button>
+        <button 
+          class="btn btn-primary" 
+          (click)="downloadInvoice(record)"
+          *ngIf="record.status === 'Paid'"
+          [disabled]="loading">
+          <i class="fas fa-download"></i> Download Invoice
+        </button>
+        <button 
+          class="btn btn-success" 
+          (click)="processPayment(record)"
+          *ngIf="record.status === 'Pending' || record.status === 'Overdue'"
+          [disabled]="loading">
+          <i class="fas fa-credit-card"></i> Pay Now
+        </button>
+        <button 
+          class="btn btn-warning" 
+          (click)="requestRefund(record)"
+          *ngIf="record.status === 'Paid'"
+          [disabled]="loading">
+          <i class="fas fa-undo"></i> Request Refund
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Records State -->
+  <div class="no-records" *ngIf="!loading && filteredBillingRecords.length === 0">
+    <div class="empty-state">
+      <i class="fas fa-file-invoice"></i>
+      <h3>No Billing Records Found</h3>
+      <p *ngIf="hasActiveFilters()">Try adjusting your filters or view all records.</p>
+      <p *ngIf="!hasActiveFilters()">You don't have any billing records yet.</p>
+      <button 
+        class="btn btn-outline" 
+        (click)="clearFilters()"
+        *ngIf="hasActiveFilters()">
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-section" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading your billing records...</p>
+  </div>
+</div>

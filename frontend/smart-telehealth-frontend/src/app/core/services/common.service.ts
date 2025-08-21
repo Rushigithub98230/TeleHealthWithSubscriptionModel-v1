@@ -8,9 +8,19 @@ import { JsonModel } from '../models/index';
   providedIn: 'root'
 })
 export class CommonService {
-  private readonly baseUrl = 'http://localhost:61376/api'; // Updated to match backend port
+  private readonly baseUrl = 'http://localhost:61376'; // Backend base URL without /api
 
   constructor(private http: HttpClient) {}
+
+  /**
+   * Get headers with basic content type
+   * Note: Authentication is handled by AuthInterceptor
+   */
+  private getHeaders(): HttpHeaders {
+    return new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+  }
 
   /**
    * GET request
@@ -35,6 +45,7 @@ export class CommonService {
 
     const requestOptions = {
       params: httpParams,
+      headers: this.getHeaders(),
       ...options
     };
 
@@ -49,7 +60,12 @@ export class CommonService {
    */
   post<T>(endpoint: string, data: any, options?: any): Observable<JsonModel<T>> {
     const url = `${this.baseUrl}${endpoint}`;
-    return this.http.post(url, data, options).pipe(
+    const requestOptions = {
+      headers: this.getHeaders(),
+      ...options
+    };
+
+    return this.http.post(url, data, requestOptions).pipe(
       map((response: any) => response as JsonModel<T>),
       catchError(this.handleError)
     );
@@ -60,7 +76,12 @@ export class CommonService {
    */
   put<T>(endpoint: string, data: any, options?: any): Observable<JsonModel<T>> {
     const url = `${this.baseUrl}${endpoint}`;
-    return this.http.put(url, data, options).pipe(
+    const requestOptions = {
+      headers: this.getHeaders(),
+      ...options
+    };
+
+    return this.http.put(url, data, requestOptions).pipe(
       map((response: any) => response as JsonModel<T>),
       catchError(this.handleError)
     );
@@ -71,7 +92,12 @@ export class CommonService {
    */
   delete<T>(endpoint: string, options?: any): Observable<JsonModel<T>> {
     const url = `${this.baseUrl}${endpoint}`;
-    return this.http.delete(url, options).pipe(
+    const requestOptions = {
+      headers: this.getHeaders(),
+      ...options
+    };
+
+    return this.http.delete(url, requestOptions).pipe(
       map((response: any) => response as JsonModel<T>),
       catchError(this.handleError)
     );
@@ -82,14 +108,19 @@ export class CommonService {
    */
   patch<T>(endpoint: string, data: any, options?: any): Observable<JsonModel<T>> {
     const url = `${this.baseUrl}${endpoint}`;
-    return this.http.patch(url, data, options).pipe(
+    const requestOptions = {
+      headers: this.getHeaders(),
+      ...options
+    };
+
+    return this.http.patch(url, data, requestOptions).pipe(
       map((response: any) => response as JsonModel<T>),
       catchError(this.handleError)
     );
   }
 
   /**
-   * GET request for blob responses (like exports)
+   * GET request for blob data (e.g., file downloads)
    */
   getBlob(endpoint: string, params?: any, options?: any): Observable<Blob> {
     const url = `${this.baseUrl}${endpoint}`;
@@ -111,12 +142,13 @@ export class CommonService {
 
     const requestOptions = {
       params: httpParams,
+      headers: this.getHeaders(),
       responseType: 'blob' as 'json',
       ...options
     };
 
     return this.http.get(url, requestOptions).pipe(
-      map(response => response as unknown as Blob),
+      map((response: any) => response as Blob),
       catchError(this.handleError)
     );
   }
@@ -124,44 +156,18 @@ export class CommonService {
   /**
    * Handle HTTP errors
    */
-  private handleError(error: HttpErrorResponse): Observable<never> {
-    let errorMessage = 'An error occurred';
+  private handleError(error: HttpErrorResponse) {
+    console.error('HTTP Error:', error);
     
+    let errorMessage = 'An error occurred';
     if (error.error instanceof ErrorEvent) {
       // Client-side error
       errorMessage = error.error.message;
     } else {
       // Server-side error
-      if (error.status === 0) {
-        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
-      } else if (error.status === 401) {
-        errorMessage = 'Unauthorized. Please log in again.';
-      } else if (error.status === 403) {
-        errorMessage = 'Access denied. You do not have permission to perform this action.';
-      } else if (error.status === 404) {
-        errorMessage = 'The requested resource was not found.';
-      } else if (error.status === 500) {
-        errorMessage = 'Internal server error. Please try again later.';
-      } else {
-        errorMessage = error.error?.message || `Server error: ${error.status}`;
-      }
+      errorMessage = error.error?.message || error.message || `Error Code: ${error.status}`;
     }
-
-    console.error('HTTP Error:', error);
+    
     return throwError(() => new Error(errorMessage));
-  }
-
-  /**
-   * Set base URL (useful for different environments)
-   */
-  setBaseUrl(url: string): void {
-    (this as any).baseUrl = url;
-  }
-
-  /**
-   * Get current base URL
-   */
-  getBaseUrl(): string {
-    return (this as any).baseUrl;
   }
 }

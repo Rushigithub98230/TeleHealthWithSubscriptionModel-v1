@@ -62,14 +62,14 @@ public class AppointmentsController : BaseController
 
     // Provider actions
     [HttpPost("{appointmentId}/accept")]
-    [Authorize(Roles = "Provider")]
+    
     public async Task<JsonModel> AcceptAppointment(Guid appointmentId, [FromBody] ProviderAcceptDto acceptDto)
     {
         return await _appointmentService.ProviderAcceptAppointmentAsync(appointmentId, acceptDto, GetToken(HttpContext));
     }
 
     [HttpPost("{appointmentId}/reject")]
-    [Authorize(Roles = "Provider")]
+    
     public async Task<JsonModel> RejectAppointment(Guid appointmentId, [FromBody] ProviderRejectDto rejectDto)
     {
         return await _appointmentService.ProviderRejectAppointmentAsync(appointmentId, rejectDto, GetToken(HttpContext));
@@ -89,7 +89,7 @@ public class AppointmentsController : BaseController
     }
 
     [HttpPost("{appointmentId}/complete")]
-    [Authorize(Roles = "Provider")]
+    
     public async Task<JsonModel> CompleteAppointment(Guid appointmentId, [FromBody] CompleteAppointmentDto completeDto)
     {
         return await _appointmentService.CompleteAppointmentAsync(appointmentId, completeDto, GetToken(HttpContext));
@@ -145,7 +145,7 @@ public class AppointmentsController : BaseController
 
     // Analytics
     [HttpGet("analytics")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> GetAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {
         return await _appointmentService.GetAppointmentAnalyticsAsync(startDate, endDate, GetToken(HttpContext));

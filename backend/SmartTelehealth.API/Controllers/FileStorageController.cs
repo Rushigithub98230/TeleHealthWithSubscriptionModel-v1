@@ -198,7 +198,7 @@ public class FileStorageController : BaseController
     /// Cleanup expired files
     /// </summary>
     [HttpPost("cleanup")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> CleanupExpiredFiles()
     {
         var result = await _fileStorageService.CleanupExpiredFilesAsync(GetToken(HttpContext));
@@ -209,7 +209,7 @@ public class FileStorageController : BaseController
     /// Archive old files
     /// </summary>
     [HttpPost("archive")]
-    [Authorize(Roles = "Admin")]
+    
     public async Task<JsonModel> ArchiveOldFiles([FromBody] ArchiveFilesRequest request)
     {
         if (string.IsNullOrEmpty(request.SourcePath) || string.IsNullOrEmpty(request.ArchivePath))

@@ -129,7 +129,7 @@ export class SubscriptionFormModalComponent implements OnInit, OnDestroy {
   }
 
   loadSubscriptionPlans(): void {
-    this.commonService.get<SubscriptionPlan[]>('/subscription-plans')
+    this.commonService.get<SubscriptionPlan[]>('/api/Subscriptions/admin/plans')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -226,7 +226,7 @@ export class SubscriptionFormModalComponent implements OnInit, OnDestroy {
       limit: 10
     };
 
-    this.commonService.get<User[]>('/users/search', params)
+            this.commonService.get<User[]>('/api/Users/search', params)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

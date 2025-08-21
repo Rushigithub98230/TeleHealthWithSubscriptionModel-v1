@@ -2302,6 +2302,277 @@
         "tags": [
           "Billing"
         ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "subscriptionId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Billing": {
+      "get": {
+        "tags": [
+          "Billing"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "subscriptionId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Billing"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBillingRecordDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBillingRecordDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBillingRecordDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",
@@ -2426,44 +2697,6 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Billing": {
-      "post": {
-        "tags": [
-          "Billing"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateBillingRecordDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateBillingRecordDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateBillingRecordDto"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Success",
@@ -4604,8 +4837,7 @@
             "required": true,
             "style": "simple",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
@@ -5432,8 +5664,7 @@
             "required": true,
             "style": "simple",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
@@ -14887,15 +15118,7 @@
             }
           },
           {
-            "name": "userId",
-            "in": "query",
-            "style": "form",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "planId",
+            "name": "searchTerm",
             "in": "query",
             "style": "form",
             "schema": {
@@ -14907,7 +15130,32 @@
             "in": "query",
             "style": "form",
             "schema": {
-              "type": "string"
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "planId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           {
@@ -14926,6 +15174,22 @@
             "schema": {
               "type": "string",
               "format": "date-time"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -15675,7 +15939,8 @@
             "required": true,
             "style": "simple",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "int32"
             }
           }
         ],
@@ -15906,197 +16171,7 @@
         }
       }
     },
-    "/api/Subscriptions/{id}/reactivate": {
-      "post": {
-        "tags": [
-          "Subscriptions"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "style": "simple",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Subscriptions/plans": {
-      "get": {
-        "tags": [
-          "Subscriptions"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Subscriptions"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.CreateSubscriptionPlanDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.CreateSubscriptionPlanDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.CreateSubscriptionPlanDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Subscriptions/plans/{planId}": {
-      "get": {
-        "tags": [
-          "Subscriptions"
-        ],
-        "parameters": [
-          {
-            "name": "planId",
-            "in": "path",
-            "required": true,
-            "style": "simple",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Subscriptions"
-        ],
-        "parameters": [
-          {
-            "name": "planId",
-            "in": "path",
-            "required": true,
-            "style": "simple",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.UpdateSubscriptionPlanDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.UpdateSubscriptionPlanDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.UpdateSubscriptionPlanDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Subscriptions"
-        ],
-        "parameters": [
-          {
-            "name": "planId",
-            "in": "path",
-            "required": true,
-            "style": "simple",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Subscriptions/{id}/billing-history": {
+    "/api/Subscriptions/billing-history/{id}": {
       "get": {
         "tags": [
           "Subscriptions"
@@ -16104,113 +16179,6 @@
         "parameters": [
           {
             "name": "id",
-            "in": "path",
-            "required": true,
-            "style": "simple",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Subscriptions/user/{userId}/payment-methods": {
-      "get": {
-        "tags": [
-          "Subscriptions"
-        ],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "style": "simple",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Subscriptions"
-        ],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "style": "simple",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "type": "string"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Subscriptions/plan/{planId}": {
-      "get": {
-        "tags": [
-          "Subscriptions"
-        ],
-        "parameters": [
-          {
-            "name": "planId",
             "in": "path",
             "required": true,
             "style": "simple",
@@ -16361,6 +16329,121 @@
         }
       }
     },
+    "/api/Subscriptions/plans": {
+      "post": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.CreateSubscriptionPlanDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.CreateSubscriptionPlanDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.CreateSubscriptionPlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Subscriptions/plans/{planId}": {
+      "put": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.UpdateSubscriptionPlanDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.UpdateSubscriptionPlanDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.UpdateSubscriptionPlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Subscriptions/plans/{planId}/activate": {
       "post": {
         "tags": [
@@ -16478,15 +16561,7 @@
             }
           },
           {
-            "name": "userId",
-            "in": "query",
-            "style": "form",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "planId",
+            "name": "searchTerm",
             "in": "query",
             "style": "form",
             "schema": {
@@ -16498,7 +16573,32 @@
             "in": "query",
             "style": "form",
             "schema": {
-              "type": "string"
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "planId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           {
@@ -16517,6 +16617,22 @@
             "schema": {
               "type": "string",
               "format": "date-time"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -17058,6 +17174,25 @@
               "type": "boolean"
             }
           }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmartTelehealth.Application.DTOs.JsonModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Subscriptions/plans/public": {
+      "get": {
+        "tags": [
+          "Subscriptions"
         ],
         "responses": {
           "200": {
@@ -19607,7 +19742,8 @@
         "type": "object",
         "properties": {
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "subscriptionId": {
             "type": "string"
@@ -19771,7 +19907,8 @@
             "type": "string"
           },
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -20216,7 +20353,8 @@
         "type": "object",
         "properties": {
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "amount": {
             "type": "number",
@@ -20259,7 +20397,8 @@
         "type": "object",
         "properties": {
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "subscriptionId": {
             "type": "string"
@@ -20332,7 +20471,8 @@
         "type": "object",
         "properties": {
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "userName": {
             "type": "string"
@@ -20396,7 +20536,8 @@
         "type": "object",
         "properties": {
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "email": {
             "type": "string"
@@ -20550,7 +20691,8 @@
             "type": "string"
           },
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "subscriptionId": {
             "type": "string",
@@ -20840,7 +20982,8 @@
             "type": "string"
           },
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "type": {
             "type": "string"
@@ -21156,7 +21299,8 @@
         "type": "object",
         "properties": {
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "type": {
             "type": "string"
@@ -21998,7 +22142,8 @@
             "type": "string"
           },
           "userRoleId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -22202,7 +22347,8 @@
             "nullable": true
           },
           "invitedByUserId": {
-            "type": "string",
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           }
         },
@@ -22212,8 +22358,8 @@
         "type": "object",
         "properties": {
           "inviteeId": {
-            "type": "string",
-            "format": "uuid"
+            "type": "integer",
+            "format": "int32"
           },
           "role": {
             "type": "string"
@@ -22263,7 +22409,8 @@
         "type": "object",
         "properties": {
           "userId": {
-            "type": "string",
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           },
           "email": {
@@ -22298,7 +22445,8 @@
         "type": "object",
         "properties": {
           "userId": {
-            "type": "string",
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           },
           "email": {
@@ -22649,6 +22797,7 @@
           "address",
           "city",
           "confirmPassword",
+          "dateOfBirth",
           "email",
           "firstName",
           "gender",
@@ -22682,6 +22831,10 @@
             "type": "string"
           },
           "phoneNumber": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "dateOfBirth": {
             "minLength": 1,
             "type": "string"
           },
@@ -22807,7 +22960,8 @@
             "type": "string"
           },
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "userName": {
             "type": "string"
@@ -23784,7 +23938,8 @@
             "format": "int32"
           },
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "firstName": {
             "type": "string"
@@ -23965,7 +24120,8 @@
             "nullable": true
           },
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "status": {
             "type": "string",
@@ -24028,10 +24184,12 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "userId": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           "firstName": {
             "type": "string"

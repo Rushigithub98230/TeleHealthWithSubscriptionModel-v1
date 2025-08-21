@@ -1,0 +1,310 @@
+<div class="user-subscription-plans-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="title-section">
+      <h1>Subscription Plans</h1>
+      <p>Choose the perfect plan for your healthcare needs</p>
+    </div>
+    <div class="actions-section">
+      <button 
+        class="btn btn-outline" 
+        (click)="navigateToSubscriptions()"
+        [disabled]="loading">
+        <i class="fas fa-list"></i> My Subscriptions
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <form [formGroup]="filterForm" class="filter-form">
+      <div class="filter-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Billing Cycle</mat-label>
+          <mat-select formControlName="billingCycle">
+            <mat-option value="">All Cycles</mat-option>
+            <mat-option value="1">Monthly</mat-option>
+            <mat-option value="3">Quarterly</mat-option>
+            <mat-option value="12">Annual</mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select formControlName="category">
+            <mat-option value="">All Categories</mat-option>
+            <mat-option value="Basic">Basic</mat-option>
+            <mat-option value="Premium">Premium</mat-option>
+            <mat-option value="Enterprise">Enterprise</mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <button 
+          type="button" 
+          class="btn btn-outline" 
+          (click)="clearFilters()">
+          Clear Filters
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-section" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading subscription plans...</p>
+  </div>
+
+  <!-- Plans Grid -->
+  <div class="plans-section" *ngIf="!loading">
+    <div class="plans-grid">
+      <div 
+        class="plan-card" 
+        *ngFor="let plan of filteredPlans"
+        [class.featured]="plan.isFeatured"
+        [class.most-popular]="plan.isMostPopular">
+        
+        <!-- Featured Badge -->
+        <div class="featured-badge" *ngIf="plan.isFeatured">
+          <i class="fas fa-star"></i> Featured
+        </div>
+        
+        <!-- Most Popular Badge -->
+        <div class="popular-badge" *ngIf="plan.isMostPopular">
+          <i class="fas fa-fire"></i> Most Popular
+        </div>
+
+        <div class="plan-header">
+          <h3 class="plan-name">{{ plan.name }}</h3>
+          <p class="plan-description">{{ plan.shortDescription }}</p>
+        </div>
+
+        <div class="plan-pricing">
+          <div class="price-section">
+            <span class="currency">$</span>
+            <span class="amount">{{ plan.price }}</span>
+            <span class="cycle">/month</span>
+          </div>
+          
+          <div class="discount" *ngIf="plan.discountedPrice && plan.discountedPrice < plan.price">
+            <span class="original-price">${{ plan.price }}</span>
+            <span class="discounted-price">${{ plan.discountedPrice }}</span>
+            <span class="discount-text">Save {{ getDiscountPercentage(plan.price, plan.discountedPrice) }}%</span>
+          </div>
+          
+          <div class="trial-info" *ngIf="plan.isTrialAllowed && plan.trialDurationInDays">
+            <i class="fas fa-gift"></i>
+            <span>{{ plan.trialDurationInDays }}-day free trial</span>
+          </div>
+        </div>
+
+        <div class="plan-features">
+          <h4>What's Included:</h4>
+          <ul class="features-list">
+            <li *ngFor="let privilege of plan.privileges">
+              <i class="fas fa-check"></i>
+              <span>{{ privilege.privilege?.name }}</span>
+              <span class="feature-value" *ngIf="privilege.value">
+                ({{ privilege.value }} {{ getPrivilegeUnit(privilege.privilege?.name || '') }})
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="plan-actions">
+          <button 
+            class="btn btn-primary full-width" 
+            (click)="openSubscribeModal(plan)"
+            [disabled]="loading">
+            <i class="fas fa-rocket"></i> 
+            {{ plan.isTrialAllowed ? 'Start Free Trial' : 'Subscribe Now' }}
+          </button>
+          
+          <button 
+            class="btn btn-outline full-width" 
+            (click)="viewPlanDetails(plan)"
+            [disabled]="loading">
+            <i class="fas fa-info-circle"></i> View Details
+          </button>
+        </div>
+
+        <div class="plan-footer">
+          <div class="plan-terms" *ngIf="plan.terms">
+            <small>{{ plan.terms }}</small>
+          </div>
+          
+          <div class="plan-validity" *ngIf="plan.discountValidUntil">
+            <small>Offer valid until {{ plan.discountValidUntil | date:'mediumDate' }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Plans State -->
+  <div class="no-plans" *ngIf="!loading && filteredPlans.length === 0">
+    <div class="empty-state">
+      <i class="fas fa-search"></i>
+      <h3>No Plans Found</h3>
+      <p>No subscription plans match your current filters. Try adjusting your search criteria.</p>
+      <button class="btn btn-outline" (click)="clearFilters()">
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Plan Comparison -->
+  <div class="plan-comparison" *ngIf="!loading && filteredPlans.length > 1">
+    <div class="comparison-header">
+      <h3>Plan Comparison</h3>
+      <p>Compare features across different plans</p>
+    </div>
+    
+    <div class="comparison-table">
+      <table class="comparison-table-content">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th *ngFor="let plan of filteredPlans.slice(0, 3)">{{ plan.name }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="pricing-row">
+            <td>Price</td>
+            <td *ngFor="let plan of filteredPlans.slice(0, 3)">
+              ${{ plan.discountedPrice || plan.price }}/month
+            </td>
+          </tr>
+          <tr *ngFor="let feature of getCommonFeatures()">
+            <td>{{ feature.name }}</td>
+            <td *ngFor="let plan of filteredPlans.slice(0, 3)">
+              <i class="fas fa-check" *ngIf="hasFeature(plan, feature.name)"></i>
+              <span *ngIf="!hasFeature(plan, feature.name)">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <div class="faq-section">
+    <h3>Frequently Asked Questions</h3>
+    <div class="faq-grid">
+      <div class="faq-item">
+        <h4>Can I cancel my subscription anytime?</h4>
+        <p>Yes, you can cancel your subscription at any time. Your access will continue until the end of your current billing period.</p>
+      </div>
+      
+      <div class="faq-item">
+        <h4>What happens after my trial ends?</h4>
+        <p>After your trial period, your subscription will automatically convert to the paid plan unless you cancel before the trial ends.</p>
+      </div>
+      
+      <div class="faq-item">
+        <h4>Can I upgrade or downgrade my plan?</h4>
+        <p>Yes, you can change your plan at any time. Changes will take effect at the start of your next billing cycle.</p>
+      </div>
+      
+      <div class="faq-item">
+        <h4>Is there a setup fee?</h4>
+        <p>No setup fees! You only pay the subscription price listed for each plan.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Subscribe Modal -->
+<div class="modal-overlay" *ngIf="showSubscribeModal" (click)="closeSubscribeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Subscribe to {{ selectedPlan?.name }}</h3>
+      <button class="btn btn-icon" (click)="closeSubscribeModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <form [formGroup]="subscribeForm" (ngSubmit)="onSubmit()" class="modal-body">
+      <div class="plan-summary">
+        <h4>Plan Summary</h4>
+        <div class="summary-details">
+          <div class="summary-row">
+            <span class="label">Plan:</span>
+            <span class="value">{{ selectedPlan?.name }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Price:</span>
+            <span class="value">${{ selectedPlan?.discountedPrice || selectedPlan?.price }}/month</span>
+          </div>
+          <div class="summary-row" *ngIf="selectedPlan?.isTrialAllowed">
+            <span class="label">Trial:</span>
+            <span class="value">{{ selectedPlan?.trialDurationInDays }}-day free trial</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="payment-method-section">
+        <h4>Payment Method</h4>
+        <div class="payment-methods" *ngIf="paymentMethods.length > 0">
+          <div 
+            class="payment-method-option" 
+            *ngFor="let method of paymentMethods"
+            [class.selected]="selectedPaymentMethod?.id === method.id"
+            (click)="selectPaymentMethod(method)">
+            <input type="radio" [value]="method.id" formControlName="paymentMethodId">
+            <div class="method-info">
+              <i class="fas" [class]="getPaymentTypeIcon(method.type)"></i>
+              <span>{{ maskCardNumber(method.last4) }} - {{ method.cardholderName }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="no-payment-methods" *ngIf="paymentMethods.length === 0">
+          <p>You don't have any payment methods. Please add one first.</p>
+          <button type="button" class="btn btn-outline" (click)="navigateToPaymentMethods()">
+            Add Payment Method
+          </button>
+        </div>
+      </div>
+
+      <div class="billing-cycle-section">
+        <h4>Billing Cycle</h4>
+        <div class="billing-options">
+          <div 
+            class="billing-option" 
+            *ngFor="let cycle of getAvailableBillingCycles(selectedPlan)"
+            [class.selected]="selectedBillingCycle === cycle.value"
+            (click)="selectBillingCycle(cycle.value)">
+            <input type="radio" [value]="cycle.value" formControlName="billingCycleId">
+            <div class="cycle-info">
+              <span class="cycle-name">{{ cycle.label }}</span>
+              <span class="cycle-price">${{ getCyclePrice(selectedPlan, cycle.value) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="terms-section">
+        <mat-checkbox formControlName="acceptTerms">
+          I agree to the <a href="#" (click)="viewTerms()">Terms of Service</a> and <a href="#" (click)="viewPrivacy()">Privacy Policy</a>
+        </mat-checkbox>
+      </div>
+
+      <div class="form-actions">
+        <button 
+          type="button" 
+          class="btn btn-outline" 
+          (click)="closeSubscribeModal()">
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          [disabled]="subscribeForm.invalid || processing">
+          <mat-spinner diameter="20" *ngIf="processing"></mat-spinner>
+          {{ processing ? 'Processing...' : 'Subscribe Now' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

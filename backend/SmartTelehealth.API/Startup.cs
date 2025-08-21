@@ -31,11 +31,7 @@ public class Startup
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"] ?? "SuperSecretKeyForJwtToken123!"))
             };
         });
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("AdminOnly", policy =>
-                policy.RequireClaim("isAdmin", "true"));
-        });
+        services.AddAuthorization();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

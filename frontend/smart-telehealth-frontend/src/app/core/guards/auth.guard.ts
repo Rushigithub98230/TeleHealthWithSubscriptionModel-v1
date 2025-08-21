@@ -21,7 +21,7 @@ export class AuthGuard implements CanActivate {
     }
 
     // Redirect to login page
-    this.router.navigate(['/admin/login'], { queryParams: { returnUrl: state.url } });
+    this.router.navigate(['/webadmin/login'], { queryParams: { returnUrl: state.url } });
     return false;
   }
 }
@@ -44,7 +44,7 @@ export class AdminGuard implements CanActivate {
     }
 
     if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/admin/login'], { queryParams: { returnUrl: state.url } });
+      this.router.navigate(['/webadmin/login'], { queryParams: { returnUrl: state.url } });
     } else {
       this.router.navigate(['/']);
     }
@@ -70,7 +70,7 @@ export class UserGuard implements CanActivate {
     }
 
     if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/user/login'], { queryParams: { returnUrl: state.url } });
+      this.router.navigate(['/web/login'], { queryParams: { returnUrl: state.url } });
     } else {
       this.router.navigate(['/']);
     }

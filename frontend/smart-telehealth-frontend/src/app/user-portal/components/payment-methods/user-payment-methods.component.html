@@ -1,0 +1,268 @@
+<div class="user-payment-methods-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="title-section">
+      <h1>Payment Methods</h1>
+      <p>Manage your payment options and billing preferences</p>
+    </div>
+    <div class="actions-section">
+      <button 
+        class="btn btn-primary" 
+        (click)="openAddPaymentMethodModal()"
+        [disabled]="loading">
+        <i class="fas fa-plus"></i> Add Payment Method
+      </button>
+      <button 
+        class="btn btn-outline" 
+        (click)="navigateToBilling()"
+        [disabled]="loading">
+        <i class="fas fa-credit-card"></i> View Billing
+      </button>
+    </div>
+  </div>
+
+  <!-- Payment Methods Summary -->
+  <div class="payment-methods-summary" *ngIf="!loading && paymentMethods.length > 0">
+    <h2>Your Payment Methods</h2>
+    <div class="summary-cards">
+      <div class="summary-card total">
+        <div class="card-icon">
+          <i class="fas fa-credit-card"></i>
+        </div>
+        <div class="card-content">
+          <h3>Total Methods</h3>
+          <span class="count">{{ paymentMethods.length }}</span>
+          <span class="label">Payment options</span>
+        </div>
+      </div>
+
+      <div class="summary-card default">
+        <div class="card-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="card-content">
+          <h3>Default Method</h3>
+          <span class="count">{{ getDefaultMethodCount() }}</span>
+          <span class="label">Set as default</span>
+        </div>
+      </div>
+
+      <div class="summary-card active">
+        <div class="card-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="card-content">
+          <h3>Active Methods</h3>
+          <span class="count">{{ getActiveMethodCount() }}</span>
+          <span class="label">Ready to use</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Methods List -->
+  <div class="payment-methods-list" *ngIf="!loading && paymentMethods.length > 0">
+    <div class="payment-method-card" *ngFor="let method of paymentMethods">
+      <div class="method-header">
+        <div class="method-icon">
+          <i class="fas" [class]="getPaymentTypeIcon(method.type)"></i>
+        </div>
+        <div class="method-info">
+          <h3>{{ maskCardNumber(method.last4) }}</h3>
+          <p class="cardholder-name">{{ method.cardholderName }}</p>
+          <p class="expiry-date">Expires {{ method.expiryMonth }}/{{ method.expiryYear }}</p>
+        </div>
+        <div class="method-status">
+          <span class="status-badge" [class]="method.isDefault ? 'default' : 'active'">
+            {{ method.isDefault ? 'Default' : 'Active' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="method-details">
+        <div class="detail-item">
+          <span class="label">Type</span>
+          <span class="value">{{ getPaymentTypeName(method.type) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Country</span>
+          <span class="value">{{ method.billingAddress?.country || 'Not specified' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Added</span>
+          <span class="value">{{ method.createdAt | date:'mediumDate' }}</span>
+        </div>
+      </div>
+
+      <div class="method-actions">
+        <button 
+          class="btn btn-outline" 
+          (click)="editPaymentMethod(method)"
+          [disabled]="loading">
+          <i class="fas fa-edit"></i> Edit
+        </button>
+        <button 
+          class="btn btn-primary" 
+          (click)="setDefaultPaymentMethod(method)"
+          *ngIf="!method.isDefault"
+          [disabled]="loading">
+          <i class="fas fa-star"></i> Set Default
+        </button>
+        <button 
+          class="btn btn-warning" 
+          (click)="validatePaymentMethod(method)"
+          [disabled]="loading">
+          <i class="fas fa-check"></i> Validate
+        </button>
+        <button 
+          class="btn btn-danger" 
+          (click)="deletePaymentMethod(method)"
+          [disabled]="loading">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Payment Methods State -->
+  <div class="no-payment-methods" *ngIf="!loading && paymentMethods.length === 0">
+    <div class="empty-state">
+      <i class="fas fa-credit-card"></i>
+      <h3>No Payment Methods</h3>
+      <p>Add a payment method to start using our telehealth services.</p>
+      <button class="btn btn-primary" (click)="openAddPaymentMethodModal()">
+        <i class="fas fa-plus"></i> Add Payment Method
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-section" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading your payment methods...</p>
+  </div>
+
+  <!-- Add/Edit Payment Method Modal -->
+  <div class="modal-overlay" *ngIf="showPaymentMethodModal" (click)="closePaymentMethodModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingMethod ? 'Edit' : 'Add' }} Payment Method</h2>
+        <button class="close-btn" (click)="closePaymentMethodModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form [formGroup]="paymentMethodForm" (ngSubmit)="onSubmit()" class="modal-body">
+        <div class="form-group">
+          <label for="cardNumber">Card Number</label>
+          <input 
+            type="text" 
+            id="cardNumber" 
+            formControlName="cardNumber"
+            placeholder="1234 5678 9012 3456"
+            class="form-control"
+            [class.error]="paymentMethodForm.get('cardNumber')?.invalid && paymentMethodForm.get('cardNumber')?.touched">
+          <div class="error-message" *ngIf="paymentMethodForm.get('cardNumber')?.invalid && paymentMethodForm.get('cardNumber')?.touched">
+            Please enter a valid card number
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="expiryMonth">Expiry Month</label>
+            <select 
+              id="expiryMonth" 
+              formControlName="expiryMonth"
+              class="form-control">
+              <option value="">Month</option>
+              <option *ngFor="let month of months" [value]="month">{{ month }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="expiryYear">Expiry Year</label>
+            <select 
+              id="expiryYear" 
+              formControlName="expiryYear"
+              class="form-control">
+              <option value="">Year</option>
+              <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="cvv">CVV</label>
+            <input 
+              type="text" 
+              id="cvv" 
+              formControlName="cvv"
+              placeholder="123"
+              class="form-control"
+              maxlength="4">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cardholderName">Cardholder Name</label>
+          <input 
+            type="text" 
+            id="cardholderName" 
+            formControlName="cardholderName"
+            placeholder="John Doe"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="billingAddress">Billing Address</label>
+          <input 
+            type="text" 
+            id="billingAddress" 
+            formControlName="billingAddress"
+            placeholder="123 Main St, City, State, ZIP"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="country">Country</label>
+          <select 
+            id="country" 
+            formControlName="country"
+            class="form-control">
+            <option value="">Select Country</option>
+            <option *ngFor="let country of supportedCountries" [value]="country.code">
+              {{ country.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              formControlName="isDefault"
+              class="checkbox-input">
+            <span class="checkmark"></span>
+            Set as default payment method
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn btn-outline" 
+            (click)="closePaymentMethodModal()"
+            [disabled]="processing">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary" 
+            [disabled]="paymentMethodForm.invalid || processing">
+            <span *ngIf="!processing">{{ editingMethod ? 'Update' : 'Add' }} Payment Method</span>
+            <span *ngIf="processing">Processing...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

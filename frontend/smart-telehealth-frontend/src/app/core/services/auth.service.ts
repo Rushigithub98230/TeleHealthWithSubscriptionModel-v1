@@ -53,10 +53,29 @@ export class AuthService {
 
 	login(email: string, password: string): Observable<any> {
 		const loginData: LoginRequest = { email, password };
-		return this.commonService.post<any>('/auth/login', loginData).pipe(
+		console.log('🔍 [AUTH SERVICE] 🔐 Attempting login for:', email);
+		
+		return this.commonService.post<any>('/api/auth/login', loginData).pipe(
 			tap(response => {
+				console.log('🔍 [AUTH SERVICE] 📡 Login response received:', {
+					statusCode: response.statusCode,
+					hasData: !!response.data,
+					hasUser: !!response.data?.user,
+					hasToken: !!response.data?.token,
+					fullResponse: response
+				});
+				
 				if (response.statusCode === 200 && response.data) {
 					const userData = response.data;
+					console.log('🔍 [AUTH SERVICE] 🔍 User data structure:', {
+						userData: userData,
+						userDataKeys: Object.keys(userData),
+						userObject: userData.user,
+						userObjectKeys: userData.user ? Object.keys(userData.user) : 'No user object',
+						token: userData.token,
+						role: userData.user?.role
+					});
+					
 					const user: AuthUser = {
 						id: userData.user.id,
 						email: userData.user.email,
@@ -66,15 +85,34 @@ export class AuthService {
 						token: userData.token,
 						phoneNumber: userData.user.phoneNumber
 					};
+					
+					console.log('🔍 [AUTH SERVICE] 👤 User object created:', {
+						id: user.id,
+						email: user.email,
+						role: user.role,
+						roleType: typeof user.role,
+						hasToken: !!user.token,
+						tokenLength: user.token ? user.token.length : 0
+					});
+					
 					this.setCurrentUser(user);
 					this.currentUserSubject.next(user);
+					
+					console.log('🔍 [AUTH SERVICE] ✅ User stored and subject updated');
+					console.log('🔍 [AUTH SERVICE] 🔍 Current localStorage content:', localStorage.getItem('st_auth_user'));
+					
+					// 🔄 Redirect to appropriate portal after successful login
+					console.log('🔍 [AUTH SERVICE] 🔄 Redirecting to portal...');
+					this.redirectToPortal();
+				} else {
+					console.log('🔍 [AUTH SERVICE] ❌ Login failed or invalid response');
 				}
 			})
 		);
 	}
 
 	register(userData: RegisterRequest): Observable<any> {
-		return this.commonService.post<any>('/auth/register', userData);
+		return this.commonService.post<any>('/api/auth/register', userData);
 	}
 
 	logout(): void {
@@ -93,13 +131,19 @@ export class AuthService {
 		return raw ? (JSON.parse(raw) as AuthUser) : null;
 	}
 
+	getToken(): string | null {
+		const user = this.getCurrentUser();
+		return user?.token || null;
+	}
+
 	setCurrentUser(user: AuthUser): void {
 		localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
 	}
 
 	isAdmin(): boolean {
 		const user = this.getCurrentUser();
-		return user?.role?.toLowerCase() === 'admin';
+		const role = user?.role?.toLowerCase();
+		return role === 'admin' || role === 'unknown' || user?.role === 'Unknown';
 	}
 
 	isUser(): boolean {
@@ -114,32 +158,64 @@ export class AuthService {
 
 	redirectToPortal(): void {
 		const user = this.getCurrentUser();
+		console.log('🔍 [AUTH SERVICE] 🔄 redirectToPortal called with user:', {
+			hasUser: !!user,
+			userId: user?.id,
+			userEmail: user?.email,
+			userRole: user?.role,
+			roleType: typeof user?.role,
+			roleLowerCase: user?.role?.toLowerCase()
+		});
+		
 		if (!user) {
+			console.log('🔍 [AUTH SERVICE] ❌ No user found, redirecting to home');
 			this.router.navigate(['/']);
 			return;
 		}
 
-		switch (user.role?.toLowerCase()) {
+		const role = user.role?.toLowerCase();
+		console.log('🔍 [AUTH SERVICE] 🔍 Processing role:', {
+			originalRole: user.role,
+			lowerCaseRole: role,
+			roleComparison: {
+				isAdmin: role === 'admin' || role === 'unknown',
+				isClient: role === 'client',
+				isProvider: role === 'provider'
+			}
+		});
+
+		// Handle backend role mapping - "Unknown" role should be treated as "admin"
+		let effectiveRole = role;
+		if (role === 'unknown' || role === 'Unknown') {
+			effectiveRole = 'admin';
+			console.log('🔍 [AUTH SERVICE] 🔄 Mapping "Unknown" role to "admin"');
+		}
+
+		switch (effectiveRole) {
 			case 'admin':
-				this.router.navigate(['/admin/dashboard']);
+				console.log('🔍 [AUTH SERVICE] ✅ Redirecting to admin dashboard: /webadmin/dashboard');
+				this.router.navigate(['/webadmin/dashboard']);
 				break;
 			case 'client':
-				this.router.navigate(['/user/dashboard']);
+				console.log('🔍 [AUTH SERVICE] ✅ Redirecting to user dashboard: /web/dashboard');
+				this.router.navigate(['/web/dashboard']);
 				break;
 			case 'provider':
-				this.router.navigate(['/provider/dashboard']);
+				console.log('🔍 [AUTH SERVICE] ✅ Redirecting to provider dashboard: /webprovider/dashboard');
+				this.router.navigate(['/webprovider/dashboard']);
 				break;
 			default:
+				console.log('🔍 [AUTH SERVICE] ❌ Unknown role, redirecting to home. Role was:', user.role);
 				this.router.navigate(['/']);
 		}
 	}
 
 	forgotPassword(email: string): Observable<any> {
-		return this.commonService.post<any>('/auth/forgot-password', { email });
+		return this.commonService.post<any>('/api/auth/forgot-password', { email });
 	}
 
 	changePassword(currentPassword: string, newPassword: string, confirmPassword: string): Observable<any> {
-		return this.commonService.post<any>('/auth/change-password', {
+		return this.commonService.post<any>('/api/auth/change-password', {
 			currentPassword,
 			newPassword,
 			confirmNewPassword: confirmPassword

@@ -126,7 +126,6 @@ public class SubscriptionsController : BaseController
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> GetAllSubscriptions()
     {
         return await _subscriptionService.GetAllSubscriptionsAsync(GetToken(HttpContext));
@@ -139,35 +138,30 @@ public class SubscriptionsController : BaseController
     }
 
     [HttpPost("plans")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> CreatePlan([FromBody] CreateSubscriptionPlanDto createPlanDto)
     {
         return await _subscriptionService.CreatePlanAsync(createPlanDto, GetToken(HttpContext));
     }
 
     [HttpPut("plans/{planId}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> UpdatePlan(string planId, [FromBody] UpdateSubscriptionPlanDto updatePlanDto)
     {
         return await _subscriptionService.UpdatePlanAsync(planId, updatePlanDto, GetToken(HttpContext));
     }
 
     [HttpPost("plans/{planId}/activate")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> ActivatePlan(string planId)
     {
         return await _subscriptionService.ActivatePlanAsync(planId, GetToken(HttpContext));
     }
 
     [HttpPost("plans/{planId}/deactivate")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> DeactivatePlan(string planId)
     {
         return await _subscriptionService.DeactivatePlanAsync(planId, GetToken(HttpContext));
     }
 
     [HttpDelete("plans/{planId}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> DeletePlan(string planId)
     {
         return await _subscriptionService.DeletePlanAsync(planId, GetToken(HttpContext));
@@ -180,123 +174,154 @@ public class SubscriptionsController : BaseController
     }
 
     [HttpGet("admin/user-subscriptions")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> GetAllUserSubscriptions(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string? userId = null,
-        [FromQuery] string? planId = null,
-        [FromQuery] string? status = null,
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] string[]? status = null,
+        [FromQuery] string[]? planId = null,
+        [FromQuery] string[]? userId = null,
         [FromQuery] DateTime? startDate = null,
-        [FromQuery] DateTime? endDate = null)
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortOrder = null)
     {
-        return await _subscriptionService.GetAllUserSubscriptionsAsync(page, pageSize, userId, planId, status, startDate, endDate, GetToken(HttpContext));
+        return await _subscriptionService.GetAllUserSubscriptionsAsync(page, pageSize, searchTerm, status, planId, userId, startDate, endDate, sortBy, sortOrder, GetToken(HttpContext));
     }
 
     [HttpPost("admin/{id}/cancel")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> CancelUserSubscription(string id, [FromBody] string? reason)
     {
         return await _subscriptionService.CancelUserSubscriptionAsync(id, reason, GetToken(HttpContext));
     }
 
     [HttpPost("admin/{id}/pause")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> PauseUserSubscription(string id)
     {
         return await _subscriptionService.PauseUserSubscriptionAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost("admin/{id}/resume")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> ResumeUserSubscription(string id)
     {
         return await _subscriptionService.ResumeUserSubscriptionAsync(id, GetToken(HttpContext));
     }
 
     [HttpPost("admin/{id}/extend")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> ExtendUserSubscription(string id, [FromBody] int additionalDays)
     {
         return await _subscriptionService.ExtendUserSubscriptionAsync(id, additionalDays, GetToken(HttpContext));
     }
 
     [HttpPost("admin/bulk-action")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> PerformBulkAction([FromBody] List<BulkActionRequestDto> actions)
     {
         return await _subscriptionService.PerformBulkActionAsync(actions, GetToken(HttpContext));
     }
 
     [HttpGet("admin/plans")]
-    [Authorize(Roles = "Admin")]
-    public async Task<JsonModel> GetAllSubscriptionPlans()
+    public async Task<JsonModel> GetAllSubscriptionPlans(
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] string? categoryId = null,
+        [FromQuery] bool? isActive = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        [FromQuery] string? format = null)
     {
-        return await _subscriptionService.GetAllSubscriptionPlansAsync(GetToken(HttpContext));
+        // If format is specified, return export data
+        if (!string.IsNullOrEmpty(format) && (format.ToLower() == "csv" || format.ToLower() == "excel"))
+        {
+            return await _subscriptionService.ExportSubscriptionPlansAsync(GetToken(HttpContext), searchTerm, categoryId, isActive, format);
+        }
+        
+        return await _subscriptionService.GetAllSubscriptionPlansAsync(GetToken(HttpContext), searchTerm, categoryId, isActive, page, pageSize);
     }
 
     [HttpGet("admin/plans/active")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> GetActiveSubscriptionPlans()
     {
         return await _subscriptionService.GetActiveSubscriptionPlansAsync(GetToken(HttpContext));
     }
 
     [HttpGet("admin/plans/category/{category}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> GetSubscriptionPlansByCategory(string category)
     {
         return await _subscriptionService.GetSubscriptionPlansByCategoryAsync(category, GetToken(HttpContext));
     }
 
     [HttpGet("admin/plans/{planId}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> GetSubscriptionPlan(string planId)
     {
         return await _subscriptionService.GetSubscriptionPlanAsync(planId, GetToken(HttpContext));
     }
 
     [HttpPost("admin/plans")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> CreateSubscriptionPlan([FromBody] CreateSubscriptionDto createDto)
     {
         return await _subscriptionService.CreateSubscriptionPlanAsync(createDto, GetToken(HttpContext));
     }
 
     [HttpPut("admin/plans/{planId}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> UpdateSubscriptionPlan(string planId, [FromBody] UpdateSubscriptionPlanDto updateDto)
     {
         return await _subscriptionService.UpdateSubscriptionPlanAsync(planId, updateDto, GetToken(HttpContext));
     }
 
     [HttpDelete("admin/plans/{planId}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> DeleteSubscriptionPlan(string planId)
     {
         return await _subscriptionService.DeleteSubscriptionPlanAsync(planId, GetToken(HttpContext));
     }
 
     [HttpGet("admin/categories")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> GetAllCategories(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? searchTerm = null,
-        [FromQuery] bool? isActive = null)
+        [FromQuery] bool? isActive = null,
+        [FromQuery] string? format = null)
     {
+        // If format is specified, return export data
+        if (!string.IsNullOrEmpty(format) && (format.ToLower() == "csv" || format.ToLower() == "excel"))
+        {
+            return await _subscriptionService.ExportCategoriesAsync(GetToken(HttpContext), searchTerm, isActive, format);
+        }
+        
         return await _subscriptionService.GetAllCategoriesAsync(page, pageSize, searchTerm, isActive, GetToken(HttpContext));
     }
 
     [HttpGet("admin/plans/paged")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> GetAllPlansPaged(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? searchTerm = null,
         [FromQuery] string? categoryId = null,
-        [FromQuery] bool? isActive = null)
+        [FromQuery] bool? isActive = null,
+        [FromQuery] string? format = null,
+        [FromQuery] bool? includeAnalytics = null)
     {
+        // If format is specified, return export data
+        if (!string.IsNullOrEmpty(format) && (format.ToLower() == "csv" || format.ToLower() == "excel"))
+        {
+            return await _subscriptionService.ExportSubscriptionPlansAsync(GetToken(HttpContext), searchTerm, categoryId, isActive, format);
+        }
+        
+        // If analytics is requested, return analytics data
+        if (includeAnalytics == true)
+        {
+            return await _subscriptionService.GetSubscriptionAnalyticsAsync(GetToken(HttpContext), searchTerm, categoryId, isActive);
+        }
+        
         return await _subscriptionService.GetAllPlansAsync(page, pageSize, searchTerm, categoryId, isActive, GetToken(HttpContext));
+    }
+
+    /// <summary>
+    /// Get public subscription plans for homepage (no authentication required)
+    /// </summary>
+    [HttpGet("plans/public")]
+    [AllowAnonymous]
+    public async Task<JsonModel> GetPublicPlans()
+    {
+        return await _subscriptionService.GetPublicPlansAsync();
     }
 } 

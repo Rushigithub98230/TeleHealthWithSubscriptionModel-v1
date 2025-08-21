@@ -59,13 +59,13 @@ public class UserService : IUserService
     {
         try
         {
-            // Use the repository to find user by email instead of UserManager
-            var user = await _userRepository.GetByEmailAsync(email);
+            // Use UserManager to find user by email (Identity)
+            var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 return new JsonModel { data = new object(), Message = "Invalid email or password", StatusCode = 401 };
 
-            // Use custom password verification instead of Identity
-            var isValidPassword = VerifyPassword(password, user.PasswordHash);
+            // Use Identity password verification (BCrypt)
+            var isValidPassword = await _userManager.CheckPasswordAsync(user, password);
             if (!isValidPassword)
                 return new JsonModel { data = new object(), Message = "Invalid email or password", StatusCode = 401 };
 
@@ -310,18 +310,22 @@ public class UserService : IUserService
     {
         try
         {
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)
                 return new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 };
 
-            // Verify current password
-            if (!VerifyPassword(changePasswordDto.CurrentPassword, user.PasswordHash))
+            // Verify current password using Identity
+            var isValidCurrentPassword = await _userManager.CheckPasswordAsync(user, changePasswordDto.CurrentPassword);
+            if (!isValidCurrentPassword)
                 return new JsonModel { data = new object(), Message = "Current password is incorrect", StatusCode = 400 };
 
-            // Hash new password
-            user.PasswordHash = HashPassword(changePasswordDto.NewPassword);
-            user.UpdatedDate = DateTime.UtcNow;
-            await _userRepository.UpdateAsync(user);
+            // Change password using Identity
+            var result = await _userManager.ChangePasswordAsync(user, changePasswordDto.CurrentPassword, changePasswordDto.NewPassword);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return new JsonModel { data = new object(), Message = $"Failed to change password: {errors}", StatusCode = 400 };
+            }
 
             return new JsonModel { data = true, Message = "Password changed successfully", StatusCode = 200 };
         }
@@ -363,7 +367,7 @@ public class UserService : IUserService
     {
         try
         {
-            var user = await _userRepository.GetByEmailAsync(email);
+            var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 return new JsonModel { data = new object(), Message = "User not found", StatusCode = 404 };
 
@@ -373,12 +377,18 @@ public class UserService : IUserService
             if (user.ResetTokenExpires < DateTime.UtcNow)
                 return new JsonModel { data = new object(), Message = "Reset token has expired", StatusCode = 400 };
 
-            // Update password
-            user.PasswordHash = HashPassword(newPassword);
+            // Reset password using Identity
+            var result = await _userManager.ResetPasswordAsync(user, resetToken, newPassword);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return new JsonModel { data = new object(), Message = $"Failed to reset password: {errors}", StatusCode = 400 };
+            }
+
+            // Clear reset token
             user.PasswordResetToken = null;
             user.ResetTokenExpires = null;
-            user.UpdatedDate = DateTime.UtcNow;
-            await _userRepository.UpdateAsync(user);
+            await _userManager.UpdateAsync(user);
 
             return new JsonModel { data = true, Message = "Password reset successfully", StatusCode = 200 };
         }
@@ -1407,17 +1417,64 @@ public class UserService : IUserService
     {
         return await GetUserByIdAsync(userId, tokenModel);
     }
-    public async Task<JsonModel> GetAllUsersAsync(TokenModel tokenModel)
+    public async Task<JsonModel> GetAllUsersAsync(TokenModel tokenModel, string? searchText = null, string? role = null, bool? isActive = null, int page = 1, int pageSize = 50)
     {
         try
         {
-            _logger.LogInformation("Getting all users by user {TokenUserId}", tokenModel?.UserID ?? 0);
+            _logger.LogInformation("Getting all users by user {TokenUserId} with filters: search={SearchText}, role={Role}, isActive={IsActive}, page={Page}, pageSize={PageSize}", 
+                tokenModel?.UserID ?? 0, searchText, role, isActive, page, pageSize);
             
             var users = await _userRepository.GetAllAsync();
             var userDtos = users.Select(MapToUserDto).ToList();
             
-            _logger.LogInformation("Retrieved {UserCount} users by user {TokenUserId}", userDtos.Count, tokenModel?.UserID ?? 0);
-            return new JsonModel { data = userDtos, Message = "Users retrieved successfully", StatusCode = 200 };
+            // Apply search filter
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                searchText = searchText.ToLower();
+                userDtos = userDtos.Where(u => 
+                    u.FirstName?.ToLower().Contains(searchText) == true || 
+                    u.LastName?.ToLower().Contains(searchText) == true || 
+                    u.Email?.ToLower().Contains(searchText) == true ||
+                    u.UserName?.ToLower().Contains(searchText) == true).ToList();
+            }
+
+            // Apply role filter
+            if (!string.IsNullOrEmpty(role))
+            {
+                userDtos = userDtos.Where(u => u.UserType?.Equals(role, StringComparison.OrdinalIgnoreCase) == true).ToList();
+            }
+
+            // Apply active filter
+            if (isActive.HasValue)
+            {
+                userDtos = userDtos.Where(u => u.IsActive == isActive.Value).ToList();
+            }
+
+            // Apply pagination
+            var totalCount = userDtos.Count;
+            var pagedUsers = userDtos
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            _logger.LogInformation("Retrieved {UserCount} users (filtered from {TotalCount}) by user {TokenUserId}", pagedUsers.Count, totalCount, tokenModel?.UserID ?? 0);
+            
+            return new JsonModel 
+            { 
+                data = new
+                {
+                    users = pagedUsers,
+                    pagination = new
+                    {
+                        totalCount,
+                        page,
+                        pageSize,
+                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                    }
+                },
+                Message = "Users retrieved successfully", 
+                StatusCode = 200 
+            };
         }
         catch (Exception ex)
         {
@@ -1436,23 +1493,62 @@ public class UserService : IUserService
             if (existingUser != null)
                 return new JsonModel { data = new object(), Message = "User with this email already exists", StatusCode = 400 };
 
+            // Get UserRoleId based on UserType
+            var userRole = await GetUserRoleByNameAsync(createUserDto.UserType);
+            if (userRole == null)
+            {
+                return new JsonModel { data = new object(), Message = $"Invalid user type: {createUserDto.UserType}", StatusCode = 400 };
+            }
+
             // Create new user
             var user = new User
             {
                 FirstName = createUserDto.FirstName,
                 LastName = createUserDto.LastName,
                 Email = createUserDto.Email,
+                UserName = createUserDto.Email, // Set UserName for Identity
                 PhoneNumber = createUserDto.PhoneNumber,
+                DateOfBirth = createUserDto.DateOfBirth ?? DateTime.UtcNow.AddYears(-25), // Set default if not provided
+                Gender = createUserDto.Gender,
+                Address = createUserDto.Address,
+                City = createUserDto.City,
+                State = createUserDto.State,
+                ZipCode = createUserDto.ZipCode,
+                Country = createUserDto.Country,
+                EmergencyContactName = createUserDto.EmergencyContactName,
+                EmergencyContactPhone = createUserDto.EmergencyContactPhone,
                 UserType = createUserDto.UserType ?? "Patient",
-                PasswordHash = HashPassword(createUserDto.Password),
+                UserRoleId = userRole.Id, // Set the UserRoleId
                 CreatedDate = DateTime.UtcNow,
                 IsActive = true
             };
 
-            var createdUser = await _userRepository.CreateAsync(user);
-            var userDto = MapToUserDto(createdUser);
+            // Create user with password using UserManager (Identity)
+            var result = await _userManager.CreateAsync(user, createUserDto.Password);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return new JsonModel { data = new object(), Message = $"Failed to create user: {errors}", StatusCode = 400 };
+            }
+
+            // Assign Identity role
+            var identityRoleName = createUserDto.UserType?.ToLower() switch
+            {
+                "admin" => "Admin",
+                "provider" => "Provider",
+                _ => "Client"
+            };
+
+            var roleResult = await _userManager.AddToRoleAsync(user, identityRoleName);
+            if (!roleResult.Succeeded)
+            {
+                _logger.LogWarning("Failed to assign Identity role {RoleName} to user {UserId}: {Errors}", 
+                    identityRoleName, user.Id, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+            }
+
+            var userDto = MapToUserDto(user);
             
-            _logger.LogInformation("User created successfully by user {TokenUserId}: {UserId}", tokenModel?.UserID ?? 0, createdUser.Id);
+            _logger.LogInformation("User created successfully by user {TokenUserId}: {UserId}", tokenModel?.UserID ?? 0, user.Id);
             return new JsonModel { data = userDto, Message = "User created successfully", StatusCode = 201 };
         }
         catch (Exception ex)

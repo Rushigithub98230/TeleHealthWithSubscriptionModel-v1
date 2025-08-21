@@ -445,6 +445,23 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
+    public async Task<JsonModel> GetPublicPlansAsync()
+    {
+        try
+        {
+            var plans = await _subscriptionRepository.GetAllSubscriptionPlansAsync();
+            // Only return active plans for public display
+            var activePlans = plans.Where(p => p.IsActive);
+            var dtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(activePlans);
+            return new JsonModel { data = dtos, Message = "Public subscription plans retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting public subscription plans");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve public subscription plans", StatusCode = 500 };
+        }
+    }
+
     public async Task<JsonModel> GetAllPlansAsync(int page, int pageSize, string? searchTerm, string? categoryId, bool? isActive, TokenModel tokenModel)
     {
         try
@@ -561,7 +578,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -583,7 +600,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -747,7 +764,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -829,7 +846,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -859,7 +876,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -885,7 +902,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -908,7 +925,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -931,7 +948,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -952,7 +969,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -970,12 +987,12 @@ public class SubscriptionService : ISubscriptionService
     }
 
     // Admin management methods
-    public async Task<JsonModel> GetAllUserSubscriptionsAsync(int page, int pageSize, string? userId, string? planId, string? status, DateTime? startDate, DateTime? endDate, TokenModel tokenModel)
+    public async Task<JsonModel> GetAllUserSubscriptionsAsync(int page, int pageSize, string? searchTerm, string[]? status, string[]? planId, string[]? userId, DateTime? startDate, DateTime? endDate, string? sortBy, string? sortOrder, TokenModel tokenModel)
     {
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -983,19 +1000,39 @@ public class SubscriptionService : ISubscriptionService
             var allSubscriptions = await _subscriptionRepository.GetAllSubscriptionsAsync();
             var filteredSubscriptions = allSubscriptions.AsQueryable();
             
-            if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out var userIdInt))
+            // Apply search term filter
+            if (!string.IsNullOrEmpty(searchTerm))
             {
-                filteredSubscriptions = filteredSubscriptions.Where(s => s.UserId == userIdInt);
+                filteredSubscriptions = filteredSubscriptions.Where(s => 
+                    s.User.UserName.Contains(searchTerm) || 
+                    s.SubscriptionPlan.Name.Contains(searchTerm) ||
+                    s.Id.ToString().Contains(searchTerm));
             }
             
-            if (!string.IsNullOrEmpty(planId) && Guid.TryParse(planId, out var planIdGuid))
+            // Apply status filter (array)
+            if (status != null && status.Length > 0)
             {
-                filteredSubscriptions = filteredSubscriptions.Where(s => s.SubscriptionPlanId == planIdGuid);
+                filteredSubscriptions = filteredSubscriptions.Where(s => status.Contains(s.Status));
             }
             
-            if (!string.IsNullOrEmpty(status))
+            // Apply plan ID filter (array)
+            if (planId != null && planId.Length > 0)
             {
-                filteredSubscriptions = filteredSubscriptions.Where(s => s.Status == status);
+                var planIds = planId.Where(id => Guid.TryParse(id, out _)).Select(id => Guid.Parse(id)).ToList();
+                if (planIds.Any())
+                {
+                    filteredSubscriptions = filteredSubscriptions.Where(s => planIds.Contains(s.SubscriptionPlanId));
+                }
+            }
+            
+            // Apply user ID filter (array)
+            if (userId != null && userId.Length > 0)
+            {
+                var userIds = userId.Where(id => int.TryParse(id, out _)).Select(id => int.Parse(id)).ToList();
+                if (userIds.Any())
+                {
+                    filteredSubscriptions = filteredSubscriptions.Where(s => userIds.Contains(s.UserId));
+                }
             }
             
             if (startDate.HasValue)
@@ -1008,6 +1045,28 @@ public class SubscriptionService : ISubscriptionService
                 filteredSubscriptions = filteredSubscriptions.Where(s => s.CreatedAt <= endDate.Value);
             }
             
+            // Apply sorting
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                filteredSubscriptions = sortBy.ToLower() switch
+                {
+                    "createdat" => sortOrder?.ToLower() == "desc" 
+                        ? filteredSubscriptions.OrderByDescending(s => s.CreatedAt)
+                        : filteredSubscriptions.OrderBy(s => s.CreatedAt),
+                    "status" => sortOrder?.ToLower() == "desc" 
+                        ? filteredSubscriptions.OrderByDescending(s => s.Status)
+                        : filteredSubscriptions.OrderBy(s => s.Status),
+                    "userid" => sortOrder?.ToLower() == "desc" 
+                        ? filteredSubscriptions.OrderByDescending(s => s.UserId)
+                        : filteredSubscriptions.OrderBy(s => s.UserId),
+                    _ => filteredSubscriptions.OrderByDescending(s => s.CreatedAt)
+                };
+            }
+            else
+            {
+                filteredSubscriptions = filteredSubscriptions.OrderByDescending(s => s.CreatedAt);
+            }
+            
             var totalCount = filteredSubscriptions.Count();
             var subscriptions = filteredSubscriptions
                 .Skip((page - 1) * pageSize)
@@ -1015,7 +1074,25 @@ public class SubscriptionService : ISubscriptionService
                 .ToList();
             
             var dtos = _mapper.Map<IEnumerable<SubscriptionDto>>(subscriptions);
-            return new JsonModel { data = dtos, Message = "User subscriptions retrieved successfully", StatusCode = 200 };
+            
+            // Return with pagination metadata
+            return new JsonModel 
+            { 
+                data = new
+                {
+                    data = dtos,
+                    meta = new
+                    {
+                        totalRecords = totalCount,
+                        pageSize = pageSize,
+                        currentPage = page,
+                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                        defaultPageSize = pageSize
+                    }
+                },
+                Message = "User subscriptions retrieved successfully", 
+                StatusCode = 200 
+            };
         }
         catch (Exception ex)
         {
@@ -1052,7 +1129,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1080,7 +1157,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1108,7 +1185,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1138,7 +1215,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1188,19 +1265,67 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<JsonModel> GetAllSubscriptionPlansAsync(TokenModel tokenModel)
+    public async Task<JsonModel> GetAllSubscriptionPlansAsync(TokenModel tokenModel, string? searchTerm = null, string? categoryId = null, bool? isActive = null, int page = 1, int pageSize = 50)
     {
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
 
-            var plans = await _subscriptionRepository.GetAllSubscriptionPlansAsync();
-            var dtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(plans);
-            return new JsonModel { data = dtos, Message = "All subscription plans retrieved successfully", StatusCode = 200 };
+            // Get all plans first
+            var allPlans = await _subscriptionRepository.GetAllSubscriptionPlansAsync();
+            var plans = allPlans.AsEnumerable();
+
+            // Apply search filter
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                searchTerm = searchTerm.ToLower();
+                plans = plans.Where(p => 
+                    p.Name.ToLower().Contains(searchTerm) || 
+                    p.Description.ToLower().Contains(searchTerm) ||
+                    p.LongDescription.ToLower().Contains(searchTerm));
+            }
+
+            // Apply category filter
+            if (!string.IsNullOrEmpty(categoryId) && Guid.TryParse(categoryId, out Guid categoryGuid))
+            {
+                plans = plans.Where(p => p.CategoryId == categoryGuid);
+            }
+
+            // Apply active filter
+            if (isActive.HasValue)
+            {
+                plans = plans.Where(p => p.IsActive == isActive.Value);
+            }
+
+            // Apply pagination
+            var totalCount = plans.Count();
+            var pagedPlans = plans
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var dtos = _mapper.Map<IEnumerable<SubscriptionPlanDto>>(pagedPlans);
+            
+            return new JsonModel 
+            { 
+                data = new
+                {
+                    plans = dtos,
+                    pagination = new
+                    {
+                        totalCount,
+                        page,
+                        pageSize,
+                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                    }
+                },
+                Message = "Subscription plans retrieved successfully", 
+                StatusCode = 200 
+            };
         }
         catch (Exception ex)
         {
@@ -1214,7 +1339,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1235,7 +1360,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1261,7 +1386,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1282,7 +1407,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1304,7 +1429,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1338,7 +1463,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1387,7 +1512,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1457,7 +1582,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1702,7 +1827,7 @@ public class SubscriptionService : ISubscriptionService
     public async Task<JsonModel> DeactivatePlanAsync(string planId, string adminUserId, TokenModel tokenModel)
     {
         // Admin only method - validate admin role
-        if (tokenModel.RoleID != 1)
+        if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
         {
             return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
         }
@@ -1775,7 +1900,7 @@ public class SubscriptionService : ISubscriptionService
         try
         {
             // Admin only method - validate admin role
-            if (tokenModel.RoleID != 1)
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
             {
                 return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
             }
@@ -1889,5 +2014,150 @@ public class SubscriptionService : ISubscriptionService
         {
             return false;
         }
+    }
+
+    // Export methods
+    public async Task<JsonModel> ExportSubscriptionPlansAsync(TokenModel tokenModel, string? searchTerm = null, string? categoryId = null, bool? isActive = null, string format = "csv")
+    {
+        try
+        {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
+            // Get filtered plans using the existing method
+            var plansResult = await GetAllSubscriptionPlansAsync(tokenModel, searchTerm, categoryId, isActive, 1, int.MaxValue);
+            
+            if (plansResult.StatusCode != 200)
+            {
+                return plansResult;
+            }
+
+            // Extract plans from the result
+            var plansData = plansResult.data as dynamic;
+            var plans = plansData?.plans as IEnumerable<SubscriptionPlanDto>;
+            
+            if (plans == null)
+            {
+                return new JsonModel { data = new object(), Message = "No plans found for export", StatusCode = 404 };
+            }
+
+            // Generate export data based on format
+            var exportData = format.ToLower() == "csv" 
+                ? GenerateSubscriptionPlansCsv(plans)
+                : GenerateSubscriptionPlansExcel(plans);
+
+            return new JsonModel 
+            { 
+                data = new { exportData, format, fileName = $"subscription_plans_{DateTime.UtcNow:yyyyMMdd}.{format}" }, 
+                Message = "Export data generated successfully", 
+                StatusCode = 200 
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting subscription plans");
+            return new JsonModel { data = new object(), Message = "Failed to export subscription plans", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> ExportCategoriesAsync(TokenModel tokenModel, string? searchTerm = null, bool? isActive = null, string format = "csv")
+    {
+        try
+        {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
+            // For now, return a placeholder since categories service is not fully implemented
+            return new JsonModel 
+            { 
+                data = new { exportData = "Categories export not yet implemented", format, fileName = $"categories_{DateTime.UtcNow:yyyyMMdd}.{format}" }, 
+                Message = "Categories export not yet implemented", 
+                StatusCode = 501 
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting categories");
+            return new JsonModel { data = new object(), Message = "Failed to export categories", StatusCode = 500 };
+        }
+    }
+
+    public async Task<JsonModel> GetSubscriptionAnalyticsAsync(TokenModel tokenModel, string? searchTerm = null, string? categoryId = null, bool? isActive = null)
+    {
+        try
+        {
+            // Admin only method - validate admin role
+            if (tokenModel.RoleID != 1 && tokenModel.RoleID != 3)
+            {
+                return new JsonModel { data = new object(), Message = "Access denied - Admin only", StatusCode = 403 };
+            }
+
+            // Get filtered plans
+            var plansResult = await GetAllSubscriptionPlansAsync(tokenModel, searchTerm, categoryId, isActive, 1, int.MaxValue);
+            
+            if (plansResult.StatusCode != 200)
+            {
+                return plansResult;
+            }
+
+            // Extract plans from the result
+            var plansData = plansResult.data as dynamic;
+            var plans = plansData?.plans as IEnumerable<SubscriptionPlanDto>;
+            
+            if (plans == null)
+            {
+                return new JsonModel { data = new object(), Message = "No plans found for analytics", StatusCode = 404 };
+            }
+
+            // Generate analytics data
+            var analytics = new
+            {
+                totalPlans = plans.Count(),
+                activePlans = plans.Count(p => p.IsActive),
+                inactivePlans = plans.Count(p => !p.IsActive),
+                averagePrice = plans.Any() ? plans.Average(p => p.Price) : 0,
+                totalSubscriptions = plans.Sum(p => p.SubscriberCount ?? 0),
+                plansByCategory = plans.GroupBy(p => p.CategoryName).Select(g => new { category = g.Key, count = g.Count() }),
+                priceRange = new
+                {
+                    min = plans.Any() ? plans.Min(p => p.Price) : 0,
+                    max = plans.Any() ? plans.Max(p => p.Price) : 0
+                }
+            };
+
+            return new JsonModel { data = analytics, Message = "Subscription analytics retrieved successfully", StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting subscription analytics");
+            return new JsonModel { data = new object(), Message = "Failed to retrieve subscription analytics", StatusCode = 500 };
+        }
+    }
+
+    // Helper methods for export generation
+    private string GenerateSubscriptionPlansCsv(IEnumerable<SubscriptionPlanDto> plans)
+    {
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("Name,Description,Price,Currency,BillingCycle,IsActive,CategoryName,SubscriberCount,CreatedDate");
+        
+        foreach (var plan in plans)
+        {
+            csv.AppendLine($"\"{plan.Name}\",\"{plan.Description}\",{plan.Price},{plan.Currency},{plan.BillingCycle},{plan.IsActive},\"{plan.CategoryName}\",{plan.SubscriberCount ?? 0},{plan.CreatedDate:yyyy-MM-dd}");
+        }
+        
+        return csv.ToString();
+    }
+
+    private string GenerateSubscriptionPlansExcel(IEnumerable<SubscriptionPlanDto> plans)
+    {
+        // For now, return CSV format as Excel generation would require additional libraries
+        // In a real implementation, you'd use EPPlus or similar library
+        return GenerateSubscriptionPlansCsv(plans);
     }
 } 

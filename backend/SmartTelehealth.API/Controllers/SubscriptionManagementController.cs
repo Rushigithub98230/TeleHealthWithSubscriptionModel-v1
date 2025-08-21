@@ -8,7 +8,7 @@ namespace SmartTelehealth.API.Controllers;
 
 [ApiController]
 [Route("webadmin/subscription-management")]
-[Authorize(Policy = "AdminOnly")]
+[Authorize]
 public class SubscriptionManagementController : BaseController
 {
     private readonly ISubscriptionService _subscriptionService;
@@ -48,7 +48,6 @@ public class SubscriptionManagementController : BaseController
     /// Create a new subscription plan
     /// </summary>
     [HttpPost("plans")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> CreatePlan([FromBody] CreateSubscriptionPlanDto createDto)
     {
         return await _subscriptionService.CreatePlanAsync(createDto, GetToken(HttpContext));
@@ -58,7 +57,6 @@ public class SubscriptionManagementController : BaseController
     /// Update an existing subscription plan
     /// </summary>
     [HttpPut("plans/{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> UpdatePlan(string id, [FromBody] UpdateSubscriptionPlanDto updateDto)
     {
         if (id != updateDto.Id)
@@ -71,7 +69,6 @@ public class SubscriptionManagementController : BaseController
     /// Delete a subscription plan
     /// </summary>
     [HttpDelete("plans/{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> DeletePlan(string id)
     {
         return await _subscriptionService.DeletePlanAsync(id, GetToken(HttpContext));
@@ -81,7 +78,6 @@ public class SubscriptionManagementController : BaseController
     /// Activate a subscription plan
     /// </summary>
     [HttpPost("plans/{id}/activate")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> ActivatePlan(string id)
     {
         return await _subscriptionService.ActivatePlanAsync(id, GetToken(HttpContext));
@@ -91,7 +87,6 @@ public class SubscriptionManagementController : BaseController
     /// Deactivate a subscription plan
     /// </summary>
     [HttpPost("plans/{id}/deactivate")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> DeactivatePlan(string id)
     {
         return await _subscriptionService.DeactivatePlanAsync(id, GetToken(HttpContext));
@@ -108,13 +103,16 @@ public class SubscriptionManagementController : BaseController
     public async Task<JsonModel> GetAllUserSubscriptions(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string? userId = null,
-        [FromQuery] string? planId = null,
-        [FromQuery] string? status = null,
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] string[]? status = null,
+        [FromQuery] string[]? planId = null,
+        [FromQuery] string[]? userId = null,
         [FromQuery] DateTime? startDate = null,
-        [FromQuery] DateTime? endDate = null)
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortOrder = null)
     {
-        return await _subscriptionService.GetAllUserSubscriptionsAsync(page, pageSize, userId, planId, status, startDate, endDate, GetToken(HttpContext));
+        return await _subscriptionService.GetAllUserSubscriptionsAsync(page, pageSize, searchTerm, status, planId, userId, startDate, endDate, sortBy, sortOrder, GetToken(HttpContext));
     }
 
     /// <summary>
@@ -181,7 +179,6 @@ public class SubscriptionManagementController : BaseController
     /// Create a new category
     /// </summary>
     [HttpPost("categories")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> CreateCategory([FromBody] CreateCategoryDto createDto)
     {
         return await _categoryService.CreateCategoryAsync(createDto, GetToken(HttpContext));
@@ -191,7 +188,6 @@ public class SubscriptionManagementController : BaseController
     /// Update an existing category
     /// </summary>
     [HttpPut("categories/{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> UpdateCategory(Guid id, [FromBody] UpdateCategoryDto updateDto)
     {
         if (id.ToString() != updateDto.Id)
@@ -204,7 +200,6 @@ public class SubscriptionManagementController : BaseController
     /// Delete a category
     /// </summary>
     [HttpDelete("categories/{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> DeleteCategory(Guid id)
     {
         return await _categoryService.DeleteCategoryAsync(id, GetToken(HttpContext));
@@ -234,7 +229,6 @@ public class SubscriptionManagementController : BaseController
     /// Perform bulk operations on subscriptions
     /// </summary>
     [HttpPost("bulk-action")]
-    [Authorize(Roles = "Admin")]
     public async Task<JsonModel> PerformBulkAction([FromBody] BulkActionRequestDto request)
     {
         var result = await _subscriptionService.PerformBulkActionAsync(new List<BulkActionRequestDto> { request }, GetToken(HttpContext));

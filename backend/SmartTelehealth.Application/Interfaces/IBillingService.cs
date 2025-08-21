@@ -10,7 +10,7 @@ public interface IBillingService
     Task<JsonModel> GetBillingRecordAsync(Guid id, TokenModel tokenModel);
     Task<JsonModel> GetUserBillingHistoryAsync(int userId, TokenModel tokenModel);
     Task<JsonModel> GetSubscriptionBillingHistoryAsync(Guid subscriptionId, TokenModel tokenModel);
-    Task<JsonModel> GetAllBillingRecordsAsync(TokenModel tokenModel);
+    Task<JsonModel> GetAllBillingRecordsAsync(int page, int pageSize, string? searchTerm, string[]? status, string[]? type, string[]? userId, string[]? subscriptionId, DateTime? startDate, DateTime? endDate, string? sortBy, string? sortOrder, TokenModel tokenModel);
     Task<JsonModel> ProcessPaymentAsync(Guid billingRecordId, TokenModel tokenModel);
     Task<JsonModel> ProcessRefundAsync(Guid billingRecordId, decimal amount, TokenModel tokenModel);
     Task<JsonModel> ProcessRefundAsync(Guid billingRecordId, decimal amount, string reason, TokenModel tokenModel);
@@ -50,4 +50,7 @@ public interface IBillingService
     Task<JsonModel> GetBillingCycleRecordsAsync(Guid billingCycleId, TokenModel tokenModel);
     Task<JsonModel> GetRevenueSummaryAsync(DateTime? from, DateTime? to, string? planId, TokenModel tokenModel);
     Task<JsonModel> ExportRevenueAsync(DateTime? from, DateTime? to, string? planId, string format, TokenModel tokenModel);
+    
+    // Export functionality
+    Task<JsonModel> ExportBillingRecordsAsync(TokenModel tokenModel, int page, int pageSize, string? searchTerm, string[]? status, string[]? type, string[]? userId, string[]? subscriptionId, DateTime? startDate, DateTime? endDate, string? sortBy, string? sortOrder, string format);
 } 

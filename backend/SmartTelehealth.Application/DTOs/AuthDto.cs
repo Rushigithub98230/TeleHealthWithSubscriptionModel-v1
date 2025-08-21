@@ -29,6 +29,8 @@ public class RegisterDto
     [Required]
     public string PhoneNumber { get; set; } = string.Empty;
     [Required]
+    public string DateOfBirth { get; set; } = string.Empty;
+    [Required]
     public string Gender { get; set; } = string.Empty;
     [Required]
     public string Address { get; set; } = string.Empty;

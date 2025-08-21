@@ -18,6 +18,7 @@ namespace SmartTelehealth.Application.Interfaces
         Task<JsonModel> GetActiveSubscriptionsAsync(TokenModel tokenModel);
         Task<JsonModel> GetAllPlansAsync(TokenModel tokenModel);
         Task<JsonModel> GetAllPlansAsync(int page, int pageSize, string? searchTerm, string? categoryId, bool? isActive, TokenModel tokenModel);
+        Task<JsonModel> GetPublicPlansAsync();
         Task<JsonModel> GetPlanByIdAsync(string planId, TokenModel tokenModel);
         Task<JsonModel> GetSubscriptionByIdAsync(string subscriptionId, TokenModel tokenModel);
         Task<JsonModel> UpdateSubscriptionAsync(string subscriptionId, UpdateSubscriptionDto updateDto, TokenModel tokenModel);
@@ -35,7 +36,7 @@ namespace SmartTelehealth.Application.Interfaces
         Task<JsonModel> DeletePlanAsync(string planId, TokenModel tokenModel);
         
         // Admin management methods
-        Task<JsonModel> GetAllUserSubscriptionsAsync(int page, int pageSize, string? userId, string? planId, string? status, DateTime? startDate, DateTime? endDate, TokenModel tokenModel);
+        Task<JsonModel> GetAllUserSubscriptionsAsync(int page, int pageSize, string? searchTerm, string[]? status, string[]? planId, string[]? userId, DateTime? startDate, DateTime? endDate, string? sortBy, string? sortOrder, TokenModel tokenModel);
         Task<JsonModel> CancelUserSubscriptionAsync(string subscriptionId, string? reason, TokenModel tokenModel);
         Task<JsonModel> PauseUserSubscriptionAsync(string subscriptionId, TokenModel tokenModel);
         Task<JsonModel> ResumeUserSubscriptionAsync(string subscriptionId, TokenModel tokenModel);
@@ -44,7 +45,7 @@ namespace SmartTelehealth.Application.Interfaces
         
         // Bulk operations
         Task<JsonModel> PerformBulkActionAsync(List<BulkActionRequestDto> actions, TokenModel tokenModel);
-        Task<JsonModel> GetAllSubscriptionPlansAsync(TokenModel tokenModel);
+        Task<JsonModel> GetAllSubscriptionPlansAsync(TokenModel tokenModel, string? searchTerm = null, string? categoryId = null, bool? isActive = null, int page = 1, int pageSize = 50);
         Task<JsonModel> GetActiveSubscriptionPlansAsync(TokenModel tokenModel);
         Task<JsonModel> GetSubscriptionPlansByCategoryAsync(string category, TokenModel tokenModel);
         Task<JsonModel> GetSubscriptionPlanAsync(string planId, TokenModel tokenModel);
@@ -52,6 +53,11 @@ namespace SmartTelehealth.Application.Interfaces
         // Category management
         Task<JsonModel> GetAllCategoriesAsync(int page, int pageSize, string? searchTerm, bool? isActive, TokenModel tokenModel);
         Task<JsonModel> CreateSubscriptionPlanAsync(CreateSubscriptionDto createDto, TokenModel tokenModel);
+        
+        // Export and enhanced analytics methods
+        Task<JsonModel> ExportSubscriptionPlansAsync(TokenModel tokenModel, string? searchTerm = null, string? categoryId = null, bool? isActive = null, string format = "csv");
+        Task<JsonModel> ExportCategoriesAsync(TokenModel tokenModel, string? searchTerm = null, bool? isActive = null, string format = "csv");
+        Task<JsonModel> GetSubscriptionAnalyticsAsync(TokenModel tokenModel, string? searchTerm = null, string? categoryId = null, bool? isActive = null);
         
         // Analytics methods
         Task<JsonModel> GetSubscriptionAnalyticsAsync(string subscriptionId, DateTime? startDate, DateTime? endDate, TokenModel tokenModel);

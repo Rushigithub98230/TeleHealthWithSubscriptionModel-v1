@@ -82,13 +82,120 @@ namespace SmartTelehealth.Application.Services
             }
         }
 
-        public async Task<JsonModel> GetAllBillingRecordsAsync(TokenModel tokenModel)
+        public async Task<JsonModel> GetAllBillingRecordsAsync(int page, int pageSize, string? searchTerm, string[]? status, string[]? type, string[]? userId, string[]? subscriptionId, DateTime? startDate, DateTime? endDate, string? sortBy, string? sortOrder, TokenModel tokenModel)
         {
             try
             {
-                var billingRecords = await _billingRepository.GetAllAsync();
+                var allBillingRecords = await _billingRepository.GetAllAsync();
+                var filteredRecords = allBillingRecords.AsQueryable();
+                
+                // Apply search term filter
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    filteredRecords = filteredRecords.Where(b => 
+                        b.Id.ToString().Contains(searchTerm) || 
+                        b.SubscriptionId.ToString().Contains(searchTerm) ||
+                        b.UserId.ToString().Contains(searchTerm));
+                }
+                
+                // Apply status filter (array)
+                if (status != null && status.Length > 0)
+                {
+                    var validStatuses = status.Where(s => Enum.TryParse<BillingRecord.BillingStatus>(s, out _)).ToList();
+                    if (validStatuses.Any())
+                    {
+                        filteredRecords = filteredRecords.Where(b => validStatuses.Contains(b.Status.ToString()));
+                    }
+                }
+                
+                // Apply type filter (array)
+                if (type != null && type.Length > 0)
+                {
+                    var validTypes = type.Where(t => Enum.TryParse<BillingRecord.BillingType>(t, out _)).ToList();
+                    if (validTypes.Any())
+                    {
+                        filteredRecords = filteredRecords.Where(b => validTypes.Contains(b.Type.ToString()));
+                    }
+                }
+                
+                // Apply user ID filter (array)
+                if (userId != null && userId.Length > 0)
+                {
+                    var userIds = userId.Where(id => int.TryParse(id, out _)).Select(id => int.Parse(id)).ToList();
+                    if (userIds.Any())
+                    {
+                        filteredRecords = filteredRecords.Where(b => userIds.Contains(b.UserId));
+                    }
+                }
+                
+                // Apply subscription ID filter (array)
+                if (subscriptionId != null && subscriptionId.Length > 0)
+                {
+                    var subscriptionIds = subscriptionId.Where(id => Guid.TryParse(id, out _)).Select(id => Guid.Parse(id)).ToList();
+                    if (subscriptionIds.Any())
+                    {
+                        filteredRecords = filteredRecords.Where(b => b.SubscriptionId.HasValue && subscriptionIds.Contains(b.SubscriptionId.Value));
+                    }
+                }
+                
+                if (startDate.HasValue)
+                {
+                    filteredRecords = filteredRecords.Where(b => b.CreatedDate >= startDate.Value);
+                }
+                
+                if (endDate.HasValue)
+                {
+                    filteredRecords = filteredRecords.Where(b => b.CreatedDate <= endDate.Value);
+                }
+                
+                // Apply sorting
+                if (!string.IsNullOrEmpty(sortBy))
+                {
+                    filteredRecords = sortBy.ToLower() switch
+                    {
+                        "createddate" => sortOrder?.ToLower() == "desc" 
+                            ? filteredRecords.OrderByDescending(b => b.CreatedDate)
+                            : filteredRecords.OrderBy(b => b.CreatedDate),
+                        "amount" => sortOrder?.ToLower() == "desc" 
+                            ? filteredRecords.OrderByDescending(b => b.Amount)
+                            : filteredRecords.OrderBy(b => b.Amount),
+                        "status" => sortOrder?.ToLower() == "desc" 
+                            ? filteredRecords.OrderByDescending(b => b.Status)
+                            : filteredRecords.OrderBy(b => b.Status),
+                        _ => filteredRecords.OrderByDescending(b => b.CreatedDate)
+                    };
+                }
+                else
+                {
+                    filteredRecords = filteredRecords.OrderByDescending(b => b.CreatedDate);
+                }
+                
+                var totalCount = filteredRecords.Count();
+                var billingRecords = filteredRecords
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+                
                 var billingRecordDtos = _mapper.Map<IEnumerable<BillingRecordDto>>(billingRecords);
-                return new JsonModel { data = billingRecordDtos, Message = "All billing records retrieved successfully", StatusCode = 200 };
+                
+                // Return with pagination metadata
+                return new JsonModel 
+                { 
+                    data = new
+                    {
+                        data = billingRecordDtos,
+                        meta = new
+                        {
+                            totalRecords = totalCount,
+                            pageSize = pageSize,
+                            currentPage = page,
+                            totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                            defaultPageSize = pageSize
+                        }
+                    },
+                    Message = "All billing records retrieved successfully", 
+                    StatusCode = 200 
+                };
             }
             catch (Exception ex)
             {
@@ -1041,6 +1148,67 @@ namespace SmartTelehealth.Application.Services
                 _logger.LogError(ex, "Error getting payment analytics for user {UserId}", userId);
                 return new JsonModel { data = new object(), Message = "Error retrieving payment analytics", StatusCode = 500 };
             }
+        }
+
+        public async Task<JsonModel> ExportBillingRecordsAsync(TokenModel tokenModel, int page, int pageSize, string? searchTerm, string[]? status, string[]? type, string[]? userId, string[]? subscriptionId, DateTime? startDate, DateTime? endDate, string? sortBy, string? sortOrder, string format)
+        {
+            try
+            {
+                // Get filtered billing records using the existing method
+                var billingRecordsResult = await GetAllBillingRecordsAsync(page, pageSize, searchTerm, status, type, userId, subscriptionId, startDate, endDate, sortBy, sortOrder, tokenModel);
+                
+                if (billingRecordsResult.StatusCode != 200)
+                {
+                    return billingRecordsResult;
+                }
+
+                // Extract billing records from the result
+                var billingRecordsData = billingRecordsResult.data as dynamic;
+                var billingRecords = billingRecordsData?.billingRecords as IEnumerable<BillingRecordDto>;
+                
+                if (billingRecords == null)
+                {
+                    return new JsonModel { data = new object(), Message = "No billing records found for export", StatusCode = 404 };
+                }
+
+                // Generate export data based on format
+                var exportData = format.ToLower() == "csv" 
+                    ? GenerateBillingRecordsCsv(billingRecords)
+                    : GenerateBillingRecordsExcel(billingRecords);
+
+                return new JsonModel 
+                { 
+                    data = new { exportData, format, fileName = $"billing_records_{DateTime.UtcNow:yyyyMMdd}.{format}" }, 
+                    Message = "Export data generated successfully", 
+                    StatusCode = 200 
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error exporting billing records");
+                return new JsonModel { data = new object(), Message = "Failed to export billing records", StatusCode = 500 };
+            }
+        }
+
+        // Helper methods for export generation
+        private string GenerateBillingRecordsCsv(IEnumerable<BillingRecordDto> billingRecords)
+        {
+            var csv = new System.Text.StringBuilder();
+            csv.AppendLine("Id,UserId,SubscriptionId,Amount,Currency,Status,Type,Description,CreatedDate,PaidDate,PaymentMethod,TransactionId");
+            
+            foreach (var record in billingRecords)
+            {
+                csv.AppendLine($"\"{record.Id}\",\"{record.UserId}\",\"{record.SubscriptionId}\",{record.Amount},{record.Currency},{record.Status},{record.Type},\"{record.Description}\",{record.CreatedDate:yyyy-MM-dd},{record.PaidDate?.ToString("yyyy-MM-dd") ?? ""},\"{record.PaymentMethod}\",\"{record.TransactionId}\"");
+            }
+            
+            return csv.ToString();
+        }
+
+        private string GenerateBillingRecordsExcel(IEnumerable<BillingRecordDto> billingRecords)
+        {
+            // For now, return CSV format as Excel generation would require additional libraries
+            // In a real implementation, you'd use EPPlus or similar library
+            return GenerateBillingRecordsCsv(billingRecords);
         }
     }
 } 

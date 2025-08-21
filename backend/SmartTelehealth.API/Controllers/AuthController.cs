@@ -111,6 +111,7 @@ public class AuthController : BaseController
             LastName = registerDto.LastName,
             Email = registerDto.Email,
             PhoneNumber = registerDto.PhoneNumber,
+            DateOfBirth = DateTime.Parse(registerDto.DateOfBirth), // Parse the date string
             Gender = registerDto.Gender,
             Address = registerDto.Address,
             City = registerDto.City,
@@ -122,7 +123,7 @@ public class AuthController : BaseController
 
         var result = await _userService.CreateUserAsync(userDto, GetToken(HttpContext));
         
-        if (result.StatusCode == 200)
+        if (result.StatusCode == 200 || result.StatusCode == 201)
         {
             return new JsonModel { data = new object(), Message = "User registered successfully", StatusCode = 200 };
         }

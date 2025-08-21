@@ -1213,15 +1213,117 @@ public class BillingService : IBillingService
         }
     }
 
-    public async Task<JsonModel> GetAllBillingRecordsAsync(TokenModel tokenModel)
+    public async Task<JsonModel> GetAllBillingRecordsAsync(int page, int pageSize, string? searchTerm, string[]? status, string[]? type, string[]? userId, string[]? subscriptionId, DateTime? startDate, DateTime? endDate, string? sortBy, string? sortOrder, TokenModel tokenModel)
     {
         try
         {
-            var billingRecords = await _billingRepository.GetAllAsync();
+            var allBillingRecords = await _billingRepository.GetAllAsync();
+            var filteredRecords = allBillingRecords.AsQueryable();
+            
+            // Apply search term filter
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                filteredRecords = filteredRecords.Where(b => 
+                    b.Id.ToString().Contains(searchTerm) || 
+                    b.SubscriptionId.ToString().Contains(searchTerm) ||
+                    b.UserId.ToString().Contains(searchTerm));
+            }
+            
+            // Apply status filter (array)
+            if (status != null && status.Length > 0)
+            {
+                var validStatuses = status.Where(s => Enum.TryParse<BillingRecord.BillingStatus>(s, out _)).ToList();
+                if (validStatuses.Any())
+                {
+                    filteredRecords = filteredRecords.Where(b => validStatuses.Contains(b.Status.ToString()));
+                }
+            }
+            
+            // Apply type filter (array)
+            if (type != null && type.Length > 0)
+            {
+                var validTypes = type.Where(t => Enum.TryParse<BillingRecord.BillingType>(t, out _)).ToList();
+                if (validTypes.Any())
+                {
+                    filteredRecords = filteredRecords.Where(b => validTypes.Contains(b.Type.ToString()));
+                }
+            }
+            
+            // Apply user ID filter (array)
+            if (userId != null && userId.Length > 0)
+            {
+                var userIds = userId.Where(id => int.TryParse(id, out _)).Select(id => int.Parse(id)).ToList();
+                if (userIds.Any())
+                {
+                    filteredRecords = filteredRecords.Where(b => userIds.Contains(b.UserId));
+                }
+            }
+            
+            // Apply subscription ID filter (array)
+            if (subscriptionId != null && subscriptionId.Length > 0)
+            {
+                var subscriptionIds = subscriptionId.Where(id => Guid.TryParse(id, out _)).Select(id => Guid.Parse(id)).ToList();
+                if (subscriptionIds.Any())
+                {
+                    filteredRecords = filteredRecords.Where(b => b.SubscriptionId.HasValue && subscriptionIds.Contains(b.SubscriptionId.Value));
+                }
+            }
+            
+            if (startDate.HasValue)
+            {
+                filteredRecords = filteredRecords.Where(b => b.CreatedDate >= startDate.Value);
+            }
+            
+            if (endDate.HasValue)
+            {
+                filteredRecords = filteredRecords.Where(b => b.CreatedDate <= endDate.Value);
+            }
+            
+            // Apply sorting
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                filteredRecords = sortBy.ToLower() switch
+                {
+                    "createddate" => sortOrder?.ToLower() == "desc" 
+                        ? filteredRecords.OrderByDescending(b => b.CreatedDate)
+                        : filteredRecords.OrderBy(b => b.CreatedDate),
+                    "amount" => sortOrder?.ToLower() == "desc" 
+                        ? filteredRecords.OrderByDescending(b => b.Amount)
+                        : filteredRecords.OrderBy(b => b.Amount),
+                    "status" => sortOrder?.ToLower() == "desc" 
+                        ? filteredRecords.OrderByDescending(b => b.Status)
+                        : filteredRecords.OrderBy(b => b.Status),
+                    _ => filteredRecords.OrderByDescending(b => b.CreatedDate)
+                };
+            }
+            else
+            {
+                filteredRecords = filteredRecords.OrderByDescending(b => b.CreatedDate);
+            }
+            
+            var totalCount = filteredRecords.Count();
+            var billingRecords = filteredRecords
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            
             var dtos = billingRecords.Select(MapToDto);
+            
+            // Return with pagination metadata
             return new JsonModel
             {
-                data = dtos,
+                data = new
+                {
+                    data = dtos,
+                    meta = new
+                    {
+                        totalRecords = totalCount,
+                        pageSize = pageSize,
+                        currentPage = page,
+                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                        defaultPageSize = pageSize
+                    }
+                },
                 Message = "All billing records retrieved successfully",
                 StatusCode = 200
             };
